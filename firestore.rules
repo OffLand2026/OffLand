@@ -60,6 +60,16 @@ service cloud.firestore {
         && request.resource.data.info is map && request.resource.data.status == "neu";
     }
 
+    // Online-Backups: verschlüsselt, Dokument-ID wird aus dem Wiederherstellungs-Code abgeleitet.
+    // Wer die ID kennt, hat den Code. Auflisten ist verboten.
+    match /backups/{id} {
+      allow get, delete: if signedIn() && id.size() == 40;
+      allow create, update: if signedIn() && id.size() == 40
+        && request.resource.data.keys().hasOnly(["v", "gz", "iv", "data", "at", "size"])
+        && request.resource.data.data is string && request.resource.data.data.size() <= 900000
+        && request.resource.data.iv is string && request.resource.data.iv.size() <= 24;
+    }
+
     // Rangliste für alle: nur wer zugestimmt hat, steht hier.
     match /weeks/{wk}/public/{pid} {
       allow get: if signedIn();

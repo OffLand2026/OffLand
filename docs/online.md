@@ -86,3 +86,14 @@ In der App unter Profilbild → **Hilfe und Support** können Spieler:innen Fehl
 - **Antworten:** Meldung öffnen → **Feld hinzufügen** → Name `antwort`, Typ **string**, deinen Antworttext eintragen → Hinzufügen. Am besten auch `status` auf `beantwortet` setzen. Die App zeigt die Antwort beim nächsten Öffnen als „Post vom OffLand-Team“ und unter Hilfe und Support → Meine Anfragen. Die Person muss dafür nicht online gegangen sein.
 - Spieler:innen können nur Meldungen senden und ihre eigenen Anfragen samt Antwort lesen. Fremde Meldungen kann niemand lesen, auflisten oder ändern.
 - Nach dem Erweitern der Regeln (`firestore.rules`) müssen sie in der Konsole neu eingefügt und veröffentlicht werden.
+
+## Online-Backup
+
+In der App unter Profilbild → Einstellungen → **Online-Backup** lässt sich die Insel sichern.
+
+- Beim Einschalten bekommt die Person einen **Wiederherstellungs-Code** (12 Zeichen, z. B. `WJA3-GCAH-2XMC`).
+- Die Insel wird mit einem aus dem Code abgeleiteten Schlüssel **verschlüsselt** (AES-256) und unter einer ebenfalls aus dem Code abgeleiteten ID im Ordner **backups** gespeichert. Ohne Code kann niemand das Backup finden oder lesen, auch nicht in der Firebase-Konsole.
+- Gesichert wird automatisch nach jedem eingetragenen Tag und beim Verlassen der App (höchstens alle 30 Minuten).
+- Auf einem neuen Gerät: Startbildschirm → **Insel aus Backup holen** → Code eingeben.
+- Ausschalten oder Konto löschen entfernt das Backup.
+- Geht der Code verloren, lässt sich das Backup nicht wiederherstellen. Das ist der Preis für die Verschlüsselung.
