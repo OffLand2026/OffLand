@@ -188,3 +188,26 @@ body.focus-on{overflow:hidden}
 .sw.on{border-color:var(--lime)}
 .sw-ic{width:36px;height:36px;border-radius:12px;background:var(--ground);display:flex;align-items:center;justify-content:center}
 .sw-big{width:56px;height:46px;border-radius:14px}
+
+/* Laden */
+.shop-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:8px}
+.shop-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.shop-item{background:var(--ground);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:6px}
+.shop-item.owned{opacity:.8}
+.shop-pic{height:64px;border-radius:12px;background:var(--card2);display:flex;align-items:center;justify-content:center;overflow:hidden}
+
+/* Kleine Animationen für Gegenstände */
+.spin{animation:spin 12s linear infinite;transform-box:fill-box;transform-origin:center}
+.sway{animation:sway 3.2s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 100%}
+.swing{animation:swing 2.6s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 0}
+.flick{animation:flick .8s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:50% 100%}
+.steam{animation:steam 2.4s ease-out infinite;opacity:0}
+.buzz{animation:buzz 2.2s ease-in-out infinite}
+.flagwave{animation:flagwave 1.6s ease-in-out infinite;transform-box:fill-box;transform-origin:0 50%}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes sway{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+@keyframes swing{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(9deg)}}
+@keyframes flick{0%{transform:scale(1,1)}50%{transform:scale(.92,1.08)}100%{transform:scale(1.05,.94)}}
+@keyframes steam{0%{transform:translateY(2px);opacity:0}25%{opacity:.85}100%{transform:translateY(-7px);opacity:0}}
+@keyframes buzz{0%,100%{transform:translate(0,0)}25%{transform:translate(-4px,-3px)}50%{transform:translate(-7px,1px)}75%{transform:translate(-2px,3px)}}
+@keyframes flagwave{0%,100%{transform:skewY(0) scaleX(1)}50%{transform:skewY(6deg) scaleX(.92)}}

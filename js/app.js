@@ -23,7 +23,12 @@ const PROJECTS=[
   {id:"bruecke",name:"Brücke zur Nachbarinsel",hours:30,text:"Eine zweite Insel kommt dazu, +4 Plätze"},
   {id:"schiff",name:"Schiff",hours:35,text:"Hannes und Co. können fischen, +2 Plätze"},
   {id:"windmuehle",name:"Windmühle",hours:40,text:"Brot für alle, +3 Plätze"},
-  {id:"insel3",name:"Dritte Insel",hours:50,text:"Noch mehr Platz, +4 Plätze"}
+  {id:"insel3",name:"Dritte Insel",hours:50,text:"Noch mehr Platz, +4 Plätze"},
+  {id:"baumhaus",name:"Baumhaus",hours:45,text:"Ein Versteck in den Baumkronen, +2 Plätze"},
+  {id:"floss",name:"Floß",hours:50,text:"Fokus-Bootsfahrten bringen doppelt so viele Fische"},
+  {id:"festzelt",name:"Festzelt",hours:60,text:"Inselfeste schon ab 4 guten Tagen pro Woche, +20 Punkte extra"},
+  {id:"strandhaus",name:"Strandhaus",hours:70,text:"Wohnen direkt am Meer, +3 Plätze"},
+  {id:"beachclub",name:"Beachclub",hours:85,text:"+10 Punkte und +1 % Glück an jedem Tag im Budget, +2 Plätze"}
 ];
 const QUESTS=[
   {id:"fruehstueck",name:"Handyfreies Frühstück"},
@@ -49,17 +54,35 @@ const TRAITS=[
   {id:"vertraeumt",n:"verträumt"},{id:"hitzkoepfig",n:"hitzköpfig",hot:2},{id:"hilfsbereit",n:"hilfsbereit"}
 ];
 const SHOP=[
-  {id:"sonne",n:"Sonnenschein",cost:120,fx:"Vertreibt einmal die Wolken: Der nächste Tag über dem Budget kostet nur halb so viel Glück.",consumable:true},
-  {id:"tee",n:"Kräutertee",cost:60,fx:"Macht einen kranken Bewohner sofort wieder gesund.",consumable:true},
-  {id:"blumen",n:"Blumenbeet",cost:250,fx:"+1 % Glück an jedem guten Tag, mit Gärtner:in +2 %."},
-  {id:"palme",n:"Palme",cost:150,fx:"Schatten und ein bisschen Urlaubsgefühl."},
-  {id:"bank",n:"Bank am Strand",cost:120,fx:"Bewohner verstehen sich jeden Tag ein bisschen besser."},
-  {id:"feuer",n:"Lagerfeuer",cost:350,fx:"Weniger Streit auf der Insel."},
-  {id:"laternen",n:"Laternen",cost:200,fx:"Die Insel leuchtet nachts."},
-  {id:"brunnen",n:"Brunnen",cost:300,fx:"Wer wegziehen will, wartet 1 Tag länger."},
-  {id:"spielplatz",n:"Spielplatz",cost:450,fx:"Familien bekommen öfter Nachwuchs."},
-  {id:"stall",n:"Tierstall",cost:400,fx:"+3 Plätze für neue Bewohner."},
-  {id:"haengematte",n:"Hängematte",cost:250,fx:"+5 Punkte für jede erledigte Quest."}
+  /* Vorräte */
+  {id:"sonne",n:"Sonnenschein",cost:120,cat:"vorrat",fx:"Vertreibt einmal die Wolken: Der nächste Tag über dem Budget kostet nur halb so viel Glück.",consumable:true},
+  {id:"tee",n:"Kräutertee",cost:60,cat:"vorrat",fx:"Macht einen kranken Bewohner sofort wieder gesund.",consumable:true},
+  {id:"klee",n:"Glücksklee",cost:90,cat:"vorrat",fx:"+5 % Inselglück, sofort.",consumable:true},
+  /* Nützliches */
+  {id:"blumen",n:"Blumenbeet",cost:250,cat:"nutzen",fx:"+1 % Glück an jedem guten Tag, mit Gärtner:in +2 %."},
+  {id:"bank",n:"Bank am Strand",cost:120,cat:"nutzen",fx:"Bewohner verstehen sich jeden Tag ein bisschen besser."},
+  {id:"picknick",n:"Picknickdecke",cost:130,cat:"nutzen",fx:"Freundschaften wachsen noch schneller."},
+  {id:"vogelhaus",n:"Vogelhaus",cost:140,cat:"nutzen",fx:"Zugvögel kommen doppelt so oft vorbei."},
+  {id:"angel",n:"Angelsteg",cost:180,cat:"nutzen",fx:"Fokus-Bootsfahrten bringen 20 % mehr Punkte."},
+  {id:"schaukel",n:"Schaukel",cost:200,cat:"nutzen",fx:"+1 % Glück an guten Tagen, wenn Kinder auf der Insel sind."},
+  {id:"garten",n:"Gemüsegarten",cost:220,cat:"nutzen",fx:"+5 Punkte an jedem Tag im Budget."},
+  {id:"haengematte",n:"Hängematte",cost:250,cat:"nutzen",fx:"+5 Punkte für jede erledigte Quest."},
+  {id:"bienen",n:"Bienenstock",cost:260,cat:"nutzen",fx:"Zusammen mit dem Blumenbeet +1 % Glück mehr an guten Tagen."},
+  {id:"brunnen",n:"Brunnen",cost:300,cat:"nutzen",fx:"Wer wegziehen will, wartet 1 Tag länger."},
+  {id:"feuer",n:"Lagerfeuer",cost:350,cat:"nutzen",fx:"Weniger Streit auf der Insel."},
+  {id:"stall",n:"Tierstall",cost:400,cat:"nutzen",fx:"+3 Plätze für neue Bewohner."},
+  {id:"spielplatz",n:"Spielplatz",cost:450,cat:"nutzen",fx:"Familien bekommen öfter Nachwuchs."},
+  {id:"sternwarte",n:"Sternwarte",cost:480,cat:"nutzen",fx:"Polarlichter bleiben einen Tag länger."},
+  /* Deko */
+  {id:"sandburg",n:"Sandburg",cost:50,cat:"deko",fx:"Hält bis zur nächsten großen Flut."},
+  {id:"zwerg",n:"Gartenzwerg",cost:60,cat:"deko",fx:"Bewacht die Beete und wackelt manchmal."},
+  {id:"windspiel",n:"Windspiel",cost:70,cat:"deko",fx:"Klingt leise im Wind."},
+  {id:"flagge",n:"Inselflagge",cost:80,cat:"deko",fx:"Weht stolz über der Hütte."},
+  {id:"schirm",n:"Sonnenschirm",cost:110,cat:"deko",fx:"Ein schattiges Plätzchen am Strand."},
+  {id:"palme",n:"Palme",cost:150,cat:"deko",fx:"Schatten und ein bisschen Urlaubsgefühl."},
+  {id:"lichter",n:"Lichterkette",cost:160,cat:"deko",fx:"Funkelt bunt über der Hütte."},
+  {id:"laternen",n:"Laternen",cost:200,cat:"deko",fx:"Die Insel leuchtet nachts."},
+  {id:"teich",n:"Ententeich",cost:320,cat:"deko",fx:"Zwei Enten ziehen mit ein."}
 ];
 /* Seltene Dinge vom Händlerschiff */
 const RARE=[
@@ -260,7 +283,7 @@ async function connectStore(){
 const here=()=>S.residents.filter(r=>r.status==="da");
 function capacity(){
   let c=6+(S.items.includes("stall")?3:0);
-  for(const b of S.built){c+={leuchtturm:2,bruecke:4,schiff:2,windmuehle:3,insel3:4}[b]||0}
+  for(const b of S.built){c+={leuchtturm:2,bruecke:4,schiff:2,windmuehle:3,insel3:4,baumhaus:2,strandhaus:3,beachclub:2}[b]||0}
   return c;
 }
 const has=b=>S.built.includes(b);
@@ -334,7 +357,7 @@ function social(good){
   // Beziehungen verändern sich mit der Stimmung
   for(let i=0;i<Math.min(3,ad.length);i++){
     const a=pick(ad), b=pick(ad); if(a.id===b.id) continue;
-    addRel(a.id,b.id,good?(2+(owns("bank")?2:0)+(a.trait==="gesellig"?1:0)):-3);
+    addRel(a.id,b.id,good?(2+(owns("bank")?2:0)+(owns("picknick")?1:0)+(a.trait==="gesellig"?1:0)):-3);
   }
   // Kinder werden erwachsen und bekommen einen Beruf
   here().filter(r=>r.kind==="mensch"&&r.parents&&!r.job).forEach(r=>{
@@ -439,8 +462,8 @@ function extras(day,diff,quests,dreamt){
   if(S.aurora>0)S.aurora--; if(S.birds>0)S.birds--;
   if(S.trader&&day>=S.trader.until) S.trader=null;
   if(S.budgetStreak>0&&S.budgetStreak%7===0){
-    S.aurora=3; S.pending.push({type:"visitor",kind:"aurora"}); log("Polarlicht über der Insel! 7 Tage am Stück im Budget.","good"); chron([],"Polarlicht nach "+S.budgetStreak+" Tagen im Budget.");
-  } else if(good&&S.glueck>=60&&!S.birds&&Math.random()<.1){
+    S.aurora=owns("sternwarte")?4:3; S.pending.push({type:"visitor",kind:"aurora"}); log("Polarlicht über der Insel! 7 Tage am Stück im Budget.","good"); chron([],"Polarlicht nach "+S.budgetStreak+" Tagen im Budget.");
+  } else if(good&&S.glueck>=60&&!S.birds&&Math.random()<(owns("vogelhaus")?.2:.1)){
     S.birds=2; S.glueck=clamp(S.glueck+3,0,100); S.pending.push({type:"visitor",kind:"birds"}); log("Ein Schwarm Zugvögel rastet auf der Insel. +3 % Glück.","good");
   } else if(!S.trader&&Math.random()<.12){
     const offer=RARE.filter(x=>!owns(x.id));
@@ -449,7 +472,7 @@ function extras(day,diff,quests,dreamt){
   // Inselfest nach einer guten Woche
   if(S.dayCount%7===0){
     const g=S.days.slice(-7).filter(d=>d.min<=S.budget).length;
-    if(g>=5){S.glueck=clamp(S.glueck+5,0,100);S.points+=30;S.pending.push({type:"fest",good:g});log("Inselfest! "+g+" von 7 Tagen im Budget. +5 % Glück, +30 Punkte.","good");chron([],"Inselfest nach "+g+" guten Tagen.")}
+    if(g>=(has("festzelt")?4:5)){const fp=has("festzelt")?50:30;S.glueck=clamp(S.glueck+5,0,100);S.points+=fp;S.pending.push({type:"fest",good:g});log("Inselfest! "+g+" von 7 Tagen im Budget. +5 % Glück, +"+fp+" Punkte.","good");chron([],"Inselfest nach "+g+" guten Tagen.")}
   }
   // Monats-Zeitkapsel
   const mon=day.slice(0,7);
@@ -549,8 +572,8 @@ function finishBoat(){
   save(); render(); showPending();
 }
 function boatHonest(ok,dur,crewId){
-  if(ok){const fish=Math.max(1,Math.round(dur/10));S.fish+=fish;S.points+=dur;S.material+=dur;S.focusMin+=dur;
-    log("Fokus-Bootsfahrt: "+dur+" Minuten ohne Handy. "+fish+" Fische, +"+dur+" Punkte.","good")}
+  if(ok){const fish=Math.max(1,Math.round(dur/10))*(has("floss")?2:1), pts=owns("angel")?Math.round(dur*1.2):dur;S.fish+=fish;S.points+=pts;S.material+=dur;S.focusMin+=dur;
+    log("Fokus-Bootsfahrt: "+dur+" Minuten ohne Handy. "+fish+" Fische, +"+pts+" Punkte.","good")}
   else log("Die Bootsfahrt kam leer zurück. Beim nächsten Mal klappt es.","bad");
   save();
 }
@@ -769,7 +792,9 @@ function closeDay(min,quests,appMin){
   if(diff>=0){
     delta=6+Math.min(6,Math.floor(diff/15));
     if(jobOn("musiker")) delta+=1;
-    if(owns("blumen")) delta+=jobOn("gaertner")?2:1;
+    if(owns("blumen")) delta+=(jobOn("gaertner")?2:1)+(owns("bienen")?1:0);
+    if(owns("schaukel")&&here().some(r=>r.kind==="mensch"&&r.parents&&!r.job)) delta+=1;
+    if(has("beachclub")) delta+=1;
     if(owns("glocke")) delta+=2;
   } else {
     delta=-(8+Math.min(12,Math.floor(-diff/15)));
@@ -788,7 +813,7 @@ function closeDay(min,quests,appMin){
   S.material+=saved;
   // Punkte: jede Minute unter Budget, Quests, Berufe
   let pts=Math.round(Math.max(0,Math.min(240,diff))/3)+quests.length*(10+(owns("haengematte")?5:0));
-  if(diff>=0){ if(jobOn("fischer")&&!monsters.length) pts+=5; if(jobOn("baecker")) pts+=5; }
+  if(diff>=0){ if(jobOn("fischer")&&!monsters.length) pts+=5; if(jobOn("baecker")) pts+=5; if(owns("garten")) pts+=5; if(has("beachclub")) pts+=10; }
   pts+=here().filter(r=>r.wishDone).length*3;
   // Gute-Nacht-Ritual vom Vorabend
   const dreamt=!!(S.night&&S.night.after===prevLast&&prevLast);
@@ -1009,8 +1034,10 @@ function scene(){
   for(let i=0;i<nTrees;i++){const tx=cx-40+i*22-(i%2)*6, ty=128+(i%2)*8;s+=`<rect x="${tx-3}" y="${ty}" width="6" height="26" rx="2" fill="#8A5A3B"/><circle cx="${tx}" cy="${ty-6}" r="15" fill="${leaf}"/>`;
     if(sea==="fruehling"&&!clouds) s+=`<g fill="#FFB3C7"><circle cx="${tx-6}" cy="${ty-10}" r="2"/><circle cx="${tx+5}" cy="${ty-4}" r="2"/><circle cx="${tx+2}" cy="${ty-14}" r="2"/></g>`;
     if(sea==="winter") s+=`<path d="M${tx-14} ${ty-10}q14-14 28 0" stroke="#F3F1EA" stroke-width="4" fill="none" stroke-linecap="round"/>`;}
-  const place={palme:[cx-90,170],laternen:[cx-74,170],brunnen:[cx-54,174],haengematte:[cx-36,160],bank:[cx-16,178],feuer:[cx+4,168],blumen:[cx+18,172],spielplatz:[cx+70,186],stall:two?[318,156]:[cx+94,178],glocke:[cx+76,150],teleskop:[cx-100,180]};
-  S.items.forEach(id=>{const p=place[id];if(p) s+=`<g transform="translate(${p[0]} ${p[1]}) scale(.8)">${itemSvg(id)}</g>`});
+  const place={palme:[cx-90,170],laternen:[cx-74,170],brunnen:[cx-54,174],haengematte:[cx-36,160],bank:[cx-16,178],feuer:[cx+4,168],blumen:[cx+18,172],spielplatz:[cx+70,186],stall:two?[318,156]:[cx+94,178],glocke:[cx+76,150],teleskop:[cx-100,180],
+    bienen:[cx-66,158],vogelhaus:[cx-48,150],schaukel:[cx-82,158],garten:[cx+40,184],picknick:[cx-30,191],angel:[cx+108,198],zwerg:[cx+26,177],windspiel:[cx+28,160],flagge:[cx+50,122],lichter:[cx+50,148],schirm:[cx+86,192],sandburg:[cx-60,195],
+    teich:two?[290,168]:[cx-4,196],sternwarte:three?[328,212]:two?[340,160]:[cx+98,158]};
+  S.items.filter(id=>place[id]).sort((a,b)=>place[a][1]-place[b][1]).forEach(id=>{const p=place[id];s+=`<g transform="translate(${p[0]} ${p[1]}) scale(.8)">${itemSvg(id)}</g>`});
   if(owns("laternen")) s+=`<g transform="translate(${cx+92} 170) scale(.8)">${itemSvg("laternen")}</g>`;
   if(S.sun>0&&!clouds&&!night) s+=`<g transform="translate(46 54) scale(.9)">${itemSvg("sonne")}</g>`;
   // Erinnerungsbäume
@@ -1026,6 +1053,9 @@ function scene(){
     s+=`<ellipse cx="300" cy="160" rx="56" ry="14" fill="${sand}"/><path d="M252 158c8-26 30-36 48-36s40 10 48 36z" fill="${grass}"/>`;
   }
   if(three){ s+=`<ellipse cx="300" cy="214" rx="40" ry="9" fill="${sand}"/><path d="M266 213c6-16 20-22 34-22s28 6 34 22z" fill="${grass}"/>`; }
+  // Neue Großprojekte
+  const PPOS={baumhaus:[cx-96,168,.8],festzelt:two?[318,152,.72]:[cx+60,186,.7],strandhaus:two?[262,168,.62]:[cx+96,194,.75],beachclub:three?[288,216,.66]:two?[268,170,.7]:[cx-70,196,.7],floss:[72,222,.8]};
+  ["baumhaus","festzelt","beachclub","strandhaus","floss"].forEach(id=>{if(has(id)){const q=PPOS[id];s+=`<g transform="translate(${q[0]} ${q[1]}) scale(${q[2]})">${projectSvg(id)}</g>`}});
   // Händlerschiff
   if(S.trader) s+=`<g class="wave"><path d="M20 212h56l-8 12H28z" fill="#8A5A3B"/><path d="M48 212v-36l24 32z" fill="#FFD27A"/><path d="M48 180h20M48 190h22M48 200h24" stroke="#FF9C7A" stroke-width="3"/><path d="M46 212v-30l-18 28z" fill="#F3F1EA"/></g>`;
   // Fokus-Boot draußen auf See
@@ -1102,6 +1132,7 @@ function animScene(ev){
       schiff:`<path d="M150 128h80l-12 16h-56z" fill="#FF9C7A"/><path d="M190 128V80l30 44z" fill="#F3F1EA"/><path d="M186 128V88l-24 36z" fill="#B6A4FF"/>`,
       windmuehle:`<path d="M226 132h18l-3-50h-12z" fill="#F3F1EA"/><path d="M235 82l-24-18M235 82l24-18M235 82l-18 26M235 82l18 26" stroke="#FFB86B" stroke-width="5" stroke-linecap="round"/>`,
       insel3:`<ellipse cx="120" cy="160" rx="70" ry="14" fill="#E9D7A6"/><path d="M58 158c8-24 36-32 62-32s54 8 62 32z" fill="#7FC57A"/>`}[ev.id]||"";
+    const np=projectSvg(ev.id); if(np) return base(`<g class="rise fb"><g transform="translate(236 134) scale(1.7)">${np}</g></g>`+confetti(),false);
     const glow=ev.id==="leuchtturm"?`<path d="M236 52L40 20v60z" fill="#FFD27A" class="glow"/>`:"";
     return base(glow+`<g class="rise fb">${b}</g>`+confetti(),false);
   }
@@ -1396,14 +1427,17 @@ function viewZeit(){
 function viewShop(){
   return `<div class="card"><div class="row between"><h2>Inselladen</h2><span class="chip" style="background:#26233D;color:var(--lilac)">${S.points} Punkte</span></div>
   <p class="small muted">Punkte gibt es für jede Minute unter deinem Budget und für Quests. ${jobOn("tischler")?"Dank Tischler:in ist alles 10 % billiger.":""}</p>
-  <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">${SHOP.map(it=>{
-    const own=!it.consumable&&owns(it.id), cost=price(it), can=S.points>=cost;
-    return `<div style="background:var(--ground);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:6px">
-      <div style="height:64px;border-radius:12px;background:var(--card2);display:flex;align-items:center;justify-content:center"><svg width="70" height="56" viewBox="-20 -34 40 38" aria-hidden="true">${itemSvg(it.id)}</svg></div>
-      <p style="font-weight:700">${esc(it.n)}${it.consumable&&(it.id==="tee"?S.tea:S.sun)?` <span class="small muted">· Vorrat ${it.id==="tee"?S.tea:S.sun}</span>`:""}</p>
+  ${[["vorrat","Vorräte","Wird beim Kauf verbraucht"],["nutzen","Nützliches","Steht auf der Insel und hilft"],["deko","Deko","Macht die Insel schöner"]].map(([cat,title,sub])=>{
+    const list=SHOP.filter(it=>it.cat===cat), have=list.filter(it=>!it.consumable&&owns(it.id)).length;
+    return `<div class="shop-head"><p class="label">${title}</p><span class="small muted">${cat==="vorrat"?sub:have+" von "+list.length+" auf der Insel"}</span></div>
+    <div class="shop-grid">${list.map(it=>{
+    const own=!it.consumable&&owns(it.id), cost=price(it), can=S.points>=cost, stock=it.id==="tee"?S.tea:it.id==="sonne"?S.sun:0;
+    return `<div class="shop-item${own?" owned":""}">
+      <div class="shop-pic"><svg width="70" height="56" viewBox="-20 -34 40 38" aria-hidden="true">${itemSvg(it.id)}</svg></div>
+      <p style="font-weight:700">${esc(it.n)}${stock?` <span class="small muted">· Vorrat ${stock}</span>`:""}</p>
       <p class="small muted" style="flex:1">${esc(it.fx)}</p>
       ${own?`<span class="chip good" style="align-self:flex-start">auf der Insel</span>`:`<button class="btn ${can?"":"secondary"}" style="height:44px;font-size:14px" data-buy="${it.id}" ${can?"":"disabled"}>${cost} Punkte</button>`}
-    </div>`}).join("")}</div>
+    </div>`}).join("")}</div>`}).join("")}
   ${S.trader?`<div style="margin-top:6px;padding:14px;border-radius:18px;border:1.5px solid var(--amber);display:flex;flex-direction:column;gap:8px">
     <p class="label" style="color:var(--amber)">Händlerschiff · nur bis ${nice(S.trader.until)}</p>
     ${S.trader.items.map(id=>{const it=RARE.find(x=>x.id===id);const own=owns(id),cost=price(it),can=S.points>=cost;
@@ -1413,20 +1447,47 @@ function viewShop(){
 }
 function itemSvg(id){
   switch(id){
-  case "sonne": return `<circle cx="0" cy="-15" r="8" fill="#FFD27A"/><g stroke="#FFB86B" stroke-width="2" stroke-linecap="round">${[0,45,90,135,180,225,270,315].map(a=>{const r=a*Math.PI/180;return `<path d="M${(Math.cos(r)*11).toFixed(1)} ${(-15+Math.sin(r)*11).toFixed(1)}L${(Math.cos(r)*15).toFixed(1)} ${(-15+Math.sin(r)*15).toFixed(1)}"/>`}).join("")}</g>`;
-  case "blumen": return `<rect x="-13" y="-5" width="26" height="6" rx="2" fill="#8A5A3B"/><path d="M-8 -5v-6M-2 -5v-8M4 -5v-6M9 -5v-7" stroke="#5FA864" stroke-width="1.6"/><circle cx="-8" cy="-12" r="2.6" fill="#FF9C7A"/><circle cx="-2" cy="-14" r="2.6" fill="#FFD27A"/><circle cx="4" cy="-12" r="2.6" fill="#B6A4FF"/><circle cx="9" cy="-13" r="2.6" fill="#FF9C7A"/>`;
-  case "palme": return `<path d="M0 0q2-14 5-26" stroke="#8A5A3B" stroke-width="3.4" fill="none" stroke-linecap="round"/><path d="M5 -26q-10-4-16 2M5 -26q10-5 15 2M5 -26q-4-9-12-9M5 -26q5-9 13-8M5 -26q0 8 -3 12" stroke="#4E9A58" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="4" cy="-24" r="1.8" fill="#8A5A3B"/>`;
+  case "sonne": return `<g class="spin" style="animation-duration:14s"><g stroke="#FFB86B" stroke-width="2" stroke-linecap="round">${[0,45,90,135,180,225,270,315].map(a=>{const r=a*Math.PI/180;return `<path d="M${(Math.cos(r)*11).toFixed(1)} ${(-15+Math.sin(r)*11).toFixed(1)}L${(Math.cos(r)*15).toFixed(1)} ${(-15+Math.sin(r)*15).toFixed(1)}"/>`}).join("")}</g></g><circle cx="0" cy="-15" r="8" fill="#FFD27A"/><circle cx="-2.6" cy="-16" r=".9" fill="#8A5A3B"/><circle cx="2.6" cy="-16" r=".9" fill="#8A5A3B"/><path d="M-2.6 -12.6q2.6 2 5.2 0" stroke="#8A5A3B" stroke-width=".9" fill="none" stroke-linecap="round"/>`;
+  case "tee": return `<ellipse cx="0" cy="-1" rx="12" ry="2.6" fill="#A4A6BD"/><path d="M-8 -14h16v4a8 8 0 0 1-16 0z" fill="#F3F1EA"/><path d="M8 -12.5h2.4a3 3 0 0 1 0 6h-3" stroke="#F3F1EA" stroke-width="1.8" fill="none"/><ellipse cx="0" cy="-14" rx="8" ry="1.6" fill="#8FBF6A"/><path d="M-3 -9l2 2 4-4" stroke="#C8F169" stroke-width="1.2" fill="none" opacity=".7"/><g stroke="#F3F1EA" stroke-width="1.5" fill="none" stroke-linecap="round"><path class="steam" d="M-3 -17q-2.4-3 0-6t0-6"/><path class="steam" style="animation-delay:.8s" d="M3 -17q-2.4-3 0-6t0-6"/><path class="steam" style="animation-delay:1.6s" d="M0 -18q-2.4-3 0-6t0-6"/></g>`;
+  case "klee": return `<g class="bob" style="animation-duration:2.4s"><path d="M0 -12q2 6 -1 12" stroke="#4E9A58" stroke-width="1.6" fill="none"/><g fill="#5FB86A"><circle cx="-4" cy="-16" r="4.4"/><circle cx="4" cy="-16" r="4.4"/><circle cx="-4" cy="-8.6" r="4.4"/><circle cx="4" cy="-8.6" r="4.4"/></g><g class="glow" style="animation-duration:1.8s"><path d="M10 -24l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" fill="#FFD27A"/></g></g>`;
+  case "blumen": return `<rect x="-13" y="-5" width="26" height="6" rx="2" fill="#8A5A3B"/><g class="sway" style="animation-duration:3.4s"><path d="M-8 -5v-6M-2 -5v-8M4 -5v-6M9 -5v-7" stroke="#5FA864" stroke-width="1.6"/><circle cx="-8" cy="-12" r="2.6" fill="#FF9C7A"/><circle cx="-2" cy="-14" r="2.6" fill="#FFD27A"/><circle cx="4" cy="-12" r="2.6" fill="#B6A4FF"/><circle cx="9" cy="-13" r="2.6" fill="#FF9C7A"/></g>`;
+  case "palme": return `<path d="M0 0q2-14 5-26" stroke="#8A5A3B" stroke-width="3.4" fill="none" stroke-linecap="round"/><g class="sway" style="animation-duration:4s"><path d="M5 -26q-10-4-16 2M5 -26q10-5 15 2M5 -26q-4-9-12-9M5 -26q5-9 13-8M5 -26q0 8 -3 12" stroke="#4E9A58" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="4" cy="-24" r="1.8" fill="#8A5A3B"/></g>`;
   case "bank": return `<rect x="-12" y="-9" width="24" height="3" rx="1" fill="#B07A55"/><rect x="-12" y="-15" width="24" height="3" rx="1" fill="#B07A55"/><path d="M-10 -6v6M10 -6v6M-10 -12v6M10 -12v6" stroke="#7A5038" stroke-width="2"/>`;
-  case "feuer": return `<path d="M-10 0l20-5M-10 -5l20 5" stroke="#8A5A3B" stroke-width="3" stroke-linecap="round"/><path d="M0 -4c-6 0-7-6-3-11 0 3 2 3 2 3 0-6 3-9 5-12 0 6 4 8 4 12 0 5-3 8-8 8z" fill="#FFB86B"/><path d="M0 -4c-2 0-3-2-1-5 1 2 2 2 2 2 0-2 1-4 2-5 1 3 1 4 1 6s-2 2-4 2z" fill="#FFD27A"/>`;
-  case "laternen": return `<path d="M0 0v-22" stroke="#7C7F99" stroke-width="2"/><rect x="-3.5" y="-28" width="7" height="8" rx="1.5" fill="#FFD27A"/><path d="M-4.5 -28h9l-4.5-3z" fill="#5F6380"/><circle cx="0" cy="-24" r="8" fill="#FFD27A" opacity=".18"/>`;
-  case "brunnen": return `<rect x="-10" y="-8" width="20" height="8" rx="2" fill="#A4A6BD"/><ellipse cx="0" cy="-8" rx="10" ry="2.6" fill="#7CB8E8"/><path d="M-8 -8v-12M8 -8v-12" stroke="#8A5A3B" stroke-width="2"/><path d="M-11 -20l11-6 11 6z" fill="#FF9C7A"/>`;
-  case "spielplatz": return `<path d="M-12 0l4-20h16l4 20M-8 -20h16" stroke="#B6A4FF" stroke-width="2.4" fill="none" stroke-linejoin="round"/><path d="M-2 -20v12M4 -20v12" stroke="#A4A6BD" stroke-width="1"/><rect x="-4" y="-8" width="10" height="2.6" rx="1" fill="#FF9C7A"/>`;
+  case "feuer": return `<path d="M-10 0l20-5M-10 -5l20 5" stroke="#8A5A3B" stroke-width="3" stroke-linecap="round"/><g class="flick"><path d="M0 -4c-6 0-7-6-3-11 0 3 2 3 2 3 0-6 3-9 5-12 0 6 4 8 4 12 0 5-3 8-8 8z" fill="#FFB86B"/><path d="M0 -4c-2 0-3-2-1-5 1 2 2 2 2 2 0-2 1-4 2-5 1 3 1 4 1 6s-2 2-4 2z" fill="#FFD27A"/></g><g class="glow" style="animation-duration:1.4s"><circle cx="0" cy="-10" r="12" fill="#FFB86B" opacity=".25"/></g>`;
+  case "laternen": return `<path d="M0 0v-22" stroke="#7C7F99" stroke-width="2"/><rect x="-3.5" y="-28" width="7" height="8" rx="1.5" fill="#FFD27A"/><path d="M-4.5 -28h9l-4.5-3z" fill="#5F6380"/><g class="glow" style="animation-duration:2.2s"><circle cx="0" cy="-24" r="9" fill="#FFD27A"/></g>`;
+  case "brunnen": return `<rect x="-10" y="-8" width="20" height="8" rx="2" fill="#A4A6BD"/><ellipse cx="0" cy="-8" rx="10" ry="2.6" fill="#7CB8E8"/><g class="glow" style="animation-duration:2s"><ellipse cx="-2" cy="-8.4" rx="4" ry="1" fill="#F3F1EA"/></g><path d="M-8 -8v-12M8 -8v-12" stroke="#8A5A3B" stroke-width="2"/><path d="M-11 -20l11-6 11 6z" fill="#FF9C7A"/><g class="swing" style="animation-duration:3s"><path d="M0 -20v6" stroke="#7C7F99" stroke-width="1"/><rect x="-2" y="-14" width="4" height="3.4" rx="1" fill="#8A5A3B"/></g>`;
+  case "spielplatz": return `<path d="M-12 0l4-20h16l4 20M-8 -20h16" stroke="#B6A4FF" stroke-width="2.4" fill="none" stroke-linejoin="round"/><g class="swing" style="animation-duration:2.2s"><path d="M-2 -20v12M4 -20v12" stroke="#A4A6BD" stroke-width="1"/><rect x="-4" y="-8" width="10" height="2.6" rx="1" fill="#FF9C7A"/></g>`;
   case "stall": return `<path d="M-12 0v-12l12-9 12 9v12z" fill="#C25E3A"/><rect x="-4" y="-9" width="8" height="9" fill="#7A3A22"/><path d="M-4 -9l8 9M4 -9l-8 9" stroke="#F3F1EA" stroke-width="1"/><path d="M-13 -12l13-10 13 10" stroke="#F3F1EA" stroke-width="1.6" fill="none"/>`;
-  case "haengematte": return `<path d="M-13 0v-18M13 0v-18" stroke="#8A5A3B" stroke-width="2.4" stroke-linecap="round"/><path d="M-13 -15q13 12 26 0" stroke="#C8F169" stroke-width="3.4" fill="none"/>`;
-  case "regenbogen": return `<g fill="none" stroke-width="3"><path d="M-16 0a16 16 0 0 1 32 0" stroke="#FF9C7A"/><path d="M-12.5 0a12.5 12.5 0 0 1 25 0" stroke="#FFD27A"/><path d="M-9 0a9 9 0 0 1 18 0" stroke="#C8F169"/><path d="M-5.5 0a5.5 5.5 0 0 1 11 0" stroke="#B6A4FF"/></g>`;
-  case "glocke": return `<path d="M0 -26v3M-8 -6q0-16 8-17q8 1 8 17l3 3h-22z" fill="#FFD27A" stroke="#E0A93C" stroke-width="1"/><circle cx="0" cy="-1" r="2.4" fill="#E0A93C"/><path d="M-8 0v-26h16v26" stroke="#8A5A3B" stroke-width="1.6" fill="none"/>`;
-  case "teleskop": return `<path d="M-10 0l8-12M10 0l-8-12M0 0v-12" stroke="#8A5A3B" stroke-width="2"/><rect x="-14" y="-22" width="26" height="7" rx="3" fill="#B6A4FF" transform="rotate(-20 0 -18)"/>`;
-  case "muschelweg": return `<path d="M-16 -4q16 -8 32 0" stroke="#D9C38E" stroke-width="5" fill="none" stroke-linecap="round"/><g fill="#F3F1EA"><circle cx="-10" cy="-6" r="2"/><circle cx="-2" cy="-8" r="2"/><circle cx="6" cy="-8" r="2"/><circle cx="13" cy="-6" r="2"/></g>`;
+  case "haengematte": return `<path d="M-13 0v-18M13 0v-18" stroke="#8A5A3B" stroke-width="2.4" stroke-linecap="round"/><g class="swing" style="animation-duration:3.2s"><path d="M-13 -15q13 12 26 0" stroke="#C8F169" stroke-width="3.4" fill="none"/></g>`;
+  case "picknick": return `<path d="M-16 -1l4-7h24l4 7z" fill="#FF9C7A"/><path d="M-12 -8l-2 3.5M-6 -8l-2 7M0 -8v7M6 -8l2 7M12 -8l2 3.5M-14 -4.5h28" stroke="#F3F1EA" stroke-width="1.4" opacity=".8"/><rect x="2" y="-14" width="10" height="7" rx="1.6" fill="#B07A55"/><path d="M3 -14q4-6 8 0" stroke="#7A5038" stroke-width="1.4" fill="none"/><circle cx="-6" cy="-6" r="2" fill="#E5484D"/><path d="M-6 -8l1-1.6" stroke="#5FA864" stroke-width="1"/>`;
+  case "vogelhaus": return `<path d="M0 0v-16" stroke="#8A5A3B" stroke-width="2.4"/><rect x="-7" y="-26" width="14" height="11" rx="1.5" fill="#B07A55"/><path d="M-9 -25l9-7 9 7z" fill="#5BC0A8"/><circle cx="0" cy="-21" r="2.4" fill="#3A3D58"/><g class="bob" style="animation-duration:1.4s"><path d="M8 -15q2-3 5-2l2-1-1 2q0 3-3 3h-3z" fill="#FFB86B"/><circle cx="12.4" cy="-16.6" r=".6" fill="#14151F"/></g>`;
+  case "angel": return `<path d="M-16 -4h24" stroke="#8A5A3B" stroke-width="4"/><path d="M-12 -4v6M2 -4v6" stroke="#7A5038" stroke-width="2"/><path d="M-4 -6l14-22" stroke="#7A5038" stroke-width="1.6" stroke-linecap="round"/><path d="M10 -28q6 8 6 26" stroke="#F3F1EA" stroke-width=".6" fill="none"/><g class="wave"><circle cx="16" cy="-1" r="1.8" fill="#E5484D"/><path d="M12 1q4-2 8 0" stroke="#9CC8EE" stroke-width="1" fill="none"/></g>`;
+  case "schaukel": return `<path d="M-14 0l6-24h16l6 24M-10 -24h20" stroke="#8A5A3B" stroke-width="2.4" fill="none" stroke-linejoin="round" stroke-linecap="round"/><g class="swing" style="animation-duration:2.4s"><path d="M-4 -24v16M4 -24v16" stroke="#A4A6BD" stroke-width="1"/><rect x="-6" y="-9" width="12" height="2.6" rx="1" fill="#5BC0A8"/></g>`;
+  case "garten": return `<rect x="-15" y="-5" width="30" height="5" rx="2" fill="#7A5038"/><g class="sway" style="animation-duration:3.6s"><path d="M-10 -5l-2-6M-10 -5l0-7M-10 -5l2-6" stroke="#5FA864" stroke-width="1.4" stroke-linecap="round"/><path d="M-1 -5l-2-6M-1 -5l0-7M-1 -5l2-6" stroke="#5FA864" stroke-width="1.4" stroke-linecap="round"/></g><path d="M-11.4 -5l1.4 4 1.4-4z" fill="#FF9C7A"/><path d="M-2.4 -5l1.4 4 1.4-4z" fill="#FF9C7A"/><circle cx="9" cy="-8" r="4.4" fill="#8FD18A"/><circle cx="9" cy="-8" r="2.4" fill="#5FA864"/>`;
+  case "bienen": return `<path d="M-6 0v-4M6 0v-4" stroke="#8A5A3B" stroke-width="2"/><path d="M-9 -4q0-18 9-18t9 18z" fill="#FFD27A"/><path d="M-8 -9h16M-7 -14h14M-4.6 -18.6h9.2" stroke="#E0A93C" stroke-width="1.4"/><rect x="-2" y="-8" width="4" height="4" rx="2" fill="#5A3A2A"/><g class="buzz"><ellipse cx="12" cy="-20" rx="2" ry="1.4" fill="#FFD27A"/><path d="M11 -20.8v1.6M13 -20.8v1.6" stroke="#14151F" stroke-width=".6"/><ellipse cx="12" cy="-21.6" rx="1.4" ry=".8" fill="#F3F1EA" opacity=".8"/></g><g class="buzz" style="animation-delay:-1.1s;animation-duration:2.8s"><ellipse cx="-12" cy="-16" rx="2" ry="1.4" fill="#FFD27A"/><path d="M-13 -16.8v1.6M-11 -16.8v1.6" stroke="#14151F" stroke-width=".6"/></g>`;
+  case "baumhaus": return `<rect x="-3" y="-20" width="6" height="20" fill="#8A5A3B"/><circle cx="0" cy="-26" r="12" fill="#4E9A58"/><rect x="-9" y="-26" width="18" height="10" rx="1" fill="#B07A55"/><path d="M-11 -26l11-6 11 6z" fill="#FF9C7A"/><rect x="-2.4" y="-23" width="4.8" height="7" fill="#7A3A22"/><g class="glow" style="animation-duration:3s"><rect x="4" y="-24" width="3.4" height="3.4" fill="#FFD27A"/></g><path d="M7 -16l3 16M10 -16l3 16M7.6 -12h3M8.4 -8h3M9.2 -4h3" stroke="#D9C38E" stroke-width="1"/>`;
+  case "sternwarte": return `<rect x="-11" y="-12" width="22" height="12" rx="1" fill="#C9C6BE"/><path d="M-12 -12a12 12 0 0 1 24 0z" fill="#5F6380"/><path d="M-2 -23v11h4v-11" fill="#14151F"/><path d="M0 -20l6-8" stroke="#B6A4FF" stroke-width="3" stroke-linecap="round"/><rect x="-3" y="-8" width="6" height="8" fill="#3A3D58"/><g class="glow" style="animation-duration:1.6s"><path d="M12 -30l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" fill="#FFD27A"/></g><g class="glow" style="animation-duration:2.3s;animation-delay:.7s"><path d="M-12 -28l.8 1.6 1.6.8-1.6.8-.8 1.6-.8-1.6-1.6-.8 1.6-.8z" fill="#F3F1EA"/></g>`;
+  case "sandburg": return `<path d="M-14 0v-8h4v-3h3v3h4v-10h3v-2h3v2h3v10h4v-3h3v3h4v8z" fill="#E9D7A6" stroke="#D9C38E" stroke-width=".8"/><rect x="-2" y="-6" width="4" height="6" rx="2" fill="#C9B07A"/><path d="M1.6 -22v-6" stroke="#8A5A3B" stroke-width=".8"/><g class="flagwave"><path d="M1.6 -28h5l-1.6 1.6 1.6 1.6h-5z" fill="#FF9C7A"/></g>`;
+  case "zwerg": return `<g class="sway" style="animation-duration:2.6s"><path d="M-5 0h10l-1-8h-8z" fill="#5B8CD6"/><circle cx="0" cy="-11" r="3.6" fill="#F3D2B8"/><path d="M-4 -10q4 9 8 0" fill="#F3F1EA"/><path d="M-4.6 -12.6l4.6-10 4.6 10z" fill="#E5484D"/><circle cx="-1.2" cy="-12" r=".6" fill="#14151F"/><circle cx="1.2" cy="-12" r=".6" fill="#14151F"/><circle cx="0" cy="-10.6" r="1" fill="#FF9C7A"/></g>`;
+  case "windspiel": return `<path d="M-10 -26h20" stroke="#8A5A3B" stroke-width="1.6" stroke-linecap="round"/><g class="swing" style="animation-duration:2s"><path d="M-6 -26v10M0 -26v14M6 -26v8" stroke="#7C7F99" stroke-width=".6"/><rect x="-7" y="-16" width="2" height="7" rx="1" fill="#C8F169"/><rect x="-1" y="-12" width="2" height="8" rx="1" fill="#B6A4FF"/><rect x="5" y="-18" width="2" height="6" rx="1" fill="#FFB86B"/></g>`;
+  case "flagge": return `<path d="M-8 0v-30" stroke="#A4A6BD" stroke-width="1.8" stroke-linecap="round"/><g class="flagwave"><path d="M-7 -30h16q-3 5 0 10h-16z" fill="#C8F169"/><circle cx="1" cy="-25" r="2.6" fill="#5B8CD6"/></g>`;
+  case "schirm": return `<path d="M0 0l2-22" stroke="#7A5038" stroke-width="1.6"/><g class="sway" style="animation-duration:4s"><path d="M-14 -18q16-14 32 4z" fill="#FF9C7A"/><path d="M-6 -24q3 8 2 9M4 -25q2 7 4 9" stroke="#F3F1EA" stroke-width="3" fill="none"/></g><ellipse cx="0" cy="0" rx="10" ry="2" fill="#000" opacity=".12"/>`;
+  case "lichter": return `<path d="M-18 -26q18 14 36 0" stroke="#3A3D58" stroke-width=".8" fill="none"/>${[[-14,-23,"#FF9C7A"],[-8,-20,"#FFD27A"],[-2,-19,"#C8F169"],[4,-19,"#B6A4FF"],[10,-21,"#5BC0A8"],[15,-24,"#FF9C7A"]].map((b,i)=>`<g class="glow" style="animation-duration:1.6s;animation-delay:${i*.27}s"><circle cx="${b[0]}" cy="${b[1]}" r="2.4" fill="${b[2]}"/></g><circle cx="${b[0]}" cy="${b[1]}" r="1.3" fill="${b[2]}"/>`).join("")}`;
+  case "teich": return `<ellipse cx="0" cy="-3" rx="17" ry="5" fill="#7CB8E8"/><ellipse cx="-4" cy="-4" rx="8" ry="1.6" fill="#F3F1EA" opacity=".35"/><path d="M14 -6v-6M16 -6v-8M12 -6v-5" stroke="#5FA864" stroke-width="1.4" stroke-linecap="round"/><g class="bob" style="animation-duration:2s"><path d="M-10 -5q0-4 4-4h2q0-3 3-3t3 3l-2 1q2 0 1 3z" fill="#F3F1EA"/><path d="M2.2 -11.6l2.4 .6-2.4 .6z" fill="#FFB86B"/><circle cx="0.6" cy="-11.8" r=".5" fill="#14151F"/></g><g class="bob" style="animation-duration:2.4s;animation-delay:-.8s"><path d="M2 -3q0-3 3-3h1.4q0-2.4 2.2-2.4t2.2 2.4l-1.4 .8q1.4 0 .8 2.2z" fill="#FFD27A"/><path d="M10.6 -8l1.8 .5-1.8 .5z" fill="#FFB86B"/></g>`;
+  case "regenbogen": return `<g fill="none" stroke-width="3"><path d="M-16 0a16 16 0 0 1 32 0" stroke="#FF9C7A"/><path d="M-12.5 0a12.5 12.5 0 0 1 25 0" stroke="#FFD27A"/><path d="M-9 0a9 9 0 0 1 18 0" stroke="#C8F169"/><path d="M-5.5 0a5.5 5.5 0 0 1 11 0" stroke="#B6A4FF"/></g><g class="glow"><circle cx="-12" cy="-16" r="1.4" fill="#F3F1EA"/><circle cx="13" cy="-12" r="1" fill="#F3F1EA"/></g>`;
+  case "glocke": return `<path d="M-8 0v-26h16v26" stroke="#8A5A3B" stroke-width="1.6" fill="none"/><g class="swing" style="animation-duration:1.8s"><path d="M0 -26v3M-8 -6q0-16 8-17q8 1 8 17l3 3h-22z" fill="#FFD27A" stroke="#E0A93C" stroke-width="1"/><circle cx="0" cy="-1" r="2.4" fill="#E0A93C"/></g>`;
+  case "teleskop": return `<path d="M-10 0l8-12M10 0l-8-12M0 0v-12" stroke="#8A5A3B" stroke-width="2"/><rect x="-14" y="-22" width="26" height="7" rx="3" fill="#B6A4FF" transform="rotate(-20 0 -18)"/><g class="glow" style="animation-duration:2s"><circle cx="13" cy="-27" r="2" fill="#FFD27A"/></g>`;
+  case "muschelweg": return `<path d="M-16 -4q16 -8 32 0" stroke="#D9C38E" stroke-width="5" fill="none" stroke-linecap="round"/><g fill="#F3F1EA">${[[-10,-6],[-2,-8],[6,-8],[13,-6]].map((c,i)=>`<g class="glow" style="animation-duration:2.6s;animation-delay:${i*.5}s"><circle cx="${c[0]}" cy="${c[1]}" r="2.4"/></g><circle cx="${c[0]}" cy="${c[1]}" r="2"/>`).join("")}</g>`;
+  }
+  return "";
+}
+function projectSvg(id){
+  switch(id){
+  case "baumhaus": return `<rect x="-4" y="-34" width="8" height="34" fill="#8A5A3B"/><path d="M-4 -12l-8 6M4 -16l7 5" stroke="#8A5A3B" stroke-width="3" stroke-linecap="round"/><g class="sway" style="animation-duration:5s"><circle cx="-10" cy="-44" r="14" fill="#4E9A58"/><circle cx="10" cy="-46" r="14" fill="#5FA864"/><circle cx="0" cy="-56" r="13" fill="#4E9A58"/></g><rect x="-12" y="-42" width="24" height="13" rx="1.5" fill="#B07A55"/><path d="M-15 -42l15-9 15 9z" fill="#FF9C7A"/><rect x="-3" y="-39" width="6" height="10" fill="#7A3A22"/><g class="glow" style="animation-duration:3s"><rect x="5" y="-39" width="4" height="4" fill="#FFD27A"/></g><path d="M-14 -29h28" stroke="#7A5038" stroke-width="2"/><path d="M10 -29l3 29M14 -29l3 29M10.6 -22h4M11.4 -15h4M12.2 -8h4" stroke="#D9C38E" stroke-width="1.2"/>`;
+  case "floss": return `<g class="wave" style="animation-duration:3.2s"><g fill="#B07A55" stroke="#7A5038" stroke-width=".8">${[-18,-10,-2,6,14].map(x=>`<rect x="${x}" y="-6" width="7" height="6" rx="3"/>`).join("")}</g><path d="M-16 -4h34" stroke="#7A5038" stroke-width="1.2"/><path d="M0 -6v-30" stroke="#8A5A3B" stroke-width="2"/><g class="sway" style="animation-duration:3s"><path d="M1 -34q14 10 0 24z" fill="#F3F1EA"/></g><g class="flagwave"><path d="M0 -36h7l-2 2 2 2h-7z" fill="#C8F169"/></g><path d="M-14 -6v-6M-14 -12l-4 6" stroke="#7A5038" stroke-width="1"/></g>`;
+  case "festzelt": return `<path d="M-22 0v-14l22-14 22 14v14z" fill="#F3F1EA"/>${[-16,-6,4,14].map(x=>`<path d="M${x} 0v-14l${x<0?3:-3} -${x<0?2:2}" stroke="#FF9C7A" stroke-width="5" fill="none"/>`).join("")}<path d="M-22 -14l22-14 22 14" fill="none" stroke="#E5484D" stroke-width="2.4" stroke-linejoin="round"/><path d="M-6 0v-10q6-5 12 0v10z" fill="#3A3D58"/><path d="M0 -28v-8" stroke="#A4A6BD" stroke-width="1.4"/><g class="flagwave"><path d="M0 -36h8l-2 2 2 2h-8z" fill="#FFD27A"/></g>${[-18,-10,-2,6,14].map((x,i)=>`<g class="glow" style="animation-duration:1.4s;animation-delay:${i*.25}s"><circle cx="${x+2}" cy="${-15+Math.abs(x+2)/6}" r="1.8" fill="${["#FFD27A","#C8F169","#B6A4FF","#FF9C7A","#5BC0A8"][i]}"/></g>`).join("")}`;
+  case "strandhaus": return `<path d="M-18 0v-8M18 0v-8M0 0v-8" stroke="#8A5A3B" stroke-width="2.4"/><rect x="-22" y="-10" width="44" height="3" fill="#B07A55"/><rect x="-16" y="-28" width="32" height="18" fill="#7CB8E8"/><path d="M-16 -24h32M-16 -20h32M-16 -16h32M-16 -12h32" stroke="#5F9ED4" stroke-width=".8"/><path d="M-20 -28l20-12 20 12z" fill="#F3F1EA"/><rect x="-4" y="-22" width="8" height="12" fill="#F3F1EA"/><g class="glow" style="animation-duration:3s"><rect x="-13" y="-24" width="6" height="6" fill="#FFD27A"/></g><rect x="7" y="-24" width="6" height="6" fill="#F3F1EA"/><path d="M-22 -10v-5h4" stroke="#F3F1EA" stroke-width="1"/><g class="sway" style="animation-duration:3.6s"><path d="M19 -10l3-4M19 -10l4 0" stroke="#FFB86B" stroke-width="1.6"/></g>`;
+  case "beachclub": return `<path d="M-20 0v-10h22v10z" fill="#B07A55"/><rect x="-21" y="-12" width="24" height="3" rx="1" fill="#7A5038"/><path d="M-22 -26l12-6 12 6z" fill="#5BC0A8"/><path d="M-18 -26v14M-2 -26v14" stroke="#8A5A3B" stroke-width="1.6"/><path d="M-16 -36q8-6 16 0" stroke="#3A3D58" stroke-width=".6" fill="none"/>${[-15,-11,-7,-3].map((x,i)=>`<g class="glow" style="animation-duration:1.5s;animation-delay:${i*.3}s"><circle cx="${x}" cy="${-34+Math.abs(x+9)/3}" r="1.6" fill="${["#FF9C7A","#FFD27A","#C8F169","#B6A4FF"][i]}"/></g>`).join("")}<g transform="translate(-14 -12)"><rect x="-1.4" y="-6" width="2.8" height="6" rx="1" fill="#E5484D" opacity=".85"/><path d="M0 -6l2-3" stroke="#C8F169" stroke-width=".8"/></g><g transform="translate(-6 -12)"><rect x="-1.4" y="-5" width="2.8" height="5" rx="1" fill="#FFB86B" opacity=".85"/></g><path d="M14 0l2-24" stroke="#7A5038" stroke-width="1.4"/><g class="sway" style="animation-duration:4s"><path d="M4 -22q12-12 26 2z" fill="#FFD27A"/><path d="M10 -26q2 4 2 6M20 -27q2 3 3 6" stroke="#FF9C7A" stroke-width="2.6" fill="none"/></g><path d="M8 0l4-6h8l4 6" stroke="#F3F1EA" stroke-width="1.4" fill="none"/>`;
   }
   return "";
 }
@@ -1573,7 +1634,7 @@ function bind(){
   document.querySelectorAll("[data-buy]").forEach(btn=>btn.onclick=()=>{
     const it=allItems().find(x=>x.id===btn.dataset.buy), cost=price(it); if(S.points<cost) return;
     S.points-=cost;
-    if(it.consumable){if(it.id==="tee")S.tea++;else S.sun++} else if(!owns(it.id)) S.items.push(it.id);
+    if(it.consumable){if(it.id==="tee")S.tea++;else if(it.id==="klee")S.glueck=clamp(S.glueck+5,0,100);else S.sun++} else if(!owns(it.id)) S.items.push(it.id);
     log("Gekauft: "+it.n+" für "+cost+" Punkte.","good"); toast(it.n+(it.consumable?" auf Vorrat":" steht jetzt auf deiner Insel"));
     if(S.wish&&S.wish.item===it.id){const r=S.residents.find(x=>x.id===S.wish.rid);if(r){r.wishDone=true;S.glueck=clamp(S.glueck+6,0,100);chron([r.id],r.name+"s Wunsch ist erfüllt: "+it.n+".");log(r.name+"s Wunsch ist erfüllt! +6 % Glück.","good");S.pending.push({type:"wish",rid:r.id,item:it.id})}S.wish=null}
     save(); render(); showPending();

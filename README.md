@@ -10,7 +10,7 @@ Ein kleines Handy-Spiel gegen zu viel Bildschirmzeit: Du trägst jeden Abend ein
 - **Heute:** Bildschirmzeit eintragen, Quests, echte Aktivitäten, Fokus-Bootsfahrt, Gute-Nacht-Ritual, Urlaubsmodus
 - **Bewohner:** Menschen mit Berufen und Eigenschaften, Tiere, Beziehungen, Streit, Liebe, Stammbaum, Chronik
 - **Zeit:** zurückgewonnene Zeit, Hochrechnung aufs Jahr, App-Monster-Statistik
-- **Bauen:** Inselladen, Händlerschiff, Großprojekte
+- **Bauen:** Inselladen mit Vorräten, Nützlichem und Deko (26 animierte Gegenstände), Händlerschiff, zehn Großprojekte vom Leuchtturm bis zum Beachclub
 - **Album:** Postkarten, Strandgut, Zeitkapseln, Tagebuch, Einstellungen, Sicherung
 
 ## Starten
