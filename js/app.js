@@ -1629,9 +1629,51 @@ function viewVerlauf(){
   </div>`;
 }
 
+/* ---------- Inselansicht: Gesamtbild oder einzelne Insel, per Wischen ---------- */
+let islandView=0, vbAnim=null;
+function islandViews(){
+  const v=[{n:"Alle Inseln",vb:[0,0,360,240]}];
+  if(!has("bruecke")) return v;
+  v.push({n:"Hauptinsel",vb:[0,62,246,164]});
+  v.push({n:"Nachbarinsel",vb:[204,94,156,104]});
+  if(has("insel3")) v.push({n:"Dritte Insel",vb:[234,156,126,84]});
+  return v;
+}
+function setViewBox(vb){const svg=$("#scene > svg");if(svg)svg.setAttribute("viewBox",vb.map(n=>n.toFixed(1)).join(" "))}
+function renderScene(){
+  const views=islandViews(); if(islandView>=views.length) islandView=0;
+  const nav=views.length>1?`<div class="scene-nav">
+      <button class="snav" data-snav="-1" aria-label="Vorherige Insel">‹</button>
+      <div class="snav-mid"><span class="snav-label">${views[islandView].n}</span><span class="snav-dots">${views.map((v,i)=>`<button class="${i===islandView?"on":""}" data-sview="${i}" aria-label="${v.n}"></button>`).join("")}</span></div>
+      <button class="snav" data-snav="1" aria-label="Nächste Insel">›</button></div>`:"";
+  $("#scene").innerHTML=scene()+nav;
+  setViewBox(views[islandView].vb);
+  document.querySelectorAll("[data-snav]").forEach(b=>b.onclick=()=>goView(islandView+ +b.dataset.snav));
+  document.querySelectorAll("[data-sview]").forEach(b=>b.onclick=()=>goView(+b.dataset.sview));
+}
+function goView(i){
+  const views=islandViews(); if(views.length<2) return;
+  i=(i+views.length)%views.length; if(i===islandView) return;
+  const from=views[islandView].vb, to=views[i].vb; islandView=i;
+  const lab=$(".snav-label"); if(lab) lab.textContent=views[i].n;
+  document.querySelectorAll("[data-sview]").forEach((b,k)=>b.classList.toggle("on",k===i));
+  cancelAnimationFrame(vbAnim);
+  const reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(reduce) return setViewBox(to);
+  const t0=performance.now(), dur=450;
+  (function step(t){const k=Math.min(1,(t-t0)/dur), e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+    setViewBox(from.map((f,j)=>f+(to[j]-f)*e)); if(k<1) vbAnim=requestAnimationFrame(step)})(t0);
+}
+(function(){ // Wischen auf dem Inselbild
+  const el=$("#scene"); let x0=null,y0=0;
+  el.addEventListener("touchstart",e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY},{passive:true});
+  el.addEventListener("touchend",e=>{if(x0==null)return;const dx=e.changedTouches[0].clientX-x0, dy=e.changedTouches[0].clientY-y0;x0=null;
+    if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)*1.3) goView(islandView+(dx<0?1:-1))},{passive:true});
+})();
+
 /* ---------- Rendern ---------- */
 function render(){
-  $("#scene").innerHTML=scene();
+  renderScene();
   $("#streakChip").textContent=S.happyStreak>0?S.happyStreak+" glückliche Tage":S.dayCount+(S.dayCount===1?" Tag":" Tage")+" gespielt";
   $("#streakChip").className="chip "+(S.happyStreak>0?"good":"gone");
   $("#accBtn").innerHTML=ACC?avatarSvg(ACC.avatar,40):"";
