@@ -51,7 +51,7 @@ service cloud.firestore {
 
     // Support-Meldungen: senden und die eigene Anfrage samt Antwort lesen. Antworten schreibt man in der Konsole ins Feld antwort.
     match /support/{id} {
-      allow get: if signedIn() && resource.data.owner == request.auth.uid;   // eigene Anfrage samt Antwort
+      allow get, list: if signedIn() && resource.data.owner == request.auth.uid;   // eigene Anfragen samt Antwort
       allow create: if signedIn() && request.resource.data.owner == request.auth.uid
         && request.resource.data.keys().hasOnly(["owner", "cat", "text", "contact", "name", "info", "at", "status"])
         && request.resource.data.cat in ["fehler", "idee", "frage", "sonst"]
