@@ -1,0 +1,115 @@
+name: iOS-App bauen
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "css/**"
+      - "js/**"
+      - "icons/**"
+      - "ios/**"
+      - "capacitor.config.json"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/ios.yml"
+  pull_request:
+    paths:
+      - "index.html"
+      - "css/**"
+      - "js/**"
+      - "icons/**"
+      - "ios/**"
+      - "capacitor.config.json"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/ios.yml"
+  workflow_dispatch:
+    inputs:
+      testflight:
+        description: "Nach TestFlight hochladen (braucht die Apple-Secrets)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Bauen (ohne Signatur)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Web-App ins iOS-Projekt kopieren
+        run: npm run ios:sync
+      - name: App für den Simulator bauen
+        run: |
+          xcodebuild -project ios/App/App.xcodeproj -scheme App \
+            -configuration Release \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build | tail -n 40
+
+  testflight:
+    name: Nach TestFlight hochladen
+    if: github.event_name == 'workflow_dispatch' && inputs.testflight
+    needs: build
+    runs-on: macos-15
+    env:
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+    steps:
+      - name: Apple-Secrets prüfen
+        run: |
+          for v in ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_P8 APPLE_TEAM_ID; do
+            if [ -z "${!v}" ]; then
+              echo "::error::Secret $v fehlt. Siehe docs/testflight.md"
+              exit 1
+            fi
+          done
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run ios:sync
+      - name: API-Schlüssel ablegen
+        run: |
+          mkdir -p "$RUNNER_TEMP/keys"
+          printf '%s' "$ASC_KEY_P8" > "$RUNNER_TEMP/keys/AuthKey.p8"
+      - name: Archiv bauen und signieren
+        run: |
+          xcodebuild -project ios/App/App.xcodeproj -scheme App \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/OffLand.xcarchive" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/keys/AuthKey.p8" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CODE_SIGN_STYLE=Automatic \
+            CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
+            archive | tail -n 60
+      - name: Zu App Store Connect / TestFlight hochladen
+        run: |
+          sed "s/TEAM_ID/$APPLE_TEAM_ID/" ios/ExportOptions.plist > "$RUNNER_TEMP/ExportOptions.plist"
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/OffLand.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/keys/AuthKey.p8" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" | tail -n 40
+      - name: Schlüssel löschen
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/keys"

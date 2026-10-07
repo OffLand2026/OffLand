@@ -1,0 +1,17 @@
+{
+  "name": "offland",
+  "version": "1.0.0",
+  "private": true,
+  "description": "OffLand – Grow your world beyond the screen.",
+  "scripts": {
+    "build": "node scripts/build-www.mjs",
+    "ios:sync": "npm run build && npx cap sync ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/ios": "^8.5.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.3"
+  }
+}
