@@ -1,5 +1,5 @@
 /* Service Worker: macht die Offline-Insel auch ohne Internet spielbar. */
-const CACHE = "offline-insel-v1";
+const CACHE = "offline-insel-v2";
 const ASSETS = [
   "./",
   "index.html",
