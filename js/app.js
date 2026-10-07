@@ -532,8 +532,10 @@ function doActivity(id){
 }
 function startBoat(dur){
   const crew=adults().find(r=>r.job==="fischer")||pick(adults())||null;
-  S.boat={start:Date.now(),dur,crew:crew?crew.id:null,left:0}; save(); render();
-  toast("Das Boot legt ab. Leg das Handy weg!");
+  S.boat={start:Date.now(),dur,crew:crew?crew.id:null,left:0}; save();
+  const el=document.documentElement;
+  if(el.requestFullscreen&&!document.fullscreenElement) el.requestFullscreen().catch(()=>{});
+  render();
 }
 function boatLeft(){if(!S.boat)return 0;return Math.max(0,S.boat.start+S.boat.dur*60000-Date.now())}
 function finishBoat(){
@@ -551,10 +553,96 @@ function boatHonest(ok,dur,crewId){
 document.addEventListener("visibilitychange",()=>{if(document.hidden&&S.boat){S.boat.left=(S.boat.left||0)+1;save()}});
 setInterval(()=>{
   if(!S.boat) return;
-  const el=$("#boatTime"); const ms=boatLeft();
-  if(el){el.textContent=Math.floor(ms/60000)+":"+pad(Math.floor(ms/1000)%60);const bar=$("#boatBar");if(bar)bar.style.width=(100-ms/(S.boat.dur*600))+"%"}
-  if(ms<=0) finishBoat();
+  updateFocus();
+  if(boatLeft()<=0) finishBoat();
 },1000);
+/* ---------- Fokus-Bootsfahrt im Vollbild ---------- */
+const lerp=(a,b,t)=>a+(b-a)*t;
+function wavePath(y,amp){let d=`M-120 ${y}`;for(let x=-120;x<480;x+=30)d+=` q15 ${(x/30)%2?amp:-amp} 30 0`;return d}
+function focusSvg(){
+  const sk=skyNow(), night=sk.k==="nacht";
+  const crew=S.boat.crew?S.residents.find(r=>r.id===S.boat.crew):null;
+  const top=night?"#0F1630":sk.k==="abend"?"#4B3B78":sk.k==="morgen"?"#C98A7A":"#5FA3DA";
+  const bottom=night?"#26335C":sk.k==="abend"?"#E59A7A":sk.k==="morgen"?"#F2C29A":"#BFE0F5";
+  const seaTop=night?"#22365E":"#3A6FA8", seaBottom=night?"#101A33":"#1E3F6E";
+  const stars=night?`<g fill="#F3F1EA">${Array.from({length:26},(_,i)=>`<circle class="glow" style="animation-delay:${(i*0.37)%2.4}s" cx="${(i*67)%360}" cy="${20+(i*53)%300}" r="${i%3?1:1.6}"/>`).join("")}</g>`:"";
+  const island=(grass,hut)=>`<ellipse cx="0" cy="0" rx="90" ry="16" fill="#E9D7A6"/><path d="M-76 -2c8-34 42-50 76-50s68 16 76 50z" fill="${grass}"/>${hut?`<path d="M14 -8v-20l16-12 16 12v20z" fill="#F3F1EA"/><path d="M10 -26l20-15 20 15" fill="none" stroke="#FF9C7A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`:`<rect x="-30" y="-46" width="5" height="26" fill="#8A5A3B"/><circle cx="-28" cy="-52" r="13" fill="#4E9A58"/><rect x="8" y="-36" width="4" height="22" fill="#8A5A3B"/><circle cx="10" cy="-40" r="10" fill="#4E9A58"/><path d="M40 -6v-30l14 30z" fill="#F3F1EA"/>`}`;
+  return `<svg viewBox="0 0 360 640" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs><linearGradient id="fSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${top}"/><stop offset="1" stop-color="${bottom}"/></linearGradient>
+      <linearGradient id="fSea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${seaTop}"/><stop offset="1" stop-color="${seaBottom}"/></linearGradient></defs>
+    <rect width="360" height="640" fill="url(#fSky)"/>${stars}
+    <g id="fSun" class="f-move">${night?`<circle r="18" fill="#F3F1EA"/><circle cx="7" cy="-5" r="17" fill="${top}"/>`:`<circle r="34" fill="#FFE7A3" opacity=".25"/><circle r="22" fill="${sk.k==="abend"?"#FF9C7A":"#FFE7A3"}"/>`}</g>
+    <g class="drift" style="animation-duration:14s" opacity="${night?.25:.85}"><g fill="#F3F1EA"><circle cx="70" cy="190" r="16"/><circle cx="92" cy="182" r="20"/><circle cx="114" cy="192" r="14"/><rect x="56" y="190" width="72" height="14" rx="7"/></g><g fill="#F3F1EA"><circle cx="250" cy="120" r="12"/><circle cx="268" cy="114" r="16"/><circle cx="286" cy="122" r="11"/><rect x="240" y="120" width="56" height="11" rx="5"/></g></g>
+    <g class="drift" style="animation-duration:9s"><path d="M150 240q6-6 12 0q6-6 12 0M184 258q5-5 10 0q5-5 10 0" stroke="${night?"#F3F1EA":"#14151F"}" stroke-width="2" fill="none" stroke-linecap="round"/></g>
+    <rect y="380" width="360" height="260" fill="url(#fSea)"/>
+    <g id="fHome" class="f-move">${island("#7FC57A",true)}</g>
+    <g id="fDest" class="f-move">${island("#5FA864",false)}</g>
+    <g class="f-waves" stroke="#9CC8EE" fill="none" stroke-linecap="round">
+      <path class="wscroll" style="animation-duration:5s" d="${wavePath(400,2)}" stroke-width="1.5" opacity=".35"/>
+      <path class="wscroll" style="animation-duration:3.6s" d="${wavePath(470,3)}" stroke-width="2" opacity=".45"/>
+    </g>
+    <g id="fBoat" class="f-move"><g class="bob" style="animation-duration:2.2s"><g class="wave fb" style="animation-duration:3s">
+      <path d="M-62 4q-20 2-40 0M-58 10q-26 3-52 0" stroke="#F3F1EA" stroke-width="2" fill="none" opacity=".55" stroke-linecap="round"/>
+      <path d="M-40 0h80l-12 18h-56z" fill="#FF9C7A"/><path d="M-40 0h80" stroke="#C25E3A" stroke-width="2"/>
+      <path d="M2 0v-62l40 56z" fill="#F3F1EA"/><path d="M-2 0v-50l-30 46z" fill="#B6A4FF"/><path d="M0 2v-66" stroke="#8A5A3B" stroke-width="3"/>
+      ${crew?`<g transform="translate(-20 0) scale(1.3)">${figure(crew,0,0)}</g>`:""}
+    </g></g></g>
+    <g class="fishes">${[0,1,2].map(i=>`<g transform="translate(${[60,250,170][i]} ${[520,560,610][i]})"><g class="fishjump" style="animation-delay:${i*3.1+1}s"><path d="M-8 0q8-7 16 0q-8 7-16 0zM8 0l6-5v10z" fill="#FFB86B"/></g></g>`).join("")}</g>
+    <g class="f-waves" stroke="#BFE0F5" fill="none" stroke-linecap="round">
+      <path class="wscroll" style="animation-duration:2.6s" d="${wavePath(540,4)}" stroke-width="2.5" opacity=".5"/>
+      <path class="wscroll" style="animation-duration:2s" d="${wavePath(610,5)}" stroke-width="3" opacity=".55"/>
+    </g>
+  </svg>`;
+}
+function renderFocus(){
+  let el=$("#focus");
+  const on=!!(ACC&&S.boat);
+  document.body.classList.toggle("focus-on",on);
+  if(!on){
+    if(el) el.remove();
+    if(document.fullscreenElement&&document.exitFullscreen) document.exitFullscreen().catch(()=>{});
+    return;
+  }
+  if(el&&+el.dataset.start===S.boat.start) return updateFocus();
+  if(el) el.remove();
+  const crew=S.boat.crew?S.residents.find(r=>r.id===S.boat.crew):null;
+  el=document.createElement("div"); el.id="focus"; el.className="focus"; el.dataset.start=S.boat.start;
+  el.setAttribute("role","dialog"); el.setAttribute("aria-modal","true"); el.setAttribute("aria-label","Fokus-Bootsfahrt");
+  el.innerHTML=`<div class="focus-scene">${focusSvg()}</div>
+    <div class="focus-top">
+      <p class="label" style="color:#F3F1EA;opacity:.8">Fokus-Bootsfahrt · ${S.boat.dur} min</p>
+      <p class="focus-time num" id="boatTime" aria-live="off">--:--</p>
+      <p class="focus-msg">${crew?esc(crew.name)+" ist draußen beim Fischen.":"Das Boot ist draußen."} Leg das Handy weg, bis es zurück ist.</p>
+    </div>
+    <div class="focus-bottom">
+      <div class="row between small" style="font-weight:700"><span id="focusFish">Noch kein Fang</span><span id="focusPct">0 %</span></div>
+      <div class="bar" style="background:rgba(255,255,255,.18)"><i id="boatBar" style="width:0%;background:var(--lime)"></i></div>
+      <button class="btn ghost" id="boatStop" style="color:#F3F1EA;border-color:rgba(243,241,234,.35)">Bootsfahrt abbrechen</button>
+    </div>`;
+  document.body.appendChild(el);
+  $("#boatStop").onclick=()=>{
+    modal(`<h2>Bootsfahrt abbrechen?</h2><p class="muted">Das Boot kehrt ohne Fang zurück. Punkte und Baumaterial gibt es nur, wenn du durchhältst.</p>
+      <div class="row"><button class="btn grow" id="stopNo">Weiterfahren</button><button class="btn secondary grow" id="stopYes">Abbrechen</button></div>`);
+    $("#stopNo").onclick=closeModal;
+    $("#stopYes").onclick=()=>{S.boat=null;log("Bootsfahrt abgebrochen.","info");save();closeModal();render()};
+    $("#stopNo").focus();
+  };
+  updateFocus();
+}
+function updateFocus(){
+  if(!S.boat||!$("#focus")) return;
+  const total=S.boat.dur*60000, ms=boatLeft(), p=clamp(1-ms/total,0,1);
+  $("#boatTime").textContent=Math.floor(ms/60000)+":"+pad(Math.floor(ms/1000)%60);
+  $("#boatBar").style.width=(p*100)+"%";
+  $("#focusPct").textContent=Math.floor(p*100)+" %";
+  const fish=Math.floor(p*Math.max(1,Math.round(S.boat.dur/10)));
+  $("#focusFish").textContent=fish?fish+(fish===1?" Fisch":" Fische")+" im Netz":"Noch kein Fang";
+  const set=(id,x,y,sc)=>{const g=document.getElementById(id);if(g)g.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px)${sc?` scale(${sc.toFixed(3)})`:""}`};
+  set("fBoat",lerp(80,210,p),455);
+  set("fHome",lerp(40,-200,Math.min(1,p*1.6)),396,lerp(1,.6,p));
+  set("fDest",lerp(470,285,p),394,lerp(.35,1,p));
+  set("fSun",lerp(40,320,p),340-Math.sin(p*Math.PI)*110);
+}
 function sleeping(){const h=new Date().getHours();return !!(S.night&&S.night.after===S.lastDay&&(h>=20||h<9))}
 function goodNight(){S.night={after:S.lastDay,at:Date.now()};log("Gute Nacht, Insel. Das Handy ruht bis morgen.","info");save();render();toast("Gute Nacht! Morgen gibt es Traumpunkte.")}
 function setVacation(on){
@@ -1036,8 +1124,8 @@ function viewHeute(){
   ${S.wish&&wisher?`<div class="card"><div class="row"><div class="badge" style="background:#26233D"><svg width="36" height="30" viewBox="-20 -34 40 38" aria-hidden="true">${itemSvg(S.wish.item)}</svg></div><div class="grow"><p class="label">Wunsch</p><p><b>${esc(wisher.name)}</b> wünscht sich: ${esc(itemName(S.wish.item))}</p><p class="small muted">Erfüllst du ihn im Laden, strahlt ${esc(wisher.name)} und bringt dir jeden Tag +3 Punkte.</p></div></div></div>`:""}
   ${mons.length?`<div class="card" style="border:1.5px solid #9B6BD6"><p class="label" style="color:#C8A8FF">App-Monster vor der Insel</p>${mons.map(a=>`<div class="row"><svg width="48" height="40" viewBox="-24 -34 48 40" aria-hidden="true">${monsterSvg(a.m)}</svg><p class="grow">${esc(monName(a,false))}: ${esc(a.name)} lag gestern über ${hm(a.limit)}. Es verscheucht die Fische und kostet Glück.</p></div>`).join("")}<p class="small muted">Bleib heute bei diesen Apps unter dem Limit, dann tauchen sie wieder ab.</p></div>`:""}
   <div class="card">
-    <div class="row between"><p class="label">Fokus-Bootsfahrt</p>${S.boat?`<span class="num" id="boatTime" style="font-family:var(--display);font-weight:800;font-size:20px">--:--</span>`:""}</div>
-    ${S.boat?`<p>Das Boot ist draußen. Leg das Handy weg, bis es zurück ist.</p><div class="bar"><i id="boatBar" style="width:0%;background:var(--lilac)"></i></div><button class="btn ghost" id="boatStop">Abbrechen</button>`
+    <div class="row between"><p class="label">Fokus-Bootsfahrt</p></div>
+    ${S.boat?`<p>Das Boot ist draußen. Leg das Handy weg, bis es zurück ist.</p>`
     :`<p class="small muted">Ein Bewohner fährt zum Fischen raus, solange du das Handy weglegst. Hältst du durch, bringt das Boot Punkte und Baumaterial.</p>
       <div class="row">${[15,30,60].map(m=>`<button class="btn secondary grow" style="padding:0" data-boat="${m}" ${adults().length?"":"disabled"}>${m} min</button>`).join("")}</div>`}
   </div>
@@ -1367,6 +1455,7 @@ function render(){
   const v=!S.setup?viewSetup():tab==="heute"?viewHeute():tab==="bewohner"?viewBewohner():tab==="zeit"?viewZeit():tab==="projekt"?viewProjekt():viewVerlauf();
   $("#view").innerHTML=`<div style="display:flex;flex-direction:column;gap:12px">${v}</div>`;
   bind();
+  renderFocus();
 }
 function bind(){
   const sb=$("#setBudget"), sa=$("#setBase");
@@ -1390,7 +1479,6 @@ function bind(){
   const b=$("#simBad"); if(b) b.onclick=()=>simDay(true);
   const s10=$("#sim10"); if(s10) s10.onclick=()=>{const keep=S.pending.length;for(let i=0;i<10;i++){if($("#modalRoot").innerHTML) break; simDay(Math.random()<.25)}};
   document.querySelectorAll("[data-boat]").forEach(x=>x.onclick=()=>startBoat(+x.dataset.boat));
-  const bs=$("#boatStop"); if(bs) bs.onclick=()=>{S.boat=null;log("Bootsfahrt abgebrochen.","info");save();render()};
   document.querySelectorAll("[data-act]").forEach(x=>x.onclick=()=>doActivity(x.dataset.act));
   const nb=$("#nightBtn"); if(nb) nb.onclick=goodNight;
   const vo=$("#vacOff"); if(vo) vo.onclick=()=>setVacation(false);
@@ -1686,7 +1774,7 @@ function logout(){
 function tryLogin(p){p.pin?pinPrompt(p,()=>login(p)):login(p)}
 
 function showStart(){
-  document.body.classList.add("start"); closeModal(); window.scrollTo(0,0);
+  document.body.classList.add("start"); closeModal(); window.scrollTo(0,0); renderFocus();
   const list=profiles().sort((a,b)=>(b.last||0)-(a.last||0));
   const hero=base(`<g class="bob">${figure({kind:"mensch",name:"Mia"},226,134)}</g><g class="bob" style="animation-delay:.5s">${figure({kind:"tier",art:"Ziege",name:"x"},250,136)}</g><g class="drift"><path d="M60 60q6-6 12 0q6-6 12 0M96 76q5-5 10 0q5-5 10 0" stroke="#F3F1EA" stroke-width="2" fill="none" stroke-linecap="round"/></g>`,false);
   const chev=`<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>`;
