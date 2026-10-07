@@ -2467,7 +2467,8 @@ async function netInit(){
       get:async p=>{const d=await F.getDoc(F.doc(db,p));return d.exists()?d.data():null},
       set:(p,v)=>F.setDoc(F.doc(db,p),v,{merge:true}),
       del:p=>F.deleteDoc(F.doc(db,p)),
-      list:async(p,o)=>{o=o||{};const c=F.collection(db,p);const q=o.orderBy?F.query(c,F.orderBy(o.orderBy),F.limit(o.limit||50)):c;
+      list:async(p,o)=>{o=o||{};const c=F.collection(db,p);
+        const q=o.where?F.query(c,F.where(o.where[0],"==",o.where[1]),F.limit(o.limit||50)):o.orderBy?F.query(c,F.orderBy(o.orderBy),F.limit(o.limit||50)):c;
         const r=await F.getDocs(q);return r.docs.map(d=>Object.assign({id:d.id},d.data()))}};
   })();
   try{return await netBusy}finally{netBusy=null}
@@ -2737,16 +2738,22 @@ function ticketHtml(t){
 }
 let replyCheck=0;
 async function checkReplies(force){
-  const open=(S.tickets||[]).filter(t=>!t.reply);
-  if(!open.length||!netConfigured()) return;
+  if(!netConfigured()||!S.setup) return;
   if(!force&&Date.now()-replyCheck<10*60000) return; replyCheck=Date.now();
   let N; try{N=await netInit()}catch(e){return}
-  let got=0;
-  for(const t of open){
-    const d=await N.get("support/"+t.id).catch(()=>null);
-    const a=d&&typeof d.antwort==="string"&&d.antwort.trim();
-    if(a){t.reply=a.slice(0,3000);t.replyAt=Date.now();S.pending.push({type:"reply",id:t.id});got++}
+  // alle eigenen Anfragen dieses Geräts holen (findet auch ältere, die die App sich nicht gemerkt hat)
+  let docs=null;
+  try{docs=await N.list("support",{where:["owner",N.uid],limit:50})}catch(e){}
+  if(!docs) docs=(await Promise.all(S.tickets.filter(t=>!t.reply).map(t=>N.get("support/"+t.id).then(d=>d&&Object.assign({id:t.id},d)).catch(()=>null)))).filter(Boolean);
+  let got=0, added=0;
+  for(const d of docs){
+    let t=S.tickets.find(x=>x.id===d.id);
+    if(!t){ if(d.name!==netName()) continue;                                     // gehört zu einem anderen Konto auf diesem Gerät
+      t={id:d.id,at:d.at||Date.now(),cat:d.cat,text:String(d.text||"").slice(0,140),reply:null,seen:false}; S.tickets.push(t); added++; }
+    const a=typeof d.antwort==="string"&&d.antwort.trim();
+    if(a&&!t.reply){t.reply=a.slice(0,3000);t.replyAt=Date.now();S.pending.push({type:"reply",id:t.id});got++}
   }
+  if(added&&!got) save();
   if(got){save();log("Das OffLand-Team hat auf deine Anfrage geantwortet.","good");showPending()}
 }
 
