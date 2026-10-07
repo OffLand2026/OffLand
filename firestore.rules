@@ -49,6 +49,16 @@ service cloud.firestore {
       allow delete: if ownsPlayer(pid);
     }
 
+    // Support-Meldungen: nur senden. Lesen nur in der Firebase-Konsole.
+    match /support/{id} {
+      allow create: if signedIn() && request.resource.data.owner == request.auth.uid
+        && request.resource.data.keys().hasOnly(["owner", "cat", "text", "contact", "name", "info", "at", "status"])
+        && request.resource.data.cat in ["fehler", "idee", "frage", "sonst"]
+        && request.resource.data.text is string && request.resource.data.text.size() >= 5 && request.resource.data.text.size() <= 2000
+        && shortText(request.resource.data.contact, 100) && shortText(request.resource.data.name, 20)
+        && request.resource.data.info is map && request.resource.data.status == "neu";
+    }
+
     // Rangliste für alle: nur wer zugestimmt hat, steht hier.
     match /weeks/{wk}/public/{pid} {
       allow get: if signedIn();

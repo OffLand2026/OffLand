@@ -75,3 +75,13 @@ In den Einstellungen lässt sich „Online sein“ ausschalten. Dabei werden all
 - 50.000 Lesezugriffe und 20.000 Schreibzugriffe pro Tag. Das reicht für einige Hundert aktive Spieler:innen.
 - Die Bildschirmzeit wird von den Spieler:innen selbst eingetragen, die Ranglisten beruhen also auf Ehrlichkeit.
 - Wer die App löscht oder die Browserdaten leert, bekommt beim nächsten Online-Gehen ein neues Online-Profil. Freundschaften müssen dann neu verbunden werden.
+
+## Support-Meldungen lesen
+
+In der App unter Profilbild → **Hilfe und Support** können Spieler:innen Fehler, Ideen oder Fragen schicken.
+
+- Firebase-Konsole → **Firestore Database** → Reiter **Daten** → Ordner **support**.
+- Jede Meldung enthält Art (`fehler`, `idee`, `frage`, `sonst`), Text, freiwillige E-Mail (`contact`), Name, Zeitpunkt (`at`, Millisekunden) und technische Infos (`info`: Web oder iPhone-App, Gerät, Bildschirm, Inselwelt, Tage).
+- Das Feld `status` steht auf `neu`. Du kannst es in der Konsole z. B. auf `erledigt` setzen, um den Überblick zu behalten.
+- Spieler:innen können Meldungen nur senden, nicht lesen. Lesen geht nur in der Konsole.
+- Nach dem Erweitern der Regeln (`firestore.rules`) müssen sie in der Konsole neu eingefügt und veröffentlicht werden.

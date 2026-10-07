@@ -2677,6 +2677,46 @@ async function fillRanks(force){
   document.querySelectorAll("[data-unfriend]").forEach(b=>b.onclick=async()=>{b.disabled=true;await netRemove(b.dataset.unfriend);S.buddies=S.buddies.filter(x=>x.pid!==b.dataset.unfriend);save();RANKC=null;render()});
 }
 
+/* ---------- Support: Meldungen landen in Firestore unter "support" ----------
+   Nur Senden ist erlaubt, lesen kann man sie nur in der Firebase-Konsole. */
+const SUPPORT_CATS=[["fehler","Fehler melden"],["idee","Idee oder Wunsch"],["frage","Frage"],["sonst","Sonstiges"]];
+function supportInfo(){
+  return {app:(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform())?"ios":"web",
+    ua:navigator.userAgent.slice(0,200),screen:innerWidth+"x"+innerHeight,lang:(navigator.language||"").slice(0,10),
+    world:curWorld().name,days:S.dayCount,residents:here().length,budget:S.budget,online:!!netOn()};
+}
+function supportSheet(prefill){
+  if(typeof prefill!=="string") prefill="fehler";
+  const info=supportInfo();
+  modal(`<p class="label" style="color:var(--lime)">Hilfe und Support</p><h2>Schreib uns</h2>
+    <p class="muted">Etwas funktioniert nicht, du hast eine Idee oder eine Frage? Wir lesen jede Nachricht.</p>
+    <div class="field"><span>Worum geht es?</span><div class="row" style="flex-wrap:wrap;gap:8px">${SUPPORT_CATS.map(([v,l],i)=>`<label class="check" style="min-height:40px;padding:0 12px;border-radius:20px;background:var(--ground)"><input type="radio" name="supCat" value="${v}" ${prefill===v?"checked":""}> ${l}</label>`).join("")}</div></div>
+    <label class="field" for="supText">Deine Nachricht<textarea id="supText" rows="5" maxlength="2000" placeholder="Was ist passiert? Was hast du erwartet?" style="width:100%;border-radius:16px;padding:12px 14px;background:var(--ground);color:var(--ink);border:1.5px solid var(--line);font:500 16px var(--body);resize:vertical"></textarea></label>
+    <label class="field" for="supMail">E-Mail für eine Antwort (freiwillig)<input id="supMail" type="email" maxlength="100" autocomplete="email" placeholder="name@beispiel.de"></label>
+    <details><summary class="small muted" style="cursor:pointer;min-height:40px;display:flex;align-items:center">Diese technischen Infos werden mitgeschickt</summary>
+      <p class="small muted">${info.app==="ios"?"iPhone-App":"Web-App"} · ${esc(info.screen)} · ${esc(info.lang)} · ${esc(info.world)} · ${info.days} Tage · ${info.residents} Bewohner · Budget ${hm(info.budget)} · Gerät: ${esc(info.ua)}</p></details>
+    <p class="err" id="supErr" role="alert"></p>
+    <button class="btn" id="supSend">Absenden</button><button class="btn ghost" id="supNo">Abbrechen</button>`);
+  $("#supNo").onclick=()=>{closeModal();render()};
+  $("#supSend").onclick=async()=>{
+    const text=$("#supText").value.trim(), mail=$("#supMail").value.trim(), cat=(document.querySelector("[name=supCat]:checked")||{}).value||"sonst";
+    if(text.length<5) return $("#supErr").textContent="Schreib bitte ein paar Worte mehr.";
+    if(mail&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)) return $("#supErr").textContent="Die E-Mail-Adresse sieht nicht richtig aus.";
+    if(!netConfigured()) return $("#supErr").textContent="Support ist in dieser Version noch nicht verfügbar.";
+    const btn=$("#supSend"); btn.disabled=true; btn.textContent="Sende …";
+    try{
+      const N=await netInit();
+      await N.set("support/"+rid(),{owner:N.uid,cat,text:text.slice(0,2000),contact:mail.slice(0,100),name:netName(),info:supportInfo(),at:Date.now(),status:"neu"});
+      sfx("postcard");
+      modal(`<p class="label" style="color:var(--lime)">Danke!</p><h2>Nachricht ist angekommen</h2><p class="muted">${mail?"Wir melden uns per E-Mail bei dir.":"Danke, dass du OffLand besser machst."}</p><button class="btn" id="supOk">Schließen</button>`);
+      $("#supOk").onclick=()=>{closeModal();render()};
+    }catch(e){
+      if(!document.body.contains(btn)) return;
+      btn.disabled=false; btn.textContent="Absenden"; $("#supErr").textContent="Senden hat nicht geklappt. Bist du online? Versuch es gleich noch mal.";
+    }
+  };
+}
+
 /* ---------- Insel teilen: Story-Bild 1080 × 1920 ---------- */
 /* Was man mit der gesparten Zeit hätte schaffen können: immer das größte passende Beispiel */
 const WOW=[
@@ -2869,13 +2909,14 @@ function accountSheet(){
   modal(`<div class="row">${avatarSvg(ACC.avatar,56)}<div class="grow"><p class="label">Konto</p><h2>${esc(ACC.name)}</h2><p class="small muted">${ACC.pin?"Mit PIN geschützt":"Ohne PIN"} · seit ${new Date(ACC.created).toLocaleDateString("de-DE")}</p></div></div>
     ${plusActive()?`<p class="small" style="color:var(--amber);font-weight:700">★ OffLand Plus bis ${nice(S.plus.until)}</p>`:""}
     <button class="btn secondary" id="accSettings">⚙︎ Einstellungen</button>
+    <button class="btn secondary" id="accSupport">Hilfe und Support</button>
     <div class="row"><button class="btn secondary grow" id="accShare">Insel teilen</button><button class="btn secondary grow" id="accFriends">Freunde einladen</button></div>
     <button class="btn secondary" id="accEdit">Name und Avatar ändern</button>
     <button class="btn secondary" id="accPinBtn">${ACC.pin?"PIN ändern oder entfernen":"PIN festlegen"}</button>
     <button class="btn secondary" id="accOut">Abmelden und Konto wechseln</button>
     <button class="btn ghost danger" id="accDel">Konto löschen</button>
     <button class="btn" id="accClose">Schließen</button>`);
-  $("#accSettings").onclick=settingsSheet; $("#accShare").onclick=shareSheet; $("#accFriends").onclick=friendsSheet; $("#accEdit").onclick=editSheet; $("#accPinBtn").onclick=pinSheet;
+  $("#accSettings").onclick=settingsSheet; $("#accSupport").onclick=supportSheet; $("#accShare").onclick=shareSheet; $("#accFriends").onclick=friendsSheet; $("#accEdit").onclick=editSheet; $("#accPinBtn").onclick=pinSheet;
   $("#accOut").onclick=()=>{toast("Abgemeldet");logout()};
   $("#accDel").onclick=deleteSheet; $("#accClose").onclick=closeModal;
   $("#accClose").focus();
