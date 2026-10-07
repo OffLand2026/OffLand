@@ -221,3 +221,6 @@ body.focus-on{overflow:hidden}
 .snav-dots{display:flex;gap:6px}
 .snav-dots button{width:8px;height:8px;border-radius:4px;border:none;padding:0;background:rgba(243,241,234,.4);-webkit-tap-highlight-color:transparent}
 .snav-dots button.on{background:#F3F1EA;width:18px}
+
+/* Karten innerhalb von Dialogen */
+.sheet .card{background:var(--ground)}
