@@ -1004,6 +1004,53 @@ function monsterSvg(kind){
   }
   return "";
 }
+/* Gekaufte Gegenstände automatisch verteilen: Jeder Gegenstand nimmt den freien Platz,
+   der am weitesten von den schon platzierten entfernt ist, und weicht Gebäuden und Bäumen aus. */
+const ITEM_W={teich:36,picknick:34,garten:32,sandburg:30,schaukel:30,spielplatz:28,haengematte:28,stall:28,blumen:28,palme:26,bank:26,feuer:22,brunnen:24,sternwarte:26,bienen:22,schirm:30,vogelhaus:20,zwerg:12,laternen:12,glocke:18,teleskop:28,muschelweg:34,regenbogen:34};
+const ITEM_H={palme:30,laternen:28,vogelhaus:30,schirm:26,glocke:28,sternwarte:30,schaukel:26,haengematte:20,spielplatz:22,stall:22,bienen:24,teleskop:24,feuer:24};
+const FIXED_ITEMS={flagge:c=>[c.cx+50,122],lichter:c=>[c.cx+50,148],windspiel:c=>[c.cx+28,160],angel:c=>[c.cx+108,198]};
+function layoutItems(cx,two,three,nTrees){
+  const out={}, S8=.8, ctx={cx};
+  const blocks=[[cx+24,116,cx+76,162]];                                   // Hütte
+  if(has("leuchtturm")) blocks.push([cx-73,74,cx-51,162]);
+  if(has("windmuehle")) blocks.push([cx+76,118,cx+98,162]);
+  if(has("baumhaus")) blocks.push([cx-118,118,cx-72,170]);
+  if(owns("laternen")) blocks.push([cx+86,146,cx+98,172]);
+  for(let i=0;i<nTrees;i++){const tx=cx-40+i*22-(i%2)*6, ty=128+(i%2)*8;blocks.push([tx-6,ty-20,tx+6,ty+27])}
+  if(has("festzelt")&&two) blocks.push([302,128,334,154]);
+  if(has("strandhaus")&&two) blocks.push([246,142,278,170]);
+  if(has("beachclub")&&three) blocks.push([272,196,310,218]);
+  // mögliche Plätze (Fußpunkt), nur auf Sand/Gras
+  const cand=[];
+  const onMain=(x,y)=>{const dy=(y-176)/20;return Math.abs(x-cx)<=106*Math.sqrt(Math.max(0,1-dy*dy))-12};
+  for(const y of [158,165,172,179,186,193]) for(let x=cx-104;x<=cx+104;x+=5) if(onMain(x,y)&&(y>=165||Math.abs(x-cx)<86)) cand.push([x,y,0]);
+  if(two) for(const y of [152,159,166,172]) for(let x=252;x<=348;x+=5){const dy=(y-160)/14;if(Math.abs(x-300)<=54*Math.sqrt(Math.max(0,1-dy*dy))-8) cand.push([x,y,1])}
+  if(three) for(const y of [208,214]) for(let x=270;x<=332;x+=5) cand.push([x,y,2]);
+  const rects=[];
+  const area=(r,b)=>Math.max(0,Math.min(r[2],b[2]+2)-Math.max(r[0],b[0]-2))*Math.max(0,Math.min(r[3],b[3]+1)-Math.max(r[1],b[1]-1));
+  const clash=r=>blocks.concat(rects).reduce((t,b)=>t+area(r,b),0);
+  const pickSpot=(w,h,strict)=>{
+    let best=null, bestScore=-1e9;
+    for(const [x,y,isl] of cand){
+      const r=[x-w/2,y-h,x+w/2,y], c=clash(r);
+      if(strict&&c>0) continue;
+      let d=999; for(const q of rects){d=Math.min(d,Math.hypot(x-(q[0]+q[2])/2,(y-q[3])*1.6))}
+      const score=strict?Math.min(d,90)-isl*25+(y>=170&&y<=188?6:0):-c+Math.min(d,40)/10;
+      if(score>bestScore){bestScore=score;best=[x,y]}
+    }
+    return best;
+  };
+  for(const id of S.items){
+    if(FIXED_ITEMS[id]){out[id]=FIXED_ITEMS[id](ctx);continue}
+    if(!itemSvg(id)) continue;
+    let sc=S8, w=(ITEM_W[id]||24), h=(ITEM_H[id]||18), spot=pickSpot(w*sc,h*sc,true);
+    if(!spot){sc=.62;spot=pickSpot(w*sc,h*sc,true)}          // eng: etwas kleiner
+    if(!spot){sc=.62;spot=pickSpot(w*sc,h*sc,false)}         // sehr eng: geringste Überschneidung
+    out[id]=[spot[0],spot[1],sc];
+    rects.push([spot[0]-w*sc/2,spot[1]-h*sc,spot[0]+w*sc/2,spot[1]]);
+  }
+  return out;
+}
 function scene(){
   const two=has("bruecke"), three=has("insel3");
   const lastD=S.days[S.days.length-1];
@@ -1034,10 +1081,10 @@ function scene(){
   for(let i=0;i<nTrees;i++){const tx=cx-40+i*22-(i%2)*6, ty=128+(i%2)*8;s+=`<rect x="${tx-3}" y="${ty}" width="6" height="26" rx="2" fill="#8A5A3B"/><circle cx="${tx}" cy="${ty-6}" r="15" fill="${leaf}"/>`;
     if(sea==="fruehling"&&!clouds) s+=`<g fill="#FFB3C7"><circle cx="${tx-6}" cy="${ty-10}" r="2"/><circle cx="${tx+5}" cy="${ty-4}" r="2"/><circle cx="${tx+2}" cy="${ty-14}" r="2"/></g>`;
     if(sea==="winter") s+=`<path d="M${tx-14} ${ty-10}q14-14 28 0" stroke="#F3F1EA" stroke-width="4" fill="none" stroke-linecap="round"/>`;}
-  const place={palme:[cx-90,170],laternen:[cx-74,170],brunnen:[cx-54,174],haengematte:[cx-36,160],bank:[cx-16,178],feuer:[cx+4,168],blumen:[cx+18,172],spielplatz:[cx+70,186],stall:two?[318,156]:[cx+94,178],glocke:[cx+76,150],teleskop:[cx-100,180],
-    bienen:[cx-66,158],vogelhaus:[cx-48,150],schaukel:[cx-82,158],garten:[cx+40,184],picknick:[cx-30,191],angel:[cx+108,198],zwerg:[cx+26,177],windspiel:[cx+28,160],flagge:[cx+50,122],lichter:[cx+50,148],schirm:[cx+86,192],sandburg:[cx-60,195],
-    teich:two?[290,168]:[cx-4,196],sternwarte:three?[328,212]:two?[340,160]:[cx+98,158]};
-  S.items.filter(id=>place[id]).sort((a,b)=>place[a][1]-place[b][1]).forEach(id=>{const p=place[id];s+=`<g transform="translate(${p[0]} ${p[1]}) scale(.8)">${itemSvg(id)}</g>`});
+  const place=layoutItems(cx,two,three,nTrees);
+  // Gegenstände auf den Nebeninseln (x ≥ 244) erst nach diesen Inseln zeichnen, sonst verdecken die Inseln sie
+  const drawItems=far=>S.items.filter(id=>place[id]&&(two&&place[id][0]>=244)===far).sort((a,b)=>place[a][1]-place[b][1]).forEach(id=>{const p=place[id];s+=`<g data-item="${id}" transform="translate(${p[0]} ${p[1]}) scale(${p[2]||.8})">${itemSvg(id)}</g>`});
+  drawItems(false);
   if(owns("laternen")) s+=`<g transform="translate(${cx+92} 170) scale(.8)">${itemSvg("laternen")}</g>`;
   if(S.sun>0&&!clouds&&!night) s+=`<g transform="translate(46 54) scale(.9)">${itemSvg("sonne")}</g>`;
   // Erinnerungsbäume
@@ -1053,6 +1100,7 @@ function scene(){
     s+=`<ellipse cx="300" cy="160" rx="56" ry="14" fill="${sand}"/><path d="M252 158c8-26 30-36 48-36s40 10 48 36z" fill="${grass}"/>`;
   }
   if(three){ s+=`<ellipse cx="300" cy="214" rx="40" ry="9" fill="${sand}"/><path d="M266 213c6-16 20-22 34-22s28 6 34 22z" fill="${grass}"/>`; }
+  drawItems(true);
   // Neue Großprojekte
   const PPOS={baumhaus:[cx-96,168,.8],festzelt:two?[318,152,.72]:[cx+60,186,.7],strandhaus:two?[262,168,.62]:[cx+96,194,.75],beachclub:three?[288,216,.66]:two?[268,170,.7]:[cx-70,196,.7],floss:[72,222,.8]};
   ["baumhaus","festzelt","beachclub","strandhaus","floss"].forEach(id=>{if(has(id)){const q=PPOS[id];s+=`<g transform="translate(${q[0]} ${q[1]}) scale(${q[2]})">${projectSvg(id)}</g>`}});
