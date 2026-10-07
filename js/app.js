@@ -7,8 +7,9 @@ const HUMAN_NAMES=["Mia","Jonte","Frieda","Hannes","Ole","Lotta","Ida","Ben","Ne
 const ANIMAL_NAMES=["Lotte","Bruno","Krümel","Gerda","Paula","Socke","Wolke","Kalle","Möhre","Pünktchen","Flocke","Bommel","Strubbel","Rosi","Kuno"];
 const LAND=["Ziege","Huhn","Schaf","Esel","Katze","Hund","Meerschweinchen","Hase","Robbe"];
 const SEA=["Delfin","Wal"];
-const PLURAL={Ziege:"Ziegen",Huhn:"Hühner",Schaf:"Schafe",Esel:"Esel",Katze:"Katzen",Hund:"Hunde",Meerschweinchen:"Meerschweinchen",Hase:"Hasen",Robbe:"Robben",Delfin:"Delfine",Wal:"Wale"};
-const SOUND={Ziege:"Mäh!",Huhn:"Gack-gack!",Schaf:"Bäh!",Esel:"I-ah!",Katze:"Miau!",Hund:"Wuff!",Meerschweinchen:"Quiek!",Hase:"Schnupper-schnupper!",Robbe:"Ö-ö-ö!",Delfin:"Kliek-kliek!",Wal:"Wuuuuh!"};
+const FAR_ANIMALS=["Papagei","Elch","Kamel","Eisbär"];
+const PLURAL={Papagei:"Papageien",Elch:"Elche",Kamel:"Kamele",Eisbär:"Eisbären",Ziege:"Ziegen",Huhn:"Hühner",Schaf:"Schafe",Esel:"Esel",Katze:"Katzen",Hund:"Hunde",Meerschweinchen:"Meerschweinchen",Hase:"Hasen",Robbe:"Robben",Delfin:"Delfine",Wal:"Wale"};
+const SOUND={Papagei:"Krah! Hallo!",Elch:"Mööööh!",Kamel:"Brrrmpf!",Eisbär:"Grrrumm!",Ziege:"Mäh!",Huhn:"Gack-gack!",Schaf:"Bäh!",Esel:"I-ah!",Katze:"Miau!",Hund:"Wuff!",Meerschweinchen:"Quiek!",Hase:"Schnupper-schnupper!",Robbe:"Ö-ö-ö!",Delfin:"Kliek-kliek!",Wal:"Wuuuuh!"};
 const isSea=r=>SEA.includes(r.art);
 const MOTIFS=[
   {id:"moewen",title:"Grüße von der Möweninsel",sky:"#9CC8EE",sea:"#3A6FA8"},
@@ -30,6 +31,51 @@ const PROJECTS=[
   {id:"strandhaus",name:"Strandhaus",hours:70,text:"Wohnen direkt am Meer, +3 Plätze"},
   {id:"beachclub",name:"Beachclub",hours:85,text:"+10 Punkte und +1 % Glück an jedem Tag im Budget, +2 Plätze"}
 ];
+/* Weltreise: Sind alle Großprojekte einer Welt fertig, wird die nächste Insel entdeckt
+   und die ganze Inselgemeinschaft kann umziehen. Bewohner, Gegenstände und Plätze reisen mit. */
+const WORLDS=[
+  {id:"heimat",name:"Heimatinseln",isle2:"bruecke",isle3:"insel3",text:"Hier hat alles angefangen: Leuchtturm, Windmühle und die erste Hütte.",projects:PROJECTS},
+  {id:"tropen",name:"Tropeninsel",isle2:"t_haengebruecke",isle3:"t_vulkan",animals:["Papagei"],text:"Türkises Wasser, Palmen, Pfahlhütten und bunte Papageien.",
+    theme:{sky:"#7FD4F0",sea:"#1FA2B8",sand:"#F5E1A4",grass:"#6CC46A",leaf:"#3FA35A",tree:"palme",hut:"pfahl",bridge:"#C9A26A",horizon:"tropen"},
+    projects:[
+      {id:"t_bambus",name:"Bambushütten",hours:40,cap:4,text:"Luftige Hütten aus Bambus, +4 Plätze"},
+      {id:"t_haengebruecke",name:"Hängebrücke",hours:45,cap:4,text:"Eine Hängebrücke zur Nachbarinsel, +4 Plätze"},
+      {id:"t_riff",name:"Korallenriff-Steg",hours:50,cap:2,sea:true,text:"Ein Steg über das bunte Riff, +2 Plätze"},
+      {id:"t_wasserfall",name:"Wasserfall",hours:55,cap:2,text:"+1 % Glück an jedem guten Tag, +2 Plätze"},
+      {id:"t_vulkan",name:"Vulkaninsel",hours:60,cap:5,text:"Eine dritte Insel mit schlafendem Vulkan, +5 Plätze"},
+      {id:"t_mango",name:"Mangoplantage",hours:70,cap:3,text:"+10 Punkte an jedem Tag im Budget, +3 Plätze"}]},
+  {id:"fjord",name:"Fjordinseln",isle2:"f_bruecke",isle3:"f_schaere",animals:["Elch"],text:"Rote Holzhäuser, dunkle Tannen und Berge im hohen Norden.",
+    theme:{sky:"#BFD7EA",sea:"#2E5A7A",sand:"#B9B4A8",grass:"#7FA86A",leaf:"#2F6B45",tree:"tanne",hut:"stuga",bridge:"#7A5038",horizon:"berge"},
+    projects:[
+      {id:"f_stugor",name:"Rote Holzhäuser",hours:50,cap:4,text:"Gemütliche Stugor für alle, +4 Plätze"},
+      {id:"f_bruecke",name:"Fjordbrücke",hours:55,cap:4,text:"Eine Brücke über den Fjord, +4 Plätze"},
+      {id:"f_sauna",name:"Sauna am See",hours:60,cap:2,text:"Weniger Streit auf der Insel, +2 Plätze"},
+      {id:"f_wikinger",name:"Wikingerschiff",hours:65,cap:3,sea:true,text:"Fokus-Bootsfahrten bringen 20 % mehr Punkte, +3 Plätze"},
+      {id:"f_schaere",name:"Schäreninsel",hours:70,cap:5,text:"Eine dritte Insel aus rundem Fels, +5 Plätze"},
+      {id:"f_nordlicht",name:"Nordlicht-Turm",hours:80,cap:3,text:"Polarlicht schon nach 5 Tagen im Budget, +3 Plätze"}]},
+  {id:"oase",name:"Wüsteninsel",isle2:"o_karawane",isle3:"o_duene",animals:["Kamel"],text:"Goldene Dünen, eine grüne Oase und Kamele in der Hitze.",
+    theme:{sky:"#F7D9A0",sea:"#3FB8B0",sand:"#EBC27A",grass:"#C9A35A",leaf:"#6E8B3D",tree:"kaktus",hut:"lehm",bridge:"#B07A55",horizon:"duenen"},
+    projects:[
+      {id:"o_lehm",name:"Lehmhäuser",hours:60,cap:4,text:"Kühle Häuser aus Lehm, +4 Plätze"},
+      {id:"o_karawane",name:"Karawanenweg",hours:65,cap:4,text:"Ein Weg zur Nachbarinsel, +4 Plätze"},
+      {id:"o_brunnen",name:"Oasenbrunnen",hours:70,cap:2,text:"Wer wegziehen will, wartet 1 Tag länger, +2 Plätze"},
+      {id:"o_markt",name:"Basar",hours:75,cap:3,text:"Alles im Laden 10 % billiger, +3 Plätze"},
+      {id:"o_duene",name:"Düneninsel",hours:80,cap:5,text:"Eine dritte Insel aus Sand, +5 Plätze"},
+      {id:"o_sternzelt",name:"Sternenzelt",hours:90,cap:3,text:"+1 % Glück an jedem guten Tag, +3 Plätze"}]},
+  {id:"alaska",name:"Eisinseln",isle2:"a_eisbruecke",isle3:"a_scholle",animals:["Eisbär"],text:"Iglus, Schnee, Eisschollen und Polarlichter am Ende der Welt.",
+    theme:{sky:"#A9CDE8",sea:"#4F84AE",sand:"#F3F6F8",grass:"#D3E3EE",leaf:"#3E6B5A",tree:"schneetanne",hut:"iglu",bridge:"#BFE0F5",horizon:"eis"},
+    projects:[
+      {id:"a_iglus",name:"Iglu-Dorf",hours:70,cap:5,text:"Warme Iglus für alle, +5 Plätze"},
+      {id:"a_eisbruecke",name:"Eisbrücke",hours:75,cap:4,text:"Eine Brücke aus Eis zur Nachbarinsel, +4 Plätze"},
+      {id:"a_schlitten",name:"Hundeschlitten-Station",hours:80,cap:3,text:"+5 Punkte an jedem Tag im Budget, +3 Plätze"},
+      {id:"a_eisfischen",name:"Eisfischer-Hütte",hours:85,cap:2,sea:true,text:"Doppelt so viele Fische bei Fokus-Bootsfahrten, +2 Plätze"},
+      {id:"a_scholle",name:"Große Eisscholle",hours:90,cap:5,text:"Eine dritte Insel aus Eis, +5 Plätze"},
+      {id:"a_polarwarte",name:"Polarlicht-Warte",hours:100,cap:4,text:"+2 % Glück an jedem guten Tag, +4 Plätze"}]}
+];
+const curWorld=()=>WORLDS[S.world||0];
+const curProjects=()=>curWorld().projects;
+const projById=id=>WORLDS.flatMap(w=>w.projects).find(p=>p.id===id);
+const worldAnimals=()=>WORLDS.slice(1,(S.world||0)+1).flatMap(w=>w.animals||[]);
 const QUESTS=[
   {id:"fruehstueck",name:"Handyfreies Frühstück"},
   {id:"mittag",name:"Mittagspause ohne Scrollen"},
@@ -131,7 +177,7 @@ const adults=()=>here().filter(r=>r.kind==="mensch"&&r.job);
 const jobOn=id=>adults().some(r=>r.job===id&&!r.retired&&!r.sick);
 const jobName=id=>(JOBS.find(j=>j.id===id)||{}).n||"";
 const traitName=id=>(TRAITS.find(t=>t.id===id)||{}).n||"";
-const price=it=>Math.round(it.cost*(jobOn("tischler")?0.9:1));
+const price=it=>Math.round(it.cost*(jobOn("tischler")?0.9:1)*(has("o_markt")?0.9:1));
 function pickJob(){
   const pool=JOBS.filter(j=>!j.need||S.built.includes(j.need));
   const taken=new Set(S.residents.filter(r=>r.status==="da").map(r=>r.job));
@@ -224,7 +270,7 @@ function migrate(st){
   if(st.points==null)st.points=0; if(!st.items)st.items=[]; if(!st.sun)st.sun=0;
   if(!st.rel)st.rel={}; if(st.conflict===undefined)st.conflict=null;
   if(!st.arrC)st.arrC=0; if(!st.birthC)st.birthC=0;
-  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true};
+  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0};
   for(const k in D){ if(st[k]===undefined) st[k]=D[k]; }
   const prevS=S; S=st;
   st.residents.forEach(r=>{if(r.born==null)r.born=0; if(r.kind==="mensch"){if(!r.trait)r.trait=pick(TRAITS).id; if(!r.job&&!r.parents)r.job=pickJob()}});
@@ -283,7 +329,7 @@ async function connectStore(){
 const here=()=>S.residents.filter(r=>r.status==="da");
 function capacity(){
   let c=6+(S.items.includes("stall")?3:0);
-  for(const b of S.built){c+={leuchtturm:2,bruecke:4,schiff:2,windmuehle:3,insel3:4,baumhaus:2,strandhaus:3,beachclub:2}[b]||0}
+  for(const b of S.built){const p=projById(b);c+=p&&p.cap!=null?p.cap:({leuchtturm:2,bruecke:4,schiff:2,windmuehle:3,insel3:4,baumhaus:2,strandhaus:3,beachclub:2}[b]||0)}
   return c;
 }
 const has=b=>S.built.includes(b);
@@ -307,7 +353,7 @@ function arrival(){
     else{const pal=adults().filter(x=>x.id!==r.id); if(pal.length) addRel(r.id,pick(pal).id,25)}
     S.residents.push(r); S.pending.push({type:"arrival",id:r.id,partner:single?single.id:null});
   } else {
-    const pool=LAND.concat(has("leuchtturm")?SEA:[]).concat(jobOn("waerter")?SEA:[]);
+    const pool=LAND.concat(worldAnimals()).concat(has("leuchtturm")?SEA:[]).concat(jobOn("waerter")?SEA:[]);
     const present=new Set(here().map(x=>x.art));
     const fresh=pool.filter(a=>!present.has(a));
     const art=pick(fresh.length?fresh:pool);
@@ -387,7 +433,7 @@ function social(good){
   }
   // Neuer Streit
   if(!S.conflict&&ad.length>=2){
-    let p=0.14+(S.glueck<80?0.1:0)+(S.glueck<40?0.1:0)-(owns("feuer")?0.08:0);
+    let p=0.14+(S.glueck<80?0.1:0)+(S.glueck<40?0.1:0)-(owns("feuer")?0.08:0)-(has("f_sauna")?0.05:0);
     const w=ad.map(r=>1+((TRAITS.find(t=>t.id===r.trait)||{}).hot||0));
     if(Math.random()<p){
       const wpick=()=>{let t=w.reduce((x,y)=>x+y,0)*Math.random();for(let i=0;i<ad.length;i++){t-=w[i];if(t<=0)return ad[i]}return ad[0]};
@@ -461,7 +507,7 @@ function extras(day,diff,quests,dreamt){
   // Seltene Besucher
   if(S.aurora>0)S.aurora--; if(S.birds>0)S.birds--;
   if(S.trader&&day>=S.trader.until) S.trader=null;
-  if(S.budgetStreak>0&&S.budgetStreak%7===0){
+  if(S.budgetStreak>0&&S.budgetStreak%(has("f_nordlicht")?5:7)===0){
     S.aurora=owns("sternwarte")?4:3; S.pending.push({type:"visitor",kind:"aurora"}); log("Polarlicht über der Insel! 7 Tage am Stück im Budget.","good"); chron([],"Polarlicht nach "+S.budgetStreak+" Tagen im Budget.");
   } else if(good&&S.glueck>=60&&!S.birds&&Math.random()<(owns("vogelhaus")?.2:.1)){
     S.birds=2; S.glueck=clamp(S.glueck+3,0,100); S.pending.push({type:"visitor",kind:"birds"}); log("Ein Schwarm Zugvögel rastet auf der Insel. +3 % Glück.","good");
@@ -487,7 +533,7 @@ function makeCapsule(m){
   const good=ds.filter(d=>d.min<=S.budget).length;
   const ch=S.chronicle.filter(c=>c.day&&c.day.startsWith(m));
   const moved=ch.filter(c=>/eingezogen/.test(c.text)).length, born=ch.filter(c=>/geboren/.test(c.text)).length;
-  const built=S.builtLog.filter(b=>b.day.startsWith(m)).map(b=>(PROJECTS.find(p=>p.id===b.id)||{}).name);
+  const built=S.builtLog.filter(b=>b.day.startsWith(m)).map(b=>(projById(b.id)||{}).name);
   const best=ds.slice().sort((a,b)=>a.min-b.min)[0];
   const cards=S.postcards.filter(c=>c.day&&c.day.startsWith(m)).length;
   const lines=[
@@ -572,7 +618,7 @@ function finishBoat(){
   save(); render(); showPending();
 }
 function boatHonest(ok,dur,crewId){
-  if(ok){const fish=Math.max(1,Math.round(dur/10))*(has("floss")?2:1), pts=owns("angel")?Math.round(dur*1.2):dur;S.fish+=fish;S.points+=pts;S.material+=dur;S.focusMin+=dur;
+  if(ok){const fish=Math.max(1,Math.round(dur/10))*(has("floss")?2:1)*(has("a_eisfischen")?2:1), pts=Math.round(dur*(owns("angel")?1.2:1)*(has("f_wikinger")?1.2:1));S.fish+=fish;S.points+=pts;S.material+=dur;S.focusMin+=dur;
     log("Fokus-Bootsfahrt: "+dur+" Minuten ohne Handy. "+fish+" Fische, +"+pts+" Punkte.","good")}
   else log("Die Bootsfahrt kam leer zurück. Beim nächsten Mal klappt es.","bad");
   save();
@@ -795,6 +841,7 @@ function closeDay(min,quests,appMin){
     if(owns("blumen")) delta+=(jobOn("gaertner")?2:1)+(owns("bienen")?1:0);
     if(owns("schaukel")&&here().some(r=>r.kind==="mensch"&&r.parents&&!r.job)) delta+=1;
     if(has("beachclub")) delta+=1;
+    if(has("t_wasserfall")) delta+=1; if(has("o_sternzelt")) delta+=1; if(has("a_polarwarte")) delta+=2;
     if(owns("glocke")) delta+=2;
   } else {
     delta=-(8+Math.min(12,Math.floor(-diff/15)));
@@ -813,7 +860,7 @@ function closeDay(min,quests,appMin){
   S.material+=saved;
   // Punkte: jede Minute unter Budget, Quests, Berufe
   let pts=Math.round(Math.max(0,Math.min(240,diff))/3)+quests.length*(10+(owns("haengematte")?5:0));
-  if(diff>=0){ if(jobOn("fischer")&&!monsters.length) pts+=5; if(jobOn("baecker")) pts+=5; if(owns("garten")) pts+=5; if(has("beachclub")) pts+=10; }
+  if(diff>=0){ if(jobOn("fischer")&&!monsters.length) pts+=5; if(jobOn("baecker")) pts+=5; if(owns("garten")) pts+=5; if(has("beachclub")) pts+=10; if(has("t_mango")) pts+=10; if(has("a_schlitten")) pts+=5; }
   pts+=here().filter(r=>r.wishDone).length*3;
   // Gute-Nacht-Ritual vom Vorabend
   const dreamt=!!(S.night&&S.night.after===prevLast&&prevLast);
@@ -853,7 +900,7 @@ function closeDay(min,quests,appMin){
   if(S.unhappyStreak===3&&!S.warn){
     const cands=here(); if(cands.length){
       const g=familyOf(pick(cands));
-      S.warn={ids:g.map(x=>x.id),deadline:addDays(day,2+(jobOn("aerztin")?1:0)+(owns("brunnen")?1:0))};
+      S.warn={ids:g.map(x=>x.id),deadline:addDays(day,2+(jobOn("aerztin")?1:0)+(owns("brunnen")?1:0)+(has("o_brunnen")?1:0))};
       log(groupName(g)+vb(g," packt die Koffer. Noch 2 Tage bis zum Wegzug."," packen die Koffer. Noch 2 Tage bis zum Wegzug."),"bad");
       S.pending.push({type:"warn",ids:g.map(x=>x.id)});
     }
@@ -886,15 +933,80 @@ function closeDay(min,quests,appMin){
   }
 
   // Projekt
-  const p=PROJECTS[S.projectIdx];
+  const p=curProjects()[S.projectIdx];
   if(p&&S.material>=p.hours*60){
     S.material-=p.hours*60; S.built.push(p.id); S.projectIdx++; S.builtLog.push({id:p.id,day});
     chron([],"Großprojekt fertig: "+p.name+".");
     log("Großprojekt fertig: "+p.name+". "+p.text+".","good");
     S.pending.push({type:"project",id:p.id});
   }
+  checkDiscovery();
   save(); render(); showPending();
 }
+/* Neue Insel entdeckt, sobald alle Großprojekte der aktuellen Welt stehen */
+function checkDiscovery(){
+  const w=S.world||0;
+  if(w+1>=WORLDS.length||(S.found||0)>w) return;
+  if(!curProjects().every(x=>S.built.includes(x.id))) return;
+  S.found=w+1; const nw=WORLDS[S.found];
+  log("Neue Insel entdeckt: "+nw.name+"! Im Tab Bauen könnt ihr aufbrechen.","good");
+  chron([],"Am Horizont wurde eine neue Insel entdeckt: "+nw.name+".");
+  S.pending.push({type:"discovery",world:S.found});
+}
+function travel(){
+  if(!((S.found||0)>(S.world||0))) return;
+  const from=curWorld(); S.world=(S.world||0)+1; S.projectIdx=0; islandView=0;
+  const W=curWorld(); S.points+=100;
+  log("Die ganze Inselgemeinschaft ist von "+from.name+" nach "+W.name+" gezogen. +100 Punkte Umzugsgeld.","good");
+  chron(here().map(r=>r.id),"Umzug: "+from.name+" → "+W.name+".");
+  S.pending.unshift({type:"travel",to:S.world});
+  save(); closeModal(); tab="heute"; render(); window.scrollTo(0,0); showPending();
+}
+
+/* ---------- Weltkarte mit Reiseroute ---------- */
+const MAP_POS=[[46,122],[108,160],[172,56],[236,136],[302,46]];
+function worldIcon(i,locked){
+  if(locked) return `<circle r="15" fill="#3A3D58"/><text y="5" text-anchor="middle" font-size="15" font-weight="800" fill="#A4A6BD" font-family="Bricolage Grotesque, sans-serif">?</text>`;
+  const W=WORLDS[i], T=W.theme||{sand:"#E9D7A6",grass:"#7FC57A",leaf:"#4E9A58"};
+  let deco="";
+  switch(W.id){
+    case "heimat": deco=`<rect x="-5" y="-6" width="3" height="6" fill="#8A5A3B"/><circle cx="-3.5" cy="-9" r="5" fill="#4E9A58"/><path d="M2 -1v-5l4-3 4 3v5z" fill="#F3F1EA"/>`; break;
+    case "tropen": deco=`<path d="M0 0q1-7 3-12" stroke="#A0703F" stroke-width="1.6" fill="none"/><path d="M3 -12q-5-2-8 1M3 -12q5-3 8 1M3 -12q-2-5-6-5M3 -12q3-5 7-4" stroke="#3FA35A" stroke-width="1.6" fill="none" stroke-linecap="round"/>`; break;
+    case "fjord": deco=`<path d="M-6 0l4-11 4 11z" fill="#2F6B45"/><path d="M2 -1v-5l3-3 3 3v5z" fill="#B8442E"/>`; break;
+    case "oase": deco=`<path d="M-2 0v-12M-2 -7h-3v-3M-2 -5h3v-4" stroke="#6E8B3D" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M4 -1v-4a3 3 0 0 1 6 0v4z" fill="#D9A86A"/>`; break;
+    case "alaska": deco=`<path d="M-7 -1a6 6 0 0 1 12 0z" fill="#F3F6F8" stroke="#A4C4DE" stroke-width=".8"/><path d="M2 -12l3-6 3 6z" fill="#3E6B5A"/><path d="M3 -14l2-4 2 4z" fill="#F3F6F8"/>`; break;
+  }
+  return `<ellipse cx="0" cy="4" rx="16" ry="5" fill="${T.sand}"/><path d="M-13 4c2-7 7-10 13-10s11 3 13 10z" fill="${T.grass}"/><g transform="translate(0 3)">${deco}</g>`;
+}
+function worldMapSvg(){
+  const w=S.world||0, found=Math.max(S.found||0,w);
+  let s=`<svg viewBox="0 0 340 190" class="worldmap" role="img" aria-label="Weltkarte: ${WORLDS.map(x=>x.name).join(", ")}"><defs><linearGradient id="mapSea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2E5C8A"/><stop offset="1" stop-color="#1E3F6E"/></linearGradient></defs><rect width="340" height="190" rx="16" fill="url(#mapSea)"/>`;
+  s+=`<g stroke="#5B7FB0" stroke-width="1" fill="none" opacity=".5">${[30,70,110,150].map(y=>`<path d="M10 ${y}q20-4 40 0t40 0 40 0 40 0 40 0 40 0 40 0 40 0"/>`).join("")}</g>`;
+  for(let i=0;i<MAP_POS.length-1;i++){
+    const [x1,y1]=MAP_POS[i],[x2,y2]=MAP_POS[i+1], mx=(x1+x2)/2+(i%2?18:-18), my=(y1+y2)/2+(i%2?-10:10), done=i<w;
+    s+=`<path d="M${x1} ${y1}Q${mx} ${my} ${x2} ${y2}" fill="none" stroke="${done?"#C8F169":"#F3F1EA"}" stroke-width="${done?3:2}" stroke-dasharray="${done?"0":"5 6"}" opacity="${done?1:i<found?.7:.35}" stroke-linecap="round"/>`;
+  }
+  WORLDS.forEach((W,i)=>{
+    const [x,y]=MAP_POS[i], locked=i>found;
+    s+=`<g transform="translate(${x} ${y})">${i===w?`<g class="glow" style="animation-duration:2s"><circle r="22" fill="#C8F169" opacity=".35"/></g>`:""}${worldIcon(i,locked)}
+      ${i<w?`<g transform="translate(13 -12)"><circle r="6" fill="#C8F169"/><path d="M-2.6 0l1.8 1.8 3.4-3.6" stroke="#14151F" stroke-width="1.6" fill="none" stroke-linecap="round"/></g>`:""}
+      <text y="${y>150?-20:26}" text-anchor="middle" font-size="10" font-weight="700" fill="${locked?"#A4A6BD":"#F3F1EA"}" font-family="Manrope, sans-serif">${locked?"???":esc(W.name)}</text></g>`;
+  });
+  const [sx,sy]=MAP_POS[w];
+  s+=`<g transform="translate(${sx-24} ${sy+2})"><g class="bob" style="animation-duration:2s"><path d="M-8 0h16l-3 4h-10z" fill="#FF9C7A"/><path d="M0 0v-11l6 9z" fill="#F3F1EA"/></g></g>`;
+  return s+"</svg>";
+}
+function viewReise(){
+  const w=S.world||0, W=curWorld(), next=WORLDS[w+1], built=curProjects().filter(x=>S.built.includes(x.id)).length;
+  return `<div class="card"><div class="row between"><p class="label">Weltreise</p><span class="small muted">Welt ${w+1} von ${WORLDS.length}</span></div>
+    ${worldMapSvg()}
+    <p><b>${esc(W.name)}</b> · <span class="muted">${esc(W.text)}</span></p>
+    ${(S.found||0)>w?`<p class="small" style="color:var(--lime);font-weight:700">Neue Insel entdeckt: ${esc(next.name)}!</p><button class="btn" id="travelBtn">Nach ${esc(next.name)} aufbrechen</button><p class="small muted" style="margin-top:-4px">Alle Bewohner, Gegenstände und Plätze kommen mit.</p>`
+      :next?`<div class="bar"><i style="width:${built/curProjects().length*100}%;background:var(--amber)"></i></div><p class="small muted">${built} von ${curProjects().length} Großprojekten hier gebaut. Sind alle fertig, wird eine neue Insel am Horizont entdeckt.</p>`
+      :`<p class="small" style="color:var(--lime);font-weight:700">Ihr habt das Ende der Welt erreicht. Was für eine Reise!</p>`}
+  </div>`;
+}
+
 
 /* ---------- Insel-Szene ---------- */
 /* Aussehen: aus der ID abgeleitet, damit jede:r immer gleich aussieht */
@@ -940,7 +1052,7 @@ function figure(r,x,y){
       <circle cx="-3.2" cy="-13.8" r="1" fill="#FF9C7A" opacity=".35"/><circle cx="3.2" cy="-13.8" r="1" fill="#FF9C7A" opacity=".35"/>${mouth}
       ${r.retired?`<path d="M-3.6 -16.4h2.6M1 -16.4h2.6M-1 -16.4h2" stroke="#3A3D58" stroke-width=".5" fill="none"/><circle cx="-1.8" cy="-16" r="1.5" fill="none" stroke="#3A3D58" stroke-width=".5"/><circle cx="1.8" cy="-16" r="1.5" fill="none" stroke="#3A3D58" stroke-width=".5"/>`:""}</g>`;
   }
-  const s=(r.parents?0.7:1)*(r.art==="Wal"?1.6:1);
+  const s=(r.parents?0.7:1)*(r.art==="Wal"?1.6:["Elch","Kamel","Eisbär"].includes(r.art)?1.1:1);
   return `<g transform="translate(${x} ${y}) scale(${s})"><title>${esc(r.name)} (${esc(r.art)})</title>${animalSvg(r.art,animalVar(r))}</g>`;
 }
 /* Fellfarben: Ersetzungen der Grundfarben je Tierart */
@@ -955,7 +1067,11 @@ const FUR={
   Hase:[{},{"#A88A70":"#9EA3B8"},{"#A88A70":"#F3F1EA"}],
   Robbe:[{},{"#8F96A8":"#5F6680","#6E7488":"#454B63"},{"#8F96A8":"#C9CBDD","#6E7488":"#9EA3B8"}],
   Delfin:[{},{"#7C9CC4":"#9EA3B8"}],
-  Wal:[{},{"#3E5C8A":"#2F3B57"},{"#3E5C8A":"#5F6680"}]
+  Wal:[{},{"#3E5C8A":"#2F3B57"},{"#3E5C8A":"#5F6680"}],
+  Papagei:[{},{"#E5484D":"#5B8CD6","#FFD27A":"#C8F169"},{"#E5484D":"#4FB06A","#FFD27A":"#FFB86B"}],
+  Elch:[{},{"#7A5038":"#5A3A2A","#A0703F":"#7A5038"},{"#7A5038":"#9A6A48","#A0703F":"#C2925E"}],
+  Kamel:[{},{"#D9A86A":"#C98A52"},{"#D9A86A":"#E9D2A6"}],
+  "Eisbär":[{},{"#F3F1EA":"#E9E2C8"}]
 };
 function animalVar(r,depth){
   const n=(FUR[r.art]||[{}]).length, h=hsh(r.id||r.name);
@@ -984,6 +1100,10 @@ function animalShape(art){
   case "Robbe": return `<path d="M-10 -1c0-8 6-12 13-12 4 0 6 2 6 5 0 2-2 3-4 3 3 2 6 3 9 6z" fill="#8F96A8"/><path d="M2 -2l-2 2.6M8 -1.4l4 2" stroke="#6E7488" stroke-width="2" stroke-linecap="round"/>${E(3.6,-9.6)}<path d="M8 -8.2h3M8 -7.2l3 .6" stroke="#F3F1EA" stroke-width=".5"/><circle cx="7.6" cy="-8.4" r=".8" fill="#14151F"/>`;
   case "Delfin": return `<path d="M-12 -2q6 -12 18 -9q6 1 8 5l-3 .4q-4 -3 -9 -2q-6 1 -10 6.6z" fill="#7C9CC4"/><path d="M0 -10.6l2.6 -4.4 1.6 4.6z" fill="#7C9CC4"/><path d="M11 -5.6l4 -3 -1 4.4z" fill="#7C9CC4"/><path d="M-11 -2.6q5 -2.6 9 -2" stroke="#C8D6EA" stroke-width="1.2" fill="none"/>${E(-6,-6.6)}`;
   case "Wal": return `<path d="M-14 -2q2 -10 14 -10q10 0 14 6l5 -4 -1 6 1 6 -5 -3q-4 3 -14 2q-10 0 -14 -3z" fill="#3E5C8A"/><path d="M-12 -1q10 3 22 0" stroke="#9CB4D4" stroke-width="1.4" fill="none"/>${E(-8,-6)}<path d="M-6 -12q-1 -4 -3 -5M-6 -12q1 -4 3 -5" stroke="#C8E2F5" stroke-width="1.4" fill="none" stroke-linecap="round"/>`;
+  case "Papagei": return `<path d="M-1 -10v4" stroke="#8A5A3B" stroke-width="1.4"/><path d="M-6 -4h12" stroke="#8A5A3B" stroke-width="2" stroke-linecap="round"/><path d="M2 -10l9 10-3 1-8-8z" fill="#5B8CD6"/><ellipse cx="0" cy="-11" rx="4.4" ry="6" fill="#E5484D"/><path d="M1 -13q5 2 5 8l-4-2z" fill="#FFD27A"/><circle cx="-2" cy="-17.4" r="3.6" fill="#E5484D"/><circle cx="-3" cy="-18" r="1.4" fill="#F3F1EA"/>${E(-3,-18)}<path d="M-5.6 -18q-2.6 .4-2.4 3.4q1.6-.6 2.6-1.6z" fill="#3A3D58"/>`;
+  case "Elch": return `<path d="M-4 -9v9M-1 -9v9M6 -9v9M9 -9v9" stroke="#5A3A2A" stroke-width="2.2" stroke-linecap="round"/><ellipse cx="3" cy="-12" rx="9" ry="5.4" fill="#7A5038"/><path d="M-4 -14l-5-5" stroke="#7A5038" stroke-width="4.6" stroke-linecap="round"/><path d="M-11 -20q-5 0-6 4q1 2 4 1l4-1z" fill="#7A5038"/><path d="M-9 -22q-3-5-1-9M-9 -22q-6-1-9-5M-7 -22q1-5 5-7M-7 -22q4-2 7-1" stroke="#A0703F" stroke-width="1.8" fill="none" stroke-linecap="round"/>${E(-11,-19.6)}<circle cx="-16" cy="-16.4" r=".7" fill="#3A2A20"/>`;
+  case "Kamel": return `<path d="M-4 -10v10M-1 -10v10M6 -10v10M9 -10v10" stroke="#B8844E" stroke-width="2" stroke-linecap="round"/><ellipse cx="3" cy="-12" rx="9" ry="4.6" fill="#D9A86A"/><path d="M-2 -15q3-7 6 0M4 -15q3-7 6 0" fill="#D9A86A"/><path d="M-5 -13q-4-2-5-9" stroke="#D9A86A" stroke-width="3.4" fill="none" stroke-linecap="round"/><ellipse cx="-12" cy="-22.4" rx="3.6" ry="2.4" fill="#D9A86A"/><path d="M-10 -24.6l1-1.6" stroke="#B8844E" stroke-width="1.2"/>${E(-12,-23)}<path d="M-15.2 -21.4h1.6" stroke="#8A5A3B" stroke-width=".6"/><path d="M12 -13q2 3 0 6" stroke="#B8844E" stroke-width="1" fill="none"/>`;
+  case "Eisbär": return `<path d="M-6 -7v7M-2 -7v7M6 -7v7M10 -7v7" stroke="#F3F1EA" stroke-width="3.2" stroke-linecap="round"/><ellipse cx="2" cy="-9" rx="10" ry="6" fill="#F3F1EA"/><path d="M-8 -10q-6-1-8 3q2 2 6 1z" fill="#F3F1EA"/><circle cx="-8" cy="-12" r="4.2" fill="#F3F1EA"/><circle cx="-7" cy="-16" r="1.6" fill="#F3F1EA" stroke="#D9D4C6" stroke-width=".5"/><circle cx="-15.6" cy="-7.6" r="1" fill="#14151F"/>${E(-10.6,-12)}<path d="M-4 -4q6 2 12 0" stroke="#D9D4C6" stroke-width="1" fill="none"/>`;
   default: return `<ellipse cx="0" cy="-5" rx="8" ry="5" fill="#F3F1EA"/><circle cx="-8" cy="-10" r="3.6" fill="#F3F1EA"/>${E(-9,-10.5)}`;
   }
 }
@@ -1004,14 +1124,58 @@ function monsterSvg(kind){
   }
   return "";
 }
+/* ---------- Grafiken der Welten ---------- */
+function treeSvg(type,tx,ty,leaf){
+  switch(type){
+    case "palme": return `<path d="M${tx-2} ${ty+26}q1-18 6-32" stroke="#A0703F" stroke-width="5" fill="none" stroke-linecap="round"/><g class="sway" style="animation-duration:4.5s"><path d="M${tx+4} ${ty-6}q-14-6-22 4M${tx+4} ${ty-6}q14-8 22 3M${tx+4} ${ty-6}q-6-12-18-12M${tx+4} ${ty-6}q8-13 19-10M${tx+4} ${ty-6}q-1 10-6 16M${tx+4} ${ty-6}q4 9 9 14" stroke="${leaf}" stroke-width="4.4" fill="none" stroke-linecap="round"/><circle cx="${tx+2}" cy="${ty-3}" r="2.4" fill="#8A5A3B"/><circle cx="${tx+6}" cy="${ty-2}" r="2.4" fill="#8A5A3B"/></g>`;
+    case "tanne": return `<rect x="${tx-2.5}" y="${ty+16}" width="5" height="10" fill="#6B4430"/><path d="M${tx} ${ty-26}l-10 16h5l-9 13h6l-9 13h34l-9-13h6l-9-13h5z" fill="${leaf}"/>`;
+    case "schneetanne": return `<rect x="${tx-2.5}" y="${ty+16}" width="5" height="10" fill="#6B4430"/><path d="M${tx} ${ty-26}l-10 16h5l-9 13h6l-9 13h34l-9-13h6l-9-13h5z" fill="${leaf}"/><path d="M${tx} ${ty-26}l-5 8h10zM${tx-9} ${ty-8}q9 4 18 0l-3-3h-12zM${tx-13} ${ty+5}q13 5 26 0l-3-3h-20z" fill="#F3F6F8"/>`;
+    case "kaktus": return `<g fill="#6E9B4A" stroke="#557A38" stroke-width="1"><rect x="${tx-5}" y="${ty-16}" width="10" height="42" rx="5"/><path d="M${tx-5} ${ty+6}h-6a4 4 0 0 1-4-4v-12a3 3 0 0 1 6 0v9h4z"/><path d="M${tx+5} ${ty}h6a4 4 0 0 0 4-4v-10a3 3 0 0 0-6 0v7h-4z"/></g><circle cx="${tx}" cy="${ty-17}" r="2.4" fill="#E07AB8"/>`;
+    default: return `<rect x="${tx-3}" y="${ty}" width="6" height="26" rx="2" fill="#8A5A3B"/><circle cx="${tx}" cy="${ty-6}" r="15" fill="${leaf}"/>`;
+  }
+}
+function hutSvg(type,cx,night,sleep){
+  const win=sleep?"#3A3D58":night?"#FFD27A":"#9CC8EE";
+  switch(type){
+    case "pfahl": return `<path d="M${cx+34} 160v-10M${cx+50} 160v-10M${cx+66} 160v-10" stroke="#8A5A3B" stroke-width="3"/><rect x="${cx+30}" y="150" width="40" height="3" fill="#A0703F"/><rect x="${cx+33}" y="132" width="34" height="18" fill="#D9B86A"/><path d="M${cx+36} 132v18M${cx+42} 132v18M${cx+58} 132v18M${cx+64} 132v18" stroke="#B8944E" stroke-width="1"/><path d="M${cx+26} 134l24-18 24 18z" fill="#C9A26A"/><path d="M${cx+28} 134l22-16 22 16" stroke="#A0803E" stroke-width="2" fill="none"/><rect x="${cx+45}" y="138" width="10" height="12" rx="1" fill="#7A5038"/><rect x="${cx+58}" y="137" width="6" height="6" fill="${win}"/>`;
+    case "stuga": return `<rect x="${cx+30}" y="134" width="40" height="26" fill="#B8442E"/><path d="M${cx+30} 134h40M${cx+30} 160h40M${cx+30} 134v26M${cx+70} 134v26" stroke="#F3F1EA" stroke-width="2"/><path d="M${cx+26} 136l24-17 24 17z" fill="#3A3D58"/><rect x="${cx+45}" y="144" width="10" height="16" fill="#F3F1EA"/><rect x="${cx+47}" y="146" width="6" height="14" fill="#2F4A6E"/><rect x="${cx+57}" y="140" width="9" height="8" fill="${win}" stroke="#F3F1EA" stroke-width="1.6"/><rect x="${cx+34}" y="140" width="8" height="8" fill="${win}" stroke="#F3F1EA" stroke-width="1.6"/>`;
+    case "lehm": return `<rect x="${cx+30}" y="136" width="40" height="24" rx="3" fill="#D9A86A"/><path d="M${cx+38} 136a12 12 0 0 1 24 0z" fill="#E8BE84"/><circle cx="${cx+50}" cy="122" r="2" fill="#C9A35A"/><path d="M${cx+44} 160v-12a6 6 0 0 1 12 0v12z" fill="#7A5038"/><rect x="${cx+60}" y="142" width="6" height="6" rx="3" fill="${win}"/><rect x="${cx+34}" y="142" width="6" height="6" rx="3" fill="${win}"/><path d="M${cx+30} 140h-3M${cx+30} 152h-3M${cx+70} 146h3" stroke="#A0703F" stroke-width="2"/>`;
+    case "iglu": return `<path d="M${cx+28} 160a22 22 0 0 1 44 0z" fill="#F3F6F8"/><path d="M${cx+30} 152h40M${cx+33} 145h34M${cx+39} 139h22M${cx+40} 160v-8M${cx+52} 152v-7M${cx+60} 160v-8M${cx+46} 145v-6M${cx+56} 145v-6" stroke="#B9D3E6" stroke-width="1"/><path d="M${cx+38} 160v-6a8 8 0 0 1 16 0v6z" fill="#E6EEF3" stroke="#B9D3E6" stroke-width="1"/><path d="M${cx+42} 160v-4a4 4 0 0 1 8 0v4z" fill="${night||sleep?"#3A3D58":"#2F4A6E"}"/><g class="glow" style="animation-duration:3s"><circle cx="${cx+46}" cy="158" r="6" fill="${sleep?"transparent":"#FFD27A"}" opacity="${night&&!sleep?.6:0}"/></g>`;
+  }
+  return "";
+}
+function horizonSvg(type,small,night){
+  const dim=night?' opacity=".55"':"";
+  const y=small?132:170;
+  switch(type){
+    case "berge": return `<g${dim}><path d="M0 ${y} L34 ${y-48} L62 ${y-20} L104 ${y-66} L150 ${y-14} L196 ${y-58} L240 ${y-18} L290 ${y-54} L330 ${y-22} L360 ${y-40} V${y}Z" fill="#7C8FA3"/><path d="M34 ${y-48}l-8 12 8-3 7 4zM104 ${y-66}l-10 15 10-4 9 5zM196 ${y-58}l-9 13 9-3 8 4zM290 ${y-54}l-9 13 9-3 8 4z" fill="#F3F6F8"/></g>`;
+    case "eis": return `<g${dim}><path d="M0 ${y} L40 ${y-40} L80 ${y-12} L130 ${y-56} L180 ${y-10} L232 ${y-46} L280 ${y-14} L330 ${y-50} L360 ${y-28} V${y}Z" fill="#E6EEF3"/><path d="M40 ${y-40}l-12 18M130 ${y-56}l-14 22M232 ${y-46}l-12 20M330 ${y-50}l-12 20" stroke="#B9D3E6" stroke-width="3"/></g>`;
+    case "duenen": return `<g${dim}><path d="M0 ${y} q40-34 90-10 t100-14 100 6 70-8 V${y}Z" fill="#E3B266"/><path d="M0 ${y} q60-20 130-4 t120-6 110 2 V${y}Z" fill="#D9A55A"/></g>`;
+    case "tropen": return `<g${dim}><ellipse cx="60" cy="${y}" rx="36" ry="7" fill="#5FB070"/><path d="M58 ${y-6}q1-8 3-12M61 ${y-18}q-6-1-9 2M61 ${y-18}q6-2 9 2" stroke="#3F8A52" stroke-width="1.6" fill="none"/><path d="M300 ${y} l22-34 22 34z" fill="#7C6A5A"/><path d="M314 ${y-22}l8-12 8 12z" fill="#5A4636"/></g>`;
+  }
+  return "";
+}
+/* Bauwerke der neuen Welten: Position je nach freigeschalteten Inseln */
+function worldStructs(W,cx,two,three){
+  const out=[], slots=[[cx-96,168,.8],two?[262,168,.62]:[cx+96,194,.7],two?[320,154,.7]:[cx+62,190,.7],three?[290,216,.66]:[cx-68,196,.7]];
+  let k=0;
+  W.projects.forEach(p=>{
+    if(p.id===W.isle2||p.id===W.isle3) return;
+    const q=p.sea?[74,222,.8]:slots[k++];
+    if(has(p.id)) out.push({id:p.id,x:q[0],y:q[1],sc:q[2]});
+  });
+  return out;
+}
+
 /* Gekaufte Gegenstände automatisch verteilen: Jeder Gegenstand nimmt den freien Platz,
    der am weitesten von den schon platzierten entfernt ist, und weicht Gebäuden und Bäumen aus. */
 const ITEM_W={teich:36,picknick:34,garten:32,sandburg:30,schaukel:30,spielplatz:28,haengematte:28,stall:28,blumen:28,palme:26,bank:26,feuer:22,brunnen:24,sternwarte:26,bienen:22,schirm:30,vogelhaus:20,zwerg:12,laternen:12,glocke:18,teleskop:28,muschelweg:34,regenbogen:34};
 const ITEM_H={palme:30,laternen:28,vogelhaus:30,schirm:26,glocke:28,sternwarte:30,schaukel:26,haengematte:20,spielplatz:22,stall:22,bienen:24,teleskop:24,feuer:24};
 const FIXED_ITEMS={flagge:c=>[c.cx+50,122],lichter:c=>[c.cx+50,148],windspiel:c=>[c.cx+28,160],angel:c=>[c.cx+108,198]};
-function layoutItems(cx,two,three,nTrees){
+function layoutItems(cx,two,three,nTrees,extra,home){
   const out={}, S8=.8, ctx={cx};
-  const blocks=[[cx+24,116,cx+76,162]];                                   // Hütte
+  const blocks=[[cx+24,116,cx+76,162]].concat(extra||[]);                 // Hütte + Bauwerke der Welt
+  if(home!==false){
   if(has("leuchtturm")) blocks.push([cx-73,74,cx-51,162]);
   if(has("windmuehle")) blocks.push([cx+76,118,cx+98,162]);
   if(has("baumhaus")) blocks.push([cx-118,118,cx-72,170]);
@@ -1020,6 +1184,7 @@ function layoutItems(cx,two,three,nTrees){
   if(has("festzelt")&&two) blocks.push([302,128,334,154]);
   if(has("strandhaus")&&two) blocks.push([246,142,278,170]);
   if(has("beachclub")&&three) blocks.push([272,196,310,218]);
+  }
   // mögliche Plätze (Fußpunkt), nur auf Sand/Gras
   const cand=[];
   const onMain=(x,y)=>{const dy=(y-176)/20;return Math.abs(x-cx)<=106*Math.sqrt(Math.max(0,1-dy*dy))-12};
@@ -1052,14 +1217,15 @@ function layoutItems(cx,two,three,nTrees){
   return out;
 }
 function scene(){
-  const two=has("bruecke"), three=has("insel3");
+  const W=curWorld(), T=W.theme||{}, home=W.id==="heimat";
+  const two=has(W.isle2), three=has(W.isle3);
   const lastD=S.days[S.days.length-1];
   const clouds=S.glueck<40||(lastD&&lastD.min>S.budget&&!lastD.sunny);
   const nTrees=1+Math.min(3,Math.floor(savedTotal()/600));
   const sk=skyNow(), sea=season(), sleep=sleeping();
   const night=sk.k==="nacht"||sleep;
   let s=`<svg viewBox="0 0 360 240" role="img" aria-label="Deine Insel mit ${here().length} Bewohnern, Inselglück ${S.glueck} Prozent">`;
-  s+=`<rect width="360" height="240" fill="${clouds?"#2A2E40":night?"#1B2340":sk.sky}"/>`;
+  s+=`<rect width="360" height="240" fill="${clouds?"#2A2E40":night?"#1B2340":(!home&&sk.k==="tag")?T.sky:sk.sky}"/>`;
   // Polarlicht
   if(S.aurora>0&&night&&!clouds) s+=`<g class="glow" style="animation-duration:5s"><path d="M0 60q60-40 120-10t120-20 120 10v-30q-60-20-120 0t-120 10-120-10z" fill="#5BF0A4" opacity=".5"/><path d="M0 80q80-30 160 0t200-20v-14q-80 10-180-12t-180 20z" fill="#B6A4FF" opacity=".4"/></g>`;
   if(night&&!clouds){s+=`<g fill="#F3F1EA"><circle cx="30" cy="24" r="1.6"/><circle cx="110" cy="40" r="1.2"/><circle cx="200" cy="18" r="1.8"/><circle cx="300" cy="44" r="1.3"/><circle cx="250" cy="70" r="1"/></g><circle cx="320" cy="34" r="14" fill="#F3F1EA"/><circle cx="327" cy="29" r="13" fill="#1B2340"/>`}
@@ -1067,21 +1233,25 @@ function scene(){
   if(owns("regenbogen")&&!night) s+=`<g fill="none" stroke-width="5" opacity=".75"><path d="M40 170a140 120 0 0 1 280 0" stroke="#FF9C7A"/><path d="M46 170a134 114 0 0 1 268 0" stroke="#FFD27A"/><path d="M52 170a128 108 0 0 1 256 0" stroke="#C8F169"/><path d="M58 170a122 102 0 0 1 244 0" stroke="#7CB8E8"/><path d="M64 170a116 96 0 0 1 232 0" stroke="#B6A4FF"/></g>`;
   // Zugvögel
   if(S.birds>0) s+=`<g class="drift" style="animation-duration:5s">${[0,1,2,3,4].map(i=>`<path d="M${120+i*16} ${50+Math.abs(i-2)*8}q5-5 10 0q5-5 10 0" stroke="${night?"#F3F1EA":"#14151F"}" stroke-width="2" fill="none" stroke-linecap="round"/>`).join("")}</g>`;
-  s+=`<rect y="170" width="360" height="70" fill="${clouds?"#26314A":night?"#24375A":sk.sea}"/>`;
-  const sand=clouds?"#BDB08C":"#E9D7A6", grass=clouds?"#5E8A5C":sea==="winter"?"#DDE6EE":sea==="herbst"?"#A9B86A":"#7FC57A";
-  const leaf=clouds?"#4A7550":sea==="herbst"?"#E08A3C":sea==="winter"?"#5E8A6C":"#4E9A58";
+  if(!home) s+=horizonSvg(T.horizon,false,night||clouds);
+  s+=`<rect y="170" width="360" height="70" fill="${clouds?"#26314A":night?"#24375A":home?sk.sea:T.sea}"/>`;
+  let sand=clouds?"#BDB08C":"#E9D7A6", grass=clouds?"#5E8A5C":sea==="winter"?"#DDE6EE":sea==="herbst"?"#A9B86A":"#7FC57A";
+  let leaf=clouds?"#4A7550":sea==="herbst"?"#E08A3C":sea==="winter"?"#5E8A6C":"#4E9A58";
+  if(!home){sand=T.sand;grass=T.grass;leaf=T.leaf;if(clouds){sand="#BDB08C";grass="#7A8A70"}}
   const cx=two?120:180;
   s+=`<ellipse cx="${cx}" cy="176" rx="110" ry="20" fill="${sand}"/><path d="M${cx-96} 172c10-40 52-58 96-58s86 18 96 58z" fill="${grass}"/>`;
   // Weg aus Spaziergängen, Muschelweg
   if(S.path>0||owns("muschelweg")){const len=Math.min(160,20+S.path*14);s+=`<path d="M${cx-80} 168q${len/2} -10 ${len} -2" stroke="${owns("muschelweg")?"#F3F1EA":"#D9C38E"}" stroke-width="4" stroke-dasharray="${owns("muschelweg")?"2 5":"6 4"}" fill="none" stroke-linecap="round"/>`}
-  if(has("leuchtturm")){
+  if(home&&has("leuchtturm")){
     if(night&&!clouds) s+=`<path d="M${cx-62} 82L0 50v50z" fill="#FFD27A" opacity=".18"/>`;
     s+=`<path d="M${cx-70} 160h16l-3-72h-10z" fill="#F3F1EA"/><path d="M${cx-69} 146h14M${cx-68} 126h12M${cx-67} 106h10" stroke="#FF9C7A" stroke-width="5"/><rect x="${cx-68}" y="76" width="12" height="12" rx="2" fill="${night?"#FFD27A":"#E9E2C8"}"/>`;
   }
-  for(let i=0;i<nTrees;i++){const tx=cx-40+i*22-(i%2)*6, ty=128+(i%2)*8;s+=`<rect x="${tx-3}" y="${ty}" width="6" height="26" rx="2" fill="#8A5A3B"/><circle cx="${tx}" cy="${ty-6}" r="15" fill="${leaf}"/>`;
+  for(let i=0;i<nTrees;i++){const tx=cx-40+i*22-(i%2)*6, ty=128+(i%2)*8;s+=treeSvg(home?"":T.tree,tx,ty,leaf);
+    if(!home) continue;
     if(sea==="fruehling"&&!clouds) s+=`<g fill="#FFB3C7"><circle cx="${tx-6}" cy="${ty-10}" r="2"/><circle cx="${tx+5}" cy="${ty-4}" r="2"/><circle cx="${tx+2}" cy="${ty-14}" r="2"/></g>`;
     if(sea==="winter") s+=`<path d="M${tx-14} ${ty-10}q14-14 28 0" stroke="#F3F1EA" stroke-width="4" fill="none" stroke-linecap="round"/>`;}
-  const place=layoutItems(cx,two,three,nTrees);
+  const ws=home?[]:worldStructs(W,cx,two,three);
+  const place=layoutItems(cx,two,three,nTrees,ws.map(q=>[q.x-26*q.sc,q.y-36*q.sc,q.x+26*q.sc,q.y]),home);
   // Gegenstände auf den Nebeninseln (x ≥ 244) erst nach diesen Inseln zeichnen, sonst verdecken die Inseln sie
   const drawItems=far=>S.items.filter(id=>place[id]&&(two&&place[id][0]>=244)===far).sort((a,b)=>place[a][1]-place[b][1]).forEach(id=>{const p=place[id];s+=`<g data-item="${id}" transform="translate(${p[0]} ${p[1]}) scale(${p[2]||.8})">${itemSvg(id)}</g>`});
   drawItems(false);
@@ -1091,19 +1261,22 @@ function scene(){
   S.memorials.slice(0,4).forEach((m,i)=>{const px=[cx-104,cx-112,cx+102,cx+110][i], py=[176,184,180,186][i];
     s+=`<g><title>Erinnerungsbaum für ${esc(m.name)}</title><rect x="${px-1.5}" y="${py-14}" width="3" height="14" fill="#8A5A3B"/><circle cx="${px}" cy="${py-17}" r="7" fill="${leaf}"/><circle cx="${px-2}" cy="${py-19}" r="1.6" fill="#FFD27A"/><rect x="${px+3}" y="${py-6}" width="6" height="5" rx="1" fill="#A4A6BD"/></g>`});
   // Hütte (Licht aus, wenn alle schlafen)
-  s+=`<path d="M${cx+30} 160v-24l20-15 20 15v24z" fill="#F3F1EA"/><path d="M${cx+26} 138l24-18 24 18" fill="none" stroke="#FF9C7A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><rect x="${cx+44}" y="144" width="11" height="16" rx="2" fill="#B6A4FF"/><rect x="${cx+57}" y="140" width="8" height="8" rx="1" fill="${sleep?"#3A3D58":night?"#FFD27A":"#9CC8EE"}"/>`;
-  if(sea==="winter") s+=`<path d="M${cx+26} 138l24-18 24 18" fill="none" stroke="#F3F1EA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
-  if(has("windmuehle")) s+=`<path d="M${cx+82} 160h10l-1-30h-8z" fill="#F3F1EA"/><path d="M${cx+87} 130l-12-10M${cx+87} 130l12-10M${cx+87} 130l-9 12M${cx+87} 130l9 12" stroke="#FFB86B" stroke-width="3" stroke-linecap="round"/>`;
-  if(has("schiff")) s+=`<path d="M${two?160:260} 200h40l-7 10h-26z" fill="#FF9C7A"/><path d="M${two?180:280} 200v-22l12 18z" fill="#F3F1EA"/>`;
+  if(!home) s+=hutSvg(T.hut,cx,night,sleep);
+  else s+=`<path d="M${cx+30} 160v-24l20-15 20 15v24z" fill="#F3F1EA"/><path d="M${cx+26} 138l24-18 24 18" fill="none" stroke="#FF9C7A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><rect x="${cx+44}" y="144" width="11" height="16" rx="2" fill="#B6A4FF"/><rect x="${cx+57}" y="140" width="8" height="8" rx="1" fill="${sleep?"#3A3D58":night?"#FFD27A":"#9CC8EE"}"/>`;
+  if(home&&sea==="winter") s+=`<path d="M${cx+26} 138l24-18 24 18" fill="none" stroke="#F3F1EA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+  if(home&&has("windmuehle")) s+=`<path d="M${cx+82} 160h10l-1-30h-8z" fill="#F3F1EA"/><path d="M${cx+87} 130l-12-10M${cx+87} 130l12-10M${cx+87} 130l-9 12M${cx+87} 130l9 12" stroke="#FFB86B" stroke-width="3" stroke-linecap="round"/>`;
+  if(home&&has("schiff")) s+=`<path d="M${two?160:260} 200h40l-7 10h-26z" fill="#FF9C7A"/><path d="M${two?180:280} 200v-22l12 18z" fill="#F3F1EA"/>`;
   if(two){
-    s+=`<path d="M222 150q20-18 40-20" fill="none" stroke="#8A5A3B" stroke-width="5" stroke-linecap="round"/>`;
+    s+=`<path d="M222 150q20-18 40-20" fill="none" stroke="${home?"#8A5A3B":T.bridge}" stroke-width="5" stroke-linecap="round"/>`;
+    if(!home) s+=`<path d="M226 146q18-15 34-17" fill="none" stroke="${home?"#8A5A3B":T.bridge}" stroke-width="1.2" stroke-dasharray="2 3" opacity=".8"/>`;
     s+=`<ellipse cx="300" cy="160" rx="56" ry="14" fill="${sand}"/><path d="M252 158c8-26 30-36 48-36s40 10 48 36z" fill="${grass}"/>`;
   }
   if(three){ s+=`<ellipse cx="300" cy="214" rx="40" ry="9" fill="${sand}"/><path d="M266 213c6-16 20-22 34-22s28 6 34 22z" fill="${grass}"/>`; }
   drawItems(true);
   // Neue Großprojekte
   const PPOS={baumhaus:[cx-96,168,.8],festzelt:two?[318,152,.72]:[cx+60,186,.7],strandhaus:two?[262,168,.62]:[cx+96,194,.75],beachclub:three?[288,216,.66]:two?[268,170,.7]:[cx-70,196,.7],floss:[72,222,.8]};
-  ["baumhaus","festzelt","beachclub","strandhaus","floss"].forEach(id=>{if(has(id)){const q=PPOS[id];s+=`<g transform="translate(${q[0]} ${q[1]}) scale(${q[2]})">${projectSvg(id)}</g>`}});
+  ws.slice().sort((a,b)=>a.y-b.y).forEach(q=>{s+=`<g transform="translate(${q.x} ${q.y}) scale(${q.sc})">${projectSvg(q.id)}</g>`});
+  if(home) ["baumhaus","festzelt","beachclub","strandhaus","floss"].forEach(id=>{if(has(id)){const q=PPOS[id];s+=`<g transform="translate(${q[0]} ${q[1]}) scale(${q[2]})">${projectSvg(id)}</g>`}});
   // Händlerschiff
   if(S.trader) s+=`<g class="wave"><path d="M20 212h56l-8 12H28z" fill="#8A5A3B"/><path d="M48 212v-36l24 32z" fill="#FFD27A"/><path d="M48 180h20M48 190h22M48 200h24" stroke="#FF9C7A" stroke-width="3"/><path d="M46 212v-30l-18 28z" fill="#F3F1EA"/></g>`;
   // Fokus-Boot draußen auf See
@@ -1259,7 +1432,7 @@ function viewHeute(){
   const [mText,mCls]=mood();
   const nd=nextDay(), ok=canClose()&&!S.vacation;
   const last=S.days[S.days.length-1];
-  const p=PROJECTS[S.projectIdx];
+  const p=curProjects()[S.projectIdx];
   const warn=S.warn?S.warn.ids.map(id=>S.residents.find(r=>r.id===id)).filter(Boolean):null;
   const wh=whispers();
   const wisher=S.wish?S.residents.find(r=>r.id===S.wish.rid):null;
@@ -1411,13 +1584,13 @@ function viewChronik(){
 }
 function viewArten(){
   const seen=new Set(S.residents.filter(r=>r.kind==="tier").map(r=>r.art));
-  const all=LAND.concat(SEA);
+  const all=LAND.concat(SEA).concat(FAR_ANIMALS);
   return `<div class="card"><div class="row between"><p class="label">Tierarten entdeckt</p><span class="small muted num">${all.filter(a=>seen.has(a)).length} / ${all.length}</span></div>
   <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">${all.map(a=>{const ok=seen.has(a);
     return `<div style="background:var(--ground);border-radius:14px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;${ok?"":"opacity:.4"}">
-      <svg width="48" height="34" viewBox="${a==="Wal"?"-24 -20 48 26":"-16 -22 32 24"}" aria-hidden="true">${ok?animalSvg(a):`<g opacity=".5" style="filter:brightness(0) invert(.45)">${animalSvg(a)}</g>`}</svg>
+      <svg width="48" height="34" viewBox="${a==="Wal"?"-24 -20 48 26":["Elch","Kamel"].includes(a)?"-20 -33 40 35":"-16 -22 32 24"}" aria-hidden="true">${ok?animalSvg(a):`<g opacity=".5" style="filter:brightness(0) invert(.45)">${animalSvg(a)}</g>`}</svg>
       <span style="font-size:11px;font-weight:700;text-align:center;line-height:1.2">${ok?a:"?"}</span></div>`}).join("")}</div>
-  <p class="small muted">Delfine und Wale kommen erst, wenn der Leuchtturm steht.</p></div>`;
+  <p class="small muted">Delfine und Wale kommen erst, wenn der Leuchtturm steht. Papagei, Elch, Kamel und Eisbär leben nur in fernen Inselwelten.</p></div>`;
 }
 function viewAlbum(){
   const have=new Set(S.postcards.map(c=>c.motif));
@@ -1531,6 +1704,26 @@ function itemSvg(id){
 }
 function projectSvg(id){
   switch(id){
+  /* Tropen */
+  case "t_bambus": return `${[-14,10].map((x,i)=>`<g transform="translate(${x} 0)"><path d="M-9 0v-6M9 0v-6" stroke="#8A5A3B" stroke-width="2"/><rect x="-10" y="-20" width="20" height="14" fill="#D9B86A"/><path d="M-6 -20v14M0 -20v14M6 -20v14" stroke="#B8944E" stroke-width="1"/><path d="M-14 -19l14-12 14 12z" fill="#C9A26A"/><rect x="-3" y="-15" width="6" height="9" fill="#7A5038"/></g>`).join("")}`;
+  case "t_riff": return `<path d="M-24 -3h40" stroke="#B07A55" stroke-width="3.4"/><path d="M-20 -3v7M-6 -3v7M8 -3v7" stroke="#8A5A3B" stroke-width="2"/><g class="sway" style="animation-duration:3s"><path d="M18 2q-2-8 2-12M22 2q1-7 5-9M26 2q0-6-3-10" stroke="#FF9C7A" stroke-width="2.4" fill="none" stroke-linecap="round"/></g><path d="M-30 2q-1-6 3-9q3 3 1 9z" fill="#E07AB8"/><g class="bob" style="animation-duration:1.8s"><path d="M-2 4q4-3 8 0q-4 3-8 0zM6 4l3-2v4z" fill="#FFD27A"/></g>`;
+  case "t_wasserfall": return `<path d="M-22 0l6-34 14-6 16 6 8 34z" fill="#8F8478"/><path d="M-16 -34l8-5 10 3" stroke="#5FA864" stroke-width="5" fill="none" stroke-linecap="round"/><g class="glow" style="animation-duration:1.2s"><path d="M-4 -36q-2 18 0 34h8q2-16 0-34z" fill="#BFE6F5"/></g><path d="M-3 -36q-1 18 0 34M2 -36q1 18 0 34" stroke="#F3F1EA" stroke-width="1.2" opacity=".8"/><ellipse cx="0" cy="0" rx="14" ry="3" fill="#7CB8E8"/><g class="steam"><circle cx="-5" cy="-3" r="2" fill="#F3F1EA"/><circle cx="5" cy="-4" r="1.6" fill="#F3F1EA"/></g>`;
+  case "t_mango": return `${[-14,0,14].map((x,i)=>`<g transform="translate(${x} 0)"><rect x="-1.6" y="-14" width="3.2" height="14" fill="#8A5A3B"/><g class="sway" style="animation-duration:${3+i*.4}s"><circle cx="0" cy="-19" r="8" fill="#3FA35A"/><circle cx="-3" cy="-17" r="1.8" fill="#FFB86B"/><circle cx="3" cy="-21" r="1.8" fill="#FF9C7A"/><circle cx="2" cy="-15" r="1.8" fill="#FFD27A"/></g></g>`).join("")}<rect x="16" y="-6" width="9" height="6" rx="1" fill="#B07A55"/>`;
+  /* Fjord */
+  case "f_stugor": return `${[-13,11].map(x=>`<g transform="translate(${x} 0)"><rect x="-10" y="-14" width="20" height="14" fill="#B8442E"/><path d="M-10 -14h20M-10 0h20M-10 -14v14M10 -14v14" stroke="#F3F1EA" stroke-width="1.4"/><path d="M-13 -13l13-9 13 9z" fill="#3A3D58"/><rect x="-3" y="-8" width="6" height="8" fill="#F3F1EA"/><rect x="4" y="-11" width="4" height="4" fill="#FFD27A"/></g>`).join("")}`;
+  case "f_sauna": return `<rect x="-14" y="-16" width="28" height="16" fill="#8A5A3B"/><path d="M-14 -11h28M-14 -6h28" stroke="#6B4430" stroke-width="1"/><path d="M-17 -15l17-9 17 9z" fill="#5A4636"/><rect x="-4" y="-11" width="7" height="11" fill="#3A2A20"/><rect x="6" y="-12" width="5" height="4" fill="#FFD27A"/><path d="M8 -24v-6" stroke="#7C7F99" stroke-width="2.4"/><g stroke="#F3F1EA" stroke-width="1.6" fill="none" stroke-linecap="round"><path class="steam" d="M8 -31q-2-3 0-6t0-6"/><path class="steam" style="animation-delay:.9s" d="M8 -31q-2-3 0-6t0-6"/></g>`;
+  case "f_wikinger": return `<g class="wave" style="animation-duration:3.4s"><path d="M-26 -6q26 12 52 0l-6 8h-40z" fill="#8A5A3B"/><path d="M-26 -6q-4-6 0-10M26 -6q4-6 0-10" stroke="#8A5A3B" stroke-width="3" fill="none" stroke-linecap="round"/>${[-16,-8,0,8,16].map((x,i)=>`<circle cx="${x}" cy="-4" r="3" fill="${["#E5484D","#FFD27A","#5B8CD6","#E5484D","#FFD27A"][i]}"/>`).join("")}<path d="M0 -6v-26" stroke="#6B4430" stroke-width="2"/><g class="sway" style="animation-duration:3s"><rect x="-11" y="-30" width="22" height="18" fill="#F3F1EA"/><path d="M-11 -26h22M-11 -20h22M-11 -14h22" stroke="#E5484D" stroke-width="2.4"/></g></g>`;
+  case "f_nordlicht": return `<rect x="-6" y="-36" width="12" height="36" fill="#C9C6BE"/><path d="M-8 -36h16l-8-8z" fill="#3A3D58"/><rect x="-3" y="-30" width="6" height="6" fill="#FFD27A"/><g class="glow" style="animation-duration:3s"><path d="M-30 -44q15-10 30 0t30 0v-8q-15-8-30 0t-30 0z" fill="#5BF0A4" opacity=".7"/><path d="M-26 -52q13-8 26 0t26 0v-6q-13-6-26 0t-26 0z" fill="#B6A4FF" opacity=".6"/></g>`;
+  /* Wüste */
+  case "o_lehm": return `${[[-14,0,1],[8,-2,.85],[22,0,.7]].map(([x,y,k])=>`<g transform="translate(${x} ${y}) scale(${k})"><rect x="-10" y="-16" width="20" height="16" rx="2" fill="#D9A86A"/><path d="M-6 -16a6 6 0 0 1 12 0z" fill="#E8BE84"/><path d="M-3 0v-7a3 3 0 0 1 6 0v7z" fill="#7A5038"/><rect x="5" y="-12" width="3" height="3" rx="1.5" fill="#FFD27A"/></g>`).join("")}`;
+  case "o_brunnen": return `<ellipse cx="0" cy="-2" rx="18" ry="5" fill="#3FB8B0"/><ellipse cx="-4" cy="-3" rx="8" ry="1.4" fill="#F3F1EA" opacity=".4"/><rect x="-8" y="-12" width="16" height="9" rx="2" fill="#C9A35A"/><path d="M-6 -12v-10M6 -12v-10M-9 -22h18" stroke="#8A5A3B" stroke-width="2"/><g class="swing" style="animation-duration:2.6s"><path d="M0 -22v6" stroke="#7C7F99" stroke-width="1"/><rect x="-2" y="-16" width="4" height="3.4" rx="1" fill="#8A5A3B"/></g><path d="M16 -2q1-14 4-24" stroke="#A0703F" stroke-width="3" fill="none"/><g class="sway" style="animation-duration:4s"><path d="M20 -26q-8-3-12 2M20 -26q8-4 12 2M20 -26q-3-7-9-7M20 -26q4-7 10-6" stroke="#6E8B3D" stroke-width="2.6" fill="none" stroke-linecap="round"/></g>`;
+  case "o_markt": return `${[-14,4].map((x,i)=>`<g transform="translate(${x} 0)"><path d="M-8 0v-14M8 0v-14" stroke="#8A5A3B" stroke-width="1.6"/><g class="sway" style="animation-duration:${3+i}s"><path d="M-11 -14l3-6h16l3 6z" fill="${i?"#5B8CD6":"#E5484D"}"/><path d="M-5 -20l-1 6M1 -20v6M7 -20l1 6" stroke="#F3F1EA" stroke-width="2"/></g><rect x="-8" y="-7" width="16" height="4" fill="#B07A55"/><circle cx="-4" cy="-8" r="1.8" fill="#FFB86B"/><circle cx="0" cy="-8" r="1.8" fill="#E5484D"/><circle cx="4" cy="-8" r="1.8" fill="#C8F169"/></g>`).join("")}<g transform="translate(22 0)"><ellipse cx="0" cy="-5" rx="6" ry="5" fill="#C98A52"/><path d="M-3 -9q-2-5 1-7" stroke="#C98A52" stroke-width="2"/></g>`;
+  case "o_sternzelt": return `<path d="M-24 0l8-18h32l8 18z" fill="#E8D9B8"/><path d="M-16 -18l16-8 16 8" fill="#D9C38E"/><path d="M-8 0l3-12h10l3 12z" fill="#5A3A2A"/><path d="M-16 -18v18M16 -18v18" stroke="#B8944E" stroke-width="1"/>${[[-20,-34],[-6,-40],[10,-36],[22,-28]].map(([x,y],i)=>`<g class="glow" style="animation-duration:${1.4+i*.3}s"><path d="M${x} ${y-3}l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" fill="#FFD27A"/></g>`).join("")}`;
+  /* Alaska */
+  case "a_iglus": return `${[[-14,1],[12,.8]].map(([x,k])=>`<g transform="translate(${x} 0) scale(${k})"><path d="M-14 0a14 14 0 0 1 28 0z" fill="#F3F6F8"/><path d="M-13 -5h26M-11 -10h22M-6 -2v-3M2 -6v-4M6 -2v-3" stroke="#B9D3E6" stroke-width="1"/><path d="M-5 0v-4a5 5 0 0 1 10 0v4z" fill="#2F4A6E"/></g>`).join("")}`;
+  case "a_schlitten": return `<rect x="-20" y="-16" width="16" height="16" fill="#8A5A3B"/><path d="M-23 -15l11-7 11 7z" fill="#F3F6F8"/><rect x="-14" y="-9" width="5" height="9" fill="#3A2A20"/><path d="M0 -2h18q4 0 5-4" stroke="#7A5038" stroke-width="1.6" fill="none"/><path d="M2 -6h14v4h-14z" fill="#E5484D"/><g class="bob" style="animation-duration:1s"><ellipse cx="26" cy="-6" rx="5" ry="3.4" fill="#C9C6BE"/><circle cx="31" cy="-9" r="2.6" fill="#C9C6BE"/><path d="M30 -12l1-3 1 3" fill="#3A3D58"/><path d="M23 -3v3M28 -3v3" stroke="#C9C6BE" stroke-width="1.6"/></g>`;
+  case "a_eisfischen": return `<ellipse cx="0" cy="0" rx="26" ry="5" fill="#E6EEF3"/><ellipse cx="10" cy="0" rx="5" ry="1.6" fill="#2F4A6E"/><rect x="-18" y="-16" width="16" height="15" fill="#B8442E"/><path d="M-20 -15l10-6 10 6z" fill="#F3F6F8"/><rect x="-13" y="-9" width="5" height="8" fill="#3A2A20"/><path d="M2 -2l10-16" stroke="#7A5038" stroke-width="1.4"/><path d="M12 -18q2 8-2 18" stroke="#F3F1EA" stroke-width=".6" fill="none"/><g class="bob" style="animation-duration:1.6s"><path d="M14 -6q4-3 8 0q-4 3-8 0zM22 -6l3-2v4z" fill="#9CC8EE"/></g>`;
+  case "a_polarwarte": return `<path d="M-8 0l3-30h10l3 30z" fill="#C9C6BE"/><path d="M-10 -30h20l-10-8z" fill="#2F4A6E"/><circle cx="0" cy="-24" r="3" fill="#FFD27A"/><g class="glow" style="animation-duration:3.4s"><path d="M-34 -42q17-12 34 0t34 0v-8q-17-10-34 0t-34 0z" fill="#5BF0A4" opacity=".75"/><path d="M-30 -52q15-9 30 0t30 0v-6q-15-8-30 0t-30 0z" fill="#E07AB8" opacity=".5"/></g>`;
   case "baumhaus": return `<rect x="-4" y="-34" width="8" height="34" fill="#8A5A3B"/><path d="M-4 -12l-8 6M4 -16l7 5" stroke="#8A5A3B" stroke-width="3" stroke-linecap="round"/><g class="sway" style="animation-duration:5s"><circle cx="-10" cy="-44" r="14" fill="#4E9A58"/><circle cx="10" cy="-46" r="14" fill="#5FA864"/><circle cx="0" cy="-56" r="13" fill="#4E9A58"/></g><rect x="-12" y="-42" width="24" height="13" rx="1.5" fill="#B07A55"/><path d="M-15 -42l15-9 15 9z" fill="#FF9C7A"/><rect x="-3" y="-39" width="6" height="10" fill="#7A3A22"/><g class="glow" style="animation-duration:3s"><rect x="5" y="-39" width="4" height="4" fill="#FFD27A"/></g><path d="M-14 -29h28" stroke="#7A5038" stroke-width="2"/><path d="M10 -29l3 29M14 -29l3 29M10.6 -22h4M11.4 -15h4M12.2 -8h4" stroke="#D9C38E" stroke-width="1.2"/>`;
   case "floss": return `<g class="wave" style="animation-duration:3.2s"><g fill="#B07A55" stroke="#7A5038" stroke-width=".8">${[-18,-10,-2,6,14].map(x=>`<rect x="${x}" y="-6" width="7" height="6" rx="3"/>`).join("")}</g><path d="M-16 -4h34" stroke="#7A5038" stroke-width="1.2"/><path d="M0 -6v-30" stroke="#8A5A3B" stroke-width="2"/><g class="sway" style="animation-duration:3s"><path d="M1 -34q14 10 0 24z" fill="#F3F1EA"/></g><g class="flagwave"><path d="M0 -36h7l-2 2 2 2h-7z" fill="#C8F169"/></g><path d="M-14 -6v-6M-14 -12l-4 6" stroke="#7A5038" stroke-width="1"/></g>`;
   case "festzelt": return `<path d="M-22 0v-14l22-14 22 14v14z" fill="#F3F1EA"/>${[-16,-6,4,14].map(x=>`<path d="M${x} 0v-14l${x<0?3:-3} -${x<0?2:2}" stroke="#FF9C7A" stroke-width="5" fill="none"/>`).join("")}<path d="M-22 -14l22-14 22 14" fill="none" stroke="#E5484D" stroke-width="2.4" stroke-linejoin="round"/><path d="M-6 0v-10q6-5 12 0v10z" fill="#3A3D58"/><path d="M0 -28v-8" stroke="#A4A6BD" stroke-width="1.4"/><g class="flagwave"><path d="M0 -36h8l-2 2 2 2h-8z" fill="#FFD27A"/></g>${[-18,-10,-2,6,14].map((x,i)=>`<g class="glow" style="animation-duration:1.4s;animation-delay:${i*.25}s"><circle cx="${x+2}" cy="${-15+Math.abs(x+2)/6}" r="1.8" fill="${["#FFD27A","#C8F169","#B6A4FF","#FF9C7A","#5BC0A8"][i]}"/></g>`).join("")}`;
@@ -1540,8 +1733,8 @@ function projectSvg(id){
   return "";
 }
 function viewProjekt(){
-  return viewShop()+`<div class="card"><h2>Großprojekte</h2><p class="muted small">Ist ein Projekt fertig, startet sofort das nächste.</p>
-  ${PROJECTS.map((p,i)=>{
+  return viewReise()+viewShop()+`<div class="card"><p class="label">${esc(curWorld().name)}</p><h2>Großprojekte</h2><p class="muted small">Ist ein Projekt fertig, startet sofort das nächste.</p>
+  ${curProjects().map((p,i)=>{
     const done=S.built.includes(p.id), cur=i===S.projectIdx;
     const prog=cur?Math.min(100,S.material/(p.hours*60)*100):done?100:0;
     return `<div class="proj"><div class="badge" style="${done?"background:var(--lime);color:#14151F":cur?"background:var(--lilac);color:#14151F":""}">${i+1}</div>
@@ -1638,10 +1831,11 @@ function settingsHtml(){
 let islandView=0, vbAnim=null;
 function islandViews(){
   const v=[{n:"Alle Inseln",vb:[0,0,360,240]}];
-  if(!has("bruecke")) return v;
+  const W=curWorld();
+  if(!has(W.isle2)) return v;
   v.push({n:"Hauptinsel",vb:[0,62,246,164]});
   v.push({n:"Nachbarinsel",vb:[204,94,156,104]});
-  if(has("insel3")) v.push({n:"Dritte Insel",vb:[234,156,126,84]});
+  if(has(W.isle3)) v.push({n:"Dritte Insel",vb:[234,156,126,84]});
   return v;
 }
 function setViewBox(vb){const svg=$("#scene > svg");if(svg)svg.setAttribute("viewBox",vb.map(n=>n.toFixed(1)).join(" "))}
@@ -1724,6 +1918,7 @@ function bind(){
   document.querySelectorAll("[data-visit]").forEach(x=>x.onclick=()=>visitSheet(x.dataset.visit));
   document.querySelectorAll("[data-kapsel]").forEach(x=>x.onclick=()=>{const c=S.capsules.find(y=>y.id===x.dataset.kapsel);if(c) capsuleSheet(c)});
   const rs=$("#resetBtn"); if(rs) rs.onclick=confirmReset;
+  const tb=$("#travelBtn"); if(tb) tb.onclick=travelSheet;
   const ex=$("#exportBtn"); if(ex) ex.onclick=exportSave;
   const im=$("#importBtn"), imf=$("#importFile"); if(im&&imf){im.onclick=()=>imf.click();imf.onchange=()=>{if(imf.files[0]) importSave(imf.files[0])}}
   document.querySelectorAll("[data-buy]").forEach(btn=>btn.onclick=()=>{
@@ -1783,6 +1978,10 @@ function animalSound(ac,art){
     case "Hase": noise(ac,0,.08,{freq:3000,vol:.06}); noise(ac,.14,.08,{freq:3000,vol:.06}); tone(ac,900,.3,.12,{to:1200,vol:.08}); break;
     case "Robbe": [0,.25,.5].forEach(t=>tone(ac,380,t,.18,{to:300,type:"sawtooth",vol:.06})); break;
     case "Delfin": [0,.07,.14].forEach(t=>noise(ac,t,.03,{freq:5000,q:6,vol:.12})); tone(ac,1400,.25,.5,{to:2600,vol:.1}); break;
+    case "Papagei": [0,.16].forEach(t=>tone(ac,1600,t,.12,{to:2600,type:"sawtooth",vol:.05})); tone(ac,2200,.36,.2,{to:1400,type:"square",vol:.04}); break;
+    case "Elch": tone(ac,180,0,1.1,{to:130,type:"sawtooth",vol:.07,att:.2}); tone(ac,90,0,1.1,{vol:.12,att:.2}); break;
+    case "Kamel": tone(ac,240,0,.6,{to:160,type:"sawtooth",vol:.07,vib:10}); noise(ac,.55,.2,{freq:700,vol:.08}); break;
+    case "Eisbär": tone(ac,140,0,.7,{to:90,type:"sawtooth",vol:.09,att:.08}); noise(ac,0,.6,{freq:400,q:.6,vol:.07}); break;
     case "Wal": tone(ac,110,0,1.6,{to:180,vol:.18,att:.3}); tone(ac,220,0,1.6,{to:300,vol:.05,att:.3}); break;
     default: notes(ac,["E5","G5"],.12,{type:"triangle"});
   }
@@ -1820,7 +2019,7 @@ function soundFor(ev){
     const r=ev.id?S.residents.find(x=>x.id===ev.id):null;
     const map={arrival:r&&r.kind==="tier"?["animal",r.art]:["human"],birth:["birth"],postcard:["postcard"],project:["project"],sick:["sick"],warn:["warn"],left:["left"],
       return:["return"],reunion:["return"],conflict:["conflict"],conflictResult:[ev.ok?"resolve":"thud"],love:["love"],strandgut:["sparkle"],wish:["sparkle"],gift:["sparkle"],
-      kapsel:["sparkle"],fest:["fest"],farewell:["farewell"],boat:["boat"],welcome:["return"],
+      kapsel:["sparkle"],fest:["fest"],discovery:["aurora"],travel:["project"],farewell:["farewell"],boat:["boat"],welcome:["return"],
       visitor:[ev.kind==="aurora"?"aurora":ev.kind==="birds"?"birds":"horn"],day:[ev.min<=S.budget?"goodday":"badday"]};
     const m=map[ev.type]; if(m) sfx(m[0],m[1]);
   }catch(e){}
@@ -1907,6 +2106,29 @@ function showPending(){
     return sheet(`<div class="anim">${base(`<g transform="translate(240 134) scale(1.2)">${itemSvg("feuer")}</g>`+here().filter(r=>r.kind==="mensch").slice(0,5).map((r,i)=>`<g class="bob" style="animation-delay:${i*.2}s">${figure(r,200+i*16+(i>1?24:0),136)}</g>`).join("")+`${[0,1,2,3,4,5].map(i=>`<g class="glow" style="animation-delay:${i*.3}s"><circle cx="${190+i*22}" cy="${80+(i%2)*8}" r="4" fill="#FFD27A"/></g>`).join("")}`+confetti(),false)}</div>
       <p class="label" style="color:var(--amber)">Inselfest</p><h2>Die Insel feiert dich</h2><p class="muted">${ev.good} von 7 Tagen im Budget. Laternen, Lagerfeuer und Musik: +5 % Glück und +30 Punkte.</p><button class="btn" data-ok>Mitfeiern</button>`);
   }
+  if(ev.type==="discovery"){
+    const W=WORLDS[ev.world]; if(!W) return showPending();
+    $("#modalRoot").innerHTML=`<div class="modal"><div class="sheet" role="dialog" aria-modal="true">
+      ${worldMapSvg()}
+      <p class="label" style="color:var(--lime)">Neue Insel entdeckt</p><h2>${esc(W.name)}</h2>
+      <p class="muted">${esc(W.text)} Dort warten neue Großprojekte, mehr Platz für Bewohner${W.animals?" und eine neue Tierart":""}.</p>
+      <button class="btn" id="discGo">Jetzt aufbrechen</button>
+      <button class="btn ghost" id="discLater">Später, über Bauen → Weltreise</button></div></div>`;
+    $("#discGo").onclick=travel; $("#discLater").onclick=()=>{closeModal();render();showPending()};
+    return;
+  }
+  if(ev.type==="travel"){
+    const W=WORLDS[ev.to]||curWorld(), T=W.theme||{};
+    const g=here().filter(r=>r.kind==="mensch").slice(0,4);
+    const pic=`<svg viewBox="0 0 360 200" aria-hidden="true"><rect width="360" height="200" fill="${T.sky||"#86BFE6"}"/>${horizonSvg(T.horizon,true)}<rect y="132" width="360" height="68" fill="${T.sea||"#3A6FA8"}"/>
+      <ellipse cx="282" cy="138" rx="100" ry="16" fill="${T.sand||"#E9D7A6"}"/><path d="M192 136c10-34 52-48 90-48s80 14 90 48z" fill="${T.grass||"#7FC57A"}"/>
+      ${treeSvg(T.tree,232,100,T.leaf||"#4E9A58")}${treeSvg(T.tree,330,102,T.leaf||"#4E9A58")}<g transform="translate(-6 -22)">${hutSvg(T.hut,250,false,false)}</g>
+      ${boat(g,"sail-in")}${confetti()}</svg>`;
+    return sheet(`<div class="anim">${pic}</div><p class="label" style="color:var(--lime)">Angekommen</p><h2>Willkommen: ${esc(W.name)}!</h2>
+      <p class="muted">${esc(W.text)}</p>
+      <p>Neue Großprojekte warten im Tab <b>Bauen</b>${W.animals?`, und bald zieht vielleicht ein <b>${esc(W.animals[0])}</b> ein`:""}. Als Umzugsgeld gibt es <b>+100 Punkte</b>.</p>
+      <button class="btn" data-ok>Insel erkunden</button>`);
+  }
   if(ev.type==="kapsel"){const c=S.capsules.find(x=>x.id===ev.id);if(c) return capsuleSheet(c,true);return showPending()}
   if(ev.type==="boat"){
     const crew=ev.crew?S.residents.find(x=>x.id===ev.crew):null;
@@ -1960,7 +2182,7 @@ function showPending(){
     return sheet(`${scene}<p class="label" style="color:var(--lime)">Wieder da</p><h2>${esc(nameList(g.map(r=>r.name)))} ${g.length>1?"sind":"ist"} zurück!</h2><p class="muted">5 gute Tage haben sich bis zur Möweninsel herumgesprochen.</p><button class="btn" data-ok>Willkommen zurück</button>`);
   }
   if(ev.type==="project"){
-    const p=PROJECTS.find(x=>x.id===ev.id);
+    const p=projById(ev.id);
     return sheet(`${scene}<p class="label" style="color:var(--lime)">Großprojekt fertig</p><h2>${esc(p.name)} gebaut!</h2><p class="muted">${esc(p.text)}.</p><button class="btn" data-ok>Zur Insel</button>`);
   }
   showPending();
@@ -2063,6 +2285,13 @@ function importSave(file){
     S=migrate(st);tab="heute";save();closeModal();render();toast("Sicherung geladen")}catch(e){toast("Diese Datei ist keine gültige Sicherung.")}};
   rd.readAsText(file);
 }
+function travelSheet(){
+  const next=WORLDS[(S.world||0)+1]; if(!next||!((S.found||0)>(S.world||0))) return;
+  modal(`${worldMapSvg()}<p class="label" style="color:var(--lime)">Weltreise</p><h2>Nach ${esc(next.name)} aufbrechen?</h2>
+    <p class="muted">${esc(next.text)} Alle Bewohner, Gegenstände und Plätze kommen mit. Die Großprojekte hier bleiben gebaut, auf der neuen Insel geht es mit neuen weiter.</p>
+    <div class="row"><button class="btn secondary grow" id="trNo">Noch bleiben</button><button class="btn grow" id="trYes">Aufbrechen</button></div>`);
+  $("#trNo").onclick=closeModal; $("#trYes").onclick=travel;
+}
 function confirmReset(){
   sheet(`<h2>Spielstand zurücksetzen?</h2><p class="muted">Deine Insel, alle Bewohner und eingetragenen Tage werden gelöscht. Das lässt sich nicht rückgängig machen.</p>
   <div class="row"><button class="btn secondary grow" id="noR">Abbrechen</button><button class="btn grow" id="yesR" style="background:var(--coral)">Zurücksetzen</button></div>`);
@@ -2104,7 +2333,7 @@ function login(p){
   ACC=p; LS=profKey(p.id);
   try{sessionStorage.setItem(SESSION_KEY,p.id)}catch(e){}
   updateProfile(p.id,{last:Date.now()});
-  const st=lsGet(); S=migrate(st&&st.v===1?st:newGame()); tab="heute";
+  const st=lsGet(); S=migrate(st&&st.v===1?st:newGame()); tab="heute"; if(S.setup) checkDiscovery();
   document.body.classList.remove("start"); $("#start").innerHTML="";
   closeModal(); render(); window.scrollTo(0,0); showPending();
 }

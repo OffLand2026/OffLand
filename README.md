@@ -11,6 +11,7 @@ Ein kleines Handy-Spiel gegen zu viel Bildschirmzeit: Du trägst jeden Abend ein
 - **Bewohner:** Menschen mit Berufen und Eigenschaften, Tiere, Beziehungen, Streit, Liebe, Stammbaum, Chronik
 - **Zeit:** zurückgewonnene Zeit, Hochrechnung aufs Jahr, App-Monster-Statistik
 - **Bauen:** Inselladen mit Vorräten, Nützlichem und Deko (26 animierte Gegenstände), Händlerschiff, zehn Großprojekte vom Leuchtturm bis zum Beachclub
+- **Weltreise:** Sind alle Projekte gebaut, wird eine neue Insel entdeckt. Die Gemeinschaft zieht weiter – Tropeninsel, Fjordinseln, Wüsteninsel, Eisinseln – mit eigener Landschaft, je sechs neuen Großprojekten, mehr Plätzen, neuen Tierarten (Papagei, Elch, Kamel, Eisbär) und einer Karte mit Reiseroute
 - **Album:** Postkarten, Strandgut, Zeitkapseln, Tagebuch, Einstellungen, Sicherung
 
 ## Starten
