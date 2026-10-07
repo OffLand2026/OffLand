@@ -344,6 +344,11 @@ function migrate(st){
   if(st.allFeatures===undefined) st.allFeatures=(st.dayCount||0)>=1;          // wer schon gespielt hat, behält alles
   for(const k in D){ if(st[k]===undefined) st[k]=D[k]; }
   const prevS=S; S=st;
+  if(!st.ownersSet){                                                      // ältere Spielstände: jedem Landtier eine Bezugsperson geben
+    const ad=st.residents.filter(r=>r.kind==="mensch"&&r.status==="da"&&(r.job||!r.parents));
+    st.residents.forEach(r=>{if(r.kind==="tier"&&!SEA.includes(r.art)&&!r.owner&&ad.length){const m=r.pair&&st.residents.find(x=>x.id===r.pair);r.owner=(m&&m.owner)||ad[hsh(r.id)%ad.length].id}});
+    st.ownersSet=true;
+  }
   st.residents.forEach(r=>{if(r.born==null)r.born=0; if(r.kind==="mensch"){if(!r.trait)r.trait=pick(TRAITS).id; if(!r.job&&!r.parents)r.job=pickJob()}});
   S=prevS; return st;
 }
@@ -420,7 +425,7 @@ function arrival(){
   if(isHuman){
     const single=here().find(r=>r.kind==="mensch"&&!r.pair);
     const r={id:uid(),name:freeName(HUMAN_NAMES,used),kind:"mensch",art:"Mensch",pair:null,status:"da",ret:0,born:S.dayCount,job:pickJob(),trait:pick(TRAITS).id};
-    if(single&&Math.random()<.5){r.pair=single.id;single.pair=r.id}
+    if(single&&Math.random()<.5){r.pair=single.id;single.pair=r.id;r.pairSince=single.pairSince=S.dayCount}
     else{const pal=adults().filter(x=>x.id!==r.id); if(pal.length) addRel(r.id,pick(pal).id,25)}
     S.residents.push(r); S.pending.push({type:"arrival",id:r.id,partner:single?single.id:null});
   } else {
@@ -430,7 +435,7 @@ function arrival(){
     const art=pick(fresh.length?fresh:pool);
     const mate=here().find(x=>x.kind==="tier"&&x.art===art&&!x.pair);
     const r={id:uid(),name:freeName(ANIMAL_NAMES,used),kind:"tier",art,pair:null,status:"da",ret:0,born:S.dayCount};
-    if(PETS.includes(art)&&adults().length) r.owner=pick(adults()).id;
+    if(!SEA.includes(art)&&adults().length) r.owner=(mate&&mate.owner)||pick(adults()).id;
     S.residents.push(r);
     if(mate){r.pair=mate.id;mate.pair=r.id; S.pending.push({type:"arrival",id:r.id,partner:mate.id})}
     else if(here().length<capacity()){
@@ -467,6 +472,55 @@ function groupName(g){
   return g[0].kind==="tier"?n+" ("+(PLURAL[g[0].art]||g[0].art)+")":n;
 }
 
+/* ---------- Paare: Beziehungsqualität, Krisen, Trennung, Hochzeit ---------- */
+const couples=()=>here().filter(r=>r.kind==="mensch"&&r.pair&&r.id<r.pair).map(a=>[a,S.residents.find(x=>x.id===a.pair)]).filter(([a,b])=>b&&b.status==="da");
+const kidsOf=(...ids)=>S.residents.filter(k=>k.parents&&k.status!=="verstorben"&&ids.every(id=>k.parents.includes(id)));
+function breakup(a,b){
+  a.pair=null;b.pair=null;a.married=b.married=false;
+  a.ex=(a.ex||[]).concat(b.id);b.ex=(b.ex||[]).concat(a.id);
+  S.rel[rk(a.id,b.id)]=-10; S.glueck=clamp(S.glueck-4,0,100);
+  const kids=kidsOf(a.id,b.id).filter(k=>k.status==="da"), pets=here().filter(p=>p.kind==="tier"&&(p.owner===a.id||p.owner===b.id));
+  log(a.name+" und "+b.name+" haben sich getrennt."+(kids.length?" "+nameList(kids.map(k=>k.name))+" "+vb(kids,"lebt","leben")+" jetzt abwechselnd bei beiden.":""),"bad");
+  chron([a.id,b.id],a.name+" und "+b.name+" haben sich getrennt.");
+  S.pending.push({type:"breakup",a:a.id,b:b.id,kids:kids.map(k=>k.id),pets:pets.map(p=>p.id)});
+}
+function coupleDay(good){
+  couples().forEach(([a,b])=>{
+    let d=good?2:-4;
+    if(good&&(a.trait==="gesellig"||b.trait==="gesellig")) d+=1;
+    if(good&&owns("picknick")) d+=1;
+    if(a.sick||b.sick) d=Math.min(d,0);
+    addRel(a.id,b.id,d);
+  });
+  // laufende Krise auflösen
+  if(S.crisis){
+    const c=S.crisis, a=S.residents.find(r=>r.id===c.a), b=S.residents.find(r=>r.id===c.b); S.crisis=null;
+    if(!a||!b||a.pair!==b.id||c.day===S.lastDay) return;
+    const ok=c.state==="abend"?good:Math.random()<(good?.55:.2);
+    if(ok){addRel(a.id,b.id,c.state==="abend"?45:25);S.glueck=clamp(S.glueck+(c.state==="abend"?3:1),0,100);
+      log(a.name+" und "+b.name+" haben sich wieder zusammengerauft.","good");S.pending.push({type:"crisisResult",a:a.id,b:b.id,ok:true,abend:c.state==="abend"})}
+    else{addRel(a.id,b.id,-25);
+      if(relOf(a.id,b.id)<=-35) breakup(a,b);
+      else{log("Bei "+a.name+" und "+b.name+" kriselt es weiter.","bad");S.pending.push({type:"crisisResult",a:a.id,b:b.id,ok:false})}}
+    return;
+  }
+  // neue Krise, wenn es einem Paar lange schlecht geht
+  const bad=couples().find(([a,b])=>relOf(a.id,b.id)<=-15);
+  if(bad&&!S.conflict&&Math.random()<.6){
+    S.crisis={a:bad[0].id,b:bad[1].id,state:"neu",day:S.lastDay};
+    log("Krise bei "+bad[0].name+" und "+bad[1].name+".","bad");
+    S.pending.push({type:"crisis"});
+    return;
+  }
+  // Hochzeit für lange, sehr glückliche Paare
+  if(good){
+    const c=couples().find(([a,b])=>!a.married&&relOf(a.id,b.id)>=70&&S.dayCount-(a.pairSince||0)>=14);
+    if(c&&Math.random()<.18){const [a,b]=c;a.married=b.married=true;S.glueck=clamp(S.glueck+5,0,100);S.points+=40;
+      log(a.name+" und "+b.name+" haben geheiratet! +5 % Glück, +40 Punkte.","good");chron([a.id,b.id],"Hochzeit: "+a.name+" und "+b.name+".");
+      S.pending.push({type:"wedding",a:a.id,b:b.id})}
+  }
+}
+
 /* ---------- Zusammenleben: Beziehungen, Berufe, Streit, Liebe ---------- */
 function social(good){
   if(S.conflict&&S.conflict.state==="neu"&&S.conflict.day!==S.lastDay) resolveConflict("egal");
@@ -476,6 +530,7 @@ function social(good){
     const a=pick(ad), b=pick(ad); if(a.id===b.id) continue;
     addRel(a.id,b.id,good?(2+(owns("bank")?2:0)+(owns("picknick")?1:0)+(a.trait==="gesellig"?1:0)):-3);
   }
+  coupleDay(good);
   // Kinder werden erwachsen und bekommen einen Beruf
   here().filter(r=>r.kind==="mensch"&&r.parents&&!r.job).forEach(r=>{
     if(S.dayCount-(r.born||0)>=(jobOn("lehrer")?6:10)){r.job=pickJob();log(r.name+" ist erwachsen geworden und arbeitet jetzt als "+jobName(r.job)+".","good");chron([r.id],r.name+" ist erwachsen und wird "+jobName(r.job)+".")}
@@ -496,8 +551,8 @@ function social(good){
   if(good){
     const singles=ad.filter(r=>!r.pair);
     for(const a of singles){for(const b of singles){
-      if(a.id<b.id&&relOf(a.id,b.id)>=40&&Math.random()<.35&&!a.pair&&!b.pair){
-        a.pair=b.id;b.pair=a.id;S.pending.push({type:"love",a:a.id,b:b.id});
+      if(a.id<b.id&&relOf(a.id,b.id)>=40&&Math.random()<.35&&!a.pair&&!b.pair&&!(a.ex||[]).includes(b.id)){
+        a.pair=b.id;b.pair=a.id;a.pairSince=b.pairSince=S.dayCount;S.pending.push({type:"love",a:a.id,b:b.id});
         log(a.name+" und "+b.name+" haben sich verliebt!","good");
         chron([a.id,b.id],a.name+" und "+b.name+" haben sich verliebt.");
       }}}
@@ -1410,8 +1465,12 @@ function scene(){
   const sadPets=land.filter(r=>r.sad), walkers=land.filter(r=>!r.sad);
   const shown=walkers.slice(0,all.length), inside=walkers.length-shown.length;
   const placed=shown.map((r,i)=>({r,x:all[i][0],y:all[i][1]})).concat(sadPets.map((r,i)=>({r,x:cx+100+i*8,y:172,still:true})));
-  placed.sort((a,b)=>a.y-b.y).forEach(({r,x,y,still},i)=>{
-    const h=hsh(r.id||r.name), idle=still||sleep||h%5===0;
+  // Tiere laufen neben ihrer Bezugsperson und bewegen sich im gleichen Takt
+  const byId={}; placed.forEach(p=>{if(p.r.kind==="mensch")byId[p.r.id]=p});
+  const follow={}; placed.forEach(p=>{if(p.r.kind==="tier"&&!p.still&&p.r.owner&&byId[p.r.owner]&&(follow[p.r.owner]||0)<2){const o=byId[p.r.owner], k=(follow[o.r.id]=(follow[o.r.id]||0)+1);
+    p.x=o.x+(k===1?13:-13); p.y=o.y-1.2; p.follow=o.r.id}});
+  placed.sort((a,b)=>a.y-b.y).forEach(({r,x,y,still,follow:fo},i)=>{
+    const h=hsh(fo||r.id||r.name), idle=still||sleep||h%5===0;
     const wx=4+h%9, dur=7+(h>>>4)%8, del=-((h>>>8)%100)/10;
     s+=`<g transform="translate(${x} ${y})"><g class="${idle?"":"wander"}" style="--wx:${wx}px;animation-duration:${dur}s;animation-delay:${del}s"><g class="${sleep?"":"bob"}" style="animation-duration:${2.2+(h%9)/10}s;animation-delay:${-((h>>>3)%28)/10}s">${figure(r,0,0)}</g></g></g>`;
   });
@@ -1670,7 +1729,10 @@ function resRow(r){
   const owner=r.owner?S.residents.find(x=>x.id===r.owner):null;
   const sub=[r.kind==="mensch"?(r.job?(r.retired?"Rentner:in, früher "+jobName(r.job):jobName(r.job)):(age>=3?"Schulkind":"Baby"))+(r.trait?", "+traitName(r.trait):""):r.art,
     owner?(r.sad?"vermisst "+owner.name+", wartet am Steg":"gehört zu "+owner.name):"", r.wishDone?"strahlt (Wunsch erfüllt)":"",
-    partner?"Partner:in "+partner.name:"",
+    partner?(r.married?"verheiratet mit ":"Partner:in ")+partner.name:"",
+    r.kind==="mensch"&&r.ex&&r.ex.length&&!partner?"getrennt von "+((S.residents.find(x=>x.id===r.ex[r.ex.length-1])||{}).name||""):"",
+    r.kind==="mensch"&&partner?(()=>{const st=S.residents.filter(k=>k.status!=="verstorben"&&k.parents&&k.parents.includes(partner.id)&&!k.parents.includes(r.id));return st.length?"Stiefelternteil von "+nameList(st.map(k=>k.name)):""})():"",
+    r.kind==="mensch"?(()=>{const pets=here().filter(p=>p.kind==="tier"&&p.owner===r.id);return pets.length?"Tiere: "+pets.map(p=>p.name).join(", "):""})():"",
     friend?"befreundet mit "+friend[0].name:"", foe?"zerstritten mit "+foe[0].name:"", parents.length?"Kind von "+parents.map(p=>p.name).join(" & "):"", r.status==="weg"?"Rückkehr "+r.ret+"/5 gute Tage":""].filter(Boolean).join(" · ");
   const bg=r.kind==="mensch"?"#26233D":"#22301F";
   return `<div class="res"><div class="avatar" style="background:${bg}"><svg width="40" height="40" viewBox="-13 -24 26 27" aria-hidden="true">${figure(r,0,0)}</svg></div>
@@ -1703,7 +1765,7 @@ function viewStammbaum(){
     const kids=allH.filter(k=>k.parents&&k.parents.some(x=>x===r.id||(p&&x===p.id)));fams.push({a:r,b:p,kids})});
   const tag=r=>`<span style="display:inline-flex;align-items:center;gap:4px;background:var(--ground);border-radius:999px;padding:3px 10px 3px 4px;font-size:13px;font-weight:700;${r.status!=="da"?"opacity:.5":""}" title="${r.status==="verstorben"?"in Erinnerung":""}"><svg width="22" height="22" viewBox="-13 -24 26 27" aria-hidden="true">${figure(r,0,0)}</svg>${esc(r.name)}</span>`;
   return `<div class="card"><p class="label">Stammbaum</p>${fams.filter(f=>f.b||f.kids.length).map(f=>`<div style="display:flex;flex-direction:column;gap:6px;padding:6px 0;border-top:1px solid var(--card2)">
-    <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">${tag(f.a)}${f.b?`<span class="muted">♥</span>${tag(f.b)}`:""}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">${tag(f.a)}${f.b?`<span class="muted">${f.a.married?"💍":"♥"}</span>${tag(f.b)}`:""}${(()=>{const ex=(f.a.ex||[]).map(id=>S.residents.find(x=>x.id===id)).filter(Boolean);return ex.length?`<span class="small muted">· getrennt von</span>${ex.map(tag).join("")}`:""})()}</div>
     ${f.kids.length?`<div style="display:flex;flex-wrap:wrap;gap:6px;padding-left:18px;border-left:2px solid var(--line);margin-left:12px">${f.kids.map(tag).join("")}</div>`:""}</div>`).join("")||`<p class="small muted">Noch keine Familien. Paare entstehen durch Zuzug oder wenn sich zwei verlieben.</p>`}</div>`;
 }
 function viewChronik(){
@@ -2220,7 +2282,7 @@ function soundFor(ev){
   try{
     const r=ev.id?S.residents.find(x=>x.id===ev.id):null;
     const map={arrival:r&&r.kind==="tier"?["animal",r.art]:["human"],birth:["birth"],postcard:["postcard"],project:["project"],sick:["sick"],warn:["warn"],left:["left"],
-      return:["return"],reunion:["return"],conflict:["conflict"],conflictResult:[ev.ok?"resolve":"thud"],love:["love"],strandgut:["sparkle"],wish:["sparkle"],gift:["sparkle"],
+      return:["return"],reunion:["return"],conflict:["conflict"],conflictResult:[ev.ok?"resolve":"thud"],love:["love"],crisis:["conflict"],crisisResult:[ev.ok?"resolve":"thud"],breakup:["farewell"],wedding:["fest"],strandgut:["sparkle"],wish:["sparkle"],gift:["sparkle"],
       kapsel:["sparkle"],fest:["fest"],discovery:["aurora"],reply:["postcard"],unlock:["sparkle"],famgoal:["fest"],travel:["project"],farewell:["farewell"],boat:["boat"],welcome:["return"],
       visitor:[ev.kind==="aurora"?"aurora":ev.kind==="birds"?"birds":"horn"],day:[ev.min<=S.budget?"goodday":"badday"]};
     const m=map[ev.type]; if(m) sfx(m[0],m[1]);
@@ -2272,8 +2334,46 @@ function showPending(){
       <p class="label" style="color:${ev.ok?"var(--lime)":"var(--coral)"}">Klärungsabend</p><h2>${ev.ok?esc(a.name)+" und "+esc(b.name)+" vertragen sich wieder":"Der Abend ist ausgefallen"}</h2>
       <p class="muted">${ev.ok?"Ohne Handys am Lagerplatz haben sie endlich miteinander geredet.":"Zu viel Bildschirmzeit, keine Zeit zum Reden. Die beiden gehen sich jetzt aus dem Weg."}</p><button class="btn" data-ok>Weiter</button>`);
   }
+  if(ev.type==="crisis"){
+    const c=S.crisis; if(!c||c.state!=="neu") return showPending();
+    const a=S.residents.find(r=>r.id===c.a), b=S.residents.find(r=>r.id===c.b); if(!a||!b) return showPending();
+    $("#modalRoot").innerHTML=`<div class="modal"><div class="sheet" role="dialog" aria-modal="true">
+      <div class="anim">${base(`<g>${figure(a,214,134)}</g><g>${figure(b,252,134)}</g><g class="pop fb" style="animation-delay:.4s"><path d="M233 98c-3-4-9-1-6 4l6 5 6-5c3-5-3-8-6-4z" fill="#FF9C7A"/><path d="M233 99l-2 4 3 2-2 4" stroke="#1B2340" stroke-width="1.6" fill="none"/></g>`,true)}</div>
+      <p class="label" style="color:var(--coral)">Paarkrise</p><h2>${esc(a.name)} und ${esc(b.name)} streiten sich oft</h2>
+      <p class="muted">Zu viel Handy, zu wenig Zeit füreinander. Wie hilfst du den beiden?</p>
+      <button class="btn" data-cr="abend">Handyfreier Paarabend<br><span class="small" style="font-weight:500">klappt, wenn du morgen im Budget bleibst</span></button>
+      <button class="btn secondary" data-cr="warten">Abwarten, sie regeln das selbst</button></div></div>`;
+    document.querySelectorAll("[data-cr]").forEach(x=>x.onclick=()=>{S.crisis.state=x.dataset.cr;log(x.dataset.cr==="abend"?"Morgen gibt es einen handyfreien Paarabend für "+a.name+" und "+b.name+".":"Du lässt "+a.name+" und "+b.name+" Zeit.","info");save();closeModal();render();showPending()});
+    return;
+  }
+  if(ev.type==="crisisResult"){
+    const a=S.residents.find(r=>r.id===ev.a), b=S.residents.find(r=>r.id===ev.b); if(!a||!b) return showPending();
+    return sheet(`<div class="anim">${base(`<g class="bob">${figure(a,226,134)}</g><g class="bob" style="animation-delay:.3s">${figure(b,242,134)}</g>`+(ev.ok?hearts(234,104):""),!ev.ok)}</div>
+      <p class="label" style="color:${ev.ok?"var(--lime)":"var(--amber)"}">${ev.ok?"Versöhnt":"Es kriselt weiter"}</p><h2>${ev.ok?esc(a.name)+" und "+esc(b.name)+" halten zusammen":esc(a.name)+" und "+esc(b.name)+" reden kaum noch"}</h2>
+      <p class="muted">${ev.ok?(ev.abend?"Der Abend ohne Handys hat gewirkt: Sie haben endlich wieder richtig miteinander geredet.":"Mit etwas Zeit haben die beiden wieder zueinander gefunden."):"Wenn es so weitergeht, trennen sich die beiden. Gute Tage helfen."}</p><button class="btn" data-ok>Weiter</button>`);
+  }
+  if(ev.type==="breakup"){
+    const a=S.residents.find(r=>r.id===ev.a), b=S.residents.find(r=>r.id===ev.b); if(!a||!b) return showPending();
+    const kids=(ev.kids||[]).map(id=>S.residents.find(r=>r.id===id)).filter(Boolean), pets=(ev.pets||[]).map(id=>S.residents.find(r=>r.id===id)).filter(Boolean);
+    return sheet(`<div class="anim">${base(`<g>${figure(a,206,134)}</g><g>${figure(b,276,134)}</g>`+kids.slice(0,2).map((k,i)=>`<g class="bob">${figure(k,236+i*12,136)}</g>`).join(""),true)}</div>
+      <p class="label" style="color:var(--coral)">Trennung</p><h2>${esc(a.name)} und ${esc(b.name)} gehen getrennte Wege</h2>
+      <p class="muted">Beide bleiben auf der Insel, aber nicht mehr als Paar.${kids.length?" "+esc(nameList(kids.map(k=>k.name)))+" "+vb(kids,"lebt","leben")+" ab jetzt abwechselnd bei beiden.":""}${pets.length?" "+[...new Set(pets.map(p=>p.owner))].map(o=>{const ps=pets.filter(p=>p.owner===o);return esc(nameList(ps.map(p=>p.name)))+" "+vb(ps,"bleibt","bleiben")+" bei "+esc((S.residents.find(x=>x.id===o)||{}).name||"")}).join(", ")+".":""}</p>
+      <p class="small muted">Vielleicht findet jemand von beiden irgendwann neues Glück.</p><button class="btn" data-ok>Okay</button>`);
+  }
+  if(ev.type==="wedding"){
+    const a=S.residents.find(r=>r.id===ev.a), b=S.residents.find(r=>r.id===ev.b); if(!a||!b) return showPending();
+    const guests=here().filter(r=>r.kind==="mensch"&&r.id!==a.id&&r.id!==b.id).slice(0,3);
+    return sheet(`<div class="anim">${base(`<g transform="translate(234 96)"><path d="M-22 12q22-30 44 0" stroke="#F3F1EA" stroke-width="3" fill="none"/>${[-18,-9,0,9,18].map((x,i)=>`<circle cx="${x}" cy="${Math.abs(x)*.6-4}" r="2.6" fill="${["#FF9C7A","#FFD27A","#F3F1EA","#FFD27A","#FF9C7A"][i]}"/>`).join("")}</g><g class="bob">${figure(a,226,134)}</g><g class="bob" style="animation-delay:.3s">${figure(b,242,134)}</g>`+guests.map((g,i)=>figure(g,262+i*14,136)).join("")+hearts(234,90)+confetti(),false)}</div>
+      <p class="label" style="color:var(--lime)">Hochzeit</p><h2>${esc(a.name)} und ${esc(b.name)} haben geheiratet!</h2>
+      <p class="muted">Die ganze Insel feiert mit. +5 % Glück und +40 Punkte.</p><button class="btn" data-ok>Hoch sollen sie leben!</button>`);
+  }
   if(ev.type==="love"){
     const a=S.residents.find(r=>r.id===ev.a), b=S.residents.find(r=>r.id===ev.b);
+    const fresh=(a.ex&&a.ex.length)||a.widowOf||(b.ex&&b.ex.length)||b.widowOf;
+    const stepKids=S.residents.filter(k=>k.status==="da"&&k.parents&&(k.parents.includes(a.id)!==k.parents.includes(b.id)));
+    if(fresh) return sheet(`<div class="anim">${base(`<g class="bob">${figure(a,226,134)}</g><g class="bob" style="animation-delay:.3s">${figure(b,242,134)}</g>`+stepKids.slice(0,2).map((k,i)=>`<g class="bob" style="animation-delay:${.5+i*.2}s">${figure(k,262+i*12,136)}</g>`).join("")+hearts(234,104),false)}</div>
+      <p class="label" style="color:var(--coral)">Neues Glück</p><h2>${esc(a.name)} und ${esc(b.name)} sind ein Paar</h2>
+      <p class="muted">Nach allem, was war, haben die beiden wieder jemanden gefunden.${stepKids.length?" Mit "+esc(nameList(stepKids.map(k=>k.name)))+" wird daraus eine Patchworkfamilie.":""}</p><button class="btn" data-ok>Wie schön</button>`);
     return sheet(`<div class="anim">${base(`<g class="bob">${figure(a,226,134)}</g><g class="bob" style="animation-delay:.3s">${figure(b,242,134)}</g>`+hearts(234,104),false)}</div>
       <p class="label" style="color:var(--coral)">Verliebt</p><h2>${esc(a.name)} und ${esc(b.name)} sind ein Paar</h2>
       <p class="muted">${esc(jobName(a.job))} trifft ${esc(jobName(b.job))}. Vielleicht gibt es bald Nachwuchs.</p><button class="btn" data-ok>Wie schön</button>`);
@@ -2436,6 +2536,7 @@ function nameSheet(ev){
     <label class="field" for="nameIn">Wie soll ${r.kind==="mensch"?"die Person":"das Tier"} heißen?</label>
     <div class="row"><input id="nameIn" type="text" maxlength="20" value="${esc(r.name)}"><button class="iconbtn" id="dice" aria-label="Zufälligen Namen würfeln"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B6A4FF" stroke-width="2" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="9" cy="9" r="1.3" fill="#B6A4FF"/><circle cx="15" cy="15" r="1.3" fill="#B6A4FF"/><circle cx="15" cy="9" r="1.3" fill="#B6A4FF"/><circle cx="9" cy="15" r="1.3" fill="#B6A4FF"/></svg></button></div>
     ${lookEditor(r,draft)}
+    ${r.kind==="tier"&&!isSea(r)&&adults().length?`<label class="field" for="ownSel">Gehört zu<select id="ownSel" style="height:52px;border:1.5px solid var(--line);border-radius:16px;background:var(--ground);color:var(--ink);font:700 17px var(--body);padding:0 12px">${adults().map(a=>`<option value="${a.id}" ${a.id===r.owner?"selected":""}>${esc(a.name)}</option>`).join("")}<option value="" ${r.owner?"":"selected"}>allen zusammen</option></select></label>`:""}
     <button class="btn" id="nameOk">${ev.type==="rename"?"Speichern":"Willkommen heißen"}</button>`);
   const inp=$("#nameIn");
   $("#dice").onclick=()=>{inp.value=freeName(list,S.residents.map(x=>x.name))};
@@ -2443,6 +2544,7 @@ function nameSheet(ev){
   $("#nameOk").onclick=()=>{
     const n=inp.value.trim()||r.name; const old=r.name; r.name=n.slice(0,20);
     if(r.kind==="mensch") r.look=Object.assign({},draft); else if((FUR[r.art]||[]).length>1) r.fur=draft.fur;
+    const os=$("#ownSel"); if(os){const nv=os.value||null; if(nv!==(r.owner||null)){r.owner=nv; const mate=r.pair&&S.residents.find(x=>x.id===r.pair); if(mate&&!isSea(mate)) mate.owner=nv; r.sad=false}}
     if(ev.type==="arrival"){log(r.name+(r.kind==="tier"?" ("+r.art+")":"")+" ist auf die Insel gezogen.","good");
       const ow=r.owner?S.residents.find(x=>x.id===r.owner):null;
       chron([r.id],r.name+(r.kind==="tier"?" ("+r.art+(ow?", gehört zu "+ow.name:"")+")":" ("+jobName(r.job)+")")+" ist eingezogen.")}
