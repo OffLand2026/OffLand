@@ -48,12 +48,12 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--lilac);outline-
 .stat{background:var(--card);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:2px}
 .stat b{font-family:var(--display);font-size:20px;font-weight:800}
 .tabs{position:fixed;left:0;right:0;bottom:0;padding:8px 16px calc(12px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top,var(--ground) 70%,transparent)}
-.tabs nav{max-width:428px;margin:0 auto;background:var(--card);border-radius:28px;padding:6px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px}
-.tabs button{height:52px;border:none;border-radius:22px;background:transparent;color:var(--muted);font-size:11px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.tabs nav{max-width:428px;margin:0 auto;background:var(--card);border-radius:28px;padding:6px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px}
+.tabs button{height:52px;border:none;border-radius:20px;background:transparent;color:var(--muted);font-size:10.5px;letter-spacing:-.01em;padding:0;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
 .tabs button[aria-current="page"]{background:var(--card2);color:var(--ink)}
 .tabs svg{width:20px;height:20px}
 label.field{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:700}
-input[type=number],input[type=text],input[type=password]{height:52px;border:1.5px solid var(--line);border-radius:16px;background:var(--ground);color:var(--ink);font-size:18px;font-weight:700;padding:0 14px;font-family:var(--body);width:100%}
+input[type=number],input[type=text],input[type=password],input[type=email]{height:52px;border:1.5px solid var(--line);border-radius:16px;background:var(--ground);color:var(--ink);font-size:18px;font-weight:700;padding:0 14px;font-family:var(--body);width:100%}
 input[type=range]{width:100%;accent-color:var(--lime)}
 .check{display:flex;align-items:center;gap:12px;min-height:44px;font-size:15px}
 .check input{width:22px;height:22px;accent-color:var(--lime)}
