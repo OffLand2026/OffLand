@@ -1020,7 +1020,6 @@ function viewHeute(){
   const warn=S.warn?S.warn.ids.map(id=>S.residents.find(r=>r.id===id)).filter(Boolean):null;
   const wh=whispers();
   const wisher=S.wish?S.residents.find(r=>r.id===S.wish.rid):null;
-  const todayActs=S.activities[actDay()]||[];
   const canNight=S.lastDay&&!sleeping()&&(S.testmode||S.lastDay===today())&&!(S.night&&S.night.after===S.lastDay);
   const mons=(S.monsters||[]).map(id=>S.apps.find(a=>a.id===id)).filter(Boolean);
   const guard=S.vacation&&S.vacation.guard?S.residents.find(r=>r.id===S.vacation.guard):null;
@@ -1041,12 +1040,6 @@ function viewHeute(){
     ${S.boat?`<p>Das Boot ist draußen. Leg das Handy weg, bis es zurück ist.</p><div class="bar"><i id="boatBar" style="width:0%;background:var(--lilac)"></i></div><button class="btn ghost" id="boatStop">Abbrechen</button>`
     :`<p class="small muted">Ein Bewohner fährt zum Fischen raus, solange du das Handy weglegst. Hältst du durch, bringt das Boot Punkte und Baumaterial.</p>
       <div class="row">${[15,30,60].map(m=>`<button class="btn secondary grow" style="padding:0" data-boat="${m}" ${adults().length?"":"disabled"}>${m} min</button>`).join("")}</div>`}
-  </div>
-  <div class="card">
-    <p class="label">Echte Aktivitäten heute</p>
-    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">${ACTIVITIES.map(a=>{const done=todayActs.includes(a.id);
-      return `<button data-act="${a.id}" ${done?"disabled":""} style="min-height:56px;border:none;border-radius:16px;background:${done?"#22301F":"var(--ground)"};color:${done?"var(--lime)":"var(--ink)"};display:flex;align-items:center;gap:8px;padding:8px 10px;text-align:left;font-weight:700;font-size:13px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${a.ic}</svg>${esc(a.n)}${done?" ✓":""}</button>`}).join("")}</div>
-    <p class="small muted">Einmal pro Tag und Aktivität. Spaziergänge verlängern den Weg über die Insel.</p>
   </div>
   <div class="card" id="closeCard">
     <div class="row between"><h2>${S.vacation?"Urlaub":ok?"Tag eintragen":"Bis morgen!"}</h2><span class="small muted">${nice(nd)}</span></div>
