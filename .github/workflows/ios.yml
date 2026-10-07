@@ -9,6 +9,7 @@ on:
       - "js/**"
       - "icons/**"
       - "ios/**"
+      - "scripts/**"
       - "capacitor.config.json"
       - "package.json"
       - "package-lock.json"
@@ -20,6 +21,7 @@ on:
       - "js/**"
       - "icons/**"
       - "ios/**"
+      - "scripts/**"
       - "capacitor.config.json"
       - "package.json"
       - "package-lock.json"
@@ -28,6 +30,10 @@ on:
     inputs:
       testflight:
         description: "Nach TestFlight hochladen (braucht die Apple-Secrets)"
+        type: boolean
+        default: false
+      screentime:
+        description: "Bildschirmzeit-Berechtigung (Family Controls) einbauen – erst nach Freigabe durch Apple"
         type: boolean
         default: false
 
@@ -81,6 +87,12 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run ios:sync
+      - name: Bildschirmzeit-Berechtigung einbauen
+        if: inputs.screentime
+        run: |
+          for f in ios/App/App/App.entitlements ios/App/ScreenTimeMonitor/ScreenTimeMonitor.entitlements; do
+            /usr/libexec/PlistBuddy -c "Add :com.apple.developer.family-controls bool true" "$f"
+          done
       - name: API-Schlüssel ablegen
         run: |
           mkdir -p "$RUNNER_TEMP/keys"

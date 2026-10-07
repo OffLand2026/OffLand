@@ -61,7 +61,19 @@ Secrets sind verschlüsselt und auch für dich nach dem Speichern nicht mehr les
 
 Externe Tester:innen (per Link, bis 10.000) brauchen eine kurze Beta-Prüfung durch Apple.
 
-## Bildschirmzeit automatisch auslesen (später)
+## Bildschirmzeit automatisch messen
 
-Dafür braucht die App die Berechtigung **Family Controls**. Für TestFlight und den App Store muss sie bei Apple beantragt werden:
-<https://developer.apple.com/contact/request/family-controls-distribution> – am besten gleich nach Schritt 3, weil die Freigabe dauern kann.
+Die iPhone-App kann die Bildschirmzeit selbst mitmessen (Einstellungen → „Bildschirmzeit automatisch“). Apple liefert dabei keine genauen Minuten, sondern meldet jede erreichte 15-Minuten-Stufe. OffLand füllt damit beim Eintragen die Zeit vor.
+
+Technisch gehören dazu ein Plugin in der App (`ios/App/App/ScreenTimePlugin.swift`) und eine Erweiterung, die im Hintergrund mitzählt (`ios/App/ScreenTimeMonitor`). Beide tauschen die Werte über die App Group `group.com.offland2026.offland` aus.
+
+**Was du bei Apple einmalig brauchst:**
+
+1. **App Group anlegen:** <https://developer.apple.com/account/resources/identifiers/list/applicationGroup> → **+** → Beschreibung `OffLand`, ID `group.com.offland2026.offland`.
+2. **App-IDs:** Bei `com.offland2026.offland` die Fähigkeiten **App Groups** (mit der Gruppe oben) und **Family Controls** anhaken. Zusätzlich eine zweite App-ID `com.offland2026.offland.ScreenTimeMonitor` anlegen, mit denselben beiden Fähigkeiten.
+3. **Family Controls für TestFlight und App Store beantragen:** <https://developer.apple.com/contact/request/family-controls-distribution>. Für **beide** Bundle-IDs beantragen, also auch für die Monitor-Erweiterung. Die Prüfung kann einige Tage bis Wochen dauern.
+
+**Hochladen:**
+
+- Bis Apple die Berechtigung freigegeben hat: wie bisher **Run workflow** mit „Nach TestFlight hochladen“. Die App funktioniert normal, nur „Bildschirmzeit automatisch“ meldet dann, dass der Zugriff nicht erlaubt ist.
+- Nach der Freigabe zusätzlich den Haken **„Bildschirmzeit-Berechtigung (Family Controls) einbauen“** setzen. Dann ist die Berechtigung in der Testversion enthalten.

@@ -14,6 +14,7 @@ Ein kleines Handy-Spiel gegen zu viel Bildschirmzeit: Du trägst jeden Abend ein
 - **Gemeinsam:** Insel als Story-Bild teilen (1080 × 1920, z. B. „8 Tage in Folge unter 3 Stunden“), Freunde per Link mit Code einladen, gemeinsame Ziele (7 gute Tage, +150 Punkte) und ein Monat OffLand Plus für beide. Plus ist vorerst eine Vorschau (+10 % Punkte, goldener Rahmen) und wird später mit Apple-Abo und Server echt geprüft
 - **Freunde und Ranglisten (online, freiwillig):** Freund:innen per Code oder Einladungslink verbinden, Wochen-Rangliste unter Freund:innen und für alle (wer war im Schnitt am wenigsten am Handy). Läuft über Firebase. Einrichtung: [docs/online.md](docs/online.md)
 - **Sanfter Einstieg:** In der ersten Woche werden Funktionen Tag für Tag freigeschaltet (Quests, Laden, Fokus-Boot, App-Monster, Freunde, Album, Weltreise), jeweils mit kurzer Vorstellung
+- **Bildschirmzeit automatisch (iPhone-App):** misst über Apples Bildschirmzeit in 15-Minuten-Schritten mit und füllt den Tag vor (Einrichtung: [docs/testflight.md](docs/testflight.md))
 - **Online-Backup (freiwillig):** verschlüsselt, mit Wiederherstellungs-Code für ein neues Handy
 - **Weltreise:** Sind alle Projekte gebaut, wird eine neue Insel entdeckt. Die Gemeinschaft zieht weiter – Tropeninsel, Fjordinseln, Wüsteninsel, Eisinseln – mit eigener Landschaft, je sechs neuen Großprojekten, mehr Plätzen, neuen Tierarten (Papagei, Elch, Kamel, Eisbär) und einer Karte mit Reiseroute
 - **Album:** Postkarten, Strandgut, Zeitkapseln, Tagebuch, Einstellungen, Sicherung

@@ -1496,7 +1496,7 @@ function viewHeute(){
     <div class="row between"><h2>${S.vacation?"Urlaub":ok?"Tag eintragen":"Bis morgen!"}</h2><span class="small muted">${nice(nd)}</span></div>
     ${ok?`
     ${S.repair?`<p class="small" style="color:var(--amber)">Reparatur möglich: Bleib im Budget und schaff 2 Quests, dann holst du ${S.repair.amount} % Glück zurück.</p>`:""}
-    <p class="small muted">Trag die Bildschirmzeit aus deinen Handy-Einstellungen ein. Budget: ${hm(S.budget)}.</p>
+    <p class="small muted" id="stNote">Trag die Bildschirmzeit aus deinen Handy-Einstellungen ein. Budget: ${hm(S.budget)}.</p>
     <div class="time">
       <label class="field" for="inH">Stunden<input id="inH" type="number" min="0" max="24" inputmode="numeric" value="${last?Math.floor(last.min/60):2}"></label>
       <label class="field" for="inM">Minuten<input id="inM" type="number" min="0" max="59" step="5" inputmode="numeric" value="${last?last.min%60:30}"></label>
@@ -1863,6 +1863,7 @@ function settingsHtml(){
     ${netOn()?`<label class="check" for="netPub"><input type="checkbox" id="netPub" ${S.online.pub?"checked":""}> Auch in der Rangliste für alle erscheinen</label>
     <p class="small muted">Ausschalten löscht alle Online-Daten dieses Kontos und trennt die Online-Freundschaften.</p>`:""}
   </div>`:""}
+  ${stCard()}
   ${netConfigured()?backupCard():""}
   <div class="card"><p class="label">Sicherung</p>
     <p class="small muted">Dein Spielstand liegt nur in diesem Browser. Lade ab und zu eine Sicherung herunter, um ihn auf ein anderes Gerät mitzunehmen.</p>
@@ -1944,6 +1945,11 @@ function bind(){
   if(sb) sb.onchange=save; if(sa) sa.onchange=save;
   const st=$("#startBtn"); if(st) st.onclick=()=>{S.setup=true;log("Deine Insel ist gegründet. "+nameList(here().map(r=>r.name))+" ziehen ein.","good");save();render()};
   const bo=$("#bkOn"); if(bo) bo.onclick=backupEnable;
+  const stS=$("#stSetup"); if(stS) stS.onclick=stSetup;
+  const stA=$("#stApps"); if(stA) stA.onclick=async()=>{try{await ST.pickApps()}catch(e){} await stStatus(); settingsSheet()};
+  const stO=$("#stOff"); if(stO) stO.onclick=async()=>{try{await ST.stop()}catch(e){} S.autoTime=false; save(); await stStatus(); settingsSheet()};
+  ["#inH","#inM"].forEach(id=>{const el=$(id); if(el) el.addEventListener("input",()=>{el.dataset.touched="1"})});
+  if(ST&&$("#inH")) stFill();
   const bn=$("#bkNow"); if(bn) bn.onclick=async()=>{bn.disabled=true;bn.textContent="Sichere …";const ok=await backupNow(true);toast(ok?"Insel gesichert":"Sichern hat nicht geklappt");settingsSheet()};
   const bc=$("#bkCopy"); if(bc) bc.onclick=async()=>{try{await navigator.clipboard.writeText(S.backup.code);toast("Code kopiert")}catch(e){toast("Kopieren nicht möglich, bitte abschreiben")}};
   const bx=$("#bkOff"); if(bx) bx.onclick=async()=>{bx.disabled=true;await backupDelete();toast("Online-Backup gelöscht");settingsSheet()};
@@ -2814,6 +2820,42 @@ async function checkReplies(force){
   if(got){save();log("Das OffLand-Team hat auf deine Anfrage geantwortet.","good");showPending()}
 }
 
+/* ---------- Bildschirmzeit automatisch (nur iPhone-App) ----------
+   Natives Plugin "ScreenTime" (ios/App/App/ScreenTimePlugin.swift). Apple liefert nur Schwellen:
+   Die Monitor-Erweiterung merkt sich pro Tag die höchste erreichte 15-Minuten-Stufe. */
+const ST=(()=>{try{const C=window.Capacitor;return C&&C.isNativePlatform&&C.isNativePlatform()&&C.getPlatform()==="ios"&&C.registerPlugin?C.registerPlugin("ScreenTime"):null}catch(e){return null}})();
+let stInfo=null;
+async function stStatus(){if(!ST)return null;try{stInfo=await ST.status()}catch(e){stInfo={available:false}}return stInfo}
+function stCard(){
+  if(!ST) return "";
+  const i=stInfo||{};
+  const on=i.status==="approved"&&i.monitoring;
+  return `<div class="card" id="stCard"><p class="label">Bildschirmzeit automatisch</p>
+    ${on?`<p class="small muted">OffLand misst deine Bildschirmzeit in 15-Minuten-Schritten mit. Beim Eintragen ist die Zeit schon vorausgefüllt, du musst nur noch bestätigen.</p>
+      <div class="row"><button class="btn secondary grow" id="stApps">Apps ändern</button><button class="btn ghost grow" id="stOff">Ausschalten</button></div>`
+    :i.status==="denied"?`<p class="small muted">Du hast den Zugriff auf die Bildschirmzeit abgelehnt. Erlauben kannst du ihn in den iPhone-Einstellungen unter Bildschirmzeit.</p><button class="btn secondary" id="stSetup">Erneut versuchen</button>`
+    :`<p class="small muted">Statt jeden Abend abzulesen, kann OffLand die Bildschirmzeit vom iPhone übernehmen. OffLand sieht dabei nicht, welche Apps du nutzt, sondern nur die Gesamtzeit in 15-Minuten-Schritten.</p>
+      <button class="btn secondary" id="stSetup">Einrichten</button>`}
+  </div>`;
+}
+async function stSetup(){
+  try{
+    await ST.authorize();
+    const r=await ST.pickApps();
+    if(r&&r.ok){S.autoTime=true;save();toast("Bildschirmzeit wird jetzt automatisch gemessen")}
+  }catch(e){toast(String(e&&e.message||e).slice(0,120))}
+  await stStatus(); settingsSheet();
+}
+/* Beim Eintragen: gemessene Zeit des einzutragenden Tages vorausfüllen */
+async function stFill(){
+  if(!ST||!$("#inH")) return;
+  const i=stInfo||await stStatus(); if(!i||i.status!=="approved"||!i.monitoring) return;
+  const day=nextDay(); let r; try{r=await ST.minutes({day})}catch(e){return}
+  const h=$("#inH"), m=$("#inM"), note=$("#stNote"); if(!h||!r||!r.has) return;
+  if(!h.dataset.touched&&!m.dataset.touched){h.value=Math.floor(r.minutes/60);m.value=r.minutes%60;liveUpdate()}
+  if(note) note.innerHTML=`<b style="color:var(--lime)">Automatisch gemessen:</b> mindestens ${hm(r.minutes)}${day===today()?" bis jetzt":""}. Apple meldet die Zeit in 15-Minuten-Schritten, darum kann es bis zu 14 Minuten mehr gewesen sein.`;
+}
+
 /* ---------- Online-Backup: verschlüsselt, nur mit Wiederherstellungs-Code lesbar ----------
    Dokument-ID und Schlüssel werden aus dem Code abgeleitet. Ohne Code kann niemand das Backup
    finden oder lesen, auch nicht in der Firebase-Konsole. */
@@ -3118,6 +3160,7 @@ function accountSheet(){
   $("#accClose").focus();
 }
 function settingsSheet(){
+  if(ST&&!stInfo){stStatus().then(settingsSheet);return}
   modal(`<div class="row between"><div><p class="label">Konto · ${esc(ACC?ACC.name:"")}</p><h2>Einstellungen</h2></div><button class="iconbtn" id="setClose" aria-label="Schließen"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F3F1EA" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     ${settingsHtml()}
     <button class="btn secondary" id="setBack">Zurück zum Konto</button>
