@@ -270,7 +270,7 @@ function migrate(st){
   if(st.points==null)st.points=0; if(!st.items)st.items=[]; if(!st.sun)st.sun=0;
   if(!st.rel)st.rel={}; if(st.conflict===undefined)st.conflict=null;
   if(!st.arrC)st.arrC=0; if(!st.birthC)st.birthC=0;
-  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0};
+  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null};
   for(const k in D){ if(st[k]===undefined) st[k]=D[k]; }
   const prevS=S; S=st;
   st.residents.forEach(r=>{if(r.born==null)r.born=0; if(r.kind==="mensch"){if(!r.trait)r.trait=pick(TRAITS).id; if(!r.job&&!r.parents)r.job=pickJob()}});
@@ -865,11 +865,13 @@ function closeDay(min,quests,appMin){
   // Gute-Nacht-Ritual vom Vorabend
   const dreamt=!!(S.night&&S.night.after===prevLast&&prevLast);
   if(dreamt) pts+=15;
+  if(plusActive()) pts=Math.round(pts*1.1);
   S.points+=pts;
   S.monsters=monsters;
   S.days.push({day,min,quests,glueck:S.glueck,sunny,pts,apps:appMin,monsters,by:MY_ID||null});
   S.lastDay=day; S.dayCount++;
   S.budgetStreak=diff>=0?S.budgetStreak+1:0;
+  if(diff>=0) buddyProgress();
 
   log((diff>=0?"Im Budget: ":"Über dem Budget: ")+hm(min)+" Bildschirmzeit. Inselglück "+before+" → "+S.glueck+" %, +"+pts+" Punkte.", diff>=0?"good":"bad");
   if(sunny) log("Dein Sonnenschein hat die Wolken vertrieben. Der Tag hat nur halb so viel Glück gekostet.","info");
@@ -1478,6 +1480,7 @@ function viewHeute(){
     ${sleeping()?`<p class="small" style="color:var(--lilac)">Die Insel schläft. Bis morgen!</p>`:""}
   </div>
   ${p?`<div class="card"><div class="row between"><p class="label">Großprojekt</p><span class="small muted num">${Math.floor(S.material/60)} / ${p.hours} h</span></div><p><b>${p.name}</b></p><div class="bar"><i style="width:${Math.min(100,S.material/(p.hours*60)*100)}%;background:var(--lilac)"></i></div><p class="small muted">Jede Minute unter deinem bisherigen Schnitt (${hm(S.baseline)}) wird Baumaterial.</p></div>`:""}
+  ${friendsCard()}
   <div class="card">
     <div class="row between"><p class="label">Testmodus</p><label class="check" for="tm" style="min-height:auto"><input type="checkbox" id="tm" ${S.testmode?"checked":""}> an</label></div>
     <p class="small muted">Im Testmodus kannst du beliebig viele Tage nacheinander eintragen oder zufällig simulieren.</p>
@@ -1889,6 +1892,9 @@ function bind(){
   if(sa) sa.oninput=()=>{S.baseline=+sa.value;$("#setBaseOut").textContent=hm(S.baseline)};
   if(sb) sb.onchange=save; if(sa) sa.onchange=save;
   const st=$("#startBtn"); if(st) st.onclick=()=>{S.setup=true;log("Deine Insel ist gegründet. "+nameList(here().map(r=>r.name))+" ziehen ein.","good");save();render()};
+  const sh=$("#shareBtn"); if(sh) sh.onclick=shareSheet;
+  const fb=$("#friendsBtn"); if(fb) fb.onclick=friendsSheet;
+  const ia=$("#inviteAccept"); if(ia) ia.onclick=inviteSheet;
   const gg=$("#goalGo"); if(gg) gg.onclick=()=>{const c=$("#closeCard");if(c)c.scrollIntoView({behavior:"smooth",block:"start"});setTimeout(()=>{const h=$("#inH");if(h)h.focus({preventScroll:true})},450)};
   ["#inH","#inM"].forEach(id=>{const el=$(id);if(el)el.oninput=liveUpdate}); liveUpdate();
   const cb=$("#closeBtn"); if(cb) cb.onclick=()=>{
@@ -2102,6 +2108,12 @@ function showPending(){
     if(!pt||!o) return showPending();
     return sheet(`<div class="anim">${base(`<g class="sail-in" style="animation-duration:1.4s">${figure(pt,200,134)}</g>${figure(o,232,134)}`+hearts(216,100),false)}</div><p class="label" style="color:var(--lime)">Wiedersehen</p><h2>${esc(pt.name)} hat ${esc(o.name)} wieder</h2><p class="muted">${esc(SOUND[pt.art]||"")} Jeden Abend hat ${esc(pt.name)} am Steg gewartet. Jetzt ist das Warten vorbei.</p><button class="btn" data-ok>Wie schön</button>`);
   }
+  if(ev.type==="buddy"){
+    return sheet(`<div class="anim">${base(here().filter(r=>r.kind==="mensch").slice(0,4).map((r,i)=>`<g class="bob" style="animation-delay:${i*.2}s">${figure(r,214+i*18,134)}</g>`).join("")+hearts(250,96)+confetti(),false)}</div>
+      <p class="label" style="color:var(--lime)">Gemeinsames Ziel geschafft</p><h2>${GOAL_DAYS} gute Tage mit ${esc(ev.code)}</h2>
+      <p class="muted">Du hast deine Seite des gemeinsamen Ziels geschafft: +150 Punkte und +5 % Glück. Sag deiner Freundin oder deinem Freund Bescheid und teilt eure Inseln!</p>
+      <button class="btn secondary" id="buddyShare">Insel teilen</button><button class="btn" data-ok>Super</button>`,()=>{const b=$("#buddyShare");if(b)b.onclick=shareSheet});
+  }
   if(ev.type==="fest"){
     return sheet(`<div class="anim">${base(`<g transform="translate(240 134) scale(1.2)">${itemSvg("feuer")}</g>`+here().filter(r=>r.kind==="mensch").slice(0,5).map((r,i)=>`<g class="bob" style="animation-delay:${i*.2}s">${figure(r,200+i*16+(i>1?24:0),136)}</g>`).join("")+`${[0,1,2,3,4,5].map(i=>`<g class="glow" style="animation-delay:${i*.3}s"><circle cx="${190+i*22}" cy="${80+(i%2)*8}" r="4" fill="#FFD27A"/></g>`).join("")}`+confetti(),false)}</div>
       <p class="label" style="color:var(--amber)">Inselfest</p><h2>Die Insel feiert dich</h2><p class="muted">${ev.good} von 7 Tagen im Budget. Laternen, Lagerfeuer und Musik: +5 % Glück und +30 Punkte.</p><button class="btn" data-ok>Mitfeiern</button>`);
@@ -2299,6 +2311,166 @@ function confirmReset(){
   $("#yesR").onclick=()=>{S=migrate(newGame());tab="heute";save();closeModal();render()};
 }
 
+/* ---------- Freunde einladen, gemeinsame Ziele, OffLand Plus ----------
+   Ohne Server: Einladungscode im Link, beide Seiten lösen den Code der anderen Person ein.
+   "Plus" ist eine Vorschau und wird später mit Apple-Abo und Server echt geprüft. */
+const APP_URL="https://offland2026.github.io/OffLand/";
+const INVITE_KEY="offline-insel-einladung";
+const GOAL_DAYS=7, PLUS_DAYS=30;
+const CODE_ABC="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+function myCode(){
+  if(!S.code){S.code=Array.from({length:6},()=>CODE_ABC[Math.floor(Math.random()*CODE_ABC.length)]).join("");save()}
+  return S.code;
+}
+const inviteLink=()=>APP_URL+"?einladung="+myCode();
+const plusActive=()=>!!(S.plus&&S.plus.until>=today());
+function grantPlus(days){S.plus={until:addDays(plusActive()?S.plus.until:today(),days)}}
+const cleanCode=c=>String(c||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,6);
+function pendingInvite(){
+  let c=null; try{c=localStorage.getItem(INVITE_KEY)}catch(e){}
+  c=cleanCode(c);
+  if(!c||c.length!==6||c===S.code||S.invitedBy||(S.buddies||[]).some(b=>b.code===c)) return null;
+  return c;
+}
+function clearInvite(){try{localStorage.removeItem(INVITE_KEY)}catch(e){}}
+(function readInviteFromUrl(){
+  try{
+    const u=new URL(location.href), c=cleanCode(u.searchParams.get("einladung"));
+    if(c.length===6){localStorage.setItem(INVITE_KEY,c);u.searchParams.delete("einladung");history.replaceState(null,"",u.pathname+u.search+u.hash)}
+  }catch(e){}
+})();
+function redeemCode(raw,invited){
+  const c=cleanCode(raw);
+  if(c.length!==6) return "Ein Code hat 6 Zeichen.";
+  if(c===myCode()) return "Das ist dein eigener Code.";
+  if(S.buddies.some(b=>b.code===c)) return "Mit diesem Code seid ihr schon verbunden.";
+  if(S.buddies.length>=12) return "Du hast schon 12 gemeinsame Ziele.";
+  S.buddies.push({code:c,since:today(),done:0,reward:false});
+  if(invited) S.invitedBy=c;
+  grantPlus(PLUS_DAYS);
+  log("Mit "+c+" verbunden: gemeinsames Ziel gestartet und "+PLUS_DAYS+" Tage OffLand Plus.","good");
+  chron([],"Neue Freundschaft über die Insel hinaus: "+c+".");
+  save(); return null;
+}
+function buddyProgress(){
+  (S.buddies||[]).forEach(b=>{
+    if(b.reward) return;
+    b.done++;
+    if(b.done>=GOAL_DAYS){b.reward=true;S.points+=150;S.glueck=clamp(S.glueck+5,0,100);
+      log("Gemeinsames Ziel mit "+b.code+" geschafft: +150 Punkte, +5 % Glück.","good");S.pending.push({type:"buddy",code:b.code})}
+  });
+}
+async function shareText(text,url){
+  try{ if(navigator.share){await navigator.share({text,url});return true} }catch(e){if(e&&e.name==="AbortError")return true}
+  try{await navigator.clipboard.writeText(text+" "+url);toast("Link kopiert");return true}catch(e){}
+  return false;
+}
+function buddyRows(){
+  return S.buddies.map(b=>`<div><div class="row between"><b class="num">${esc(b.code)}</b><span class="small ${b.reward?"":"muted"}" style="${b.reward?"color:var(--lime);font-weight:700":""}">${b.reward?"geschafft ✓":Math.min(b.done,GOAL_DAYS)+" / "+GOAL_DAYS+" gute Tage"}</span></div>
+    <div class="bar"><i style="width:${Math.min(100,b.done/GOAL_DAYS*100)}%"></i></div></div>`).join("");
+}
+function friendsCard(){
+  if(!S.setup) return "";
+  const inv=pendingInvite();
+  return `<div class="card"${inv?' style="border:1.5px solid var(--lime)"':""}>
+    <div class="row between"><p class="label">Gemeinsam</p>${plusActive()?`<span class="chip" style="color:var(--amber)">★ Plus</span>`:""}</div>
+    ${inv?`<p><b>Du wurdest eingeladen!</b> Nimm die Einladung von <b class="num">${esc(inv)}</b> an: Ihr bekommt beide einen Monat Plus und ein gemeinsames Ziel.</p><button class="btn" id="inviteAccept">Einladung annehmen</button>`:""}
+    ${S.buddies.length?`<p class="small muted">Gemeinsame Ziele: je ${GOAL_DAYS} Tage im Budget. Jede Seite zählt ihre eigenen Tage.</p>${buddyRows()}`
+      :`<p class="small muted">Lade jemanden ein: Ihr bekommt beide einen Monat OffLand Plus und ein gemeinsames Ziel von ${GOAL_DAYS} guten Tagen.</p>`}
+    <div class="row"><button class="btn secondary grow" id="shareBtn">Insel teilen</button><button class="btn secondary grow" id="friendsBtn">Freunde einladen</button></div>
+  </div>`;
+}
+function friendsSheet(){
+  const code=myCode();
+  modal(`<div class="row between"><div><p class="label" style="color:var(--lime)">Gemeinsam</p><h2>Freunde einladen</h2>${plusActive()?`<p class="small" style="color:var(--amber);font-weight:700">★ Plus bis ${nice(S.plus.until)}</p>`:""}</div></div>
+    <p class="muted">Wer eine Freundin oder einen Freund einlädt, bekommt mit ihr oder ihm zusammen <b style="color:var(--ink)">einen Monat OffLand Plus</b> gratis. Dazu startet ein gemeinsames Ziel: ${GOAL_DAYS} Tage im Budget, dann gibt es +150 Punkte.</p>
+    <div style="background:var(--ground);border-radius:16px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:4px">
+      <span class="small muted">Dein Code</span><b class="num" style="font-size:30px;letter-spacing:.18em">${code}</b></div>
+    <button class="btn" id="frShare">Einladung schicken</button>
+    <ol class="steps small muted" style="margin:0"><li>Schick den Link an deine Freundin oder deinen Freund.</li><li>Sie oder er öffnet den Link, legt ein Konto an und nimmt die Einladung an.</li><li>Dann schickt sie oder er dir den eigenen Code zurück. Den trägst du hier ein.</li></ol>
+    <label class="field" for="frCode">Code von Freund:in eintragen<input id="frCode" type="text" maxlength="7" autocomplete="off" autocapitalize="characters" placeholder="z. B. K7M2QX" style="text-transform:uppercase;letter-spacing:.12em"></label>
+    <p class="err" id="frErr" role="alert"></p>
+    <button class="btn secondary" id="frRedeem">Code einlösen</button>
+    ${S.buddies.length?`<p class="label">Gemeinsame Ziele</p>${buddyRows()}`:""}
+    <p class="small muted">OffLand Plus ist eine Vorschau: +10 % Punkte pro Tag und ein goldener Rahmen beim Teilen. Später läuft es über ein Abo im App Store.</p>
+    <button class="btn ghost" id="frClose">Schließen</button>`);
+  $("#frShare").onclick=()=>shareText("Spiel mit mir OffLand! Weniger Handy, mehr Insel. Mit meinem Code "+code+" bekommen wir beide einen Monat Plus.",inviteLink());
+  $("#frRedeem").onclick=()=>{const e=redeemCode($("#frCode").value,false);if(e) return $("#frErr").textContent=e;toast("Verbunden! Ein Monat Plus ist aktiv.");sfx("project");friendsSheet()};
+  $("#frClose").onclick=()=>{closeModal();render()};
+}
+function inviteSheet(){
+  const c=pendingInvite(); if(!c) return;
+  modal(`${base(hearts(250,96)+`<g class="bob">${figure(here().find(r=>r.kind==="mensch")||{kind:"mensch",name:"Mia"},236,134)}</g>`,false)}
+    <p class="label" style="color:var(--lime)">Einladung</p><h2>Du wurdest eingeladen!</h2>
+    <p class="muted">Code <b class="num" style="color:var(--ink)">${esc(c)}</b> lädt dich ein. Nimmst du an, bekommt ihr beide einen Monat OffLand Plus und ein gemeinsames Ziel: ${GOAL_DAYS} Tage im Budget.</p>
+    <button class="btn" id="invYes">Annehmen</button><button class="btn ghost" id="invNo">Nicht jetzt</button>`);
+  $("#invNo").onclick=()=>{closeModal();render()};
+  $("#invYes").onclick=()=>{
+    const e=redeemCode(c,true); clearInvite(); sfx("project");
+    if(e){toast(e);closeModal();render();return}
+    modal(`<p class="label" style="color:var(--lime)">Verbunden</p><h2>Ein Monat Plus ist aktiv</h2>
+      <p class="muted">Damit auch ${esc(c)} das Plus bekommt, schick deinen Code zurück:</p>
+      <div style="background:var(--ground);border-radius:16px;padding:14px;text-align:center"><b class="num" style="font-size:30px;letter-spacing:.18em">${myCode()}</b></div>
+      <button class="btn" id="invBack">Code zurückschicken</button><button class="btn ghost" id="invDone">Fertig</button>`);
+    $("#invBack").onclick=()=>shareText("Ich bin dabei! Mein OffLand-Code: "+myCode()+" (unter Freunde einladen → Code einlösen)",inviteLink());
+    $("#invDone").onclick=()=>{closeModal();render()};
+  };
+}
+
+/* ---------- Insel teilen: Story-Bild 1080 × 1920 ---------- */
+function hoursText(m){return m%60===0?(m/60)+" "+(m===60?"Stunde":"Stunden"):hm(m)}
+function shareStat(){
+  const good=S.days.filter(d=>d.min<=S.budget).length;
+  if(S.budgetStreak>=3) return {big:S.budgetStreak+" Tage",small:"in Folge unter "+hoursText(S.budget)};
+  if(good) return {big:good+(good===1?" Tag":" Tage"),small:"unter "+hoursText(S.budget)+" Bildschirmzeit"};
+  return {big:"Meine Insel",small:"wächst, wenn ich das Handy weglege"};
+}
+async function islandImage(){
+  const Wd=1080,Ht=1920, cv=document.createElement("canvas"); cv.width=Wd; cv.height=Ht;
+  const c=cv.getContext("2d"), plus=plusActive(), st=shareStat();
+  try{await document.fonts.ready}catch(e){}
+  const g=c.createLinearGradient(0,0,0,Ht); g.addColorStop(0,"#1B2340"); g.addColorStop(1,"#14151F"); c.fillStyle=g; c.fillRect(0,0,Wd,Ht);
+  // Ausschnitt ohne leeren Himmel: Inseln größer im Bild
+  const svg=scene().replace('<svg viewBox="0 0 360 240"','<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="593" viewBox="18 48 324 192"');
+  const img=new Image(); img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
+  await img.decode();
+  const x=40,y=660,w=1000,h=593,r=56;
+  c.save(); c.beginPath(); c.roundRect(x,y,w,h,r); c.clip(); c.drawImage(img,x,y,w,h); c.restore();
+  if(plus){c.lineWidth=10;c.strokeStyle="#FFD27A";c.beginPath();c.roundRect(x,y,w,h,r);c.stroke()}
+  c.textAlign="center"; c.fillStyle="#F3F1EA";
+  c.font="800 96px 'Bricolage Grotesque', sans-serif"; c.textAlign="left";
+  const w1=c.measureText("Off").width, w2=c.measureText("Land").width, lx=(Wd-w1-w2)/2;
+  c.fillText("Off",lx,190); c.fillStyle="#C8F169"; c.fillText("Land",lx+w1,190); c.textAlign="center";
+  c.fillStyle="#A4A6BD"; c.font="500 40px Manrope, sans-serif"; c.fillText("Grow your world beyond the screen.",Wd/2,256);
+  c.fillStyle="#C8F169"; c.font="800 150px 'Bricolage Grotesque', sans-serif"; c.fillText(st.big,Wd/2,450);
+  c.fillStyle="#F3F1EA"; c.font="700 52px Manrope, sans-serif"; c.fillText(st.small,Wd/2,530);
+  c.fillStyle="#F3F1EA"; c.font="700 46px Manrope, sans-serif";
+  c.fillText(curWorld().name+" · "+here().length+" Bewohner · Glück "+S.glueck+" %",Wd/2,1380);
+  const saved=savedTotal();
+  if(saved>=60){c.fillStyle="#A4A6BD"; c.font="500 42px Manrope, sans-serif"; c.fillText(hm(saved)+" Handyzeit gespart",Wd/2,1450)}
+  c.fillStyle="#26233D"; c.beginPath(); c.roundRect(140,1620,800,150,75); c.fill();
+  c.fillStyle="#F3F1EA"; c.font="700 44px Manrope, sans-serif"; c.fillText("Spiel mit: Code "+myCode(),Wd/2,1690);
+  c.fillStyle="#A4A6BD"; c.font="500 34px Manrope, sans-serif"; c.fillText(APP_URL.replace(/^https:\/\//,"").replace(/\/$/,""),Wd/2,1740);
+  if(plus){c.fillStyle="#FFD27A"; c.font="800 40px Manrope, sans-serif"; c.fillText("★ PLUS",Wd/2,1580)}
+  return await new Promise(res=>cv.toBlob(res,"image/png"));
+}
+let shareUrl=null;
+async function shareSheet(){
+  modal(`<p class="label" style="color:var(--lime)">Insel teilen</p><h2>Dein Inselbild</h2><p class="muted">Bild wird gemalt …</p>`);
+  let blob=null; try{blob=await islandImage()}catch(e){}
+  if(!blob){modal(`<h2>Das hat nicht geklappt</h2><p class="muted">Das Bild konnte nicht erstellt werden.</p><button class="btn" id="shOk">OK</button>`);$("#shOk").onclick=closeModal;return}
+  if(shareUrl) URL.revokeObjectURL(shareUrl); shareUrl=URL.createObjectURL(blob);
+  const file=new File([blob],"offland-insel.png",{type:"image/png"});
+  const canFile=!!(navigator.canShare&&navigator.canShare({files:[file]}));
+  modal(`<p class="label" style="color:var(--lime)">Insel teilen</p><h2>Dein Inselbild</h2>
+    <img src="${shareUrl}" alt="Inselbild zum Teilen" style="width:62%;align-self:center;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.4)">
+    <p class="small muted">Perfekt für deine Story. ${canFile?"":"Lang drücken, um das Bild zu sichern, oder herunterladen."}</p>
+    ${canFile?`<button class="btn" id="shGo">Teilen</button>`:`<a class="btn" id="shDl" href="${shareUrl}" download="offland-insel.png" style="text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center">Bild herunterladen</a>`}
+    <button class="btn ghost" id="shClose">Schließen</button>`);
+  if(canFile) $("#shGo").onclick=async()=>{try{await navigator.share({files:[file],text:"Meine Insel in OffLand. Spiel mit: "+inviteLink()})}catch(e){}};
+  $("#shClose").onclick=closeModal;
+}
+
 /* ---------- Konten: lokale Profile mit Startbildschirm ---------- */
 const PROF_KEY="offline-insel-profile", SESSION_KEY="offline-insel-sitzung";
 const AVATARS=["Ziege","Katze","Hund","Huhn","Schaf","Hase","Esel","Robbe","Delfin","Meerschweinchen"];
@@ -2336,6 +2508,7 @@ function login(p){
   const st=lsGet(); S=migrate(st&&st.v===1?st:newGame()); tab="heute"; if(S.setup) checkDiscovery();
   document.body.classList.remove("start"); $("#start").innerHTML="";
   closeModal(); render(); window.scrollTo(0,0); showPending();
+  if(S.setup&&pendingInvite()&&!$("#modalRoot").innerHTML) inviteSheet();
 }
 function logout(){
   if(ACC) lsSet();
@@ -2408,13 +2581,15 @@ function pinPrompt(p,onOk){
 function accountSheet(){
   if(!ACC) return;
   modal(`<div class="row">${avatarSvg(ACC.avatar,56)}<div class="grow"><p class="label">Konto</p><h2>${esc(ACC.name)}</h2><p class="small muted">${ACC.pin?"Mit PIN geschützt":"Ohne PIN"} · seit ${new Date(ACC.created).toLocaleDateString("de-DE")}</p></div></div>
+    ${plusActive()?`<p class="small" style="color:var(--amber);font-weight:700">★ OffLand Plus bis ${nice(S.plus.until)}</p>`:""}
     <button class="btn secondary" id="accSettings">⚙︎ Einstellungen</button>
+    <div class="row"><button class="btn secondary grow" id="accShare">Insel teilen</button><button class="btn secondary grow" id="accFriends">Freunde einladen</button></div>
     <button class="btn secondary" id="accEdit">Name und Avatar ändern</button>
     <button class="btn secondary" id="accPinBtn">${ACC.pin?"PIN ändern oder entfernen":"PIN festlegen"}</button>
     <button class="btn secondary" id="accOut">Abmelden und Konto wechseln</button>
     <button class="btn ghost danger" id="accDel">Konto löschen</button>
     <button class="btn" id="accClose">Schließen</button>`);
-  $("#accSettings").onclick=settingsSheet; $("#accEdit").onclick=editSheet; $("#accPinBtn").onclick=pinSheet;
+  $("#accSettings").onclick=settingsSheet; $("#accShare").onclick=shareSheet; $("#accFriends").onclick=friendsSheet; $("#accEdit").onclick=editSheet; $("#accPinBtn").onclick=pinSheet;
   $("#accOut").onclick=()=>{toast("Abgemeldet");logout()};
   $("#accDel").onclick=deleteSheet; $("#accClose").onclick=closeModal;
   $("#accClose").focus();
