@@ -211,3 +211,13 @@ body.focus-on{overflow:hidden}
 @keyframes steam{0%{transform:translateY(2px);opacity:0}25%{opacity:.85}100%{transform:translateY(-7px);opacity:0}}
 @keyframes buzz{0%,100%{transform:translate(0,0)}25%{transform:translate(-4px,-3px)}50%{transform:translate(-7px,1px)}75%{transform:translate(-2px,3px)}}
 @keyframes flagwave{0%,100%{transform:skewY(0) scaleX(1)}50%{transform:skewY(6deg) scaleX(.92)}}
+
+/* Inselansicht wechseln */
+.scene{position:relative;touch-action:pan-y}
+.scene-nav{position:absolute;left:8px;right:8px;bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:8px;pointer-events:none}
+.snav{pointer-events:auto;width:36px;height:36px;border-radius:18px;border:none;background:rgba(20,21,31,.55);color:#F3F1EA;font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0 0 3px;-webkit-tap-highlight-color:transparent}
+.snav-mid{pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:4px;background:rgba(20,21,31,.55);border-radius:14px;padding:5px 12px}
+.snav-label{font-size:12px;font-weight:700;color:#F3F1EA}
+.snav-dots{display:flex;gap:6px}
+.snav-dots button{width:8px;height:8px;border-radius:4px;border:none;padding:0;background:rgba(243,241,234,.4);-webkit-tap-highlight-color:transparent}
+.snav-dots button.on{background:#F3F1EA;width:18px}
