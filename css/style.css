@@ -173,3 +173,18 @@ body.focus-on{overflow:hidden}
 .fishjump{animation:fishjump 9s ease-in-out infinite;opacity:0}
 @keyframes wscroll{from{transform:translateX(0)}to{transform:translateX(-60px)}}
 @keyframes fishjump{0%{transform:translate(0,0) rotate(-40deg);opacity:0}4%{opacity:1}12%{transform:translate(18px,-34px) rotate(10deg)}20%{transform:translate(36px,0) rotate(60deg);opacity:1}22%,100%{opacity:0;transform:translate(36px,0)}}
+
+/* Bewohner laufen einzeln über die Insel */
+.wander{animation:wander 10s ease-in-out infinite;transform-box:fill-box;transform-origin:center bottom}
+@keyframes wander{0%{transform:translateX(0) scaleX(1)}40%{transform:translateX(calc(var(--wx) * -1)) scaleX(1)}46%{transform:translateX(calc(var(--wx) * -1)) scaleX(-1)}88%{transform:translateX(var(--wx)) scaleX(-1)}94%{transform:translateX(var(--wx)) scaleX(1)}100%{transform:translateX(0) scaleX(1)}}
+
+/* Aussehen wählen */
+.look{display:flex;gap:12px;align-items:flex-start}
+.look-prev{width:84px;height:96px;border-radius:18px;background:var(--ground);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.look-opts{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.sw-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.sw-row>span{width:100%;font-weight:700}
+.sw{width:30px;height:30px;border-radius:15px;border:2.5px solid transparent;padding:0;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.28);-webkit-tap-highlight-color:transparent}
+.sw.on{border-color:var(--lime)}
+.sw-ic{width:36px;height:36px;border-radius:12px;background:var(--ground);display:flex;align-items:center;justify-content:center}
+.sw-big{width:56px;height:46px;border-radius:14px}

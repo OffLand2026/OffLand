@@ -868,19 +868,80 @@ function closeDay(min,quests,appMin){
 }
 
 /* ---------- Insel-Szene ---------- */
+/* Aussehen: aus der ID abgeleitet, damit jede:r immer gleich aussieht */
+function hsh(t){let h=2166136261;for(const c of String(t||""))h=Math.imul(h^c.charCodeAt(0),16777619);return h>>>0}
+const SKIN=["#F3D2B8","#E8B48F","#D9A27E","#B07A55","#8A5A3B","#6B4430"];
+const HAIR=["#2B2118","#4A3222","#7A4A2A","#B8743A","#E0B867","#C8442E","#1E1E28"];
+const SHIRT=["#B6A4FF","#C8F169","#FFB86B","#5B8CD6","#FF9C7A","#5BC0A8","#E07AB8","#F3F1EA"];
+const PANTS=["#3A3D58","#2F4A6E","#5A4636","#4A5A3A"];
+function hairSvg(style,c){
+  switch(style){
+    case 0: return {back:"",front:`<path d="M-5.3 -16.6a5.3 5.5 0 0 1 10.6 0q-2.6-2.2-5.3-1.6t-5.3 1.6z" fill="${c}"/>`};
+    case 1: return {back:`<path d="M-5.8 -16.5a5.8 6 0 0 1 11.6 0v7.2q-1.2 .9-2.4 0v-5h-6.8v5q-1.2 .9-2.4 0z" fill="${c}"/>`,front:`<path d="M-5.4 -16.2a5.4 5.6 0 0 1 10.8 0q-3-2.6-6.4-1.2-2.4 1-4.4 1.2z" fill="${c}"/>`};
+    case 2: return {back:`<circle cx="0" cy="-22.2" r="2.6" fill="${c}"/>`,front:`<path d="M-5.3 -16.4a5.3 5.5 0 0 1 10.6 0q-5.3-2.6-10.6 0z" fill="${c}"/>`};
+    case 3: return {back:`<path d="M4 -18q4.4 1 3.6 6.6q-2.2-1.6-2.4-4.6z" fill="${c}"/>`,front:`<path d="M-5.3 -16.4a5.3 5.5 0 0 1 10.6 0q-5.3-2.6-10.6 0z" fill="${c}"/>`};
+    case 4: return {back:"",front:`<g fill="${c}"><circle cx="-4.2" cy="-18.6" r="2.5"/><circle cx="-1.4" cy="-20.6" r="2.6"/><circle cx="1.8" cy="-20.6" r="2.6"/><circle cx="4.4" cy="-18.4" r="2.4"/><circle cx="-5.4" cy="-16.2" r="1.7"/><circle cx="5.5" cy="-16" r="1.7"/></g>`};
+    case 5: return {back:"",front:`<path d="M-5.6 -17.2a5.6 4.6 0 0 1 11.2 0z" fill="${c}"/><path d="M-5.6 -17.4h8.8q2.4 0 3.6 1.2h-12.4z" fill="${c}" opacity=".85"/>`};
+    default: return {back:"",front:`<path d="M-5 -17.6a5 4 0 0 1 10 0q-5-1.2-10 0z" fill="${c}"/>`};
+  }
+}
+const STYLE_NAMES=["Kurz","Lang","Dutt","Zopf","Locken","Mütze","Stoppeln"];
+function lookIdx(r){
+  const h=hsh(r.id||r.name), o=r.look||{};
+  const pickI=(k,v)=>o[k]!=null?o[k]:v;
+  return {skin:pickI("skin",h%SKIN.length),hair:pickI("hair",(h>>>3)%HAIR.length),style:pickI("style",(h>>>6)%7),shirt:pickI("shirt",(h>>>9)%SHIRT.length)};
+}
+function looks(r){
+  const h=hsh(r.id||r.name), i=lookIdx(r);
+  return {skin:SKIN[i.skin],hair:r.retired?"#D9D6CE":HAIR[i.hair],style:i.style,
+    shirt:SHIRT[i.shirt],pants:PANTS[(h>>>12)%PANTS.length],cap:SHIRT[(h>>>15)%SHIRT.length]};
+}
 function figure(r,x,y){
   if(r.kind==="mensch"){
-    const skin=["#E8B48F","#B07A55","#D9A27E","#F0C6A4","#8A5A3B"][r.name.length%5];
-    const shirt=["#B6A4FF","#C8F169","#FFB86B","#5B8CD6","#FF9C7A"][r.name.charCodeAt(0)%5];
-    const kid=r.parents?0.75:1;
-    if(r.sick) return `<g transform="translate(${x} ${y}) scale(${kid})"><title>${esc(r.name)} (krank: ${esc(r.sick.kind)})</title><rect x="-9" y="-6" width="18" height="6" rx="2" fill="#8A5A3B"/><rect x="-8" y="-9" width="16" height="5" rx="2" fill="#9CC8EE"/><circle cx="-6" cy="-10" r="4" fill="${skin}"/><circle cx="-8" cy="-10" r="1.1" fill="#E5484D"/><text x="2" y="-12" font-size="6" fill="#F3F1EA" font-family="Manrope, sans-serif">z</text></g>`;
-    return `<g transform="translate(${x} ${y}) scale(${kid})"><title>${esc(r.name)}</title><circle cx="0" cy="-16" r="5" fill="${skin}"/><path d="M-6 0c0-8 2.5-11 6-11s6 3 6 11z" fill="${shirt}"/>${r.retired?`<path d="M-4 -19h8" stroke="#F3F1EA" stroke-width="1.6" stroke-linecap="round"/>`:""}</g>`;
+    const L=looks(r), kid=r.parents&&!r.job?0.72:1;
+    const hair=hairSvg(L.style,L.style===5?L.cap:L.hair);
+    if(r.sick) return `<g transform="translate(${x} ${y}) scale(${kid})"><title>${esc(r.name)} (krank: ${esc(r.sick.kind)})</title><rect x="-9" y="-6" width="18" height="6" rx="2" fill="#8A5A3B"/><rect x="-8" y="-9" width="16" height="5" rx="2" fill="#9CC8EE"/><circle cx="-6" cy="-10" r="4" fill="${L.skin}"/><path d="M-9.6 -11a4 4 0 0 1 6.6-2.6" stroke="${L.hair}" stroke-width="2" fill="none"/><path d="M-7.4 -10.4h1.2M-5 -10.4h1.2" stroke="#14151F" stroke-width=".6"/><circle cx="-8" cy="-9" r="1" fill="#E5484D" opacity=".7"/><text x="2" y="-12" font-size="6" fill="#F3F1EA" font-family="Manrope, sans-serif">z</text></g>`;
+    const sad=typeof S!=="undefined"&&S.glueck<40;
+    const mouth=sad?`<path d="M-1.4 -12.6q1.4-1 2.8 0" stroke="#5A3A2A" stroke-width=".7" fill="none" stroke-linecap="round"/>`:`<path d="M-1.6 -13.3q1.6 1.3 3.2 0" stroke="#5A3A2A" stroke-width=".7" fill="none" stroke-linecap="round"/>`;
+    return `<g transform="translate(${x} ${y}) scale(${kid})"><title>${esc(r.name)}</title>
+      <path d="M-2.4 -3.4v3.2M2.4 -3.4v3.2" stroke="${L.pants}" stroke-width="2.4" stroke-linecap="round"/>
+      <path d="M-6 -2.6c0-6 2.4-8.6 6-8.6s6 2.6 6 8.6z" fill="${L.shirt}"/>
+      ${hair.back}<circle cx="0" cy="-16" r="5" fill="${L.skin}"/>${hair.front}
+      <circle cx="-1.8" cy="-15.6" r=".75" fill="#14151F"/><circle cx="1.8" cy="-15.6" r=".75" fill="#14151F"/>
+      <circle cx="-3.2" cy="-13.8" r="1" fill="#FF9C7A" opacity=".35"/><circle cx="3.2" cy="-13.8" r="1" fill="#FF9C7A" opacity=".35"/>${mouth}
+      ${r.retired?`<path d="M-3.6 -16.4h2.6M1 -16.4h2.6M-1 -16.4h2" stroke="#3A3D58" stroke-width=".5" fill="none"/><circle cx="-1.8" cy="-16" r="1.5" fill="none" stroke="#3A3D58" stroke-width=".5"/><circle cx="1.8" cy="-16" r="1.5" fill="none" stroke="#3A3D58" stroke-width=".5"/>`:""}</g>`;
   }
   const s=(r.parents?0.7:1)*(r.art==="Wal"?1.6:1);
-  return `<g transform="translate(${x} ${y}) scale(${s})"><title>${esc(r.name)} (${esc(r.art)})</title>${animalSvg(r.art)}</g>`;
+  return `<g transform="translate(${x} ${y}) scale(${s})"><title>${esc(r.name)} (${esc(r.art)})</title>${animalSvg(r.art,animalVar(r))}</g>`;
+}
+/* Fellfarben: Ersetzungen der Grundfarben je Tierart */
+const FUR={
+  Huhn:[{},{"#F3F1EA":"#C98A52","#D9D4C6":"#A86A38"},{"#F3F1EA":"#5A5D78","#D9D4C6":"#3A3D58"}],
+  Ziege:[{},{"#F3F1EA":"#B07A55","#D9D4C6":"#8A5A3B"},{"#F3F1EA":"#4A4D66","#D9D4C6":"#3A3D58"}],
+  Schaf:[{},{"#F3F1EA":"#E9D7A6"},{"#F3F1EA":"#6B6E88"}],
+  Esel:[{},{"#9EA3B8":"#8A6A55"},{"#9EA3B8":"#C9C6BE"}],
+  Katze:[{},{"#F0A35E":"#9EA3B8","#C97A38":"#6E7488"},{"#F0A35E":"#3F4258","#C97A38":"#2A2C3E"},{"#F0A35E":"#F3F1EA","#C97A38":"#E0A06A"}],
+  Hund:[{},{"#B07A55":"#E0B06A","#D9A27E":"#F3DDAA","#7A5038":"#B08040"},{"#B07A55":"#3F4258","#D9A27E":"#8F96A8","#7A5038":"#26283A"},{"#B07A55":"#F3F1EA","#D9A27E":"#FFFFFF","#7A5038":"#B07A55"}],
+  Meerschweinchen:[{},{"#C98A52":"#3F4258"},{"#C98A52":"#E9D7A6"}],
+  Hase:[{},{"#A88A70":"#9EA3B8"},{"#A88A70":"#F3F1EA"}],
+  Robbe:[{},{"#8F96A8":"#5F6680","#6E7488":"#454B63"},{"#8F96A8":"#C9CBDD","#6E7488":"#9EA3B8"}],
+  Delfin:[{},{"#7C9CC4":"#9EA3B8"}],
+  Wal:[{},{"#3E5C8A":"#2F3B57"},{"#3E5C8A":"#5F6680"}]
+};
+function animalVar(r,depth){
+  const n=(FUR[r.art]||[{}]).length, h=hsh(r.id||r.name);
+  if(r.fur!=null&&r.fur<n) return r.fur;
+  if(r.parents&&!depth&&h%3!==0){const p=S.residents.find(x=>x.id===r.parents[h%r.parents.length]);if(p&&p.art===r.art)return animalVar(p,1)}
+  return h%n;
 }
 /* Tiere: Ursprung = Füße bzw. Wasserlinie, Blick nach links */
-function animalSvg(art){
+function animalSvg(art,v){
+  let out=animalShape(art);
+  const map=(FUR[art]||[])[v||0];
+  if(map) for(const k in map) out=out.split(k).join(map[k]);
+  return out;
+}
+function animalShape(art){
   const E=(x,y)=>`<circle cx="${x}" cy="${y}" r=".95" fill="#14151F"/>`;
   switch(art){
   case "Huhn": return `<path d="M5 -9l5 -6 1 8z" fill="#F3F1EA"/><ellipse cx="1" cy="-6" rx="6.5" ry="5" fill="#F3F1EA"/><path d="M2 -6q3 1 4 -2" stroke="#D9D4C6" stroke-width="1.2" fill="none"/><circle cx="-5" cy="-11" r="3.2" fill="#F3F1EA"/><path d="M-7.5 -13.5q.6-2.4 1.6-1q.8-2.6 1.8-.6q1-2 1.6 .4z" fill="#E5484D"/><path d="M-8 -11.6l-3.4 1 3.4 1z" fill="#FFB86B"/><circle cx="-7" cy="-8.4" r="1.1" fill="#E5484D"/>${E(-5.6,-11.6)}<path d="M-1 -1.2v2.4M3 -1.2v2.4" stroke="#FFB86B" stroke-width="1.3" stroke-linecap="round"/>`;
@@ -967,12 +1028,22 @@ function scene(){
   if(S.boat) s+=`<g class="wave"><path d="M290 186h30l-5 7h-20z" fill="#FF9C7A"/><path d="M305 186v-16l9 13z" fill="#F3F1EA"/></g>`;
   // Bewohner
   const people=here();
-  const slotsMain=[];for(let i=0;i<12;i++){slotsMain.push([cx-70+i*13+(i%2?3:0),168-(i%3)*3])}
-  const slotsTwo=[];for(let i=0;i<8;i++){slotsTwo.push([262+i*10,158-(i%2)*3])}
-  const slotsThree=[];for(let i=0;i<6;i++){slotsThree.push([276+i*10,211])}
-  const all=slotsMain.concat(two?slotsTwo:[]).concat(three?slotsThree:[]);
+  // Plätze über die ganze Insel verteilt (hinten → vorne), abwechselnd auf alle Inseln
+  const slotsMain=[[cx-58,166],[cx+2,165],[cx-84,175],[cx-30,173],[cx+24,172],[cx+80,174],[cx-60,183],[cx-6,182],[cx+50,183],[cx-90,186],[cx+86,186]];
+  const slotsTwo=[[272,157],[300,155],[328,158],[286,166],[316,166]];
+  const slotsThree=[[284,210],[304,208],[322,211]];
+  const all=[];
+  for(let i=0;i<slotsMain.length;i++){all.push(slotsMain[i]);if(two&&slotsTwo[i])all.push(slotsTwo[i]);if(three&&slotsThree[i])all.push(slotsThree[i])}
   const land=people.filter(r=>!isSea(r)), seaP=people.filter(isSea);
-  land.forEach((r,i)=>{let sl=all[i%all.length];if(r.sad) sl=[cx+100,172];s+=`<g class="${sleep?"":"bob"}" style="animation-delay:${(i*0.37)%2.8}s">${figure(r,sl[0],sl[1])}</g>`});
+  const sadPets=land.filter(r=>r.sad), walkers=land.filter(r=>!r.sad);
+  const shown=walkers.slice(0,all.length), inside=walkers.length-shown.length;
+  const placed=shown.map((r,i)=>({r,x:all[i][0],y:all[i][1]})).concat(sadPets.map((r,i)=>({r,x:cx+100+i*8,y:172,still:true})));
+  placed.sort((a,b)=>a.y-b.y).forEach(({r,x,y,still},i)=>{
+    const h=hsh(r.id||r.name), idle=still||sleep||h%5===0;
+    const wx=4+h%9, dur=7+(h>>>4)%8, del=-((h>>>8)%100)/10;
+    s+=`<g transform="translate(${x} ${y})"><g class="${idle?"":"wander"}" style="--wx:${wx}px;animation-duration:${dur}s;animation-delay:${del}s"><g class="${sleep?"":"bob"}" style="animation-duration:${2.2+(h%9)/10}s;animation-delay:${-((h>>>3)%28)/10}s">${figure(r,0,0)}</g></g></g>`;
+  });
+  if(inside>0) s+=`<g transform="translate(${cx+50} 110)"><title>${inside} ${inside===1?"weitere Person ist":"weitere Bewohner sind"} gerade im Haus</title><rect x="-12" y="-8" width="24" height="13" rx="6.5" fill="#14151F" opacity=".78"/><text x="0" y="1.6" text-anchor="middle" font-size="8.5" font-weight="800" fill="#F3F1EA" font-family="Manrope, sans-serif">+${inside}</text></g>`;
   const seaSlots=[[40,214],[80,226],[200,222],[240,212],[150,230],[330,228],[20,232],[270,232]];
   seaP.forEach((r,i)=>{const sl=seaSlots[i%seaSlots.length];s+=`<g class="wave" style="animation-delay:${i*0.5}s">${figure(r,sl[0],sl[1])}</g><path d="M${sl[0]-14} ${sl[1]+1}q7 -3 14 0t14 0" stroke="#5B7FB0" stroke-width="1.5" fill="none"/>`});
   // App-Monster im Wasser
@@ -1120,7 +1191,7 @@ function viewHeute(){
   </div>
   ${S.vacation?`<div class="card" style="border:1.5px solid var(--lilac)"><p class="label" style="color:var(--lilac)">Urlaubsmodus</p><p>${guard?`<b>${esc(guard.name)}</b> hütet die Insel, bis du zurück bist.`:"Die Insel schläft, bis du zurück bist."} Das Glück sinkt in der Zeit nicht.</p><button class="btn secondary" id="vacOff">Ich bin zurück</button></div>`:""}
   ${warn?`<div class="card warn"><p class="label" style="color:var(--amber)">Wegzug droht</p><p><b>${esc(groupName(warn))}</b> packen die Koffer. Bring das Inselglück bis ${nice(S.warn.deadline)} über 40 %, dann bleiben sie.</p></div>`:""}
-  ${wh.length?`<div class="card"><p class="label">Inselgeflüster</p>${wh.map(w=>`<div class="row" style="align-items:flex-start"><div class="avatar" style="background:${w.r.kind==="mensch"?"#26233D":"#22301F"}"><svg width="40" height="40" viewBox="-20 -28 40 40" aria-hidden="true">${figure(w.r,0,0)}</svg></div><div class="grow" style="background:var(--ground);border-radius:4px 16px 16px 16px;padding:10px 12px"><p class="small" style="font-weight:700;color:var(--lilac)">${esc(w.r.name)}${w.r.job?" · "+esc(jobName(w.r.job)):""}</p><p>${esc(w.t)}</p></div></div>`).join("")}</div>`:""}
+  ${wh.length?`<div class="card"><p class="label">Inselgeflüster</p>${wh.map(w=>`<div class="row" style="align-items:flex-start"><div class="avatar" style="background:${w.r.kind==="mensch"?"#26233D":"#22301F"}"><svg width="40" height="40" viewBox="-13 -24 26 27" aria-hidden="true">${figure(w.r,0,0)}</svg></div><div class="grow" style="background:var(--ground);border-radius:4px 16px 16px 16px;padding:10px 12px"><p class="small" style="font-weight:700;color:var(--lilac)">${esc(w.r.name)}${w.r.job?" · "+esc(jobName(w.r.job)):""}</p><p>${esc(w.t)}</p></div></div>`).join("")}</div>`:""}
   ${S.wish&&wisher?`<div class="card"><div class="row"><div class="badge" style="background:#26233D"><svg width="36" height="30" viewBox="-20 -34 40 38" aria-hidden="true">${itemSvg(S.wish.item)}</svg></div><div class="grow"><p class="label">Wunsch</p><p><b>${esc(wisher.name)}</b> wünscht sich: ${esc(itemName(S.wish.item))}</p><p class="small muted">Erfüllst du ihn im Laden, strahlt ${esc(wisher.name)} und bringt dir jeden Tag +3 Punkte.</p></div></div></div>`:""}
   ${mons.length?`<div class="card" style="border:1.5px solid #9B6BD6"><p class="label" style="color:#C8A8FF">App-Monster vor der Insel</p>${mons.map(a=>`<div class="row"><svg width="48" height="40" viewBox="-24 -34 48 40" aria-hidden="true">${monsterSvg(a.m)}</svg><p class="grow">${esc(monName(a,false))}: ${esc(a.name)} lag gestern über ${hm(a.limit)}. Es verscheucht die Fische und kostet Glück.</p></div>`).join("")}<p class="small muted">Bleib heute bei diesen Apps unter dem Limit, dann tauchen sie wieder ab.</p></div>`:""}
   <div class="card">
@@ -1217,11 +1288,11 @@ function resRow(r){
     partner?"Partner:in "+partner.name:"",
     friend?"befreundet mit "+friend[0].name:"", foe?"zerstritten mit "+foe[0].name:"", parents.length?"Kind von "+parents.map(p=>p.name).join(" & "):"", r.status==="weg"?"Rückkehr "+r.ret+"/5 gute Tage":""].filter(Boolean).join(" · ");
   const bg=r.kind==="mensch"?"#26233D":"#22301F";
-  return `<div class="res"><div class="avatar" style="background:${bg}"><svg width="40" height="40" viewBox="-20 -28 40 40" aria-hidden="true">${figure(r,0,0)}</svg></div>
+  return `<div class="res"><div class="avatar" style="background:${bg}"><svg width="40" height="40" viewBox="-13 -24 26 27" aria-hidden="true">${figure(r,0,0)}</svg></div>
     <div class="grow"><p><b>${esc(r.name)}</b></p><p class="small muted">${esc(sub||"Bewohner:in")}</p></div>
     <span class="chip ${mCls}">${mText}</span>
     ${r.sick&&S.tea>0?`<button class="iconbtn" style="width:44px;height:44px;background:#22301F" data-tea="${r.id}" aria-label="${esc(r.name)} Kräutertee geben"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C8F169" stroke-width="2" stroke-linecap="round"><path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM17 10h2a2 2 0 0 1 0 4h-2M8 5c0-1 1-1 1-2M12 5c0-1 1-1 1-2"/></svg></button>`:""}
-    ${r.status==="da"?`<button class="iconbtn" style="width:44px;height:44px" data-rename="${r.id}" aria-label="${esc(r.name)} umbenennen"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B6A4FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></button>`:""}
+    ${r.status==="da"?`<button class="iconbtn" style="width:44px;height:44px" data-rename="${r.id}" aria-label="${esc(r.name)} bearbeiten"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B6A4FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></button>`:""}
   </div>`;
 }
 function viewBewohner(){
@@ -1245,7 +1316,7 @@ function viewStammbaum(){
   const seen=new Set(); const fams=[];
   roots.forEach(r=>{if(seen.has(r.id))return;const p=r.pair?S.residents.find(x=>x.id===r.pair):null;seen.add(r.id);if(p)seen.add(p.id);
     const kids=allH.filter(k=>k.parents&&k.parents.some(x=>x===r.id||(p&&x===p.id)));fams.push({a:r,b:p,kids})});
-  const tag=r=>`<span style="display:inline-flex;align-items:center;gap:4px;background:var(--ground);border-radius:999px;padding:3px 10px 3px 4px;font-size:13px;font-weight:700;${r.status!=="da"?"opacity:.5":""}" title="${r.status==="verstorben"?"in Erinnerung":""}"><svg width="22" height="22" viewBox="-20 -28 40 40" aria-hidden="true">${figure(r,0,0)}</svg>${esc(r.name)}</span>`;
+  const tag=r=>`<span style="display:inline-flex;align-items:center;gap:4px;background:var(--ground);border-radius:999px;padding:3px 10px 3px 4px;font-size:13px;font-weight:700;${r.status!=="da"?"opacity:.5":""}" title="${r.status==="verstorben"?"in Erinnerung":""}"><svg width="22" height="22" viewBox="-13 -24 26 27" aria-hidden="true">${figure(r,0,0)}</svg>${esc(r.name)}</span>`;
   return `<div class="card"><p class="label">Stammbaum</p>${fams.filter(f=>f.b||f.kids.length).map(f=>`<div style="display:flex;flex-direction:column;gap:6px;padding:6px 0;border-top:1px solid var(--card2)">
     <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">${tag(f.a)}${f.b?`<span class="muted">♥</span>${tag(f.b)}`:""}</div>
     ${f.kids.length?`<div style="display:flex;flex-wrap:wrap;gap:6px;padding-left:18px;border-left:2px solid var(--line);margin-left:12px">${f.kids.map(tag).join("")}</div>`:""}</div>`).join("")||`<p class="small muted">Noch keine Familien. Paare entstehen durch Zuzug oder wenn sich zwei verlieben.</p>`}</div>`;
@@ -1666,25 +1737,53 @@ function nameSheet(ev){
     const ps=ev.parents.map(id=>S.residents.find(x=>x.id===id)).filter(Boolean);
     head="Nachwuchs bei "+ps.map(p=>p.name).join(" & ")+"!";
     text=r.kind==="mensch"?"Die Familie wächst, weil sich alle auf der Insel wohlfühlen.":"Ein kleines "+r.art+" ist da.";
-  } else { head=r.name+" umbenennen"; text="Gib einen neuen Namen ein oder würfle einen."; }
+  } else { head=r.name+" bearbeiten"; text="Ändere Namen und Aussehen."; }
   const list=r.kind==="mensch"?HUMAN_NAMES:ANIMAL_NAMES;
-  sheet(`${ev.type==="rename"?"":`<div class="anim">${animScene(ev)}</div>`}<p class="label" style="color:var(--lime)">${ev.type==="rename"?"Name ändern":ev.type==="birth"?"Nachwuchs":"Neue Bewohner"}</p>
+  const draft=r.kind==="mensch"?lookIdx(r):{fur:animalVar(r)};
+  sheet(`${ev.type==="rename"?"":`<div class="anim">${animScene(ev)}</div>`}<p class="label" style="color:var(--lime)">${ev.type==="rename"?"Name und Aussehen":ev.type==="birth"?"Nachwuchs":"Neue Bewohner"}</p>
     <h2>${esc(head)}</h2><p class="muted">${esc(text)}</p>
     <label class="field" for="nameIn">Wie soll ${r.kind==="mensch"?"die Person":"das Tier"} heißen?</label>
     <div class="row"><input id="nameIn" type="text" maxlength="20" value="${esc(r.name)}"><button class="iconbtn" id="dice" aria-label="Zufälligen Namen würfeln"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B6A4FF" stroke-width="2" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="9" cy="9" r="1.3" fill="#B6A4FF"/><circle cx="15" cy="15" r="1.3" fill="#B6A4FF"/><circle cx="15" cy="9" r="1.3" fill="#B6A4FF"/><circle cx="9" cy="15" r="1.3" fill="#B6A4FF"/></svg></button></div>
+    ${lookEditor(r,draft)}
     <button class="btn" id="nameOk">${ev.type==="rename"?"Speichern":"Willkommen heißen"}</button>`);
   const inp=$("#nameIn");
   $("#dice").onclick=()=>{inp.value=freeName(list,S.residents.map(x=>x.name))};
+  bindLookEditor(r,draft);
   $("#nameOk").onclick=()=>{
     const n=inp.value.trim()||r.name; const old=r.name; r.name=n.slice(0,20);
+    if(r.kind==="mensch") r.look=Object.assign({},draft); else if((FUR[r.art]||[]).length>1) r.fur=draft.fur;
     if(ev.type==="arrival"){log(r.name+(r.kind==="tier"?" ("+r.art+")":"")+" ist auf die Insel gezogen.","good");
       const ow=r.owner?S.residents.find(x=>x.id===r.owner):null;
       chron([r.id],r.name+(r.kind==="tier"?" ("+r.art+(ow?", gehört zu "+ow.name:"")+")":" ("+jobName(r.job)+")")+" ist eingezogen.")}
     if(ev.type==="birth"){log(r.name+" ist geboren. Willkommen!","good");chron([r.id].concat(r.parents||[]),r.name+" ist geboren.")}
-    if(ev.type==="rename"&&old!==r.name) toast(old+" heißt jetzt "+r.name);
+    if(ev.type==="rename") toast(old!==r.name?old+" heißt jetzt "+r.name:"Gespeichert");
     save(); closeModal(); render(); showPending();
   };
   inp.focus(); inp.select();
+}
+/* Aussehen wählen: kleine Auswahl mit Live-Vorschau */
+function lookPreview(r,draft){
+  const tmp=Object.assign({},r,{sick:null});
+  if(r.kind==="mensch") tmp.look=draft; else tmp.fur=draft.fur;
+  return `<svg width="72" height="78" viewBox="${r.kind==="mensch"?"-12 -25 24 26":"-16 -22 32 25"}" aria-hidden="true">${figure(tmp,0,0)}</svg>`;
+}
+function lookEditor(r,d){
+  const row=(label,key,list,sel)=>`<div class="sw-row" role="radiogroup" aria-label="${label}"><span class="small muted">${label}</span>${list.map((c,i)=>`<button type="button" class="sw${i===sel?" on":""}" data-look="${key}" data-v="${i}" style="background:${c}" aria-label="${label} ${i+1}" aria-pressed="${i===sel}"></button>`).join("")}</div>`;
+  if(r.kind==="mensch"){
+    const styles=`<div class="sw-row" role="radiogroup" aria-label="Frisur"><span class="small muted">Frisur</span>${STYLE_NAMES.map((n,i)=>{const hs=hairSvg(i,i===5?"#B6A4FF":"#4A3222");
+      return `<button type="button" class="sw sw-ic${i===d.style?" on":""}" data-look="style" data-v="${i}" aria-label="${n}" aria-pressed="${i===d.style}"><svg width="24" height="24" viewBox="-7.5 -24 15 15" aria-hidden="true">${hs.back}<circle cx="0" cy="-16" r="5" fill="#E8B48F"/>${hs.front}</svg></button>`}).join("")}</div>`;
+    return `<div class="field"><span>Aussehen</span><div class="look"><div class="look-prev" id="lookPrev">${lookPreview(r,d)}</div><div class="look-opts">
+      ${row("Haut","skin",SKIN,d.skin)}${styles}${row("Haare","hair",HAIR,d.hair)}${row("Shirt","shirt",SHIRT,d.shirt)}</div></div></div>`;
+  }
+  const n=(FUR[r.art]||[]).length; if(n<2) return "";
+  return `<div class="field"><span>Fellfarbe</span><div class="sw-row" role="radiogroup" aria-label="Fellfarbe">${Array.from({length:n},(_,i)=>`<button type="button" class="sw sw-ic sw-big${i===d.fur?" on":""}" data-look="fur" data-v="${i}" aria-label="Fellfarbe ${i+1}" aria-pressed="${i===d.fur}"><svg width="38" height="30" viewBox="${r.art==="Wal"?"-24 -20 48 26":"-16 -22 32 24"}" aria-hidden="true">${animalSvg(r.art,i)}</svg></button>`).join("")}</div></div>`;
+}
+function bindLookEditor(r,draft){
+  document.querySelectorAll("#modalRoot [data-look]").forEach(b=>b.onclick=()=>{
+    const k=b.dataset.look; draft[k]=+b.dataset.v;
+    document.querySelectorAll(`#modalRoot [data-look="${k}"]`).forEach(x=>{const on=x===b;x.classList.toggle("on",on);x.setAttribute("aria-pressed",on)});
+    const pv=$("#lookPrev"); if(pv) pv.innerHTML=lookPreview(r,draft);
+  });
 }
 function capsuleSheet(c,fresh){
   const text="Meine OffLand-Insel im "+c.title+": "+c.lines.join(" ");
