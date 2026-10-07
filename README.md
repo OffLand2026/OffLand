@@ -17,6 +17,7 @@ Ein kleines Handy-Spiel gegen zu viel Bildschirmzeit: Du trägst jeden Abend ein
 - **Bildschirmzeit automatisch (iPhone-App):** misst über Apples Bildschirmzeit in 15-Minuten-Schritten mit und füllt den Tag vor (Einrichtung: [docs/testflight.md](docs/testflight.md))
 - **Familieninsel:** gemeinsame Insel für die Familie mit Familienprojekten, Wochenziel und Tagesstatus aller Mitglieder; jede:r behält die eigene Insel
 - **Online-Backup (freiwillig):** verschlüsselt, mit Wiederherstellungs-Code für ein neues Handy
+- **Laden pro Inselwelt:** jede Welt hat eigene, passende Gegenstände (Tropen, Fjord, Wüste, Eis); beim Umzug ziehen nur Bewohner und Tiere mit
 - **Weltreise:** Sind alle Projekte gebaut, wird eine neue Insel entdeckt. Die Gemeinschaft zieht weiter – Tropeninsel, Fjordinseln, Wüsteninsel, Eisinseln – mit eigener Landschaft, je sechs neuen Großprojekten, mehr Plätzen, neuen Tierarten (Papagei, Elch, Kamel, Eisbär) und einer Karte mit Reiseroute
 - **Album:** Postkarten, Strandgut, Zeitkapseln, Tagebuch, Einstellungen, Sicherung
 

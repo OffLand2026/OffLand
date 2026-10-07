@@ -128,7 +128,42 @@ const SHOP=[
   {id:"palme",n:"Palme",cost:150,cat:"deko",fx:"Schatten und ein bisschen Urlaubsgefühl."},
   {id:"lichter",n:"Lichterkette",cost:160,cat:"deko",fx:"Funkelt bunt über der Hütte."},
   {id:"laternen",n:"Laternen",cost:200,cat:"deko",fx:"Die Insel leuchtet nachts."},
-  {id:"teich",n:"Ententeich",cost:320,cat:"deko",fx:"Zwei Enten ziehen mit ein."}
+  {id:"teich",n:"Ententeich",cost:320,cat:"deko",fx:"Zwei Enten ziehen mit ein."},
+  /* Tropeninsel */
+  {id:"t_kanu",world:"tropen",like:"angel",n:"Auslegerkanu",cost:220,cat:"nutzen",fx:"Fokus-Bootsfahrten bringen 20 % mehr Punkte."},
+  {id:"t_kokos",world:"tropen",like:"garten",n:"Kokosnuss-Stand",cost:260,cat:"nutzen",fx:"+5 Punkte an jedem Tag im Budget."},
+  {id:"t_haengematte",world:"tropen",like:"haengematte",n:"Palmen-Hängematte",cost:300,cat:"nutzen",fx:"+5 Punkte für jede erledigte Quest."},
+  {id:"t_orchidee",world:"tropen",like:"blumen",n:"Orchideenbeet",cost:300,cat:"nutzen",fx:"+1 % Glück an jedem guten Tag."},
+  {id:"t_tiki",world:"tropen",like:"feuer",n:"Tiki-Fackeln",cost:420,cat:"nutzen",fx:"Weniger Streit auf der Insel."},
+  {id:"t_huette",world:"tropen",like:"stall",n:"Gästehütte",cost:480,cat:"nutzen",fx:"+3 Plätze für neue Bewohner."},
+  {id:"t_surf",world:"tropen",n:"Surfbretter",cost:120,cat:"deko",fx:"Für die nächste große Welle."},
+  {id:"t_flamingo",world:"tropen",n:"Flamingos",cost:180,cat:"deko",fx:"Stehen elegant auf einem Bein."},
+  /* Fjordinseln */
+  {id:"f_kanu",world:"fjord",like:"angel",n:"Kanu am Steg",cost:260,cat:"nutzen",fx:"Fokus-Bootsfahrten bringen 20 % mehr Punkte."},
+  {id:"f_schaukel",world:"fjord",like:"schaukel",n:"Baumschaukel",cost:280,cat:"nutzen",fx:"+1 % Glück an guten Tagen, wenn Kinder auf der Insel sind."},
+  {id:"f_beeren",world:"fjord",like:"garten",n:"Beerensträucher",cost:300,cat:"nutzen",fx:"+5 Punkte an jedem Tag im Budget."},
+  {id:"f_feuerschale",world:"fjord",like:"feuer",n:"Feuerschale",cost:480,cat:"nutzen",fx:"Weniger Streit auf der Insel."},
+  {id:"f_scheune",world:"fjord",like:"stall",n:"Holzscheune",cost:560,cat:"nutzen",fx:"+3 Plätze für neue Bewohner."},
+  {id:"f_moos",world:"fjord",n:"Moos und Pilze",cost:100,cat:"deko",fx:"Wächst ganz von allein."},
+  {id:"f_wimpel",world:"fjord",n:"Wimpelkette",cost:120,cat:"deko",fx:"Rot, weiß, blau im Wind."},
+  {id:"f_runen",world:"fjord",n:"Runenstein",cost:160,cat:"deko",fx:"Erzählt eine sehr alte Geschichte."},
+  /* Wüsteninsel */
+  {id:"o_teppich",world:"oase",like:"picknick",n:"Teppich mit Kissen",cost:220,cat:"nutzen",fx:"Freundschaften wachsen noch schneller."},
+  {id:"o_dattel",world:"oase",like:"garten",n:"Dattelpalme",cost:340,cat:"nutzen",fx:"+5 Punkte an jedem Tag im Budget."},
+  {id:"o_tee",world:"oase",like:"haengematte",n:"Teestand",cost:400,cat:"nutzen",fx:"+5 Punkte für jede erledigte Quest."},
+  {id:"o_wasser",world:"oase",like:"brunnen",n:"Wasserstelle",cost:480,cat:"nutzen",fx:"Wer wegziehen will, wartet 1 Tag länger."},
+  {id:"o_zelt",world:"oase",like:"stall",n:"Gästezelt",cost:640,cat:"nutzen",fx:"+3 Plätze für neue Bewohner."},
+  {id:"o_kaktus",world:"oase",n:"Kaktusgarten",cost:160,cat:"deko",fx:"Blüht einmal im Jahr, dann aber richtig."},
+  {id:"o_laternen",world:"oase",n:"Orientlaternen",cost:260,cat:"deko",fx:"Bunte Lichter in der Wüstennacht."},
+  /* Eisinseln */
+  {id:"a_eisloch",world:"alaska",like:"angel",n:"Eisangelloch",cost:360,cat:"nutzen",fx:"Fokus-Bootsfahrten bringen 20 % mehr Punkte."},
+  {id:"a_kakao",world:"alaska",like:"haengematte",n:"Kakao-Stand",cost:460,cat:"nutzen",fx:"+5 Punkte für jede erledigte Quest."},
+  {id:"a_feuerkorb",world:"alaska",like:"feuer",n:"Feuerkorb",cost:600,cat:"nutzen",fx:"Weniger Streit auf der Insel."},
+  {id:"a_eisbahn",world:"alaska",like:"spielplatz",n:"Eisbahn",cost:700,cat:"nutzen",fx:"Familien bekommen öfter Nachwuchs."},
+  {id:"a_huskys",world:"alaska",like:"stall",n:"Huskyhütte",cost:720,cat:"nutzen",fx:"+3 Plätze für neue Bewohner."},
+  {id:"a_schneemann",world:"alaska",n:"Schneemann",cost:160,cat:"deko",fx:"Trägt einen roten Schal."},
+  {id:"a_laternen",world:"alaska",n:"Schneelaternen",cost:220,cat:"deko",fx:"Leuchten warm im Schnee."},
+  {id:"a_eisskulptur",world:"alaska",n:"Eisskulptur",cost:260,cat:"deko",fx:"Ein Eisbär aus Eis."}
 ];
 /* Seltene Dinge vom Händlerschiff */
 const RARE=[
@@ -172,7 +207,13 @@ const ACTIVITIES=[
   {id:"freunde",n:"Freund:innen getroffen",fx:"Die Bewohner verstehen sich besser, +1 % Glück",ic:'<circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M2 20c0-4 3-6 6-6s6 2 6 6M12 20c0-4 2-6 4-6s6 2 6 6"/>'}
 ];
 const PETS=["Hund","Katze","Meerschweinchen","Hase"];
-const owns=id=>S.items.includes(id);
+/* Gegenstände gehören zu der Inselwelt, in der sie gekauft wurden. Beim Umzug bleiben sie dort. */
+const itemDef=id=>SHOP.find(x=>x.id===id)||RARE.find(x=>x.id===id);
+function itemHome(id){const d=itemDef(id); if(d&&d.world) return d.world; if(d&&SHOP.includes(d)) return "heimat"; return (S.itemW&&S.itemW[id])||"heimat"}
+const curWorldId=()=>(typeof WORLDS!=="undefined"?WORLDS[S.world||0].id:"heimat");
+const hereItems=()=>S.items.filter(id=>itemHome(id)===curWorldId());
+const shopHere=it=>it.cat==="vorrat"||(it.world||"heimat")===curWorldId();
+const owns=id=>hereItems().some(x=>x===id||(itemDef(x)||{}).like===id);
 const adults=()=>here().filter(r=>r.kind==="mensch"&&r.job);
 const jobOn=id=>adults().some(r=>r.job===id&&!r.retired&&!r.sick);
 const jobName=id=>(JOBS.find(j=>j.id===id)||{}).n||"";
@@ -358,7 +399,7 @@ async function connectStore(){
 /* ---------- Abgeleitete Werte ---------- */
 const here=()=>S.residents.filter(r=>r.status==="da");
 function capacity(){
-  let c=6+(S.items.includes("stall")?3:0);
+  let c=6+(owns("stall")?3:0);
   for(const b of S.built){const p=projById(b);c+=p&&p.cap!=null?p.cap:({leuchtturm:2,bruecke:4,schiff:2,windmuehle:3,insel3:4,baumhaus:2,strandhaus:3,beachclub:2}[b]||0)}
   return c;
 }
@@ -520,7 +561,7 @@ function extras(day,diff,quests,dreamt){
   });
   // Wünsche
   if(!S.wish&&S.dayCount%4===0){
-    const cand=adults().filter(r=>!r.wishDone), items=SHOP.filter(it=>!it.consumable&&!owns(it.id));
+    const cand=adults().filter(r=>!r.wishDone), items=SHOP.filter(it=>!it.consumable&&shopHere(it)&&!owns(it.id));
     if(cand.length&&items.length){const r=pick(cand),it=pick(items);S.wish={rid:r.id,item:it.id,day};log(r.name+" wünscht sich: "+it.n+".","info")}
   }
   if(S.wish&&!S.residents.find(x=>x.id===S.wish.rid&&x.status==="da")) S.wish=null;
@@ -1035,7 +1076,7 @@ function viewReise(){
   return `<div class="card"><div class="row between"><p class="label">Weltreise</p><span class="small muted">Welt ${w+1} von ${WORLDS.length}</span></div>
     ${worldMapSvg()}
     <p><b>${esc(W.name)}</b> · <span class="muted">${esc(W.text)}</span></p>
-    ${(S.found||0)>w?`<p class="small" style="color:var(--lime);font-weight:700">Neue Insel entdeckt: ${esc(next.name)}!</p><button class="btn" id="travelBtn">Nach ${esc(next.name)} aufbrechen</button><p class="small muted" style="margin-top:-4px">Alle Bewohner, Gegenstände und Plätze kommen mit.</p>`
+    ${(S.found||0)>w?`<p class="small" style="color:var(--lime);font-weight:700">Neue Insel entdeckt: ${esc(next.name)}!</p><button class="btn" id="travelBtn">Nach ${esc(next.name)} aufbrechen</button><p class="small muted" style="margin-top:-4px">Alle Bewohner und Tiere kommen mit. Gegenstände aus dem Laden bleiben hier, auf der neuen Insel gibt es passende neue.</p>`
       :next?`<div class="bar"><i style="width:${built/curProjects().length*100}%;background:var(--amber)"></i></div><p class="small muted">${built} von ${curProjects().length} Großprojekten hier gebaut. Sind alle fertig, wird eine neue Insel am Horizont entdeckt.</p>`
       :`<p class="small" style="color:var(--lime);font-weight:700">Ihr habt das Ende der Welt erreicht. Was für eine Reise!</p>`}
   </div>`;
@@ -1100,7 +1141,7 @@ const FUR={
   Meerschweinchen:[{},{"#C98A52":"#3F4258"},{"#C98A52":"#E9D7A6"}],
   Hase:[{},{"#A88A70":"#9EA3B8"},{"#A88A70":"#F3F1EA"}],
   Robbe:[{},{"#8F96A8":"#5F6680","#6E7488":"#454B63"},{"#8F96A8":"#C9CBDD","#6E7488":"#9EA3B8"}],
-  Delfin:[{},{"#7C9CC4":"#9EA3B8"}],
+  Delfin:[{},{"#7C9CC4":"#9EA3B8","#5F82B0":"#7C7F99"},{"#7C9CC4":"#5F7FB8","#5F82B0":"#3E5C8A"}],
   Wal:[{},{"#3E5C8A":"#2F3B57"},{"#3E5C8A":"#5F6680"}],
   Papagei:[{},{"#E5484D":"#5B8CD6","#FFD27A":"#C8F169"},{"#E5484D":"#4FB06A","#FFD27A":"#FFB86B"}],
   Elch:[{},{"#7A5038":"#5A3A2A","#A0703F":"#7A5038"},{"#7A5038":"#9A6A48","#A0703F":"#C2925E"}],
@@ -1132,7 +1173,7 @@ function animalShape(art){
   case "Meerschweinchen": return `<ellipse cx="0" cy="-4.6" rx="8" ry="4.8" fill="#C98A52"/><path d="M-1 -9.2q4 -1 6 2q1 3 -1 5.6h-4q-2 -3 -1 -7.6z" fill="#F3F1EA"/><circle cx="-6.4" cy="-6.6" r="3.4" fill="#C98A52"/><circle cx="-4.6" cy="-9.4" r="1.4" fill="#E8B48F"/>${E(-7.4,-7.2)}<circle cx="-9.4" cy="-5.6" r=".7" fill="#E5484D"/>`;
   case "Hase": return `<circle cx="7.2" cy="-6" r="2.2" fill="#F3F1EA"/><ellipse cx="2" cy="-5.4" rx="6.4" ry="5" fill="#A88A70"/><circle cx="-4.6" cy="-9" r="3.6" fill="#A88A70"/><path d="M-5.6 -11.6q-2.6 -6 -.6 -8.4q2 2 1.6 8M-3.4 -11.8q0 -6.4 2.6 -7.6q1.2 2.6 -1 7.8" fill="#A88A70"/><path d="M-5 -13q-1 -3 -.4 -5M-2.6 -13q.2 -3 1.4 -4.4" stroke="#E8B48F" stroke-width=".9"/>${E(-5.8,-9.4)}<circle cx="-8" cy="-8.2" r=".7" fill="#E5484D"/>`;
   case "Robbe": return `<path d="M-10 -1c0-8 6-12 13-12 4 0 6 2 6 5 0 2-2 3-4 3 3 2 6 3 9 6z" fill="#8F96A8"/><path d="M2 -2l-2 2.6M8 -1.4l4 2" stroke="#6E7488" stroke-width="2" stroke-linecap="round"/>${E(3.6,-9.6)}<path d="M8 -8.2h3M8 -7.2l3 .6" stroke="#F3F1EA" stroke-width=".5"/><circle cx="7.6" cy="-8.4" r=".8" fill="#14151F"/>`;
-  case "Delfin": return `<path d="M-12 -2q6 -12 18 -9q6 1 8 5l-3 .4q-4 -3 -9 -2q-6 1 -10 6.6z" fill="#7C9CC4"/><path d="M0 -10.6l2.6 -4.4 1.6 4.6z" fill="#7C9CC4"/><path d="M11 -5.6l4 -3 -1 4.4z" fill="#7C9CC4"/><path d="M-11 -2.6q5 -2.6 9 -2" stroke="#C8D6EA" stroke-width="1.2" fill="none"/>${E(-6,-6.6)}`;
+  case "Delfin": return `<path d="M3 -12.6q1.6-5.6 6-6.8q-1.4 3.4 0 7z" fill="#7C9CC4"/><path d="M-15.6 -6.6q1.6-2 4.6-2.2q4-5.2 12-4.8q8 .4 11.4 5.6l5.2-3.6-1.4 5 1.4 4.8-5.2-3q-4.4 3.4-11.6 3.6q-8.4.4-12.6-2.8q-3.2-.4-3.8-2.6z" fill="#7C9CC4"/><path d="M-12 -4.6q6 3.2 14.4 2.6q4.4-.4 7.6-2.4q-3.8 3.8-11.4 4q-7 .2-10.6-4.2z" fill="#C8D6EA"/><path d="M-1 -4q.6 4.4-3 6.4q4.6-.6 6-5.6z" fill="#5F82B0"/><path d="M-15.4 -5.8q3 1.2 6.2 0" stroke="#3E5C8A" stroke-width=".7" fill="none" stroke-linecap="round"/><circle cx="-8.6" cy="-8.6" r="1.25" fill="#14151F"/><circle cx="-8.2" cy="-9" r=".4" fill="#F3F1EA"/>`;
   case "Wal": return `<path d="M-14 -2q2 -10 14 -10q10 0 14 6l5 -4 -1 6 1 6 -5 -3q-4 3 -14 2q-10 0 -14 -3z" fill="#3E5C8A"/><path d="M-12 -1q10 3 22 0" stroke="#9CB4D4" stroke-width="1.4" fill="none"/>${E(-8,-6)}<path d="M-6 -12q-1 -4 -3 -5M-6 -12q1 -4 3 -5" stroke="#C8E2F5" stroke-width="1.4" fill="none" stroke-linecap="round"/>`;
   case "Papagei": return `<path d="M-1 -10v4" stroke="#8A5A3B" stroke-width="1.4"/><path d="M-6 -4h12" stroke="#8A5A3B" stroke-width="2" stroke-linecap="round"/><path d="M2 -10l9 10-3 1-8-8z" fill="#5B8CD6"/><ellipse cx="0" cy="-11" rx="4.4" ry="6" fill="#E5484D"/><path d="M1 -13q5 2 5 8l-4-2z" fill="#FFD27A"/><circle cx="-2" cy="-17.4" r="3.6" fill="#E5484D"/><circle cx="-3" cy="-18" r="1.4" fill="#F3F1EA"/>${E(-3,-18)}<path d="M-5.6 -18q-2.6 .4-2.4 3.4q1.6-.6 2.6-1.6z" fill="#3A3D58"/>`;
   case "Elch": return `<path d="M-4 -9v9M-1 -9v9M6 -9v9M9 -9v9" stroke="#5A3A2A" stroke-width="2.2" stroke-linecap="round"/><ellipse cx="3" cy="-12" rx="9" ry="5.4" fill="#7A5038"/><path d="M-4 -14l-5-5" stroke="#7A5038" stroke-width="4.6" stroke-linecap="round"/><path d="M-11 -20q-5 0-6 4q1 2 4 1l4-1z" fill="#7A5038"/><path d="M-9 -22q-3-5-1-9M-9 -22q-6-1-9-5M-7 -22q1-5 5-7M-7 -22q4-2 7-1" stroke="#A0703F" stroke-width="1.8" fill="none" stroke-linecap="round"/>${E(-11,-19.6)}<circle cx="-16" cy="-16.4" r=".7" fill="#3A2A20"/>`;
@@ -1161,7 +1202,7 @@ function monsterSvg(kind){
 /* ---------- Grafiken der Welten ---------- */
 function treeSvg(type,tx,ty,leaf){
   switch(type){
-    case "palme": return `<path d="M${tx-2} ${ty+26}q1-18 6-32" stroke="#A0703F" stroke-width="5" fill="none" stroke-linecap="round"/><g class="sway" style="animation-duration:4.5s"><path d="M${tx+4} ${ty-6}q-14-6-22 4M${tx+4} ${ty-6}q14-8 22 3M${tx+4} ${ty-6}q-6-12-18-12M${tx+4} ${ty-6}q8-13 19-10M${tx+4} ${ty-6}q-1 10-6 16M${tx+4} ${ty-6}q4 9 9 14" stroke="${leaf}" stroke-width="4.4" fill="none" stroke-linecap="round"/><circle cx="${tx+2}" cy="${ty-3}" r="2.4" fill="#8A5A3B"/><circle cx="${tx+6}" cy="${ty-2}" r="2.4" fill="#8A5A3B"/></g>`;
+    case "palme": return palmSvg(tx-2,ty+26,1.15,leaf);
     case "tanne": return `<rect x="${tx-2.5}" y="${ty+16}" width="5" height="10" fill="#6B4430"/><path d="M${tx} ${ty-26}l-10 16h5l-9 13h6l-9 13h34l-9-13h6l-9-13h5z" fill="${leaf}"/>`;
     case "schneetanne": return `<rect x="${tx-2.5}" y="${ty+16}" width="5" height="10" fill="#6B4430"/><path d="M${tx} ${ty-26}l-10 16h5l-9 13h6l-9 13h34l-9-13h6l-9-13h5z" fill="${leaf}"/><path d="M${tx} ${ty-26}l-5 8h10zM${tx-9} ${ty-8}q9 4 18 0l-3-3h-12zM${tx-13} ${ty+5}q13 5 26 0l-3-3h-20z" fill="#F3F6F8"/>`;
     case "kaktus": return `<g fill="#6E9B4A" stroke="#557A38" stroke-width="1"><rect x="${tx-5}" y="${ty-16}" width="10" height="42" rx="5"/><path d="M${tx-5} ${ty+6}h-6a4 4 0 0 1-4-4v-12a3 3 0 0 1 6 0v9h4z"/><path d="M${tx+5} ${ty}h6a4 4 0 0 0 4-4v-10a3 3 0 0 0-6 0v7h-4z"/></g><circle cx="${tx}" cy="${ty-17}" r="2.4" fill="#E07AB8"/>`;
@@ -1189,6 +1230,45 @@ function horizonSvg(type,small,night){
   }
   return "";
 }
+/* Palme mit Wedeln, die sich am Stamm wiegen (SMIL: Drehpunkt exakt an der Krone) */
+function palmSvg(x,y,k,leaf){
+  const top=[x+5*k,y-27*k], fr=[[-160,1],[-125,.9],[-60,.95],[-20,1],[25,.8],[155,.85]];
+  const rot=(a,d,t)=>`<animateTransform attributeName="transform" type="rotate" values="${a-d};${a+d};${a-d}" dur="${t}s" repeatCount="indefinite"/>`;
+  let s=`<path d="M${x} ${y}q${2*k} ${-14*k} ${5*k} ${-27*k}" stroke="#9A6A3E" stroke-width="${3.6*k}" fill="none" stroke-linecap="round"/>`;
+  for(let i=1;i<5;i++){const t=i/5, px=x+2*k*2*t*(1-t)+5*k*t*t;s+=`<path d="M${px-1.6*k} ${y-27*k*t}h${3.2*k}" stroke="#7A5038" stroke-width="${.8*k}"/>`}
+  s+=`<g transform="translate(${top[0]} ${top[1]})">`;
+  fr.forEach(([a,l],i)=>{s+=`<g transform="rotate(${a})">${rot(a,4,3.4+i*.35)}<path d="M0 0q${7*k*l} ${-6*k} ${17*k*l} ${2*k}q${-9*k*l} ${-1*k} ${-17*k*l} ${-2*k}z" fill="${leaf}"/><path d="M0 0q${7*k*l} ${-4.6*k} ${16*k*l} ${1.6*k}" stroke="#2F6B3F" stroke-width="${.5*k}" fill="none" opacity=".6"/></g>`});
+  return s+`<circle cx="${-1.4*k}" cy="${1.6*k}" r="${1.9*k}" fill="#7A5038"/><circle cx="${1.6*k}" cy="${2*k}" r="${1.9*k}" fill="#8A5A3B"/></g>`;
+}
+/* Hängebrücke zwischen Haupt- und Nachbarinsel */
+function bridgeSvg(wood){
+  const a=[221,170], b=[252,165], m=[(a[0]+b[0])/2,(a[1]+b[1])/2+5];
+  const deck=t=>{const u=1-t;return [u*u*a[0]+2*u*t*m[0]+t*t*b[0], u*u*a[1]+2*u*t*m[1]+t*t*b[1]]};
+  let s=`<g><path d="M${a[0]} ${a[1]}Q${m[0]} ${m[1]} ${b[0]} ${b[1]}" stroke="#6B4430" stroke-width="2.4" fill="none"/>`;
+  for(let i=0;i<=8;i++){const [x,y]=deck(i/8);s+=`<path d="M${x-1.3} ${y-1.6}l2.6 0 0 3.2-2.6 0z" fill="${wood}" stroke="#6B4430" stroke-width=".4"/>`}
+  const rail=(dy,amp)=>`<path d="M${a[0]} ${a[1]-dy}Q${m[0]} ${m[1]-dy+3} ${b[0]} ${b[1]-dy}" stroke="#C9B48A" stroke-width=".9" fill="none"><animate attributeName="d" values="M${a[0]} ${a[1]-dy}Q${m[0]} ${m[1]-dy+3} ${b[0]} ${b[1]-dy};M${a[0]} ${a[1]-dy}Q${m[0]} ${m[1]-dy+3+amp} ${b[0]} ${b[1]-dy};M${a[0]} ${a[1]-dy}Q${m[0]} ${m[1]-dy+3} ${b[0]} ${b[1]-dy}" dur="4s" repeatCount="indefinite"/></path>`;
+  s+=rail(8,1.2)+rail(5,.8);
+  for(let i=1;i<8;i+=2){const [x,y]=deck(i/8);s+=`<path d="M${x} ${y-1}v${-5.5+Math.abs(i-4)*.3}" stroke="#C9B48A" stroke-width=".5"/>`}
+  [a,b].forEach(([x,y])=>{s+=`<rect x="${x-1.3}" y="${y-10}" width="2.6" height="11" rx=".8" fill="#6B4430"/><circle cx="${x}" cy="${y-10}" r="1.4" fill="#8A5A3B"/>`});
+  return s+`</g>`;
+}
+/* Delfin springt im Bogen aus dem Wasser */
+function dolphinJump(r,x,y,i){
+  const dur=4.6+(i%3)*.7, kt="0;0.45;0.85;1";
+  return `<g transform="translate(${x} ${y})"><clipPath id="dclip${i}"><rect x="-40" y="-60" width="80" height="61"/></clipPath>
+    <g clip-path="url(#dclip${i})"><g><animateMotion dur="${dur}s" begin="${-i*1.3}s" repeatCount="indefinite" path="M18 16Q0 -32 -18 16" keyPoints="0;0;1;1" keyTimes="${kt}" calcMode="linear"/>
+      <g><animateTransform attributeName="transform" type="rotate" values="42;42;-42;-42" keyTimes="${kt}" dur="${dur}s" begin="${-i*1.3}s" repeatCount="indefinite"/>${figure(r,0,7)}</g></g></g>
+    <path d="M-14 1q7-3 14 0t14 0" stroke="#5B7FB0" stroke-width="1.5" fill="none"/></g>`;
+}
+/* Erinnerungsbaum mit Licht und Namen */
+function memorialSvg(m,leaf,type){
+  const crown=type==="palme"?palmSvg(0,0,.8,leaf):type?treeSvg(type,0,-26,leaf):`<rect x="-2" y="-22" width="4" height="22" rx="1.5" fill="#8A5A3B"/><circle cx="0" cy="-27" r="10" fill="${leaf}"/><circle cx="-5" cy="-24" r="5" fill="${leaf}"/><circle cx="5" cy="-24" r="5" fill="${leaf}"/>`;
+  return `<g><title>Erinnerungsbaum für ${esc(m.name)}</title>${crown}
+    <g class="glow" style="animation-duration:3s"><circle cx="0" cy="-27" r="4" fill="#FFD27A" opacity=".55"/></g>
+    <path d="M0 -29c-1.6-2-4.4-.6-3 1.6l3 2.6 3-2.6c1.4-2.2-1.4-3.6-3-1.6z" fill="#FF9C7A"/>
+    <rect x="-9" y="1" width="18" height="6" rx="2" fill="#F3F1EA" opacity=".9"/><text y="5.6" text-anchor="middle" font-size="4.4" font-weight="800" fill="#3A3D58" font-family="Manrope, sans-serif">${esc((m.name||"").slice(0,9))}</text></g>`;
+}
+
 /* Bauwerke der neuen Welten: Position je nach freigeschalteten Inseln */
 function worldStructs(W,cx,two,three){
   const out=[], slots=[[cx-96,168,.8],two?[262,168,.62]:[cx+96,194,.7],two?[320,154,.7]:[cx+62,190,.7],three?[290,216,.66]:[cx-68,196,.7]];
@@ -1203,8 +1283,8 @@ function worldStructs(W,cx,two,three){
 
 /* Gekaufte Gegenstände automatisch verteilen: Jeder Gegenstand nimmt den freien Platz,
    der am weitesten von den schon platzierten entfernt ist, und weicht Gebäuden und Bäumen aus. */
-const ITEM_W={teich:36,picknick:34,garten:32,sandburg:30,schaukel:30,spielplatz:28,haengematte:28,stall:28,blumen:28,palme:26,bank:26,feuer:22,brunnen:24,sternwarte:26,bienen:22,schirm:30,vogelhaus:20,zwerg:12,laternen:12,glocke:18,teleskop:28,muschelweg:34,regenbogen:34};
-const ITEM_H={palme:30,laternen:28,vogelhaus:30,schirm:26,glocke:28,sternwarte:30,schaukel:26,haengematte:20,spielplatz:22,stall:22,bienen:24,teleskop:24,feuer:24};
+const ITEM_W={t_kanu:30,t_kokos:26,t_haengematte:30,t_orchidee:26,t_tiki:20,t_huette:32,t_surf:22,t_flamingo:22,f_kanu:30,f_schaukel:26,f_beeren:28,f_feuerschale:18,f_scheune:34,f_moos:24,f_wimpel:34,f_runen:14,o_teppich:34,o_dattel:28,o_tee:26,o_wasser:28,o_zelt:34,o_kaktus:26,o_laternen:16,a_eisloch:26,a_kakao:24,a_feuerkorb:16,a_eisbahn:38,a_huskys:44,a_schneemann:16,a_laternen:16,a_eisskulptur:18,teich:36,picknick:34,garten:32,sandburg:30,schaukel:30,spielplatz:28,haengematte:28,stall:28,blumen:28,palme:26,bank:26,feuer:22,brunnen:24,sternwarte:26,bienen:22,schirm:30,vogelhaus:20,zwerg:12,laternen:12,glocke:18,teleskop:28,muschelweg:34,regenbogen:34};
+const ITEM_H={t_kokos:22,t_haengematte:28,t_tiki:26,t_huette:30,t_surf:28,t_flamingo:24,f_schaukel:36,f_scheune:28,f_wimpel:22,f_runen:22,o_dattel:36,o_tee:22,o_zelt:28,o_laternen:26,a_kakao:24,a_feuerkorb:28,a_huskys:16,a_schneemann:26,a_laternen:24,a_eisskulptur:16,palme:30,laternen:28,vogelhaus:30,schirm:26,glocke:28,sternwarte:30,schaukel:26,haengematte:20,spielplatz:22,stall:22,bienen:24,teleskop:24,feuer:24};
 const FIXED_ITEMS={flagge:c=>[c.cx+50,122],lichter:c=>[c.cx+50,148],windspiel:c=>[c.cx+28,160],angel:c=>[c.cx+108,198]};
 function layoutItems(cx,two,three,nTrees,extra,home){
   const out={}, S8=.8, ctx={cx};
@@ -1213,7 +1293,7 @@ function layoutItems(cx,two,three,nTrees,extra,home){
   if(has("leuchtturm")) blocks.push([cx-73,74,cx-51,162]);
   if(has("windmuehle")) blocks.push([cx+76,118,cx+98,162]);
   if(has("baumhaus")) blocks.push([cx-118,118,cx-72,170]);
-  if(owns("laternen")) blocks.push([cx+86,146,cx+98,172]);
+  if(hereItems().includes("laternen")) blocks.push([cx+86,146,cx+98,172]);
   for(let i=0;i<nTrees;i++){const tx=cx-40+i*22-(i%2)*6, ty=128+(i%2)*8;blocks.push([tx-6,ty-20,tx+6,ty+27])}
   if(has("festzelt")&&two) blocks.push([302,128,334,154]);
   if(has("strandhaus")&&two) blocks.push([246,142,278,170]);
@@ -1239,7 +1319,11 @@ function layoutItems(cx,two,three,nTrees,extra,home){
     }
     return best;
   };
-  for(const id of S.items){
+  // Erinnerungsbäume bekommen zuerst einen festen, gut sichtbaren Platz
+  S.memorials.slice(-6).forEach((m,i)=>{const id="__mem"+i, w=20, h=34;
+    const spot=pickSpot(w*.9,h*.9,true)||pickSpot(w*.75,h*.75,false); if(!spot) return;
+    out[id]=[spot[0],spot[1],.9]; rects.push([spot[0]-w*.45,spot[1]-h*.9,spot[0]+w*.45,spot[1]]);});
+  for(const id of hereItems()){
     if(FIXED_ITEMS[id]){out[id]=FIXED_ITEMS[id](ctx);continue}
     if(!itemSvg(id)) continue;
     let sc=S8, w=(ITEM_W[id]||24), h=(ITEM_H[id]||18), spot=pickSpot(w*sc,h*sc,true);
@@ -1287,13 +1371,13 @@ function scene(){
   const ws=home?[]:worldStructs(W,cx,two,three);
   const place=layoutItems(cx,two,three,nTrees,ws.map(q=>[q.x-26*q.sc,q.y-36*q.sc,q.x+26*q.sc,q.y]),home);
   // Gegenstände auf den Nebeninseln (x ≥ 244) erst nach diesen Inseln zeichnen, sonst verdecken die Inseln sie
-  const drawItems=far=>S.items.filter(id=>place[id]&&(two&&place[id][0]>=244)===far).sort((a,b)=>place[a][1]-place[b][1]).forEach(id=>{const p=place[id];s+=`<g data-item="${id}" transform="translate(${p[0]} ${p[1]}) scale(${p[2]||.8})">${itemSvg(id)}</g>`});
+  const memIds=S.memorials.slice(-6).map((m,i)=>"__mem"+i), mems=S.memorials.slice(-6);
+  const drawItems=far=>hereItems().concat(memIds).filter(id=>place[id]&&(two&&place[id][0]>=244)===far).sort((a,b)=>place[a][1]-place[b][1]).forEach(id=>{const p=place[id];
+    if(id.startsWith("__mem")){const m=mems[+id.slice(5)];s+=`<g transform="translate(${p[0]} ${p[1]}) scale(${p[2]})">${memorialSvg(m,leaf,home?"":T.tree)}</g>`;return}
+    s+=`<g data-item="${id}" transform="translate(${p[0]} ${p[1]}) scale(${p[2]||.8})">${itemSvg(id)}</g>`});
   drawItems(false);
-  if(owns("laternen")) s+=`<g transform="translate(${cx+92} 170) scale(.8)">${itemSvg("laternen")}</g>`;
+  if(hereItems().includes("laternen")) s+=`<g transform="translate(${cx+92} 170) scale(.8)">${itemSvg("laternen")}</g>`;
   if(S.sun>0&&!clouds&&!night) s+=`<g transform="translate(46 54) scale(.9)">${itemSvg("sonne")}</g>`;
-  // Erinnerungsbäume
-  S.memorials.slice(0,4).forEach((m,i)=>{const px=[cx-104,cx-112,cx+102,cx+110][i], py=[176,184,180,186][i];
-    s+=`<g><title>Erinnerungsbaum für ${esc(m.name)}</title><rect x="${px-1.5}" y="${py-14}" width="3" height="14" fill="#8A5A3B"/><circle cx="${px}" cy="${py-17}" r="7" fill="${leaf}"/><circle cx="${px-2}" cy="${py-19}" r="1.6" fill="#FFD27A"/><rect x="${px+3}" y="${py-6}" width="6" height="5" rx="1" fill="#A4A6BD"/></g>`});
   // Hütte (Licht aus, wenn alle schlafen)
   if(!home) s+=hutSvg(T.hut,cx,night,sleep);
   else s+=`<path d="M${cx+30} 160v-24l20-15 20 15v24z" fill="#F3F1EA"/><path d="M${cx+26} 138l24-18 24 18" fill="none" stroke="#FF9C7A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><rect x="${cx+44}" y="144" width="11" height="16" rx="2" fill="#B6A4FF"/><rect x="${cx+57}" y="140" width="8" height="8" rx="1" fill="${sleep?"#3A3D58":night?"#FFD27A":"#9CC8EE"}"/>`;
@@ -1301,8 +1385,7 @@ function scene(){
   if(home&&has("windmuehle")) s+=`<path d="M${cx+82} 160h10l-1-30h-8z" fill="#F3F1EA"/><path d="M${cx+87} 130l-12-10M${cx+87} 130l12-10M${cx+87} 130l-9 12M${cx+87} 130l9 12" stroke="#FFB86B" stroke-width="3" stroke-linecap="round"/>`;
   if(home&&has("schiff")) s+=`<path d="M${two?160:260} 200h40l-7 10h-26z" fill="#FF9C7A"/><path d="M${two?180:280} 200v-22l12 18z" fill="#F3F1EA"/>`;
   if(two){
-    s+=`<path d="M222 150q20-18 40-20" fill="none" stroke="${home?"#8A5A3B":T.bridge}" stroke-width="5" stroke-linecap="round"/>`;
-    if(!home) s+=`<path d="M226 146q18-15 34-17" fill="none" stroke="${home?"#8A5A3B":T.bridge}" stroke-width="1.2" stroke-dasharray="2 3" opacity=".8"/>`;
+    s+=bridgeSvg(home?"#A0703F":T.bridge);
     s+=`<ellipse cx="300" cy="160" rx="56" ry="14" fill="${sand}"/><path d="M252 158c8-26 30-36 48-36s40 10 48 36z" fill="${grass}"/>`;
   }
   if(three){ s+=`<ellipse cx="300" cy="214" rx="40" ry="9" fill="${sand}"/><path d="M266 213c6-16 20-22 34-22s28 6 34 22z" fill="${grass}"/>`; }
@@ -1334,7 +1417,9 @@ function scene(){
   });
   if(inside>0) s+=`<g transform="translate(${cx+50} 110)"><title>${inside} ${inside===1?"weitere Person ist":"weitere Bewohner sind"} gerade im Haus</title><rect x="-12" y="-8" width="24" height="13" rx="6.5" fill="#14151F" opacity=".78"/><text x="0" y="1.6" text-anchor="middle" font-size="8.5" font-weight="800" fill="#F3F1EA" font-family="Manrope, sans-serif">+${inside}</text></g>`;
   const seaSlots=[[40,214],[80,226],[200,222],[240,212],[150,230],[330,228],[20,232],[270,232]];
-  seaP.forEach((r,i)=>{const sl=seaSlots[i%seaSlots.length];s+=`<g class="wave" style="animation-delay:${i*0.5}s">${figure(r,sl[0],sl[1])}</g><path d="M${sl[0]-14} ${sl[1]+1}q7 -3 14 0t14 0" stroke="#5B7FB0" stroke-width="1.5" fill="none"/>`});
+  seaP.forEach((r,i)=>{const sl=seaSlots[i%seaSlots.length];
+    if(r.art==="Delfin"){s+=dolphinJump(r,sl[0],sl[1],i);return}
+    s+=`<g class="wave fb" style="animation-delay:${i*0.5}s">${figure(r,sl[0],sl[1])}</g><path d="M${sl[0]-14} ${sl[1]+1}q7 -3 14 0t14 0" stroke="#5B7FB0" stroke-width="1.5" fill="none"/>`});
   // App-Monster im Wasser
   const mPos=[[110,222],[200,230],[310,214],[60,230]];
   (S.monsters||[]).forEach((id,i)=>{const a=S.apps.find(x=>x.id===id);if(!a)return;const p=mPos[i%4];s+=`<g transform="translate(${p[0]} ${p[1]})"><g class="wave"><title>${esc(monName(a,false))}</title>${monsterSvg(a.m)}</g></g>`});
@@ -1692,7 +1777,7 @@ function viewShop(){
   return `<div class="card"><div class="row between"><h2>Inselladen</h2><span class="chip" style="background:#26233D;color:var(--lilac)">${S.points} Punkte</span></div>
   <p class="small muted">Punkte gibt es für jede Minute unter deinem Budget und für Quests. ${jobOn("tischler")?"Dank Tischler:in ist alles 10 % billiger.":""}</p>
   ${[["vorrat","Vorräte","Wird beim Kauf verbraucht"],["nutzen","Nützliches","Steht auf der Insel und hilft"],["deko","Deko","Macht die Insel schöner"]].map(([cat,title,sub])=>{
-    const list=SHOP.filter(it=>it.cat===cat), have=list.filter(it=>!it.consumable&&owns(it.id)).length;
+    const list=SHOP.filter(it=>it.cat===cat&&shopHere(it)), have=list.filter(it=>!it.consumable&&owns(it.id)).length;
     return `<div class="shop-head"><p class="label">${title}</p><span class="small muted">${cat==="vorrat"?sub:have+" von "+list.length+" auf der Insel"}</span></div>
     <div class="shop-grid">${list.map(it=>{
     const own=!it.consumable&&owns(it.id), cost=price(it), can=S.points>=cost, stock=it.id==="tee"?S.tea:it.id==="sonne"?S.sun:0;
@@ -1711,11 +1796,46 @@ function viewShop(){
 }
 function itemSvg(id){
   switch(id){
+  /* Tropen */
+  case "t_kanu": return `<path d="M-15 -2h30" stroke="#B07A55" stroke-width="2.6"/><path d="M-13 0v-2M-3 0v-2M7 0v-2" stroke="#8A5A3B" stroke-width="1.4"/><g class="bob" style="animation-duration:2.6s"><path d="M-14 -5q14 6 28 0l-3 3h-22z" fill="#C9763E"/><path d="M-8 -9h16M-6 -9v4M6 -9v4" stroke="#8A5A3B" stroke-width="1"/><path d="M-4 -12l9 6" stroke="#6B4430" stroke-width="1.2"/></g>`;
+  case "t_kokos": return `<rect x="-11" y="-12" width="22" height="12" rx="1.5" fill="#C9A26A"/><path d="M-11 -8h22" stroke="#A0803E"/><path d="M-13 -12l3-8h20l3 8z" fill="#E5484D"/><path d="M-8 -20l-1 8M0 -20v8M8 -20l1 8" stroke="#F3F1EA" stroke-width="2"/><circle cx="-5" cy="-14" r="2.6" fill="#7A5038"/><circle cx="1" cy="-14" r="2.6" fill="#8A5A3B"/><circle cx="6" cy="-14" r="2.2" fill="#F3F1EA" stroke="#7A5038"/><g class="bob" style="animation-duration:2s"><path d="M8 -15l4-4" stroke="#FF9C7A" stroke-width="1"/></g>`;
+  case "t_haengematte": return `<path d="M-14 0q1-12 4-22M14 0q-1-12-4-22" stroke="#9A6A3E" stroke-width="2.2" fill="none" stroke-linecap="round"/><circle cx="-10" cy="-23" r="5" fill="#3FA35A"/><circle cx="10" cy="-23" r="5" fill="#3FA35A"/><g class="swing" style="animation-duration:3s"><path d="M-12 -12q12 10 24 0" stroke="#FF9C7A" stroke-width="3" fill="none"/><path d="M-12 -12q12 7 24 0" stroke="#FFD27A" stroke-width="1" fill="none"/></g>`;
+  case "t_orchidee": return `<rect x="-13" y="-4" width="26" height="4" rx="2" fill="#7A5038"/>${[-8,-1,6].map((x,i)=>`<g class="sway" style="animation-duration:${3+i*.4}s"><path d="M${x} -4q1-6 0-9" stroke="#3FA35A" stroke-width="1.2" fill="none"/><path d="M${x} -14l-3-2 3-1 3 1z" fill="${["#E07AB8","#B6A4FF","#F3F1EA"][i]}"/><circle cx="${x}" cy="-14.6" r="1" fill="#FFD27A"/></g>`).join("")}`;
+  case "t_tiki": return `${[-6,6].map((x,i)=>`<path d="M${x} 0v-20" stroke="#8A5A3B" stroke-width="2.4"/><path d="M${x-1.6} -14h3.2M${x-1.6} -9h3.2" stroke="#6B4430"/><path d="M${x-2.4} -20h4.8l-1 -3h-2.8z" fill="#5A3A2A"/><g class="flick" style="animation-delay:${i*.3}s"><path d="M${x} -23c-2 0-3-2-1-5 0 1 1 1 1 1 0-2 1-3 2-4 0 2 1 3 1 4 0 2-1 4-3 4z" fill="#FFB86B"/></g>`).join("")}<g class="glow" style="animation-duration:1.6s"><circle cx="0" cy="-24" r="10" fill="#FFB86B" opacity=".18"/></g>`;
+  case "t_huette": return `<path d="M-12 0v-6M12 0v-6" stroke="#8A5A3B" stroke-width="2"/><rect x="-13" y="-7" width="26" height="2" fill="#A0703F"/><rect x="-11" y="-19" width="22" height="12" fill="#D9B86A"/><path d="M-8 -19v12M-4 -19v12M4 -19v12M8 -19v12" stroke="#B8944E" stroke-width=".8"/><path d="M-16 -18l16-11 16 11z" fill="#C9A26A"/><rect x="-3" y="-15" width="6" height="8" fill="#7A5038"/>`;
+  case "t_surf": return `${[[-6,"#FF9C7A",-8],[2,"#5B8CD6",4],[9,"#FFD27A",12]].map(([x,c,r])=>`<g transform="translate(${x} 0) rotate(${r})"><path d="M0 0c-3-8-3-18 0-26 3 8 3 18 0 26z" fill="${c}"/><path d="M0 -2v-22" stroke="#F3F1EA" stroke-width=".8"/></g>`).join("")}`;
+  case "t_flamingo": return `${[[-6,0],[6,.6]].map(([x,d])=>`<g transform="translate(${x} 0)"><path d="M0 0v-9" stroke="#E07AB8" stroke-width="1"/><g class="bob" style="animation-duration:2.8s;animation-delay:${d}s"><ellipse cx="1" cy="-12" rx="4.6" ry="3" fill="#FF8FB8"/><path d="M-2 -13q-3-4 0-9q2-1 2 1" stroke="#FF8FB8" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M0 -21l-3 1.4 1 1z" fill="#3A3D58"/></g></g>`).join("")}`;
+  /* Fjord */
+  case "f_kanu": return `<path d="M-15 -2h30" stroke="#8A5A3B" stroke-width="2.6"/><path d="M-13 0v-2M-3 0v-2M7 0v-2" stroke="#6B4430" stroke-width="1.4"/><g class="bob" style="animation-duration:2.6s"><path d="M-14 -5q14 5 28 0q-14 4-28 0z" fill="#B8442E"/><path d="M-14 -5q14 3 28 0" stroke="#F3F1EA" stroke-width=".8" fill="none"/><path d="M-2 -11l6 7M4 -11l-6 7" stroke="#6B4430" stroke-width="1"/></g>`;
+  case "f_schaukel": return `<path d="M-12 0q1-14 4-28" stroke="#6B4430" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M-12 -18q14-4 22-2" stroke="#6B4430" stroke-width="2" fill="none"/><path d="M-14 -28l2-6 3 6 4-4 1 6z" fill="#2F6B45"/><circle cx="-10" cy="-30" r="7" fill="#2F6B45"/><g class="swing" style="animation-duration:2.4s"><path d="M3 -19v14M9 -19v14" stroke="#C9B48A" stroke-width=".8"/><rect x="1.6" y="-5.4" width="9" height="2" rx="1" fill="#B8442E"/></g>`;
+  case "f_beeren": return `${[-8,3].map((x,i)=>`<g class="sway" style="animation-duration:${3.4+i*.4}s"><circle cx="${x}" cy="-6" r="6" fill="#2F6B45"/><circle cx="${x+4}" cy="-8" r="4.4" fill="#3E7D52"/>${[[-2,-7],[1,-4],[3,-9],[-3,-3],[5,-5]].map(([a,b],k)=>`<circle cx="${x+a}" cy="${b}" r="1.1" fill="${k%2?"#3A4FA8":"#E5484D"}"/>`).join("")}</g>`).join("")}`;
+  case "f_feuerschale": return `<path d="M-8 0l2-4h12l2 4z" fill="#3A3D58"/><path d="M-9 -4h18l-2 -4h-14z" fill="#5A5D78"/><g class="flick"><path d="M0 -8c-5 0-6-5-3-9 0 2 2 2 2 2 0-5 3-7 4-10 0 5 3 6 3 10 0 4-2 7-6 7z" fill="#FFB86B"/><path d="M0 -8c-2 0-2-2-1-4 1 1 1 1 1 1 0-2 1-3 2-4 0 2 1 3 1 5 0 1-1 2-3 2z" fill="#FFD27A"/></g><g class="glow" style="animation-duration:1.4s"><circle cx="0" cy="-12" r="11" fill="#FFB86B" opacity=".22"/></g>`;
+  case "f_scheune": return `<rect x="-14" y="-16" width="28" height="16" fill="#B8442E"/><path d="M-14 -16h28M-14 0h28M-14 -16v16M14 -16v16" stroke="#F3F1EA" stroke-width="1.4"/><path d="M-17 -15l17-11 17 11z" fill="#3A3D58"/><rect x="-5" y="-11" width="10" height="11" fill="#7A2E20"/><path d="M-5 -11l10 11M5 -11l-10 11" stroke="#F3F1EA" stroke-width="1"/><rect x="-2" y="-21" width="4" height="4" fill="#FFD27A" stroke="#F3F1EA" stroke-width=".8"/>`;
+  case "f_moos": return `<ellipse cx="0" cy="-1.4" rx="12" ry="2.4" fill="#5F8A4A"/>${[[-6,"#E5484D"],[1,"#C98A52"],[7,"#E5484D"]].map(([x,c],i)=>`<g class="bob" style="animation-duration:${3+i*.5}s"><rect x="${x-.8}" y="-6" width="1.6" height="4" fill="#F3F1EA"/><path d="M${x-3.4} -6a3.4 3 0 0 1 6.8 0z" fill="${c}"/><circle cx="${x-1}" cy="-7" r=".6" fill="#F3F1EA"/></g>`).join("")}`;
+  case "f_wimpel": return `<path d="M-16 0v-20M16 0v-20" stroke="#6B4430" stroke-width="1.6"/><path d="M-16 -18q16 8 32 0" stroke="#C9B48A" stroke-width=".7" fill="none"/>${[-11,-5,1,7,12].map((x,i)=>{const y=-18+((x+16)*(16-x))/32*.5;return `<g class="swing" style="animation-duration:${1.8+i*.2}s"><path d="M${x-2} ${y}h4l-2 4z" fill="${["#B8442E","#F3F1EA","#2F4A6E","#B8442E","#F3F1EA"][i]}"/></g>`}).join("")}`;
+  case "f_runen": return `<path d="M-6 0q-1-12 2-20q4-3 7 0q3 8 2 20z" fill="#8F96A8"/><path d="M-2 -16l2 3 2-3M0 -13v6M-2 -5l4-2" stroke="#3A3D58" stroke-width="1" fill="none"/><path d="M-6 0q4-2 11 0" stroke="#5F8A4A" stroke-width="2" fill="none"/>`;
+  /* Wüste */
+  case "o_teppich": return `<path d="M-16 0l3-5h26l3 5z" fill="#B8442E"/><path d="M-12 -2.6h24" stroke="#FFD27A" stroke-width="1" stroke-dasharray="2 1.5"/><path d="M-15 0h-2M15 0h2" stroke="#FFD27A" stroke-width="1"/><ellipse cx="-7" cy="-6" rx="4" ry="2.4" fill="#5B8CD6"/><ellipse cx="6" cy="-6" rx="4" ry="2.4" fill="#4FB06A"/><path d="M-1 -5l1-3 1 3z" fill="#FFD27A"/>`;
+  case "o_dattel": return `${palmSvg(0,0,1.1,"#6E8B3D")}<g fill="#B8743E"><circle cx="2" cy="-27" r="1.2"/><circle cx="4" cy="-26" r="1.2"/><circle cx="3" cy="-24.6" r="1.2"/><circle cx="7" cy="-27" r="1.2"/></g>`;
+  case "o_tee": return `<rect x="-11" y="-10" width="22" height="10" rx="1.5" fill="#C98A52"/><path d="M-13 -10l2-6h22l2 6z" fill="#5B8CD6"/><path d="M-7 -16l-1 6M0 -16v6M7 -16l1 6" stroke="#FFD27A" stroke-width="1.6"/><path d="M-5 -10q0-4 3-4h1q2 0 2 2v2z" fill="#FFD27A"/><path d="M1 -12h2" stroke="#FFD27A"/><g fill="none" stroke="#F3F1EA" stroke-width=".8" stroke-linecap="round"><path class="steam" d="M-2 -15q-1-2 0-4t0-4"/></g><rect x="4" y="-13" width="3" height="3" rx=".8" fill="#E5484D"/>`;
+  case "o_wasser": return `<ellipse cx="0" cy="-2" rx="13" ry="3.4" fill="#C9A35A"/><ellipse cx="0" cy="-2.4" rx="10" ry="2.4" fill="#3FB8B0"/><g class="glow" style="animation-duration:2s"><ellipse cx="-3" cy="-2.6" rx="3" ry=".6" fill="#F3F1EA" opacity=".6"/></g><path d="M9 -4q2-6 1-11" stroke="#6E8B3D" stroke-width="1.4" fill="none"/><path d="M10 -15q-4-1-6 1M10 -15q4-2 6 0" stroke="#6E8B3D" stroke-width="1.6" fill="none"/><ellipse cx="-9" cy="-7" rx="2.6" ry="3.4" fill="#C98A52"/><path d="M-10 -10.4h2" stroke="#8A5A3B"/>`;
+  case "o_zelt": return `<path d="M-16 0l6-17h20l6 17z" fill="#E8D9B8"/><path d="M-10 -17l10-6 10 6" fill="#D9C38E"/><path d="M-10 -17v17M10 -17v17" stroke="#B8944E" stroke-width=".8"/><path d="M-4 0l1-9h6l1 9z" fill="#7A2E20"/><path d="M-16 -1h32" stroke="#B8442E" stroke-width="1.4" stroke-dasharray="3 2"/><g class="flagwave"><path d="M0 -23v-5l5 2z" fill="#E5484D"/></g>`;
+  case "o_kaktus": return `<ellipse cx="0" cy="-1" rx="13" ry="2.4" fill="#D9A55A"/>${[[-7,1],[2,1.3],[9,.8]].map(([x,k])=>`<g transform="translate(${x} 0) scale(${k})"><rect x="-2.4" y="-12" width="4.8" height="12" rx="2.4" fill="#6E9B4A"/><path d="M-2.4 -5h-2.6v-4" stroke="#6E9B4A" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="0" cy="-12.6" r="1.4" fill="#E07AB8"/></g>`).join("")}`;
+  case "o_laternen": return `<path d="M0 0v-24M-6 -22h12" stroke="#8A5A3B" stroke-width="1.4"/>${[[-5,"#E5484D",0],[5,"#5B8CD6",.5]].map(([x,c,d])=>`<g class="swing" style="animation-delay:${d}s"><path d="M${x} -22v3" stroke="#8A5A3B" stroke-width=".6"/><path d="M${x-2.6} -19q2.6-2 5.2 0l-.6 6q-2 1.4-4 0z" fill="${c}"/><g class="glow" style="animation-duration:2.4s"><circle cx="${x}" cy="-16" r="5" fill="${c}" opacity=".3"/></g></g>`).join("")}`;
+  /* Alaska */
+  case "a_eisloch": return `<ellipse cx="0" cy="-2" rx="13" ry="3.4" fill="#E6EEF3"/><ellipse cx="2" cy="-2" rx="5" ry="1.6" fill="#2F4A6E"/><path d="M-9 -2l9-14" stroke="#7A5038" stroke-width="1.2"/><path d="M0 -16q2 6 2 13" stroke="#F3F1EA" stroke-width=".5" fill="none"/><g class="bob" style="animation-duration:1.6s"><circle cx="2" cy="-3" r=".9" fill="#E5484D"/></g><rect x="-12" y="-6" width="5" height="4" rx="1" fill="#B8442E"/>`;
+  case "a_kakao": return `<rect x="-10" y="-11" width="20" height="11" rx="1.5" fill="#8A5A3B"/><path d="M-12 -11l2-6h20l2 6z" fill="#E5484D"/><path d="M-12 -11q4 2 8 0t8 0 8 0" stroke="#F3F1EA" stroke-width="1.4" fill="none"/><rect x="-3" y="-15" width="6" height="5" rx="1" fill="#F3F1EA"/><path d="M3 -14q2 0 2 2t-2 2" stroke="#F3F1EA" fill="none" stroke-width=".8"/><g fill="none" stroke="#F3F1EA" stroke-width=".8" stroke-linecap="round"><path class="steam" d="M0 -16q-1-2 0-4t0-4"/><path class="steam" style="animation-delay:.7s" d="M-2 -16q-1-2 0-4t0-4"/></g>`;
+  case "a_feuerkorb": return `<path d="M-4 0l2-6M4 0l-2-6M0 0v-6" stroke="#3A3D58" stroke-width="1.2"/><path d="M-7 -6h14l-2 -6h-10z" fill="#5A5D78" stroke="#3A3D58" stroke-width=".6"/><g class="flick"><path d="M0 -11c-5 0-6-5-3-9 0 2 2 2 2 2 0-5 3-7 4-10 0 5 3 6 3 10 0 4-2 7-6 7z" fill="#FFB86B"/></g><g class="glow" style="animation-duration:1.4s"><circle cx="0" cy="-16" r="11" fill="#FFB86B" opacity=".25"/></g>`;
+  case "a_eisbahn": return `<ellipse cx="0" cy="-2" rx="18" ry="4" fill="#BFE0F5"/><ellipse cx="-4" cy="-2.6" rx="9" ry="1.4" fill="#F3F6F8" opacity=".7"/><path d="M-18 -2v-4M18 -2v-4M-18 -5q18 3 36 0" stroke="#B8442E" stroke-width="1" fill="none"/><g class="wander" style="--wx:10px;animation-duration:5s"><path d="M-2 -3h4" stroke="#3A3D58" stroke-width="1"/><path d="M0 -3v-5" stroke="#5B8CD6" stroke-width="2.4"/><circle cx="0" cy="-10" r="2" fill="#E8B48F"/><path d="M-2 -11a2 2 0 0 1 4 0z" fill="#E5484D"/></g>`;
+  case "a_huskys": return `<path d="M-14 0a14 13 0 0 1 28 0z" fill="#8A5A3B"/><path d="M-14 0a14 13 0 0 1 28 0" stroke="#F3F6F8" stroke-width="2" fill="none"/><path d="M-4 0v-6a4 4 0 0 1 8 0v6z" fill="#3A2A20"/>${[[-20,0],[19,.4]].map(([x,d])=>`<g transform="translate(${x} 0)"><g class="bob" style="animation-duration:1.4s;animation-delay:${d}s"><ellipse cx="0" cy="-3.4" rx="4" ry="2.6" fill="#8F96A8"/><circle cx="${x<0?-3.4:3.4}" cy="-6" r="2.2" fill="#8F96A8"/><path d="M${x<0?-4.4:2.4} -8l1-2 1 2z" fill="#5F6680"/><ellipse cx="${x<0?-3.8:3.8}" cy="-5.4" rx="1.2" ry=".8" fill="#F3F1EA"/></g></g>`).join("")}`;
+  case "a_schneemann": return `<circle cx="0" cy="-5" r="6" fill="#F3F6F8"/><circle cx="0" cy="-14" r="4.4" fill="#F3F6F8"/><circle cx="0" cy="-21" r="3.4" fill="#F3F6F8"/><path d="M-1 -21l-4 1 4 .6z" fill="#FF9C7A"/><circle cx="-1.2" cy="-22.2" r=".5" fill="#14151F"/><circle cx="1" cy="-22.2" r=".5" fill="#14151F"/><g class="flagwave"><path d="M-3.4 -18h7l2 5-2 .6-1-3.4h-6z" fill="#E5484D"/></g><path d="M-3 -24h6l-1-4h-4z" fill="#3A3D58"/><circle cx="0" cy="-12" r=".6" fill="#3A3D58"/><circle cx="0" cy="-15" r=".6" fill="#3A3D58"/>`;
+  case "a_laternen": return `${[-5,5].map((x,i)=>`<path d="M${x} 0v-14" stroke="#5A5D78" stroke-width="1.2"/><rect x="${x-2.6}" y="-21" width="5.2" height="7" rx="1" fill="#FFD27A" stroke="#5A5D78" stroke-width=".6"/><path d="M${x-3.4} -21h6.8l-3.4-2.6z" fill="#F3F6F8"/><g class="glow" style="animation-duration:${2+i*.6}s"><circle cx="${x}" cy="-17" r="6" fill="#FFD27A" opacity=".3"/></g>`).join("")}`;
+  case "a_eisskulptur": return `<rect x="-8" y="-3" width="16" height="3" fill="#BFE0F5"/><path d="M-6 -3c0-6 3-9 7-9 3 0 5 2 5 4 0 1-1 2-2 2 2 1 3 2 3 3z" fill="#D6ECFA" stroke="#9CC8EE" stroke-width=".6"/><circle cx="-5" cy="-12" r="3" fill="#D6ECFA" stroke="#9CC8EE" stroke-width=".6"/><g class="glow" style="animation-duration:2.6s"><path d="M3 -10l1 1M-4 -14l.6.6" stroke="#F3F1EA" stroke-width="1"/></g>`;
   case "sonne": return `<g class="spin" style="animation-duration:14s"><g stroke="#FFB86B" stroke-width="2" stroke-linecap="round">${[0,45,90,135,180,225,270,315].map(a=>{const r=a*Math.PI/180;return `<path d="M${(Math.cos(r)*11).toFixed(1)} ${(-15+Math.sin(r)*11).toFixed(1)}L${(Math.cos(r)*15).toFixed(1)} ${(-15+Math.sin(r)*15).toFixed(1)}"/>`}).join("")}</g></g><circle cx="0" cy="-15" r="8" fill="#FFD27A"/><circle cx="-2.6" cy="-16" r=".9" fill="#8A5A3B"/><circle cx="2.6" cy="-16" r=".9" fill="#8A5A3B"/><path d="M-2.6 -12.6q2.6 2 5.2 0" stroke="#8A5A3B" stroke-width=".9" fill="none" stroke-linecap="round"/>`;
   case "tee": return `<ellipse cx="0" cy="-1" rx="12" ry="2.6" fill="#A4A6BD"/><path d="M-8 -14h16v4a8 8 0 0 1-16 0z" fill="#F3F1EA"/><path d="M8 -12.5h2.4a3 3 0 0 1 0 6h-3" stroke="#F3F1EA" stroke-width="1.8" fill="none"/><ellipse cx="0" cy="-14" rx="8" ry="1.6" fill="#8FBF6A"/><path d="M-3 -9l2 2 4-4" stroke="#C8F169" stroke-width="1.2" fill="none" opacity=".7"/><g stroke="#F3F1EA" stroke-width="1.5" fill="none" stroke-linecap="round"><path class="steam" d="M-3 -17q-2.4-3 0-6t0-6"/><path class="steam" style="animation-delay:.8s" d="M3 -17q-2.4-3 0-6t0-6"/><path class="steam" style="animation-delay:1.6s" d="M0 -18q-2.4-3 0-6t0-6"/></g>`;
   case "klee": return `<g class="bob" style="animation-duration:2.4s"><path d="M0 -12q2 6 -1 12" stroke="#4E9A58" stroke-width="1.6" fill="none"/><g fill="#5FB86A"><circle cx="-4" cy="-16" r="4.4"/><circle cx="4" cy="-16" r="4.4"/><circle cx="-4" cy="-8.6" r="4.4"/><circle cx="4" cy="-8.6" r="4.4"/></g><g class="glow" style="animation-duration:1.8s"><path d="M10 -24l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" fill="#FFD27A"/></g></g>`;
   case "blumen": return `<rect x="-13" y="-5" width="26" height="6" rx="2" fill="#8A5A3B"/><g class="sway" style="animation-duration:3.4s"><path d="M-8 -5v-6M-2 -5v-8M4 -5v-6M9 -5v-7" stroke="#5FA864" stroke-width="1.6"/><circle cx="-8" cy="-12" r="2.6" fill="#FF9C7A"/><circle cx="-2" cy="-14" r="2.6" fill="#FFD27A"/><circle cx="4" cy="-12" r="2.6" fill="#B6A4FF"/><circle cx="9" cy="-13" r="2.6" fill="#FF9C7A"/></g>`;
-  case "palme": return `<path d="M0 0q2-14 5-26" stroke="#8A5A3B" stroke-width="3.4" fill="none" stroke-linecap="round"/><g class="sway" style="animation-duration:4s"><path d="M5 -26q-10-4-16 2M5 -26q10-5 15 2M5 -26q-4-9-12-9M5 -26q5-9 13-8M5 -26q0 8 -3 12" stroke="#4E9A58" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="4" cy="-24" r="1.8" fill="#8A5A3B"/></g>`;
+  case "palme": return palmSvg(0,0,1,"#4E9A58");
   case "bank": return `<rect x="-12" y="-9" width="24" height="3" rx="1" fill="#B07A55"/><rect x="-12" y="-15" width="24" height="3" rx="1" fill="#B07A55"/><path d="M-10 -6v6M10 -6v6M-10 -12v6M10 -12v6" stroke="#7A5038" stroke-width="2"/>`;
   case "feuer": return `<path d="M-10 0l20-5M-10 -5l20 5" stroke="#8A5A3B" stroke-width="3" stroke-linecap="round"/><g class="flick"><path d="M0 -4c-6 0-7-6-3-11 0 3 2 3 2 3 0-6 3-9 5-12 0 6 4 8 4 12 0 5-3 8-8 8z" fill="#FFB86B"/><path d="M0 -4c-2 0-3-2-1-5 1 2 2 2 2 2 0-2 1-4 2-5 1 3 1 4 1 6s-2 2-4 2z" fill="#FFD27A"/></g><g class="glow" style="animation-duration:1.4s"><circle cx="0" cy="-10" r="12" fill="#FFB86B" opacity=".25"/></g>`;
   case "laternen": return `<path d="M0 0v-22" stroke="#7C7F99" stroke-width="2"/><rect x="-3.5" y="-28" width="7" height="8" rx="1.5" fill="#FFD27A"/><path d="M-4.5 -28h9l-4.5-3z" fill="#5F6380"/><g class="glow" style="animation-duration:2.2s"><circle cx="0" cy="-24" r="9" fill="#FFD27A"/></g>`;
@@ -2006,7 +2126,7 @@ function bind(){
   document.querySelectorAll("[data-buy]").forEach(btn=>btn.onclick=()=>{
     const it=allItems().find(x=>x.id===btn.dataset.buy), cost=price(it); if(S.points<cost) return;
     S.points-=cost;
-    if(it.consumable){if(it.id==="tee")S.tea++;else if(it.id==="klee")S.glueck=clamp(S.glueck+5,0,100);else S.sun++} else if(!owns(it.id)) S.items.push(it.id);
+    if(it.consumable){if(it.id==="tee")S.tea++;else if(it.id==="klee")S.glueck=clamp(S.glueck+5,0,100);else S.sun++} else if(!owns(it.id)){ if(!S.items.includes(it.id)) S.items.push(it.id); if(!it.world&&RARE.includes(it)){S.itemW=S.itemW||{};S.itemW[it.id]=curWorldId()} }
     sfx("buy"); log("Gekauft: "+it.n+" für "+cost+" Punkte.","good"); toast(it.n+(it.consumable?" auf Vorrat":" steht jetzt auf deiner Insel"));
     if(S.wish&&S.wish.item===it.id){const r=S.residents.find(x=>x.id===S.wish.rid);if(r){r.wishDone=true;S.glueck=clamp(S.glueck+6,0,100);chron([r.id],r.name+"s Wunsch ist erfüllt: "+it.n+".");log(r.name+"s Wunsch ist erfüllt! +6 % Glück.","good");S.pending.push({type:"wish",rid:r.id,item:it.id})}S.wish=null}
     save(); render(); showPending();
@@ -2393,7 +2513,7 @@ function importSave(file){
 function travelSheet(){
   const next=WORLDS[(S.world||0)+1]; if(!next||!((S.found||0)>(S.world||0))) return;
   modal(`${worldMapSvg()}<p class="label" style="color:var(--lime)">Weltreise</p><h2>Nach ${esc(next.name)} aufbrechen?</h2>
-    <p class="muted">${esc(next.text)} Alle Bewohner, Gegenstände und Plätze kommen mit. Die Großprojekte hier bleiben gebaut, auf der neuen Insel geht es mit neuen weiter.</p>
+    <p class="muted">${esc(next.text)} Alle Bewohner und Tiere kommen mit. Gegenstände aus dem Laden bleiben hier, auf der neuen Insel gibt es passende neue. Die Großprojekte hier bleiben gebaut, auf der neuen Insel geht es mit neuen weiter.</p>
     <div class="row"><button class="btn secondary grow" id="trNo">Noch bleiben</button><button class="btn grow" id="trYes">Aufbrechen</button></div>`);
   $("#trNo").onclick=closeModal; $("#trYes").onclick=travel;
 }
@@ -2978,7 +3098,9 @@ function famMine(){
   const f=S.family, since=f.joined||"0000", days={};
   S.days.slice(-14).forEach(d=>{days[d.day]=f.share?{g:d.min<=S.budget,m:d.min}:{g:d.min<=S.budget}});
   const good=S.days.filter(d=>d.day>=since&&d.min<=S.budget).length;
-  return {name:netName(),avatar:netAv(),joined:since,share:!!f.share,days,good,streak:S.budgetStreak,updated:Date.now()};
+  const o={name:netName(),avatar:netAv(),joined:since,share:!!f.share,days,good,streak:S.budgetStreak,updated:Date.now()};
+  if(f.look) o.look=f.look;
+  return o;
 }
 async function famSync(){
   const f=S.family; if(!f||!netConfigured()) return null;
@@ -3019,7 +3141,7 @@ function famScene(members,total,party){
   built.slice().sort((a,b)=>pos[a.id][1]-pos[b.id][1]).forEach(p=>{const q=pos[p.id];const svg=["baumhaus","floss","festzelt"].includes(p.id)?projectSvg(p.id):itemSvg(p.id);s+=`<g transform="translate(${q[0]} ${q[1]}) scale(${q[2]})">${svg}</g>`});
   const n=Math.max(1,members.length), step=Math.min(34,200/n);
   members.slice(0,12).forEach((m,i)=>{const x=180-(n-1)*step/2+i*step, y=170+(i%2)*5;
-    s+=`<g transform="translate(${x} ${y})"><g class="bob" style="animation-delay:${i*.3}s">${figure({kind:"mensch",name:m.name,id:m.id||m.name},0,0)}</g>
+    s+=`<g transform="translate(${x} ${y})"><g class="bob" style="animation-delay:${i*.3}s">${figure({kind:"mensch",name:m.name,id:m.id||m.name,look:m.look||null},0,0)}</g>
       <text y="9" text-anchor="middle" font-size="6.5" font-weight="700" fill="#14151F" font-family="Manrope, sans-serif">${esc((m.name||"").slice(0,10))}</text></g>`});
   if(party) s+=hearts(180,90)+confetti();
   return s+"</svg>";
@@ -3050,7 +3172,8 @@ async function fillFamily(){
     <div style="display:flex;flex-direction:column;gap:6px">${members.map(m=>{const d=(m.days||{})[today()];
       return `<div class="row between"><span>${esc(m.name||"?")}${m.id===S.family.mid?" (du)":""}</span><span class="small ${d?(d.g?"":"muted"):"muted"}" style="${d&&d.g?"color:var(--lime);font-weight:700":""}">${d?(d.g?"heute im Budget":"heute drüber"):"noch offen"}${d&&d.m!=null?" · "+hm(d.m):""} · ${m.good||0} gute Tage</span></div>`}).join("")}</div>
     <p class="small muted" style="text-align:center">Familien-Code: <b class="num" style="color:var(--ink);letter-spacing:.1em">${S.family.code}</b></p>
-    <button class="btn secondary" id="famInvite">Familie einladen</button>`;
+    <div class="row"><button class="btn secondary grow" id="famLook">Meine Figur anpassen</button><button class="btn secondary grow" id="famInvite">Familie einladen</button></div>`;
+  const fl=$("#famLook"); if(fl) fl.onclick=famLookSheet;
   const fi=$("#famInvite"); if(fi) fi.onclick=()=>shareText("Komm auf unsere Familieninsel „"+S.family.name+"“ in OffLand! Code: "+S.family.code,APP_URL+"?familie="+S.family.code);
 }
 function famConsent(title,after){
@@ -3081,6 +3204,19 @@ function famCreateSheet(){
       }catch(e){return "Keine Verbindung. Versuch es später noch mal."}
     });
   };
+}
+/* Eigene Figur auf der Familieninsel: Haut, Frisur, Haare, Shirt */
+function famLookSheet(){
+  const f=S.family; if(!f) return;
+  const me={kind:"mensch",name:netName(),id:f.mid,look:f.look||null}, draft=Object.assign({},lookIdx(me));
+  modal(`<p class="label" style="color:var(--lime)">Familieninsel</p><h2>Deine Figur</h2>
+    <p class="small muted">So sieht dich deine Familie auf der gemeinsamen Insel.</p>
+    ${lookEditor(me,draft)}
+    <div class="row"><button class="btn secondary grow" id="flNo">Abbrechen</button><button class="btn grow" id="flOk">Speichern</button></div>`);
+  bindLookEditor(me,draft);
+  $("#flNo").onclick=()=>{closeModal();render()};
+  $("#flOk").onclick=async()=>{f.look={skin:draft.skin,hair:draft.hair,style:draft.style,shirt:draft.shirt};save();
+    const b=$("#flOk");b.disabled=true;b.textContent="Speichere …";await famSync();closeModal();render();toast("Figur gespeichert")};
 }
 async function famJoinId(fid,name,code,share){
   const N=await netInit(), mid=rid();
