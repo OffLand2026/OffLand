@@ -1781,4 +1781,9 @@ boot();
 })();
 
 /* Offline-Unterstützung */
-if("serviceWorker" in navigator&&location.protocol!=="file:") navigator.serviceWorker.register("sw.js").catch(()=>{});
+if("serviceWorker" in navigator&&location.protocol!=="file:"){
+  navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{});
+  // Neue Version übernommen: einmal neu laden, damit sie sofort sichtbar ist
+  let reloaded=false;
+  if(navigator.serviceWorker.controller) navigator.serviceWorker.addEventListener("controllerchange",()=>{if(!reloaded){reloaded=true;location.reload()}});
+}
