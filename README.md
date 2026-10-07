@@ -26,7 +26,7 @@ Auf dem Handy kann die Seite über „Zum Home-Bildschirm“ wie eine App instal
 
 ## Speicherung
 
-Konten und Spielstände liegen im `localStorage` des Browsers, jedes Konto mit eigenem Spielstand. Die PIN wird nur als Hash gespeichert und ist eine Kindersicherung, kein Schutz gegen Zugriff auf das Gerät selbst. Über **Album → Sicherung** lässt er sich als JSON-Datei herunterladen und auf einem anderen Gerät wieder laden.
+Konten und Spielstände liegen im `localStorage` des Browsers, jedes Konto mit eigenem Spielstand. Die PIN wird nur als Hash gespeichert und ist eine Kindersicherung, kein Schutz gegen Zugriff auf das Gerät selbst. Über **Album → Sicherung** lässt sich der eigene Spielstand als JSON-Datei herunterladen und auf einem anderen Gerät wieder laden.
 
 Freund:innen-Inseln, Geschenke und die Familieninsel brauchen einen Online-Speicher und sind in dieser statischen Version deaktiviert.
 
