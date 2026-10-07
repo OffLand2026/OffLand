@@ -224,7 +224,7 @@ function migrate(st){
   if(st.points==null)st.points=0; if(!st.items)st.items=[]; if(!st.sun)st.sun=0;
   if(!st.rel)st.rel={}; if(st.conflict===undefined)st.conflict=null;
   if(!st.arrC)st.arrC=0; if(!st.birthC)st.birthC=0;
-  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true};
+  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true};
   for(const k in D){ if(st[k]===undefined) st[k]=D[k]; }
   const prevS=S; S=st;
   st.residents.forEach(r=>{if(r.born==null)r.born=0; if(r.kind==="mensch"){if(!r.trait)r.trait=pick(TRAITS).id; if(!r.job&&!r.parents)r.job=pickJob()}});
@@ -1614,6 +1614,7 @@ function viewVerlauf(){
     <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">${S.apps.map(a=>`<label class="field" for="lim_${a.id}" style="font-size:13px">${esc(a.name)} (min)<input id="lim_${a.id}" type="number" min="5" max="600" step="5" value="${a.limit}" data-lim="${a.id}"></label>`).join("")}</div>
     <label class="check" for="deathToggle"><input type="checkbox" id="deathToggle" ${S.natDeath?"checked":""}> Natürlicher Abschied im hohen Alter</label>
     <label class="check" for="vacToggle" style="margin-top:6px"><input type="checkbox" id="vacToggle" ${S.vacation?"checked":""}> Urlaubsmodus: Die Insel schläft, nichts geht verloren</label>
+    <label class="check" for="soundToggle"><input type="checkbox" id="soundToggle" ${S.sound!==false?"checked":""}> Töne und Geräusche</label>
   </div>
   <div class="card"><p class="label">Sicherung</p>
     <p class="small muted">Dein Spielstand liegt nur in diesem Browser. Lade ab und zu eine Sicherung herunter, um ihn auf ein anderes Gerät mitzunehmen.</p>
@@ -1712,6 +1713,7 @@ function bind(){
   const dt=$("#deathToggle"); if(dt) dt.onchange=()=>{S.natDeath=dt.checked;save()};
   document.querySelectorAll("[data-tea]").forEach(x=>x.onclick=()=>giveTea(x.dataset.tea));
   const vt=$("#vacToggle"); if(vt) vt.onchange=()=>setVacation(vt.checked);
+  const so=$("#soundToggle"); if(so) so.onchange=()=>{S.sound=so.checked;save();if(so.checked)sfx("return")};
   document.querySelectorAll("[data-lim]").forEach(x=>x.onchange=()=>{const a=S.apps.find(y=>y.id===x.dataset.lim);if(a){a.limit=clamp(+x.value||a.limit,5,600);save()}});
   const fj=$("#famJoin"); if(fj) fj.onclick=()=>joinFamily($("#famIn").value);
   const fl=$("#famLeave"); if(fl) fl.onclick=leaveFamily;
@@ -1725,7 +1727,7 @@ function bind(){
     const it=allItems().find(x=>x.id===btn.dataset.buy), cost=price(it); if(S.points<cost) return;
     S.points-=cost;
     if(it.consumable){if(it.id==="tee")S.tea++;else if(it.id==="klee")S.glueck=clamp(S.glueck+5,0,100);else S.sun++} else if(!owns(it.id)) S.items.push(it.id);
-    log("Gekauft: "+it.n+" für "+cost+" Punkte.","good"); toast(it.n+(it.consumable?" auf Vorrat":" steht jetzt auf deiner Insel"));
+    sfx("buy"); log("Gekauft: "+it.n+" für "+cost+" Punkte.","good"); toast(it.n+(it.consumable?" auf Vorrat":" steht jetzt auf deiner Insel"));
     if(S.wish&&S.wish.item===it.id){const r=S.residents.find(x=>x.id===S.wish.rid);if(r){r.wishDone=true;S.glueck=clamp(S.glueck+6,0,100);chron([r.id],r.name+"s Wunsch ist erfüllt: "+it.n+".");log(r.name+"s Wunsch ist erfüllt! +6 % Glück.","good");S.pending.push({type:"wish",rid:r.id,item:it.id})}S.wish=null}
     save(); render(); showPending();
   });
@@ -1738,9 +1740,92 @@ document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{tab=b.datase
 let toastT;
 function toast(t){let el=$(".toast");if(!el){el=document.createElement("div");el.className="toast";el.setAttribute("role","status");document.body.appendChild(el)}el.textContent=t;clearTimeout(toastT);toastT=setTimeout(()=>el.remove(),2600)}
 function closeModal(){$("#modalRoot").innerHTML=""}
+/* ---------- Geräusche: im Browser erzeugt (Web Audio), keine Audiodateien ---------- */
+let AC=null, NOISE=null;
+function audio(){
+  if(S&&S.sound===false) return null;
+  try{
+    if(!AC){const C=window.AudioContext||window.webkitAudioContext; if(!C) return null; AC=new C();
+      NOISE=AC.createBuffer(1,AC.sampleRate*0.6,AC.sampleRate); const d=NOISE.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;}
+    if(AC.state==="suspended") AC.resume();
+    return AC;
+  }catch(e){return null}
+}
+// iOS/Safari geben Töne erst nach einer Berührung frei
+["pointerdown","touchend","keydown"].forEach(t=>document.addEventListener(t,()=>{if(AC&&AC.state==="suspended")AC.resume();else if(!AC&&S&&S.sound!==false)audio()},{passive:true}));
+function tone(ac,f,t,dur,o){
+  o=o||{}; const osc=ac.createOscillator(), g=ac.createGain(), now=ac.currentTime+t, v=(o.vol||.18);
+  osc.type=o.type||"sine"; osc.frequency.setValueAtTime(f,now);
+  if(o.to) osc.frequency.exponentialRampToValueAtTime(o.to,now+dur);
+  if(o.vib){const l=ac.createOscillator(), lg=ac.createGain(); l.frequency.value=o.vib; lg.gain.value=f*.04; l.connect(lg).connect(osc.frequency); l.start(now); l.stop(now+dur)}
+  g.gain.setValueAtTime(0.0001,now); g.gain.exponentialRampToValueAtTime(v,now+(o.att||.015)); g.gain.exponentialRampToValueAtTime(0.0001,now+dur);
+  osc.connect(g).connect(ac.destination); osc.start(now); osc.stop(now+dur+.05);
+}
+function noise(ac,t,dur,o){
+  o=o||{}; const src=ac.createBufferSource(), f=ac.createBiquadFilter(), g=ac.createGain(), now=ac.currentTime+t;
+  src.buffer=NOISE; f.type=o.type||"bandpass"; f.frequency.value=o.freq||1200; f.Q.value=o.q||1;
+  g.gain.setValueAtTime(0.0001,now); g.gain.exponentialRampToValueAtTime(o.vol||.15,now+.02); g.gain.exponentialRampToValueAtTime(0.0001,now+dur);
+  src.connect(f).connect(g).connect(ac.destination); src.start(now); src.stop(now+dur+.05);
+}
+const N={C4:262,D4:294,E4:330,F4:349,G4:392,A4:440,B4:494,C5:523,D5:587,E5:659,F5:698,G5:784,A5:880,C6:1047,E6:1319,G6:1568,C7:2093};
+const notes=(ac,list,step,o)=>list.forEach((n,i)=>tone(ac,N[n]||n,i*step,(o&&o.len)||.35,o));
+function animalSound(ac,art){
+  switch(art){
+    case "Huhn": [0,.12,.24].forEach(t=>tone(ac,1800,t,.08,{to:2400,type:"triangle",vol:.12})); break;
+    case "Katze": tone(ac,650,0,.55,{to:480,type:"sawtooth",vol:.06,att:.08}); tone(ac,650,0,.55,{to:480,vol:.12,att:.08}); break;
+    case "Hund": [0,.22].forEach(t=>{tone(ac,260,t,.14,{to:170,type:"square",vol:.08});noise(ac,t,.1,{freq:500,vol:.08})}); break;
+    case "Ziege": case "Schaf": tone(ac,420,0,.7,{vib:18,type:"sawtooth",vol:.06,att:.04}); tone(ac,420,0,.7,{vib:18,vol:.1}); break;
+    case "Esel": tone(ac,700,0,.35,{to:820,type:"sawtooth",vol:.06}); tone(ac,330,.38,.45,{to:260,type:"sawtooth",vol:.07}); break;
+    case "Meerschweinchen": [0,.1,.2,.3].forEach(t=>tone(ac,1500,t,.07,{to:1900,vol:.1})); break;
+    case "Hase": noise(ac,0,.08,{freq:3000,vol:.06}); noise(ac,.14,.08,{freq:3000,vol:.06}); tone(ac,900,.3,.12,{to:1200,vol:.08}); break;
+    case "Robbe": [0,.25,.5].forEach(t=>tone(ac,380,t,.18,{to:300,type:"sawtooth",vol:.06})); break;
+    case "Delfin": [0,.07,.14].forEach(t=>noise(ac,t,.03,{freq:5000,q:6,vol:.12})); tone(ac,1400,.25,.5,{to:2600,vol:.1}); break;
+    case "Wal": tone(ac,110,0,1.6,{to:180,vol:.18,att:.3}); tone(ac,220,0,1.6,{to:300,vol:.05,att:.3}); break;
+    default: notes(ac,["E5","G5"],.12,{type:"triangle"});
+  }
+}
+function sfx(kind,arg){
+  const ac=audio(); if(!ac) return;
+  switch(kind){
+    case "buy": tone(ac,988,0,.09,{type:"square",vol:.07}); tone(ac,1319,.08,.3,{type:"square",vol:.07}); break;
+    case "human": notes(ac,["C5","E5","G5","C6"],.1,{type:"triangle",len:.3}); break;
+    case "animal": animalSound(ac,arg); break;
+    case "birth": notes(ac,["C6","E6","G6","C7"],.14,{len:.6,vol:.1}); break;
+    case "postcard": tone(ac,N.A5,0,.6,{vol:.15}); tone(ac,N.E5,.22,.8,{vol:.15}); noise(ac,0,.15,{type:"highpass",freq:4000,vol:.04}); break;
+    case "project": notes(ac,["C5","E5","G5"],.12,{type:"square",vol:.06,len:.2}); [N.C5,N.E5,N.G5,N.C6].forEach(f=>tone(ac,f,.38,1.1,{type:"triangle",vol:.08})); break;
+    case "sick": tone(ac,300,0,.35,{to:620,vol:.12,att:.2}); noise(ac,.38,.25,{freq:2500,q:.7,vol:.22}); break;
+    case "warn": notes(ac,["E4","C4","E4","C4"],.22,{type:"triangle",len:.2,vol:.13}); break;
+    case "left": notes(ac,["G4","E4","D4","C4"],.3,{len:.5,vol:.13}); break;
+    case "return": notes(ac,["C4","E4","G4","C5","E5"],.11,{type:"triangle",len:.35}); break;
+    case "conflict": tone(ac,220,0,.4,{type:"sawtooth",vol:.06}); tone(ac,233,0,.4,{type:"sawtooth",vol:.06}); tone(ac,196,.42,.35,{type:"sawtooth",vol:.06}); break;
+    case "resolve": notes(ac,["F4","A4","C5"],.08,{len:.6,vol:.1}); break;
+    case "thud": tone(ac,140,0,.4,{to:70,vol:.2}); break;
+    case "love": notes(ac,["E6","C6"],.16,{len:.25,vol:.1}); notes(ac,["E6","G6"],.16,{len:.35,vol:.08}); break;
+    case "sparkle": ["C6","E6","G6","C7","G6"].forEach((n,i)=>tone(ac,N[n],i*.06,.25,{vol:.07})); break;
+    case "aurora": [N.C5,N.G5,N.E6].forEach((f,i)=>tone(ac,f,i*.2,2,{vol:.05,att:.6,vib:3})); break;
+    case "birds": [0,.15,.35,.45,.7].forEach(t=>tone(ac,2400+Math.random()*800,t,.1,{to:3200,vol:.06})); break;
+    case "horn": tone(ac,147,0,.9,{type:"sawtooth",vol:.07,att:.08}); tone(ac,220,0,.9,{type:"triangle",vol:.06,att:.08}); break;
+    case "fest": notes(ac,["G4","C5","E5","G5","E5","G5","C6"],.09,{type:"square",vol:.05,len:.18}); noise(ac,.65,.4,{type:"highpass",freq:5000,vol:.05}); break;
+    case "goodday": notes(ac,["G5","C6"],.14,{len:.5,vol:.1}); break;
+    case "badday": [0,.2,.45].forEach(t=>noise(ac,t,.3,{type:"lowpass",freq:900,vol:.06})); notes(ac,["E4","C4"],.25,{len:.5,vol:.08}); break;
+    case "farewell": notes(ac,["C5","G4","E4","C4"],.45,{len:1,vol:.09}); break;
+    case "boat": tone(ac,165,0,.8,{type:"sawtooth",vol:.06,att:.06}); noise(ac,.6,.6,{type:"lowpass",freq:700,vol:.12}); break;
+  }
+}
+function soundFor(ev){
+  try{
+    const r=ev.id?S.residents.find(x=>x.id===ev.id):null;
+    const map={arrival:r&&r.kind==="tier"?["animal",r.art]:["human"],birth:["birth"],postcard:["postcard"],project:["project"],sick:["sick"],warn:["warn"],left:["left"],
+      return:["return"],reunion:["return"],conflict:["conflict"],conflictResult:[ev.ok?"resolve":"thud"],love:["love"],strandgut:["sparkle"],wish:["sparkle"],gift:["sparkle"],
+      kapsel:["sparkle"],fest:["fest"],farewell:["farewell"],boat:["boat"],welcome:["return"],
+      visitor:[ev.kind==="aurora"?"aurora":ev.kind==="birds"?"birds":"horn"],day:[ev.min<=S.budget?"goodday":"badday"]};
+    const m=map[ev.type]; if(m) sfx(m[0],m[1]);
+  }catch(e){}
+}
 function showPending(){
   if($("#modalRoot").innerHTML) return;
   const ev=S.pending.shift(); if(!ev){return}
+  soundFor(ev);
   save();
   if(ev.type==="arrival"||ev.type==="birth"||ev.type==="rename") return nameSheet(ev);
   const scene=`<div class="anim">${animScene(ev)}</div>`;
