@@ -1887,10 +1887,11 @@ function render(){
   $("#accBtn").innerHTML=ACC?avatarSvg(ACC.avatar,40):"";
   $("#dateline").textContent="OffLand · "+new Date().toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"});
   document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-current",b.dataset.tab===tab?"page":"false"));
-  const v=!S.setup?viewSetup():tab==="heute"?viewHeute():tab==="bewohner"?viewBewohner():tab==="zeit"?viewZeit():tab==="projekt"?viewProjekt():viewVerlauf();
+  const v=!S.setup?viewSetup():tab==="heute"?viewHeute():tab==="bewohner"?viewBewohner():tab==="zeit"?viewZeit():tab==="projekt"?viewProjekt():tab==="freunde"?viewFreunde():viewVerlauf();
   $("#view").innerHTML=`<div style="display:flex;flex-direction:column;gap:12px">${v}</div>`;
   bind();
   renderFocus();
+  if(tab==="freunde"&&$("#rankBox")) fillRanks();
 }
 function bind(){
   const sb=$("#setBudget"), sa=$("#setBase");
@@ -1901,6 +1902,12 @@ function bind(){
   const sh=$("#shareBtn"); if(sh) sh.onclick=shareSheet;
   const fb=$("#friendsBtn"); if(fb) fb.onclick=friendsSheet;
   const rb=$("#rankBtn"); if(rb) rb.onclick=rankSheet;
+  const go=$("#goOnline"); if(go) go.onclick=()=>onlineConsent(()=>{closeModal();RANKC=null;tab="freunde";render()});
+  document.querySelectorAll("[data-rk]").forEach(b=>b.onclick=()=>{rankTab=b.dataset.rk;render()});
+  const ra=$("#rkAdd"); if(ra) ra.onclick=async()=>{ra.disabled=true;ra.textContent="Suche …";const e=await addFriend($("#rkCode").value,false);
+    if(!document.body.contains(ra)) return;
+    ra.disabled=false;ra.textContent="Hinzufügen";
+    if(e) return $("#rkErr").textContent=e; sfx("project"); toast("Verbunden! Ein Monat Plus ist aktiv."); rankTab="freunde"; RANKC=null; render()};
   const on=$("#netToggle"); if(on) on.onchange=async()=>{if(on.checked){on.checked=false;onlineConsent(()=>{closeModal();render();toast("Du bist online!")})}else{on.disabled=true;await netDeleteAll();toast("Online-Daten gelöscht");render()}};
   const pb=$("#netPub"); if(pb) pb.onchange=()=>{S.online.pub=pb.checked;save();netSync()};
   const ia=$("#inviteAccept"); if(ia) ia.onclick=inviteSheet;
@@ -2375,12 +2382,13 @@ async function shareText(text,url){
   return false;
 }
 function buddyRows(){
-  return S.buddies.map(b=>`<div><div class="row between"><b class="num">${esc(b.code)}</b><span class="small ${b.reward?"":"muted"}" style="${b.reward?"color:var(--lime);font-weight:700":""}">${b.reward?"geschafft ✓":Math.min(b.done,GOAL_DAYS)+" / "+GOAL_DAYS+" gute Tage"}</span></div>
+  return S.buddies.map(b=>`<div><div class="row between"><b class="${b.name?"":"num"}">${esc(b.name||b.code)}</b><span class="small ${b.reward?"":"muted"}" style="${b.reward?"color:var(--lime);font-weight:700":""}">${b.reward?"geschafft ✓":Math.min(b.done,GOAL_DAYS)+" / "+GOAL_DAYS+" gute Tage"}</span></div>
     <div class="bar"><i style="width:${Math.min(100,b.done/GOAL_DAYS*100)}%"></i></div></div>`).join("");
 }
 function friendsCard(){
   if(!S.setup) return "";
   const inv=pendingInvite();
+  if(!inv) return "";
   return `<div class="card"${inv?' style="border:1.5px solid var(--lime)"':""}>
     <div class="row between"><p class="label">Gemeinsam</p>${plusActive()?`<span class="chip" style="color:var(--amber)">★ Plus</span>`:""}</div>
     ${inv?`<p><b>Du wurdest eingeladen!</b> Nimm die Einladung von <b class="num">${esc(inv)}</b> an: Ihr bekommt beide einen Monat Plus und ein gemeinsames Ziel.</p><button class="btn" id="inviteAccept">Einladung annehmen</button>`:""}
@@ -2589,47 +2597,84 @@ function rankRow(r,i,me){
     <b class="num small" style="text-align:right">${v}</b></div>`;
 }
 const byAvg=(a,b)=>(a.avg==null)-(b.avg==null)||(a.avg-b.avg)||((b.good||0)-(a.good||0));
-async function rankSheet(){
-  if(!netConfigured()) return friendsSheet();
-  if(!netOn()) return onlineConsent();
-  const wk=isoWeek(today()), me=S.online.pid;
-  const head=`<div class="row between"><div><p class="label" style="color:var(--lime)">Diese Woche</p><h2>Ranglisten</h2></div><button class="iconbtn" id="rkClose" aria-label="Schließen"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F3F1EA" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-    <div class="row" role="tablist"><button class="btn ${rankTab==="freunde"?"":"secondary"} grow" data-rk="freunde" role="tab" aria-selected="${rankTab==="freunde"}">Freunde</button><button class="btn ${rankTab==="alle"?"":"secondary"} grow" data-rk="alle" role="tab" aria-selected="${rankTab==="alle"}">Alle</button></div>`;
-  modal(head+`<p class="muted">Lade …</p>`);
-  let body="";
-  try{
-    await netSync(); const N=await netInit();
-    if(rankTab==="freunde"){
-      const fr=await N.list("players/"+me+"/friends");
-      const rows=(await Promise.all([me].concat(fr.map(f=>f.id)).map(async id=>{
-        const r=await N.get("weeks/"+wk+"/ranks/"+id).catch(()=>null);
-        if(r) return Object.assign({id},r);
-        const p=await N.get("players/"+id).catch(()=>null); return p?{id,name:p.name,avatar:p.avatar,world:p.world,avg:null,good:0}:null;
-      }))).filter(Boolean).sort(byAvg);
-      body=(fr.length?"":`<p class="small muted">Noch keine Freund:innen online. Füg jemanden mit dem Code hinzu oder schick eine Einladung.</p>`)+
-        `<div style="display:flex;flex-direction:column;gap:4px">${rows.map((r,i)=>rankRow(r,i,r.id===me)).join("")}</div>`+
-        (fr.length?`<details><summary class="small muted" style="cursor:pointer;min-height:44px;display:flex;align-items:center">Freund:innen verwalten</summary>${rows.filter(r=>r.id!==me).map(r=>`<div class="row between"><span>${esc(r.name||"?")}</span><button class="btn ghost" style="width:auto;padding:0 12px" data-unfriend="${r.id}">Entfernen</button></div>`).join("")}</details>`:"");
-    } else {
-      const all=(await N.list("weeks/"+wk+"/public",{orderBy:"avg",limit:100})).filter(r=>(r.days||0)>=3||r.id===me);
-      const mine=all.findIndex(r=>r.id===me);
-      body=`<p class="small muted">Wer diese Woche im Schnitt am wenigsten am Handy war (ab 3 eingetragenen Tagen).</p>
-        <div style="display:flex;flex-direction:column;gap:4px">${all.slice(0,50).map((r,i)=>rankRow(r,i,r.id===me)).join("")||`<p class="small muted">Noch niemand diese Woche.</p>`}</div>
-        ${mine>=50?rankRow(all[mine],mine,true):""}
-        ${S.online.pub?"":`<p class="small muted">Du erscheinst hier nicht. Das kannst du in den Einstellungen ändern.</p>`}`;
-    }
-  }catch(e){body=`<p class="err">Keine Verbindung zum Online-Speicher. Versuch es später noch mal.</p>`}
-  modal(head+body+`<label class="field" for="rkCode">Freund:in per Code hinzufügen<input id="rkCode" type="text" maxlength="7" autocomplete="off" autocapitalize="characters" placeholder="z. B. K7M2QX" style="text-transform:uppercase;letter-spacing:.12em"></label>
-    <p class="err" id="rkErr" role="alert"></p>
-    <div class="row"><button class="btn secondary grow" id="rkAdd">Hinzufügen</button><button class="btn secondary grow" id="rkInvite">Einladen</button></div>
-    <p class="small muted" style="text-align:center">Dein Code: <b class="num" style="color:var(--ink);letter-spacing:.1em">${myCode()}</b></p>`);
-  $("#rkClose").onclick=()=>{closeModal();render()};
-  document.querySelectorAll("[data-rk]").forEach(b=>b.onclick=()=>{rankTab=b.dataset.rk;rankSheet()});
-  document.querySelectorAll("[data-unfriend]").forEach(b=>b.onclick=async()=>{b.disabled=true;await netRemove(b.dataset.unfriend);S.buddies=S.buddies.filter(x=>x.pid!==b.dataset.unfriend);save();rankSheet()});
-  $("#rkInvite").onclick=friendsSheet;
-  $("#rkAdd").onclick=async()=>{const btn=$("#rkAdd");btn.disabled=true;btn.textContent="Suche …";const e=await addFriend($("#rkCode").value,false);
-    if(!document.body.contains(btn)) return;                                    // Fenster inzwischen geschlossen
-    btn.disabled=false;btn.textContent="Hinzufügen";
-    if(e) return $("#rkErr").textContent=e; sfx("project"); toast("Verbunden! Ein Monat Plus ist aktiv."); rankTab="freunde"; rankSheet()};
+function rankSheet(){closeModal();tab="freunde";render();window.scrollTo(0,0)}
+const TROPHY='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8M10 17h4v3h-4z"/></svg>';
+/* Tab „Freunde“: Vorschau, Ranglisten, Freunde hinzufügen, gemeinsame Ziele */
+function viewFreunde(){
+  const inv=pendingInvite();
+  let h=inv?friendsCardInvite(inv):"";
+  if(!netConfigured()||!netOn()){
+    h+=`<div class="card" style="align-items:center;text-align:center">
+      <div style="width:64px;height:64px;border-radius:32px;background:#26233D;color:var(--amber);display:flex;align-items:center;justify-content:center"><span style="width:34px;height:34px;display:block">${TROPHY}</span></div>
+      <h2>Freunde und Ranglisten</h2>
+      <p class="muted">Vergleicht euch jede Woche: Wer war am wenigsten am Handy? Ladet euch gegenseitig ein, dann bekommt ihr beide einen Monat Plus und ein gemeinsames Ziel.</p>
+      ${netConfigured()?`<button class="btn" id="goOnline" style="align-self:stretch">Mitmachen</button>`:`<p class="small muted">Ranglisten sind in dieser Version noch nicht verfügbar.</p>`}
+    </div>`;
+  } else {
+    h+=`<div class="card goal" id="rankHero"><p class="label" style="color:var(--lime)">Diese Woche</p><p class="muted">Lade Rangliste …</p></div>
+    <div class="card">
+      <div class="row" role="tablist"><button class="btn ${rankTab==="freunde"?"":"secondary"} grow" data-rk="freunde" role="tab" aria-selected="${rankTab==="freunde"}">Freunde</button><button class="btn ${rankTab==="alle"?"":"secondary"} grow" data-rk="alle" role="tab" aria-selected="${rankTab==="alle"}">Alle</button></div>
+      <div id="rankBox"><p class="small muted">Lade …</p></div>
+    </div>
+    <div class="card"><p class="label">Freund:in hinzufügen</p>
+      <label class="field" for="rkCode">Code eingeben<input id="rkCode" type="text" maxlength="7" autocomplete="off" autocapitalize="characters" placeholder="z. B. K7M2QX" style="text-transform:uppercase;letter-spacing:.12em"></label>
+      <p class="err" id="rkErr" role="alert"></p>
+      <button class="btn secondary" id="rkAdd">Hinzufügen</button>
+      <p class="small muted" style="text-align:center">Dein Code: <b class="num" style="color:var(--ink);letter-spacing:.1em">${myCode()}</b></p>
+    </div>`;
+  }
+  h+=`<div class="card"><div class="row between"><p class="label">Gemeinsame Ziele</p>${plusActive()?`<span class="chip" style="color:var(--amber)">★ Plus bis ${nice(S.plus.until)}</span>`:""}</div>
+    ${S.buddies.length?`<p class="small muted">Je ${GOAL_DAYS} Tage im Budget, dann gibt es +150 Punkte. Jede Seite zählt ihre eigenen Tage.</p>${buddyRows(true)}`
+      :`<p class="small muted">Noch keine. Lade jemanden ein: Ihr bekommt beide einen Monat OffLand Plus und ein gemeinsames Ziel von ${GOAL_DAYS} guten Tagen.</p>`}
+    <div class="row"><button class="btn secondary grow" id="shareBtn">Insel teilen</button><button class="btn grow" id="friendsBtn">Einladen</button></div>
+  </div>`;
+  return h;
+}
+function friendsCardInvite(inv){
+  return `<div class="card" style="border:1.5px solid var(--lime)"><p class="label" style="color:var(--lime)">Einladung</p>
+    <p><b>Du wurdest eingeladen!</b> Nimm die Einladung von <b class="num">${esc(inv)}</b> an: Ihr bekommt beide einen Monat Plus und ein gemeinsames Ziel.</p><button class="btn" id="inviteAccept">Einladung annehmen</button></div>`;
+}
+/* Ranglisten laden (kurz zwischengespeichert, damit nicht jedes Neuzeichnen lädt) */
+let RANKC=null;
+async function loadRanks(force){
+  const wk=isoWeek(today()), me=S.online.pid, key=me+wk;
+  if(!force&&RANKC&&RANKC.key===key&&Date.now()-RANKC.at<60000&&(rankTab!=="alle"||RANKC.all)) return RANKC;
+  await netSync(); const N=await netInit();
+  const fr=await N.list("players/"+me+"/friends");
+  const friends=(await Promise.all([me].concat(fr.map(f=>f.id)).map(async id=>{
+    const r=await N.get("weeks/"+wk+"/ranks/"+id).catch(()=>null);
+    if(r) return Object.assign({id},r);
+    const p=await N.get("players/"+id).catch(()=>null); return p?{id,name:p.name,avatar:p.avatar,world:p.world,avg:null,good:0}:null;
+  }))).filter(Boolean).sort(byAvg);
+  let all=RANKC&&RANKC.key===key&&!force?RANKC.all:null;
+  if(rankTab==="alle"||S.online.pub) all=(await N.list("weeks/"+wk+"/public",{orderBy:"avg",limit:100})).filter(r=>(r.days||0)>=3||r.id===me);
+  return RANKC={key,at:Date.now(),friends,all,nFriends:fr.length};
+}
+async function fillRanks(force){
+  const box=$("#rankBox"); if(!box) return;
+  let R; try{R=await loadRanks(force)}catch(e){if($("#rankBox")) $("#rankBox").innerHTML=`<p class="err">Keine Verbindung zum Online-Speicher. Versuch es später noch mal.</p>`;return}
+  if(!$("#rankBox")||tab!=="freunde") return;                                  // inzwischen woanders
+  const me=S.online.pid, fi=R.friends.findIndex(r=>r.id===me), mine=R.friends[fi]||{};
+  const ai=R.all?R.all.findIndex(r=>r.id===me):-1;
+  // Vorschau oben
+  $("#rankHero").innerHTML=`<p class="label" style="color:var(--lime)">Diese Woche</p>
+    ${R.nFriends?`<p class="goal-num num" style="color:${fi===0?"var(--amber)":"var(--ink)"}">Platz ${fi+1} <span class="muted" style="font-size:.5em">von ${R.friends.length}</span></p>
+      <p class="small muted">unter deinen Freund:innen${fi===0?" · du führst!":R.friends[fi-1]&&mine.avg!=null&&R.friends[fi-1].avg!=null?" · noch "+hm(mine.avg-R.friends[fi-1].avg+1)+" pro Tag bis Platz "+fi:""}</p>`
+    :`<p class="goal-num num">${mine.avg!=null?hm(mine.avg):"–"}</p><p class="small muted">${mine.avg!=null?"im Schnitt pro Tag. Lade Freund:innen ein, um euch zu vergleichen.":"Trag deinen ersten Tag ein, dann geht's los."}</p>`}
+    ${S.online.pub&&ai>=0?`<p class="small"><b>Platz ${ai+1}</b> <span class="muted">in der Rangliste für alle</span></p>`:""}`;
+  // Liste
+  if(rankTab==="freunde"){
+    box.innerHTML=(R.nFriends?"":`<p class="small muted">Noch keine Freund:innen online. Füg jemanden mit dem Code hinzu oder schick eine Einladung.</p>`)+
+      `<div style="display:flex;flex-direction:column;gap:4px">${R.friends.map((r,i)=>rankRow(r,i,r.id===me)).join("")}</div>`+
+      (R.nFriends?`<details><summary class="small muted" style="cursor:pointer;min-height:44px;display:flex;align-items:center">Freund:innen verwalten</summary>${R.friends.filter(r=>r.id!==me).map(r=>`<div class="row between"><span>${esc(r.name||"?")}</span><button class="btn ghost" style="width:auto;padding:0 12px" data-unfriend="${r.id}">Entfernen</button></div>`).join("")}</details>`:"");
+  } else {
+    const all=R.all||[];
+    box.innerHTML=`<p class="small muted">Wer diese Woche im Schnitt am wenigsten am Handy war (ab 3 eingetragenen Tagen).</p>
+      <div style="display:flex;flex-direction:column;gap:4px">${all.slice(0,50).map((r,i)=>rankRow(r,i,r.id===me)).join("")||`<p class="small muted">Noch niemand diese Woche.</p>`}</div>
+      ${ai>=50?rankRow(all[ai],ai,true):""}
+      ${S.online.pub?"":`<p class="small muted">Du erscheinst hier nicht. Das kannst du in den Einstellungen ändern.</p>`}`;
+  }
+  document.querySelectorAll("[data-unfriend]").forEach(b=>b.onclick=async()=>{b.disabled=true;await netRemove(b.dataset.unfriend);S.buddies=S.buddies.filter(x=>x.pid!==b.dataset.unfriend);save();RANKC=null;render()});
 }
 
 /* ---------- Insel teilen: Story-Bild 1080 × 1920 ---------- */
