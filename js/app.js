@@ -317,10 +317,14 @@ function familyOf(r){
   S.residents.forEach(x=>{if(x.parents&&x.parents.some(p=>ids.has(p))) ids.add(x.id)});
   return S.residents.filter(x=>ids.has(x.id)&&x.status==="da");
 }
+/* Namen natürlich aufzählen: "Mia", "Mia und Ben", "Mia, Ben und Ole" */
+function nameList(names){return names.length<2?(names[0]||""):names.slice(0,-1).join(", ")+" und "+names[names.length-1]}
+/* Verb passend zur Anzahl: eine Person → Einzahl, mehrere → Mehrzahl */
+const vb=(g,one,many)=>g.length===1?one:many;
 function groupName(g){
   if(g.length===1) return g[0].name;
-  if(g[0].kind==="tier") return g.map(x=>x.name).join(", ")+" ("+(g.length>1?PLURAL[g[0].art]||g[0].art:g[0].art)+")";
-  return "Familie von "+g.map(x=>x.name).join(", ");
+  const n=nameList(g.map(x=>x.name));
+  return g[0].kind==="tier"?n+" ("+(PLURAL[g[0].art]||g[0].art)+")":n;
 }
 
 /* ---------- Zusammenleben: Beziehungen, Berufe, Streit, Liebe ---------- */
@@ -808,7 +812,7 @@ function closeDay(min,quests,appMin){
   // Streaks
   if(S.glueck>=80){S.happyStreak++}else S.happyStreak=0;
   if(S.glueck<40){S.unhappyStreak++}else{
-    if(S.warn){log(groupName(S.warn.ids.map(id=>S.residents.find(r=>r.id===id)).filter(Boolean))+" packen die Koffer wieder aus. Sie bleiben!","good");S.warn=null}
+    if(S.warn){const wg=S.warn.ids.map(id=>S.residents.find(r=>r.id===id)).filter(Boolean);log(groupName(wg)+vb(wg," packt die Koffer wieder aus und bleibt!"," packen die Koffer wieder aus und bleiben!"),"good");S.warn=null}
     S.unhappyStreak=0;
   }
 
@@ -825,7 +829,7 @@ function closeDay(min,quests,appMin){
     const cands=here(); if(cands.length){
       const g=familyOf(pick(cands));
       S.warn={ids:g.map(x=>x.id),deadline:addDays(day,2+(jobOn("aerztin")?1:0)+(owns("brunnen")?1:0))};
-      log(groupName(g)+" packen die Koffer. Noch 2 Tage, dann ziehen sie weg.","bad");
+      log(groupName(g)+vb(g," packt die Koffer. Noch 2 Tage bis zum Wegzug."," packen die Koffer. Noch 2 Tage bis zum Wegzug."),"bad");
       S.pending.push({type:"warn",ids:g.map(x=>x.id)});
     }
   }
@@ -833,8 +837,8 @@ function closeDay(min,quests,appMin){
     const g=S.warn.ids.map(id=>S.residents.find(r=>r.id===id)).filter(r=>r&&r.status==="da");
     g.forEach(r=>{r.status="weg";r.ret=0});
     if(g.length){
-      log(groupName(g)+" sind auf die Möweninsel gezogen. Sie schreiben: „Wenn es wieder 5 gute Tage gibt, kommen wir zurück.“","bad");
-      chron(g.map(r=>r.id),groupName(g)+" sind weggezogen.");
+      log(groupName(g)+vb(g," ist auf die Möweninsel gezogen und schreibt: „Wenn es wieder 5 gute Tage gibt, komme ich zurück.“"," sind auf die Möweninsel gezogen und schreiben: „Wenn es wieder 5 gute Tage gibt, kommen wir zurück.“"),"bad");
+      chron(g.map(r=>r.id),groupName(g)+vb(g," ist weggezogen."," sind weggezogen."));
       S.pending.push({type:"left",ids:g.map(x=>x.id)});
     }
     S.warn=null;
@@ -848,8 +852,8 @@ function closeDay(min,quests,appMin){
     const back=gone.filter(r=>r.ret>=5);
     if(back.length&&here().length+back.length<=capacity()){
       back.forEach(r=>{r.status="da";r.ret=0});
-      log(back.map(r=>r.name).join(", ")+" sind zurückgekommen!","good");
-      chron(back.map(r=>r.id),back.map(r=>r.name).join(" & ")+" sind von der Möweninsel zurückgekehrt.");
+      log(nameList(back.map(r=>r.name))+vb(back," ist zurückgekommen!"," sind zurückgekommen!"),"good");
+      chron(back.map(r=>r.id),nameList(back.map(r=>r.name))+vb(back," ist von der Möweninsel zurückgekehrt."," sind von der Möweninsel zurückgekehrt."));
       S.pending.push({type:"return",ids:back.map(x=>x.id)});
       const ids=new Set(back.map(r=>r.id));
       here().filter(pt=>pt.owner&&ids.has(pt.owner)&&pt.kind==="tier").forEach(pt=>S.pending.push({type:"reunion",pet:pt.id,owner:pt.owner}));
@@ -1108,7 +1112,8 @@ function animScene(ev){
   return "";
 }
 function makeCard(g,hint){
-  const names=g.map(r=>r.name).join(" & ");
+  const names=nameList(g.map(r=>r.name)), one=g.length===1;
+  const w=(a,b)=>one?a:b;
   const animals=g.length&&g[0].kind==="tier";
   const left=g.length?Math.max(1,5-g[0].ret):5;
   const have=new Set(S.postcards.map(c=>c.motif));
@@ -1118,13 +1123,13 @@ function makeCard(g,hint){
   let text;
   if(animals){
     const snd=SOUND[g[0].art]||"";
-    text=hint?`${snd} ${snd} Wir haben gehört, dass es bei dir wieder schön ist. Noch ${left} gute Tage! – ${names}`
-             :`${snd} Wir sind jetzt hier: ${place}. Ganz nett, aber wir vermissen dich. Nach 5 guten Tagen kommen wir zurück. – ${names}`;
+    text=hint?`${snd} ${snd} ${w("Ich habe","Wir haben")} gehört, dass es bei dir wieder schön ist. Noch ${left} gute Tage! – ${names}`
+             :`${snd} ${w("Ich bin","Wir sind")} jetzt hier: ${place}. Ganz nett, aber ${w("ich vermisse","wir vermissen")} dich. Nach 5 guten Tagen ${w("komme ich","kommen wir")} zurück. – ${names}`;
   } else {
-    text=hint?pick([`Moin! Wir hören, dass es auf der Insel wieder aufwärts geht. Noch ${left} gute Tage, dann packen wir die Koffer. ${names}`,
-                    `Hier reden alle von deiner Insel! Noch ${left} gute Tage und wir sind wieder da. ${names}`])
-             :pick([`Gut angekommen: ${place}. Schön hier, aber wir vermissen den Steg und die Abende am Feuer. Nach 5 guten Tagen kommen wir zurück. ${names}`,
-                    `Die Aussicht ist toll, aber Zuhause ist woanders. 5 gute Tage auf deiner Insel, dann sind wir wieder bei dir. ${names}`]);
+    text=hint?pick([`Moin! ${w("Ich höre","Wir hören")}, dass es auf der Insel wieder aufwärts geht. Noch ${left} gute Tage, dann ${w("packe ich","packen wir")} die Koffer. ${names}`,
+                    `Hier reden alle von deiner Insel! Noch ${left} gute Tage und ${w("ich bin","wir sind")} wieder da. ${names}`])
+             :pick([`Gut angekommen: ${place}. Schön hier, aber ${w("ich vermisse","wir vermissen")} den Steg und die Abende am Feuer. Nach 5 guten Tagen ${w("komme ich","kommen wir")} zurück. ${names}`,
+                    `Die Aussicht ist toll, aber Zuhause ist woanders. 5 gute Tage auf deiner Insel, dann ${w("bin ich","sind wir")} wieder bei dir. ${names}`]);
   }
   const card={id:uid(),day:S.lastDay,motif:motif.id,text,animal:animals?g[0].art:null,hint:!!hint};
   S.postcards.push(card); return card;
@@ -1190,7 +1195,7 @@ function viewHeute(){
     <div class="stat"><span class="label">Punkte</span><b class="num" style="color:var(--lilac)">${S.points}</b><span class="small muted">${S.sun?S.sun+"× Sonne":"zum Bauen"}</span></div>
   </div>
   ${S.vacation?`<div class="card" style="border:1.5px solid var(--lilac)"><p class="label" style="color:var(--lilac)">Urlaubsmodus</p><p>${guard?`<b>${esc(guard.name)}</b> hütet die Insel, bis du zurück bist.`:"Die Insel schläft, bis du zurück bist."} Das Glück sinkt in der Zeit nicht.</p><button class="btn secondary" id="vacOff">Ich bin zurück</button></div>`:""}
-  ${warn?`<div class="card warn"><p class="label" style="color:var(--amber)">Wegzug droht</p><p><b>${esc(groupName(warn))}</b> packen die Koffer. Bring das Inselglück bis ${nice(S.warn.deadline)} über 40 %, dann bleiben sie.</p></div>`:""}
+  ${warn?`<div class="card warn"><p class="label" style="color:var(--amber)">Wegzug droht</p><p><b>${esc(groupName(warn))}</b> ${vb(warn,"packt","packen")} die Koffer. Bring das Inselglück bis ${nice(S.warn.deadline)} über 40 %, dann ${vb(warn,"bleibt "+esc(warn[0].name),"bleiben alle")}.</p></div>`:""}
   ${wh.length?`<div class="card"><p class="label">Inselgeflüster</p>${wh.map(w=>`<div class="row" style="align-items:flex-start"><div class="avatar" style="background:${w.r.kind==="mensch"?"#26233D":"#22301F"}"><svg width="40" height="40" viewBox="-13 -24 26 27" aria-hidden="true">${figure(w.r,0,0)}</svg></div><div class="grow" style="background:var(--ground);border-radius:4px 16px 16px 16px;padding:10px 12px"><p class="small" style="font-weight:700;color:var(--lilac)">${esc(w.r.name)}${w.r.job?" · "+esc(jobName(w.r.job)):""}</p><p>${esc(w.t)}</p></div></div>`).join("")}</div>`:""}
   ${S.wish&&wisher?`<div class="card"><div class="row"><div class="badge" style="background:#26233D"><svg width="36" height="30" viewBox="-20 -34 40 38" aria-hidden="true">${itemSvg(S.wish.item)}</svg></div><div class="grow"><p class="label">Wunsch</p><p><b>${esc(wisher.name)}</b> wünscht sich: ${esc(itemName(S.wish.item))}</p><p class="small muted">Erfüllst du ihn im Laden, strahlt ${esc(wisher.name)} und bringt dir jeden Tag +3 Punkte.</p></div></div></div>`:""}
   ${mons.length?`<div class="card" style="border:1.5px solid #9B6BD6"><p class="label" style="color:#C8A8FF">App-Monster vor der Insel</p>${mons.map(a=>`<div class="row"><svg width="48" height="40" viewBox="-24 -34 48 40" aria-hidden="true">${monsterSvg(a.m)}</svg><p class="grow">${esc(monName(a,false))}: ${esc(a.name)} lag gestern über ${hm(a.limit)}. Es verscheucht die Fische und kostet Glück.</p></div>`).join("")}<p class="small muted">Bleib heute bei diesen Apps unter dem Limit, dann tauchen sie wieder ab.</p></div>`:""}
@@ -1533,7 +1538,7 @@ function bind(){
   if(sb) sb.oninput=()=>{S.budget=+sb.value;$("#setBudgetOut").textContent=hm(S.budget)};
   if(sa) sa.oninput=()=>{S.baseline=+sa.value;$("#setBaseOut").textContent=hm(S.baseline)};
   if(sb) sb.onchange=save; if(sa) sa.onchange=save;
-  const st=$("#startBtn"); if(st) st.onclick=()=>{S.setup=true;log("Deine Insel ist gegründet. "+here().map(r=>r.name).join(", ")+" ziehen ein.","good");save();render()};
+  const st=$("#startBtn"); if(st) st.onclick=()=>{S.setup=true;log("Deine Insel ist gegründet. "+nameList(here().map(r=>r.name))+" ziehen ein.","good");save();render()};
   const gg=$("#goalGo"); if(gg) gg.onclick=()=>{const c=$("#closeCard");if(c)c.scrollIntoView({behavior:"smooth",block:"start"});setTimeout(()=>{const h=$("#inH");if(h)h.focus({preventScroll:true})},450)};
   ["#inH","#inM"].forEach(id=>{const el=$(id);if(el)el.oninput=liveUpdate}); liveUpdate();
   const cb=$("#closeBtn"); if(cb) cb.onclick=()=>{
@@ -1699,12 +1704,12 @@ function showPending(){
   }
   if(ev.type==="warn"){
     const g=idsTo(ev.ids);
-    return sheet(`${scene}<p class="label" style="color:var(--amber)">Wegzug droht</p><h2>${esc(groupName(g))} packen die Koffer</h2><p class="muted">Das Inselglück liegt seit 3 Tagen unter 40 %. Bring es in den nächsten 2 Tagen wieder darüber, dann bleiben sie.</p><button class="btn" data-ok>Ich kümmere mich drum</button>`);
+    return sheet(`${scene}<p class="label" style="color:var(--amber)">Wegzug droht</p><h2>${esc(groupName(g))} ${vb(g,"packt","packen")} die Koffer</h2><p class="muted">Das Inselglück liegt seit 3 Tagen unter 40 %. Bring es in den nächsten 2 Tagen wieder darüber, dann ${vb(g,"bleibt "+esc(g[0].name),"bleiben alle")}.</p><button class="btn" data-ok>Ich kümmere mich drum</button>`);
   }
   if(ev.type==="left"){
     const g=idsTo(ev.ids);
     S.pending.unshift({type:"postcard",ids:ev.ids});
-    return sheet(`${scene}<p class="label" style="color:var(--coral)">Abschied</p><h2>${esc(groupName(g))} ziehen weg</h2><p class="muted">Das Boot legt ab Richtung Möweninsel. Ganz weg sind sie aber nicht.</p><button class="btn" data-ok>Hinterherwinken</button>`);
+    return sheet(`${scene}<p class="label" style="color:var(--coral)">Abschied</p><h2>${esc(groupName(g))} ${vb(g,"zieht","ziehen")} weg</h2><p class="muted">Das Boot legt ab Richtung Möweninsel. Ganz weg ${vb(g,"ist "+esc(g[0].name),"sind sie")} aber nicht.</p><button class="btn" data-ok>Hinterherwinken</button>`);
   }
   if(ev.type==="postcard"){
     const card=makeCard(idsTo(ev.ids),ev.hint); save();
@@ -1713,7 +1718,7 @@ function showPending(){
   }
   if(ev.type==="return"){
     const g=idsTo(ev.ids);
-    return sheet(`${scene}<p class="label" style="color:var(--lime)">Wieder da</p><h2>${esc(g.map(r=>r.name).join(", "))} ${g.length>1?"sind":"ist"} zurück!</h2><p class="muted">5 gute Tage haben sich bis zur Möweninsel herumgesprochen.</p><button class="btn" data-ok>Willkommen zurück</button>`);
+    return sheet(`${scene}<p class="label" style="color:var(--lime)">Wieder da</p><h2>${esc(nameList(g.map(r=>r.name)))} ${g.length>1?"sind":"ist"} zurück!</h2><p class="muted">5 gute Tage haben sich bis zur Möweninsel herumgesprochen.</p><button class="btn" data-ok>Willkommen zurück</button>`);
   }
   if(ev.type==="project"){
     const p=PROJECTS.find(x=>x.id===ev.id);
