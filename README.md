@@ -1,4 +1,6 @@
-# Offline-Insel 🏝️
+# OffLand 🏝️
+
+**Grow your world beyond the screen.**
 
 Ein kleines Handy-Spiel gegen zu viel Bildschirmzeit: Du trägst jeden Abend ein, wie lange du am Handy warst. Bleibst du im Budget, wird deine Insel glücklicher – es ziehen neue Bewohner ein, es gibt Nachwuchs, Großprojekte wie Leuchtturm und Windmühle entstehen. Zu viel Handy bringt Wolken, Streit und App-Monster.
 

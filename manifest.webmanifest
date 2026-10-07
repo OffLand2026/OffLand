@@ -1,7 +1,7 @@
 {
-  "name": "Offline-Insel",
-  "short_name": "Offline-Insel",
-  "description": "Weniger Bildschirmzeit, glücklichere Insel.",
+  "name": "OffLand – Grow your world beyond the screen",
+  "short_name": "OffLand",
+  "description": "Grow your world beyond the screen. Weniger Bildschirmzeit, glücklichere Insel.",
   "lang": "de",
   "start_url": "./",
   "scope": "./",

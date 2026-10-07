@@ -1,4 +1,4 @@
-/* Offline-Insel – Styles */
+/* OffLand – Styles */
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 img{max-width:100%}
@@ -124,7 +124,9 @@ body.start .app,body.start .tabs{display:none}
 .start-wrap{display:flex;flex-direction:column;gap:14px}
 .start-hero{border-radius:26px;overflow:hidden;background:var(--sky)}
 .start-hero svg{display:block;width:100%;height:auto}
-.start-title{font-size:40px;letter-spacing:-1px;line-height:1.05}
+.start-title{font-size:44px;letter-spacing:-1px;line-height:1.05}
+.start-title span{color:var(--lime)}
+.tagline{font-family:var(--display);font-size:20px;font-weight:600;color:var(--lilac);letter-spacing:-.2px}
 .profile{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;padding:8px 2px;border:none;border-top:1px solid var(--card2);background:transparent;color:var(--ink);text-align:left;font-size:16px}
 .profile:first-of-type{border-top:none}
 .profile .grow{display:flex;flex-direction:column}
