@@ -1603,11 +1603,16 @@ function viewKapseln(){
 }
 function viewVerlauf(){
   const col={good:"var(--lime)",bad:"var(--coral)",info:"var(--lilac)"};
-  const fam=famCode();
   return `${viewAlbum()}${viewStrandgut()}${viewKapseln()}
   <div class="card"><div class="row between"><p class="label">Letzte 14 Tage</p><span class="small muted">${S.days.length} Tage gespielt</span></div>${chart()||`<p class="muted">Noch keine Tage eingetragen.</p>`}</div>
   <div class="card feed"><p class="label">Inseltagebuch</p><ul>${S.feed.slice(0,40).map(f=>`<li><span class="dot" style="background:${col[f.kind]}"></span><div><p>${esc(f.text)}</p>${f.day?`<p class="small muted">${nice(f.day)}</p>`:""}</div></li>`).join("")||`<li><p class="muted">Hier erscheint, was auf deiner Insel passiert.</p></li>`}</ul></div>
-  <div class="card"><p class="label">Einstellungen</p>
+`;
+}
+/* Einstellungen: erreichbar über das Profilbild oben rechts */
+function settingsHtml(){
+  const fam=famCode();
+  return `
+  <div class="card"><p class="label">Spiel</p>
     <label class="field" for="setBudget">Tagesbudget: <span id="setBudgetOut" class="num">${hm(S.budget)}</span><input id="setBudget" type="range" min="30" max="480" step="15" value="${S.budget}"></label>
     <label class="field" for="setBase">Bisheriger Schnitt: <span id="setBaseOut" class="num">${hm(S.baseline)}</span><input id="setBase" type="range" min="30" max="600" step="15" value="${S.baseline}"></label>
     <p style="font-weight:700;margin-top:6px">App-Limits für die Monster</p>
@@ -1621,7 +1626,6 @@ function viewVerlauf(){
     <div class="row"><button class="btn secondary grow" id="exportBtn">Sichern</button><button class="btn secondary grow" id="importBtn">Laden</button></div>
     <input type="file" id="importFile" accept="application/json,.json" hidden>
   </div>
-  ${ACC?`<div class="card"><p class="label">Konto</p><div class="row">${avatarSvg(ACC.avatar,48)}<div class="grow"><p><b>${esc(ACC.name)}</b></p><p class="small muted">${ACC.pin?"Mit PIN geschützt":"Ohne PIN"}</p></div></div><button class="btn secondary" id="accManage">Konto verwalten</button></div>`:""}
   <div class="card"><p class="label">Familieninsel</p>
     ${!db?`<p class="small muted">Die Familieninsel braucht einen Online-Speicher und ist in dieser Version noch nicht verfügbar.</p>`
     :fam?`<p>Du spielst auf der Familieninsel <b>„${esc(fam)}“</b>. Alle mit demselben Code sehen und pflegen dieselbe Insel.</p><button class="btn ghost" id="famLeave">Zurück zur eigenen Insel</button>`
@@ -1720,7 +1724,6 @@ function bind(){
   document.querySelectorAll("[data-visit]").forEach(x=>x.onclick=()=>visitSheet(x.dataset.visit));
   document.querySelectorAll("[data-kapsel]").forEach(x=>x.onclick=()=>{const c=S.capsules.find(y=>y.id===x.dataset.kapsel);if(c) capsuleSheet(c)});
   const rs=$("#resetBtn"); if(rs) rs.onclick=confirmReset;
-  const am=$("#accManage"); if(am) am.onclick=accountSheet;
   const ex=$("#exportBtn"); if(ex) ex.onclick=exportSave;
   const im=$("#importBtn"), imf=$("#importFile"); if(im&&imf){im.onclick=()=>imf.click();imf.onchange=()=>{if(imf.files[0]) importSave(imf.files[0])}}
   document.querySelectorAll("[data-buy]").forEach(btn=>btn.onclick=()=>{
@@ -2057,7 +2060,7 @@ function exportSave(){
 function importSave(file){
   const rd=new FileReader();
   rd.onload=()=>{try{const st=JSON.parse(rd.result);if(!st||st.v!==1||!Array.isArray(st.residents)) throw 0;
-    S=migrate(st);tab="heute";save();render();toast("Sicherung geladen")}catch(e){toast("Diese Datei ist keine gültige Sicherung.")}};
+    S=migrate(st);tab="heute";save();closeModal();render();toast("Sicherung geladen")}catch(e){toast("Diese Datei ist keine gültige Sicherung.")}};
   rd.readAsText(file);
 }
 function confirmReset(){
@@ -2176,15 +2179,25 @@ function pinPrompt(p,onOk){
 function accountSheet(){
   if(!ACC) return;
   modal(`<div class="row">${avatarSvg(ACC.avatar,56)}<div class="grow"><p class="label">Konto</p><h2>${esc(ACC.name)}</h2><p class="small muted">${ACC.pin?"Mit PIN geschützt":"Ohne PIN"} · seit ${new Date(ACC.created).toLocaleDateString("de-DE")}</p></div></div>
+    <button class="btn secondary" id="accSettings">⚙︎ Einstellungen</button>
     <button class="btn secondary" id="accEdit">Name und Avatar ändern</button>
     <button class="btn secondary" id="accPinBtn">${ACC.pin?"PIN ändern oder entfernen":"PIN festlegen"}</button>
     <button class="btn secondary" id="accOut">Abmelden und Konto wechseln</button>
     <button class="btn ghost danger" id="accDel">Konto löschen</button>
     <button class="btn" id="accClose">Schließen</button>`);
-  $("#accEdit").onclick=editSheet; $("#accPinBtn").onclick=pinSheet;
+  $("#accSettings").onclick=settingsSheet; $("#accEdit").onclick=editSheet; $("#accPinBtn").onclick=pinSheet;
   $("#accOut").onclick=()=>{toast("Abgemeldet");logout()};
   $("#accDel").onclick=deleteSheet; $("#accClose").onclick=closeModal;
   $("#accClose").focus();
+}
+function settingsSheet(){
+  modal(`<div class="row between"><div><p class="label">Konto · ${esc(ACC?ACC.name:"")}</p><h2>Einstellungen</h2></div><button class="iconbtn" id="setClose" aria-label="Schließen"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F3F1EA" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    ${settingsHtml()}
+    <button class="btn secondary" id="setBack">Zurück zum Konto</button>
+    <button class="btn" id="setDone">Fertig</button>`);
+  bind();
+  const done=()=>{closeModal();render();showPending()};
+  $("#setClose").onclick=done; $("#setDone").onclick=done; $("#setBack").onclick=()=>{render();accountSheet()};
 }
 function editSheet(){
   modal(`<p class="label">Konto</p><h2>Name und Avatar</h2>${accFields(ACC)}<p class="err" id="accErr" role="alert"></p>
