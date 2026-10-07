@@ -4,6 +4,7 @@ Ein kleines Handy-Spiel gegen zu viel Bildschirmzeit: Du trägst jeden Abend ein
 
 ## Funktionen
 
+- **Startbildschirm und Konten:** mehrere Profile pro Gerät mit Name, Avatar und freiwilliger PIN; Konto bearbeiten, abmelden und löschen
 - **Heute:** Bildschirmzeit eintragen, Quests, echte Aktivitäten, Fokus-Bootsfahrt, Gute-Nacht-Ritual, Urlaubsmodus
 - **Bewohner:** Menschen mit Berufen und Eigenschaften, Tiere, Beziehungen, Streit, Liebe, Stammbaum, Chronik
 - **Zeit:** zurückgewonnene Zeit, Hochrechnung aufs Jahr, App-Monster-Statistik
@@ -25,7 +26,7 @@ Auf dem Handy kann die Seite über „Zum Home-Bildschirm“ wie eine App instal
 
 ## Speicherung
 
-Der Spielstand liegt im `localStorage` des Browsers. Über **Album → Sicherung** lässt er sich als JSON-Datei herunterladen und auf einem anderen Gerät wieder laden.
+Konten und Spielstände liegen im `localStorage` des Browsers, jedes Konto mit eigenem Spielstand. Die PIN wird nur als Hash gespeichert und ist eine Kindersicherung, kein Schutz gegen Zugriff auf das Gerät selbst. Über **Album → Sicherung** lässt er sich als JSON-Datei herunterladen und auf einem anderen Gerät wieder laden.
 
 Freund:innen-Inseln, Geschenke und die Familieninsel brauchen einen Online-Speicher und sind in dieser statischen Version deaktiviert.
 

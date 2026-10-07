@@ -53,7 +53,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--lilac);outline-
 .tabs button[aria-current="page"]{background:var(--card2);color:var(--ink)}
 .tabs svg{width:20px;height:20px}
 label.field{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:700}
-input[type=number],input[type=text]{height:52px;border:1.5px solid var(--line);border-radius:16px;background:var(--ground);color:var(--ink);font-size:18px;font-weight:700;padding:0 14px;font-family:var(--body);width:100%}
+input[type=number],input[type=text],input[type=password]{height:52px;border:1.5px solid var(--line);border-radius:16px;background:var(--ground);color:var(--ink);font-size:18px;font-weight:700;padding:0 14px;font-family:var(--body);width:100%}
 input[type=range]{width:100%;accent-color:var(--lime)}
 .check{display:flex;align-items:center;gap:12px;min-height:44px;font-size:15px}
 .check input{width:22px;height:22px;accent-color:var(--lime)}
@@ -116,3 +116,27 @@ input[type=range]{width:100%;accent-color:var(--lime)}
 .eqi.zero{opacity:.45}
 .big{font-family:var(--display);font-size:38px;font-weight:800;letter-spacing:-1px;line-height:1}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+
+/* Startbildschirm und Konten */
+body.start .app,body.start .tabs{display:none}
+#start{max-width:460px;margin:0 auto;padding:16px 16px calc(24px + env(safe-area-inset-bottom,0px))}
+#start:empty{display:none}
+.start-wrap{display:flex;flex-direction:column;gap:14px}
+.start-hero{border-radius:26px;overflow:hidden;background:var(--sky)}
+.start-hero svg{display:block;width:100%;height:auto}
+.start-title{font-size:40px;letter-spacing:-1px;line-height:1.05}
+.profile{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;padding:8px 2px;border:none;border-top:1px solid var(--card2);background:transparent;color:var(--ink);text-align:left;font-size:16px}
+.profile:first-of-type{border-top:none}
+.profile .grow{display:flex;flex-direction:column}
+.profile svg.chev{width:20px;height:20px;color:var(--muted);flex-shrink:0}
+.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.av-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.av-opt{display:flex;justify-content:center;cursor:pointer;position:relative}
+.av-opt input{position:absolute;opacity:0;width:1px;height:1px}
+.av-opt .avatar{border:3px solid transparent;box-sizing:content-box}
+.av-opt input:checked+span .avatar{border-color:var(--lime)}
+.av-opt input:focus-visible+span .avatar{outline:3px solid var(--lilac);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.accbtn{border:none;background:transparent;padding:0;border-radius:50%;line-height:0}
+.btn.danger{color:var(--coral);border-color:#5A3330}
+.err{color:var(--coral);font-size:13px;font-weight:700;min-height:1em}

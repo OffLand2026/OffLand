@@ -213,9 +213,10 @@ let tab="heute";
 
 /* ---------- Speichern: db (pro Person privat), sonst Browser ---------- */
 let db=null, ref=null, saveTimer=null;
-const LS="offline-insel-v1";
-function lsGet(){try{const t=localStorage.getItem(LS);return t?JSON.parse(t):null}catch(e){return null}}
-function lsSet(){try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}}
+const OLD_LS="offline-insel-v1";
+let LS=null; // Speicherschlüssel des angemeldeten Kontos
+function lsGet(){if(!LS)return null;try{const t=localStorage.getItem(LS);return t?JSON.parse(t):null}catch(e){return null}}
+function lsSet(){if(!LS)return;try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}}
 function save(){
   if(!famCode()) lsSet();
   if(!ref) return;
@@ -223,7 +224,6 @@ function save(){
   saveTimer=setTimeout(()=>{lastWriteAt=Date.now();ref.set({state:JSON.stringify(S),at:lastWriteAt}).catch(()=>{})},400);
 }
 async function initStore(){
-  const local=lsGet(); if(local&&local.v===1&&!famCode()){S=migrate(local);render()}
   if(!window.claude||!window.claude.use) return;
   try{
     const [d,u]=await Promise.all([window.claude.use("db"),window.claude.use("user")]);
@@ -1002,7 +1002,7 @@ function countUp(el,from,to){
 /* ---------- Ansichten ---------- */
 function viewSetup(){
   return `<div class="card">
-    <h2>Willkommen auf deiner Insel</h2>
+    <h2>Willkommen${ACC?", "+esc(ACC.name):""}!</h2>
     <p class="muted">Lege fest, wie viel Bildschirmzeit du dir pro Tag geben willst, und wie viel es bisher im Schnitt war. Deine iPhone- oder Android-Einstellungen unter „Bildschirmzeit“ bzw. „Digital Wellbeing“ zeigen dir den Schnitt.</p>
     <label class="field" for="setBudget">Tagesbudget: <span id="setBudgetOut" class="num">${hm(S.budget)}</span>
       <input id="setBudget" type="range" min="30" max="480" step="15" value="${S.budget}"></label>
@@ -1312,6 +1312,7 @@ function viewVerlauf(){
     <div class="row"><button class="btn secondary grow" id="exportBtn">Sichern</button><button class="btn secondary grow" id="importBtn">Laden</button></div>
     <input type="file" id="importFile" accept="application/json,.json" hidden>
   </div>
+  ${ACC?`<div class="card"><p class="label">Konto</p><div class="row">${avatarSvg(ACC.avatar,48)}<div class="grow"><p><b>${esc(ACC.name)}</b></p><p class="small muted">${ACC.pin?"Mit PIN geschützt":"Ohne PIN"}</p></div></div><button class="btn secondary" id="accManage">Konto verwalten</button></div>`:""}
   <div class="card"><p class="label">Familieninsel</p>
     ${!db?`<p class="small muted">Die Familieninsel braucht einen Online-Speicher und ist in dieser Version noch nicht verfügbar.</p>`
     :fam?`<p>Du spielst auf der Familieninsel <b>„${esc(fam)}“</b>. Alle mit demselben Code sehen und pflegen dieselbe Insel.</p><button class="btn ghost" id="famLeave">Zurück zur eigenen Insel</button>`
@@ -1323,8 +1324,9 @@ function viewVerlauf(){
 /* ---------- Rendern ---------- */
 function render(){
   $("#scene").innerHTML=scene();
-  $("#streakChip").textContent=S.happyStreak>0?S.happyStreak+" glückliche Tage":S.dayCount+" Tage gespielt";
+  $("#streakChip").textContent=S.happyStreak>0?S.happyStreak+" glückliche Tage":S.dayCount+(S.dayCount===1?" Tag":" Tage")+" gespielt";
   $("#streakChip").className="chip "+(S.happyStreak>0?"good":"gone");
+  $("#accBtn").innerHTML=ACC?avatarSvg(ACC.avatar,40):"";
   $("#dateline").textContent=new Date().toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"});
   document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-current",b.dataset.tab===tab?"page":"false"));
   const v=!S.setup?viewSetup():tab==="heute"?viewHeute():tab==="bewohner"?viewBewohner():tab==="zeit"?viewZeit():tab==="projekt"?viewProjekt():viewVerlauf();
@@ -1364,6 +1366,7 @@ function bind(){
   document.querySelectorAll("[data-visit]").forEach(x=>x.onclick=()=>visitSheet(x.dataset.visit));
   document.querySelectorAll("[data-kapsel]").forEach(x=>x.onclick=()=>{const c=S.capsules.find(y=>y.id===x.dataset.kapsel);if(c) capsuleSheet(c)});
   const rs=$("#resetBtn"); if(rs) rs.onclick=confirmReset;
+  const am=$("#accManage"); if(am) am.onclick=accountSheet;
   const ex=$("#exportBtn"); if(ex) ex.onclick=exportSave;
   const im=$("#importBtn"), imf=$("#importFile"); if(im&&imf){im.onclick=()=>imf.click();imf.onchange=()=>{if(imf.files[0]) importSave(imf.files[0])}}
   document.querySelectorAll("[data-buy]").forEach(btn=>btn.onclick=()=>{
@@ -1599,8 +1602,182 @@ function confirmReset(){
   $("#yesR").onclick=()=>{S=migrate(newGame());tab="heute";save();closeModal();render()};
 }
 
-render();
-initStore().then(showPending);
+/* ---------- Konten: lokale Profile mit Startbildschirm ---------- */
+const PROF_KEY="offline-insel-profile", SESSION_KEY="offline-insel-sitzung";
+const AVATARS=["Ziege","Katze","Hund","Huhn","Schaf","Hase","Esel","Robbe","Delfin","Meerschweinchen"];
+const AV_BG={Ziege:"#22301F",Katze:"#2A2418",Hund:"#2A2418",Huhn:"#3A2220",Schaf:"#26233D",Hase:"#2A2418",Esel:"#26233D",Robbe:"#1F2A3A",Delfin:"#1F2A3A",Meerschweinchen:"#3A2220"};
+let ACC=null;
+const profKey=id=>"offline-insel-v1:"+id;
+function profiles(){try{return JSON.parse(localStorage.getItem(PROF_KEY))||[]}catch(e){return []}}
+function storeProfiles(list){try{localStorage.setItem(PROF_KEY,JSON.stringify(list))}catch(e){}}
+function updateProfile(id,patch){const list=profiles(),p=list.find(x=>x.id===id);if(!p)return null;Object.assign(p,patch);storeProfiles(list);if(ACC&&ACC.id===id)ACC=p;return p}
+function peek(id){try{return JSON.parse(localStorage.getItem(profKey(id)))}catch(e){return null}}
+function avatarSvg(art,size){return `<span class="avatar" style="background:${AV_BG[art]||"#26233D"};width:${size}px;height:${size}px;border-radius:${size/2}px"><svg width="${Math.round(size*.8)}" height="${Math.round(size*.8)}" viewBox="-16 -22 32 24" aria-hidden="true">${animalSvg(art)}</svg></span>`}
+async function hashPin(pin,salt){
+  const t=salt+":"+pin;
+  try{const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t));return Array.from(new Uint8Array(b),x=>x.toString(16).padStart(2,"0")).join("")}
+  catch(e){let h=5381;for(const c of t)h=((h<<5)+h+c.charCodeAt(0))|0;return "d"+(h>>>0).toString(16)}
+}
+const validPin=v=>/^\d{4}$/.test(v);
+function modal(html){$("#modalRoot").innerHTML=`<div class="modal"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`}
+const pinField=(id,label)=>`<label class="field" for="${id}">${label}<input id="${id}" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="4 Ziffern"></label>`;
+
+/* Spielstand aus der Version ohne Konten in ein erstes Konto übernehmen */
+function migrateOldSave(){
+  if(profiles().length) return;
+  let old=null; try{old=localStorage.getItem(OLD_LS)}catch(e){}
+  if(!old) return;
+  const id=uid();
+  try{localStorage.setItem(profKey(id),old);localStorage.removeItem(OLD_LS)}catch(e){return}
+  storeProfiles([{id,name:"Meine Insel",avatar:"Ziege",salt:uid(),pin:null,created:Date.now()}]);
+}
+
+function login(p){
+  ACC=p; LS=profKey(p.id);
+  try{sessionStorage.setItem(SESSION_KEY,p.id)}catch(e){}
+  updateProfile(p.id,{last:Date.now()});
+  const st=lsGet(); S=migrate(st&&st.v===1?st:newGame()); tab="heute";
+  document.body.classList.remove("start"); $("#start").innerHTML="";
+  closeModal(); render(); window.scrollTo(0,0); showPending();
+}
+function logout(){
+  if(ACC) lsSet();
+  ACC=null; LS=null; S=migrate(newGame());
+  try{sessionStorage.removeItem(SESSION_KEY)}catch(e){}
+  showStart();
+}
+function tryLogin(p){p.pin?pinPrompt(p,()=>login(p)):login(p)}
+
+function showStart(){
+  document.body.classList.add("start"); closeModal(); window.scrollTo(0,0);
+  const list=profiles().sort((a,b)=>(b.last||0)-(a.last||0));
+  const hero=base(`<g class="bob">${figure({kind:"mensch",name:"Mia"},226,134)}</g><g class="bob" style="animation-delay:.5s">${figure({kind:"tier",art:"Ziege",name:"x"},250,136)}</g><g class="drift"><path d="M60 60q6-6 12 0q6-6 12 0M96 76q5-5 10 0q5-5 10 0" stroke="#F3F1EA" stroke-width="2" fill="none" stroke-linecap="round"/></g>`,false);
+  const chev=`<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>`;
+  const lock=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A4A6BD" stroke-width="2" stroke-linecap="round" aria-label="mit PIN"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>`;
+  $("#start").innerHTML=`<div class="start-wrap">
+    <div class="start-hero">${hero}</div>
+    <div style="display:flex;flex-direction:column;gap:6px"><h1 class="start-title">Offline-Insel</h1><p class="muted">Weniger Handy, mehr Insel. Je weniger Bildschirmzeit, desto glücklicher werden deine Bewohner.</p></div>
+    ${list.length?`<div class="card"><p class="label">Wer spielt?</p>${list.map(p=>{const st=peek(p.id);const info=st&&st.setup?`${st.dayCount} ${st.dayCount===1?"Tag":"Tage"} · Glück ${st.glueck} %`:"Insel noch nicht gestartet";
+        return `<button class="profile" data-login="${p.id}">${avatarSvg(p.avatar,48)}<span class="grow"><b>${esc(p.name)}</b><span class="small muted">${info}</span></span>${p.pin?lock:""}${chev}</button>`}).join("")}</div>
+      <button class="btn secondary" id="newAcc">Neues Konto anlegen</button>`
+    :`<div class="card"><p class="label">So funktioniert's</p><ul class="steps"><li>Trag abends deine Bildschirmzeit ein.</li><li>Bleibst du im Budget, wird deine Insel glücklicher und wächst.</li><li>Zu viel Handy bringt Wolken, Streit und App-Monster.</li></ul></div>
+      <button class="btn" id="newAcc">Konto anlegen</button>`}
+    <p class="small muted" style="text-align:center">Alle Daten bleiben auf diesem Gerät.</p>
+  </div>`;
+  document.querySelectorAll("[data-login]").forEach(b=>b.onclick=()=>{const p=profiles().find(x=>x.id===b.dataset.login);if(p)tryLogin(p)});
+  $("#newAcc").onclick=showCreate;
+}
+
+function accFields(p){
+  return `<label class="field" for="accName">Name<input id="accName" type="text" maxlength="20" autocomplete="nickname" value="${p?esc(p.name):""}" placeholder="z. B. Mia"></label>
+  <div class="field"><span>Avatar</span><div class="av-grid" role="radiogroup" aria-label="Avatar">${AVATARS.map((a,i)=>`<label class="av-opt"><input type="radio" name="accAv" value="${a}" ${(p?p.avatar===a:i===0)?"checked":""}><span>${avatarSvg(a,48)}</span><span class="sr">${a}</span></label>`).join("")}</div></div>`;
+}
+const readAcc=()=>({name:$("#accName").value.trim().slice(0,20),avatar:(document.querySelector("[name=accAv]:checked")||{}).value||AVATARS[0]});
+
+function showCreate(){
+  const first=!profiles().length;
+  $("#start").innerHTML=`<div class="start-wrap">
+    <div class="card" style="gap:14px"><p class="label" style="color:var(--lime)">${first?"Willkommen":"Neues Konto"}</p><h2>Konto anlegen</h2>
+      ${accFields(null)}
+      ${pinField("accPin","PIN (freiwillig)")}
+      <p class="small muted" style="margin-top:-6px">Mit PIN kann niemand anderes auf diesem Gerät deine Insel öffnen. Merk sie dir gut, sie lässt sich nicht zurücksetzen.</p>
+      <p class="err" id="accErr" role="alert"></p>
+      <button class="btn" id="accCreate">Konto anlegen</button>
+      <button class="btn ghost" id="accBack">Zurück</button>
+    </div></div>`;
+  window.scrollTo(0,0); $("#accName").focus();
+  $("#accBack").onclick=showStart;
+  $("#accCreate").onclick=async()=>{
+    const {name,avatar}=readAcc(), pin=$("#accPin").value;
+    if(!name) return $("#accErr").textContent="Bitte gib einen Namen ein.";
+    if(pin&&!validPin(pin)) return $("#accErr").textContent="Die PIN muss aus genau 4 Ziffern bestehen.";
+    const p={id:uid(),name,avatar,salt:uid(),pin:null,created:Date.now()};
+    if(pin) p.pin=await hashPin(pin,p.salt);
+    const list=profiles(); list.push(p); storeProfiles(list);
+    login(p); toast("Willkommen, "+name+"!");
+  };
+}
+
+function pinPrompt(p,onOk){
+  modal(`<div class="row">${avatarSvg(p.avatar,48)}<div class="grow"><p class="label">PIN eingeben</p><h2>${esc(p.name)}</h2></div></div>
+    <input id="pinIn" type="password" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="PIN">
+    <p class="err" id="pinErr" role="alert"></p>
+    <div class="row"><button class="btn secondary grow" id="pinNo">Abbrechen</button><button class="btn grow" id="pinOk">Öffnen</button></div>`);
+  const inp=$("#pinIn"); inp.focus();
+  const go=async()=>{if(await hashPin(inp.value,p.salt)===p.pin){closeModal();onOk()}else{$("#pinErr").textContent="Falsche PIN. Versuch es noch mal.";inp.value="";inp.focus()}};
+  $("#pinOk").onclick=go; inp.onkeydown=e=>{if(e.key==="Enter")go()}; $("#pinNo").onclick=closeModal;
+}
+
+function accountSheet(){
+  if(!ACC) return;
+  modal(`<div class="row">${avatarSvg(ACC.avatar,56)}<div class="grow"><p class="label">Konto</p><h2>${esc(ACC.name)}</h2><p class="small muted">${ACC.pin?"Mit PIN geschützt":"Ohne PIN"} · seit ${new Date(ACC.created).toLocaleDateString("de-DE")}</p></div></div>
+    <button class="btn secondary" id="accEdit">Name und Avatar ändern</button>
+    <button class="btn secondary" id="accPinBtn">${ACC.pin?"PIN ändern oder entfernen":"PIN festlegen"}</button>
+    <button class="btn secondary" id="accOut">Abmelden und Konto wechseln</button>
+    <button class="btn ghost danger" id="accDel">Konto löschen</button>
+    <button class="btn" id="accClose">Schließen</button>`);
+  $("#accEdit").onclick=editSheet; $("#accPinBtn").onclick=pinSheet;
+  $("#accOut").onclick=()=>{toast("Abgemeldet");logout()};
+  $("#accDel").onclick=deleteSheet; $("#accClose").onclick=closeModal;
+  $("#accClose").focus();
+}
+function editSheet(){
+  modal(`<p class="label">Konto</p><h2>Name und Avatar</h2>${accFields(ACC)}<p class="err" id="accErr" role="alert"></p>
+    <div class="row"><button class="btn secondary grow" id="edNo">Abbrechen</button><button class="btn grow" id="edOk">Speichern</button></div>`);
+  $("#edNo").onclick=accountSheet;
+  $("#edOk").onclick=()=>{const {name,avatar}=readAcc();if(!name)return $("#accErr").textContent="Bitte gib einen Namen ein.";
+    updateProfile(ACC.id,{name,avatar});closeModal();render();toast("Gespeichert")};
+}
+function pinSheet(){
+  const has=!!ACC.pin;
+  modal(`<p class="label">Konto</p><h2>${has?"PIN ändern":"PIN festlegen"}</h2>
+    ${has?pinField("pinOld","Aktuelle PIN"):""}${pinField("pinNew","Neue PIN")}${pinField("pinRep","Neue PIN wiederholen")}
+    <p class="err" id="pinErr" role="alert"></p>
+    <button class="btn" id="pinSave">PIN speichern</button>
+    ${has?`<button class="btn ghost danger" id="pinDel">PIN entfernen</button>`:""}
+    <button class="btn secondary" id="pinNo">Abbrechen</button>`);
+  const err=t=>$("#pinErr").textContent=t;
+  const oldOk=async()=>!has||await hashPin($("#pinOld").value,ACC.salt)===ACC.pin;
+  $("#pinNo").onclick=accountSheet;
+  $("#pinSave").onclick=async()=>{
+    if(!await oldOk()) return err("Die aktuelle PIN stimmt nicht.");
+    const n=$("#pinNew").value; if(!validPin(n)) return err("Die neue PIN muss aus genau 4 Ziffern bestehen.");
+    if(n!==$("#pinRep").value) return err("Die beiden neuen PINs sind nicht gleich.");
+    updateProfile(ACC.id,{pin:await hashPin(n,ACC.salt)}); closeModal(); render(); toast("PIN gespeichert");
+  };
+  if(has) $("#pinDel").onclick=async()=>{if(!await oldOk())return err("Gib zuerst deine aktuelle PIN ein.");updateProfile(ACC.id,{pin:null});closeModal();render();toast("PIN entfernt")};
+}
+function deleteSheet(){
+  modal(`<p class="label" style="color:var(--coral)">Konto löschen</p><h2>„${esc(ACC.name)}“ wirklich löschen?</h2>
+    <p class="muted">Deine Insel mit allen Bewohnern, eingetragenen Tagen, Postkarten und Punkten wird von diesem Gerät gelöscht. Das lässt sich nicht rückgängig machen.</p>
+    <button class="btn secondary" id="delBackup">Vorher Sicherung herunterladen</button>
+    ${ACC.pin?pinField("delPin","Zur Bestätigung deine PIN"):""}
+    <label class="check" for="delSure"><input type="checkbox" id="delSure"> Ja, ich will mein Konto endgültig löschen</label>
+    <p class="err" id="delErr" role="alert"></p>
+    <div class="row"><button class="btn secondary grow" id="delNo">Abbrechen</button><button class="btn grow" id="delYes" style="background:var(--coral)" disabled>Löschen</button></div>`);
+  const sure=$("#delSure"), yes=$("#delYes");
+  sure.onchange=()=>{yes.disabled=!sure.checked};
+  $("#delBackup").onclick=exportSave; $("#delNo").onclick=accountSheet;
+  yes.onclick=async()=>{
+    if(ACC.pin&&await hashPin($("#delPin").value,ACC.salt)!==ACC.pin) return $("#delErr").textContent="Die PIN stimmt nicht.";
+    const id=ACC.id;
+    try{localStorage.removeItem(profKey(id))}catch(e){}
+    storeProfiles(profiles().filter(x=>x.id!==id));
+    ACC=null; LS=null; logout(); toast("Konto gelöscht");
+  };
+}
+
+$("#accBtn").onclick=accountSheet;
+
+function boot(){
+  migrateOldSave();
+  let sid=null; try{sid=sessionStorage.getItem(SESSION_KEY)}catch(e){}
+  const p=sid&&profiles().find(x=>x.id===sid);
+  if(p) login(p); else showStart();
+  initStore();
+}
+
+boot();
 })();
 
 /* Offline-Unterstützung */
