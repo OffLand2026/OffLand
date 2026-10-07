@@ -1,4 +1,4 @@
-/* Offline-Insel – Spiellogik */
+/* OffLand – Spiellogik */
 (function(){
 "use strict";
 
@@ -1327,7 +1327,7 @@ function render(){
   $("#streakChip").textContent=S.happyStreak>0?S.happyStreak+" glückliche Tage":S.dayCount+(S.dayCount===1?" Tag":" Tage")+" gespielt";
   $("#streakChip").className="chip "+(S.happyStreak>0?"good":"gone");
   $("#accBtn").innerHTML=ACC?avatarSvg(ACC.avatar,40):"";
-  $("#dateline").textContent=new Date().toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"});
+  $("#dateline").textContent="OffLand · "+new Date().toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"});
   document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-current",b.dataset.tab===tab?"page":"false"));
   const v=!S.setup?viewSetup():tab==="heute"?viewHeute():tab==="bewohner"?viewBewohner():tab==="zeit"?viewZeit():tab==="projekt"?viewProjekt():viewVerlauf();
   $("#view").innerHTML=`<div style="display:flex;flex-direction:column;gap:12px">${v}</div>`;
@@ -1562,7 +1562,7 @@ function nameSheet(ev){
   inp.focus(); inp.select();
 }
 function capsuleSheet(c,fresh){
-  const text="Meine Offline-Insel im "+c.title+": "+c.lines.join(" ");
+  const text="Meine OffLand-Insel im "+c.title+": "+c.lines.join(" ");
   sheet(`<div class="postcard" style="background:#26233D;color:var(--ink)"><div style="padding:18px;display:flex;flex-direction:column;gap:8px">
       <p class="label" style="color:var(--lilac)">Zeitkapsel</p><h2>${esc(c.title)}</h2>
       ${c.lines.map(l=>`<p>${esc(l)}</p>`).join("")}
@@ -1585,7 +1585,7 @@ function visitSheet(fid){
 }
 function exportSave(){
   const blob=new Blob([JSON.stringify(S)],{type:"application/json"});
-  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="offline-insel-"+today()+".json";
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="offland-"+today()+".json";
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
   toast("Sicherung heruntergeladen");
 }
@@ -1656,7 +1656,7 @@ function showStart(){
   const lock=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A4A6BD" stroke-width="2" stroke-linecap="round" aria-label="mit PIN"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>`;
   $("#start").innerHTML=`<div class="start-wrap">
     <div class="start-hero">${hero}</div>
-    <div style="display:flex;flex-direction:column;gap:6px"><h1 class="start-title">Offline-Insel</h1><p class="muted">Weniger Handy, mehr Insel. Je weniger Bildschirmzeit, desto glücklicher werden deine Bewohner.</p></div>
+    <div style="display:flex;flex-direction:column;gap:6px"><h1 class="start-title">Off<span>Land</span></h1><p class="tagline">Grow your world beyond the screen.</p><p class="muted">Je weniger Bildschirmzeit, desto glücklicher werden deine Bewohner und desto mehr wächst deine Insel.</p></div>
     ${list.length?`<div class="card"><p class="label">Wer spielt?</p>${list.map(p=>{const st=peek(p.id);const info=st&&st.setup?`${st.dayCount} ${st.dayCount===1?"Tag":"Tage"} · Glück ${st.glueck} %`:"Insel noch nicht gestartet";
         return `<button class="profile" data-login="${p.id}">${avatarSvg(p.avatar,48)}<span class="grow"><b>${esc(p.name)}</b><span class="small muted">${info}</span></span>${p.pin?lock:""}${chev}</button>`}).join("")}</div>
       <button class="btn secondary" id="newAcc">Neues Konto anlegen</button>`
