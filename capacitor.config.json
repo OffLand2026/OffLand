@@ -1,0 +1,10 @@
+{
+  "appId": "com.offland2026.offland",
+  "appName": "OffLand",
+  "webDir": "www",
+  "backgroundColor": "#14151F",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#14151F"
+  }
+}

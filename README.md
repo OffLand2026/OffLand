@@ -26,6 +26,15 @@ Es gibt keinen Build-Schritt – reines HTML, CSS und JavaScript.
 
 Auf dem Handy kann die Seite über „Zum Home-Bildschirm“ wie eine App installiert werden und läuft danach auch ohne Internet.
 
+## iPhone-App (TestFlight)
+
+Im Ordner `ios/` liegt eine iOS-App, die die Web-App mit [Capacitor](https://capacitorjs.com) einpackt. Gebaut wird sie ohne eigenen Mac über GitHub Actions (`.github/workflows/ios.yml`): Bei jeder Änderung prüft ein Cloud-Mac, ob die App baut; per **Run workflow** mit Haken „Nach TestFlight hochladen“ wird sie signiert und zu TestFlight geschickt. Die einmalige Einrichtung bei Apple steht in [`docs/testflight.md`](docs/testflight.md).
+
+```bash
+npm install
+npm run ios:sync   # Web-App nach ios/ kopieren
+```
+
 ## Speicherung
 
 Konten und Spielstände liegen im `localStorage` des Browsers, jedes Konto mit eigenem Spielstand. Die PIN wird nur als Hash gespeichert und ist eine Kindersicherung, kein Schutz gegen Zugriff auf das Gerät selbst. Über **Album → Sicherung** lässt sich der eigene Spielstand als JSON-Datei herunterladen und auf einem anderen Gerät wieder laden.
@@ -39,6 +48,8 @@ index.html            Seitengerüst und Tab-Leiste
 css/style.css         Gestaltung und Animationen
 js/app.js             Spiellogik, Insel-Szene, Ansichten, Dialoge
 sw.js                 Service Worker für den Offline-Betrieb
+ios/                  iOS-App (Capacitor), wird in der Cloud gebaut
+docs/testflight.md    Anleitung für Apple-Konto und TestFlight
 manifest.webmanifest  Installierbare Web-App
 icons/                App-Icons
 ```
