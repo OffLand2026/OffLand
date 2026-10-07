@@ -225,3 +225,4 @@ body.focus-on{overflow:hidden}
 /* Karten innerhalb von Dialogen */
 .sheet .card{background:var(--ground)}
 .sheet>*{flex-shrink:0}
+.tabs button[hidden]{display:none}

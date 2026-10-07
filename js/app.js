@@ -244,6 +244,35 @@ const today=()=>iso(new Date());
 function freeName(list,used){const free=list.filter(n=>!used.includes(n));return pick(free.length?free:list)}
 
 /* ---------- Spielstand ---------- */
+/* ---------- Erste Woche: Funktionen nach und nach freischalten ---------- */
+const FEATURES=[
+  {id:"quests",day:1,name:"Tages-Quests",text:"Hak abends ab, was du statt Handy gemacht hast. Jede Quest bringt +3 % Glück.",tab:"heute",ic:'<path d="M5 12l4 4 10-10"/>'},
+  {id:"laden",day:1,name:"Inselladen",text:"Gib deine Punkte im Tab Bauen für Deko und Nützliches aus.",tab:"projekt",ic:'<path d="M4 9h16l-1 11H5zM8 9V7a4 4 0 0 1 8 0v2"/>'},
+  {id:"boot",day:2,name:"Fokus-Bootsfahrt",text:"Leg das Handy 15, 30 oder 60 Minuten weg. Ein Bewohner fährt fischen und bringt Punkte mit.",tab:"heute",ic:'<path d="M3 16h18l-3 4H6zM12 16V4l6 10"/>'},
+  {id:"nacht",day:2,name:"Gute-Nacht-Ritual",text:"Schick die Insel abends schlafen und leg das Handy weg. Morgen gibt es Traumpunkte.",tab:"heute",ic:'<path d="M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z"/>'},
+  {id:"zeit",day:2,name:"Zeit-Statistik",text:"Im Tab Zeit siehst du, wie viel Handyzeit du schon gespart hast und was du damit gemacht hast.",tab:"zeit",ic:'<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>'},
+  {id:"monster",day:3,name:"App-Monster",text:"Trag beim Tagesabschluss die Zeit pro App ein. Wer ein Limit sprengt, lockt ein Monster an.",tab:"heute",ic:'<circle cx="12" cy="11" r="7"/><circle cx="9.5" cy="10" r="1"/><circle cx="14.5" cy="10" r="1"/>'},
+  {id:"freunde",day:3,name:"Freunde und Ranglisten",text:"Lade Freund:innen ein, vergleicht euch jede Woche und bekommt zusammen einen Monat Plus.",tab:"freunde",ic:'<path d="M8 4h8v5a4 4 0 0 1-8 0zM12 13v4M8 20h8"/>'},
+  {id:"album",day:4,name:"Album",text:"Postkarten, Strandgut, Zeitkapseln und dein Inseltagebuch.",tab:"verlauf",ic:'<path d="M4 5h7v15H4zM13 5h7v15h-7z"/>'},
+  {id:"reise",day:5,name:"Weltreise",text:"Die Karte im Tab Bauen zeigt, welche Inselwelten auf euch warten.",tab:"projekt",ic:'<circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4a12 12 0 0 1 0 16M12 4a12 12 0 0 0 0 16"/>'}
+];
+const TAB_FEATURE={zeit:"zeit",freunde:"freunde",verlauf:"album"};
+function feature(id){
+  if(S.allFeatures) return true;
+  const f=FEATURES.find(x=>x.id===id); if(!f) return true;
+  if(id==="freunde"&&(S.buddies.length||(S.online&&S.online.on)||(typeof pendingInvite==="function"&&pendingInvite()))) return true;
+  if(id==="reise"&&(S.found||S.world)) return true;
+  return S.dayCount>=f.day;
+}
+const nextFeature=()=>S.allFeatures?null:FEATURES.find(f=>!feature(f.id));
+function unlockCheck(){
+  if(S.allFeatures) return;
+  const ids=FEATURES.filter(f=>f.day===S.dayCount).map(f=>f.id);
+  if(ids.length) S.pending.push({type:"unlock",ids});
+  if(S.dayCount>=Math.max(...FEATURES.map(f=>f.day))) S.allFeatures=true;
+}
+const featIcon=(f,size)=>`<span style="width:${size}px;height:${size}px;border-radius:${size/2}px;background:#26233D;color:var(--lime);display:flex;align-items:center;justify-content:center;flex:none"><svg width="${size*.55}" height="${size*.55}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${f.ic}</svg></span>`;
+
 function newGame(){
   const used=[];
   const h1=freeName(HUMAN_NAMES,used);used.push(h1);
@@ -262,7 +291,7 @@ function newGame(){
       {id:z2,name:a2,kind:"tier",art:"Ziege",pair:z1,status:"da",ret:0,born:0}
     ],
     warn:null, pending:[], days:[], feed:[], postcards:[], testmode:false,
-    points:0, items:[], sun:0, rel:{}, conflict:null, arrC:0, birthC:0
+    points:0, items:[], sun:0, rel:{}, conflict:null, arrC:0, birthC:0, allFeatures:false
   };
 }
 function migrate(st){
@@ -270,7 +299,8 @@ function migrate(st){
   if(st.points==null)st.points=0; if(!st.items)st.items=[]; if(!st.sun)st.sun=0;
   if(!st.rel)st.rel={}; if(st.conflict===undefined)st.conflict=null;
   if(!st.arrC)st.arrC=0; if(!st.birthC)st.birthC=0;
-  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[]};
+  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null}};
+  if(st.allFeatures===undefined) st.allFeatures=(st.dayCount||0)>=1;          // wer schon gespielt hat, behält alles
   for(const k in D){ if(st[k]===undefined) st[k]=D[k]; }
   const prevS=S; S=st;
   st.residents.forEach(r=>{if(r.born==null)r.born=0; if(r.kind==="mensch"){if(!r.trait)r.trait=pick(TRAITS).id; if(!r.job&&!r.parents)r.job=pickJob()}});
@@ -870,9 +900,10 @@ function closeDay(min,quests,appMin){
   S.monsters=monsters;
   S.days.push({day,min,quests,glueck:S.glueck,sunny,pts,apps:appMin,monsters,by:MY_ID||null});
   S.lastDay=day; S.dayCount++;
+  unlockCheck();
   S.budgetStreak=diff>=0?S.budgetStreak+1:0;
   if(diff>=0) buddyProgress();
-  setTimeout(netSync,800);
+  setTimeout(netSync,800); setTimeout(()=>backupNow(true),1500);
 
   log((diff>=0?"Im Budget: ":"Über dem Budget: ")+hm(min)+" Bildschirmzeit. Inselglück "+before+" → "+S.glueck+" %, +"+pts+" Punkte.", diff>=0?"good":"bad");
   if(sunny) log("Dein Sonnenschein hat die Wolken vertrieben. Der Tag hat nur halb so viel Glück gekostet.","info");
@@ -1439,7 +1470,7 @@ function viewHeute(){
   const warn=S.warn?S.warn.ids.map(id=>S.residents.find(r=>r.id===id)).filter(Boolean):null;
   const wh=whispers();
   const wisher=S.wish?S.residents.find(r=>r.id===S.wish.rid):null;
-  const canNight=S.lastDay&&!sleeping()&&(S.testmode||S.lastDay===today())&&!(S.night&&S.night.after===S.lastDay);
+  const canNight=feature("nacht")&&S.lastDay&&!sleeping()&&(S.testmode||S.lastDay===today())&&!(S.night&&S.night.after===S.lastDay);
   const mons=(S.monsters||[]).map(id=>S.apps.find(a=>a.id===id)).filter(Boolean);
   const guard=S.vacation&&S.vacation.guard?S.residents.find(r=>r.id===S.vacation.guard):null;
   return `
@@ -1454,12 +1485,13 @@ function viewHeute(){
   ${wh.length?`<div class="card"><p class="label">Inselgeflüster</p>${wh.map(w=>`<div class="row" style="align-items:flex-start"><div class="avatar" style="background:${w.r.kind==="mensch"?"#26233D":"#22301F"}"><svg width="40" height="40" viewBox="-13 -24 26 27" aria-hidden="true">${figure(w.r,0,0)}</svg></div><div class="grow" style="background:var(--ground);border-radius:4px 16px 16px 16px;padding:10px 12px"><p class="small" style="font-weight:700;color:var(--lilac)">${esc(w.r.name)}${w.r.job?" · "+esc(jobName(w.r.job)):""}</p><p>${esc(w.t)}</p></div></div>`).join("")}</div>`:""}
   ${S.wish&&wisher?`<div class="card"><div class="row"><div class="badge" style="background:#26233D"><svg width="36" height="30" viewBox="-20 -34 40 38" aria-hidden="true">${itemSvg(S.wish.item)}</svg></div><div class="grow"><p class="label">Wunsch</p><p><b>${esc(wisher.name)}</b> wünscht sich: ${esc(itemName(S.wish.item))}</p><p class="small muted">Erfüllst du ihn im Laden, strahlt ${esc(wisher.name)} und bringt dir jeden Tag +3 Punkte.</p></div></div></div>`:""}
   ${mons.length?`<div class="card" style="border:1.5px solid #9B6BD6"><p class="label" style="color:#C8A8FF">App-Monster vor der Insel</p>${mons.map(a=>`<div class="row"><svg width="48" height="40" viewBox="-24 -34 48 40" aria-hidden="true">${monsterSvg(a.m)}</svg><p class="grow">${esc(monName(a,false))}: ${esc(a.name)} lag gestern über ${hm(a.limit)}. Es verscheucht die Fische und kostet Glück.</p></div>`).join("")}<p class="small muted">Bleib heute bei diesen Apps unter dem Limit, dann tauchen sie wieder ab.</p></div>`:""}
-  <div class="card">
+  ${feature("boot")?`<div class="card">
     <div class="row between"><p class="label">Fokus-Bootsfahrt</p></div>
     ${S.boat?`<p>Das Boot ist draußen. Leg das Handy weg, bis es zurück ist.</p>`
     :`<p class="small muted">Ein Bewohner fährt zum Fischen raus, solange du das Handy weglegst. Hältst du durch, bringt das Boot Punkte und Baumaterial.</p>
       <div class="row">${[15,30,60].map(m=>`<button class="btn secondary grow" style="padding:0" data-boat="${m}" ${adults().length?"":"disabled"}>${m} min</button>`).join("")}</div>`}
-  </div>
+  </div>`:""}
+  ${nextCard()}
   <div class="card" id="closeCard">
     <div class="row between"><h2>${S.vacation?"Urlaub":ok?"Tag eintragen":"Bis morgen!"}</h2><span class="small muted">${nice(nd)}</span></div>
     ${ok?`
@@ -1471,10 +1503,10 @@ function viewHeute(){
     </div>
     <div class="goal-bar" id="liveBar" aria-hidden="true"><i></i><span class="goal-mark"></span></div>
     <p class="small" id="liveTxt" aria-live="polite" style="font-weight:700;margin-top:-4px"></p>
-    <details><summary style="cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center">Pro App eintragen (für die App-Monster)</summary>
+    ${feature("monster")?`<details><summary style="cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center">Pro App eintragen (für die App-Monster)</summary>
       <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:6px">${S.apps.map(a=>`<label class="field" for="app_${a.id}" style="font-size:13px">${esc(a.name)} <span class="muted" style="font-weight:500">Limit ${a.limit} min</span><input id="app_${a.id}" type="number" min="0" max="1440" inputmode="numeric" placeholder="Minuten"></label>`).join("")}</div>
-    </details>
-    <div>${QUESTS.map(q=>`<label class="check" for="q_${q.id}"><input type="checkbox" id="q_${q.id}"> ${q.name} <span class="small muted">+3 %</span></label>`).join("")}</div>
+    </details>`:""}
+    ${feature("quests")?`<div>${QUESTS.map(q=>`<label class="check" for="q_${q.id}"><input type="checkbox" id="q_${q.id}"> ${q.name} <span class="small muted">+3 %</span></label>`).join("")}</div>`:""}
     <button class="btn" id="closeBtn">Tag abschließen</button>`
     :S.vacation?`<p class="muted">Im Urlaubsmodus musst du nichts eintragen.</p>`:`<p class="muted">Heute ist schon eingetragen. Komm morgen Abend wieder und trag den Tag ein.</p>`}
     ${canNight?`<button class="btn secondary" id="nightBtn">Gute Nacht, Insel</button><p class="small muted" style="margin-top:-4px">Leg danach das Handy weg. Morgen gibt es +15 Traumpunkte und mehr Strandgut.</p>`:""}
@@ -1489,6 +1521,13 @@ function viewHeute(){
     <button class="btn ghost" id="sim10">10 Tage gemischt</button>
     <button class="btn ghost" id="resetBtn">Spielstand zurücksetzen</button>`:""}
   </div>`;
+}
+/* Was als Nächstes freigeschaltet wird */
+function nextCard(){
+  const f=nextFeature(); if(!f||!S.setup) return "";
+  const left=f.day-S.dayCount, same=FEATURES.filter(x=>x.day===f.day&&!feature(x.id));
+  return `<div class="card" style="background:transparent;border:1.5px dashed #3A3D58"><div class="row">${featIcon(f,40)}
+    <div class="grow"><p class="label">${left===1?"Nach dem nächsten Tag":"In "+left+" Tagen"} neu</p><p><b>${nameList(same.map(x=>esc(x.name)))}</b></p></div></div></div>`;
 }
 /* Tagesziel: Budget, letzter Tag und die letzten 7 Tage auf einen Blick */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -1737,7 +1776,7 @@ function projectSvg(id){
   return "";
 }
 function viewProjekt(){
-  return viewReise()+viewShop()+`<div class="card"><p class="label">${esc(curWorld().name)}</p><h2>Großprojekte</h2><p class="muted small">Ist ein Projekt fertig, startet sofort das nächste.</p>
+  return (feature("reise")?viewReise():"")+(feature("laden")?viewShop():`<div class="card"><p class="label">Inselladen</p><p class="muted">Der Laden öffnet nach deinem ersten eingetragenen Tag. Dann kannst du Punkte für Deko und Nützliches ausgeben.</p></div>`)+`<div class="card"><p class="label">${esc(curWorld().name)}</p><h2>Großprojekte</h2><p class="muted small">Ist ein Projekt fertig, startet sofort das nächste.</p>
   ${curProjects().map((p,i)=>{
     const done=S.built.includes(p.id), cur=i===S.projectIdx;
     const prog=cur?Math.min(100,S.material/(p.hours*60)*100):done?100:0;
@@ -1816,6 +1855,7 @@ function settingsHtml(){
     <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">${S.apps.map(a=>`<label class="field" for="lim_${a.id}" style="font-size:13px">${esc(a.name)} (min)<input id="lim_${a.id}" type="number" min="5" max="600" step="5" value="${a.limit}" data-lim="${a.id}"></label>`).join("")}</div>
     <label class="check" for="deathToggle"><input type="checkbox" id="deathToggle" ${S.natDeath?"checked":""}> Natürlicher Abschied im hohen Alter</label>
     <label class="check" for="vacToggle" style="margin-top:6px"><input type="checkbox" id="vacToggle" ${S.vacation?"checked":""}> Urlaubsmodus: Die Insel schläft, nichts geht verloren</label>
+    ${S.allFeatures?"":`<label class="check" for="allFeat"><input type="checkbox" id="allFeat"> Alle Funktionen sofort zeigen (statt nach und nach)</label>`}
     <label class="check" for="soundToggle"><input type="checkbox" id="soundToggle" ${S.sound!==false?"checked":""}> Töne und Geräusche</label>
   </div>
   ${netConfigured()?`<div class="card"><p class="label">Online: Freunde und Ranglisten</p>
@@ -1823,6 +1863,7 @@ function settingsHtml(){
     ${netOn()?`<label class="check" for="netPub"><input type="checkbox" id="netPub" ${S.online.pub?"checked":""}> Auch in der Rangliste für alle erscheinen</label>
     <p class="small muted">Ausschalten löscht alle Online-Daten dieses Kontos und trennt die Online-Freundschaften.</p>`:""}
   </div>`:""}
+  ${netConfigured()?backupCard():""}
   <div class="card"><p class="label">Sicherung</p>
     <p class="small muted">Dein Spielstand liegt nur in diesem Browser. Lade ab und zu eine Sicherung herunter, um ihn auf ein anderes Gerät mitzunehmen.</p>
     <div class="row"><button class="btn secondary grow" id="exportBtn">Sichern</button><button class="btn secondary grow" id="importBtn">Laden</button></div>
@@ -1886,7 +1927,10 @@ function render(){
   $("#streakChip").className="chip "+(S.happyStreak>0?"good":"gone");
   $("#accBtn").innerHTML=ACC?avatarSvg(ACC.avatar,40):"";
   $("#dateline").textContent="OffLand · "+new Date().toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"});
-  document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-current",b.dataset.tab===tab?"page":"false"));
+  if(TAB_FEATURE[tab]&&!feature(TAB_FEATURE[tab])) tab="heute";
+  let nTabs=0;
+  document.querySelectorAll("#tabs button").forEach(b=>{const show=!TAB_FEATURE[b.dataset.tab]||feature(TAB_FEATURE[b.dataset.tab]);b.hidden=!show;if(show)nTabs++;b.setAttribute("aria-current",b.dataset.tab===tab?"page":"false")});
+  $("#tabs").style.gridTemplateColumns="repeat("+nTabs+",minmax(0,1fr))";
   const v=!S.setup?viewSetup():tab==="heute"?viewHeute():tab==="bewohner"?viewBewohner():tab==="zeit"?viewZeit():tab==="projekt"?viewProjekt():tab==="freunde"?viewFreunde():viewVerlauf();
   $("#view").innerHTML=`<div style="display:flex;flex-direction:column;gap:12px">${v}</div>`;
   bind();
@@ -1899,6 +1943,11 @@ function bind(){
   if(sa) sa.oninput=()=>{S.baseline=+sa.value;$("#setBaseOut").textContent=hm(S.baseline)};
   if(sb) sb.onchange=save; if(sa) sa.onchange=save;
   const st=$("#startBtn"); if(st) st.onclick=()=>{S.setup=true;log("Deine Insel ist gegründet. "+nameList(here().map(r=>r.name))+" ziehen ein.","good");save();render()};
+  const bo=$("#bkOn"); if(bo) bo.onclick=backupEnable;
+  const bn=$("#bkNow"); if(bn) bn.onclick=async()=>{bn.disabled=true;bn.textContent="Sichere …";const ok=await backupNow(true);toast(ok?"Insel gesichert":"Sichern hat nicht geklappt");settingsSheet()};
+  const bc=$("#bkCopy"); if(bc) bc.onclick=async()=>{try{await navigator.clipboard.writeText(S.backup.code);toast("Code kopiert")}catch(e){toast("Kopieren nicht möglich, bitte abschreiben")}};
+  const bx=$("#bkOff"); if(bx) bx.onclick=async()=>{bx.disabled=true;await backupDelete();toast("Online-Backup gelöscht");settingsSheet()};
+  const af=$("#allFeat"); if(af) af.onchange=()=>{if(af.checked){S.allFeatures=true;save();toast("Alle Funktionen sind jetzt sichtbar")}};
   const sh=$("#shareBtn"); if(sh) sh.onclick=shareSheet;
   const fb=$("#friendsBtn"); if(fb) fb.onclick=friendsSheet;
   const rb=$("#rankBtn"); if(rb) rb.onclick=rankSheet;
@@ -1916,7 +1965,7 @@ function bind(){
   const cb=$("#closeBtn"); if(cb) cb.onclick=()=>{
     const h=+($("#inH").value||0), m=+($("#inM").value||0);
     const min=clamp(h*60+m,0,1440);
-    const q=QUESTS.filter(x=>$("#q_"+x.id).checked).map(x=>x.id);
+    const q=QUESTS.filter(x=>$("#q_"+x.id)&&$("#q_"+x.id).checked).map(x=>x.id);
     const apps={}; S.apps.forEach(a=>{const el=$("#app_"+a.id);if(el&&el.value!=="")apps[a.id]=clamp(+el.value,0,1440)});
     closeDay(min,q,apps);
   };
@@ -2041,7 +2090,7 @@ function soundFor(ev){
     const r=ev.id?S.residents.find(x=>x.id===ev.id):null;
     const map={arrival:r&&r.kind==="tier"?["animal",r.art]:["human"],birth:["birth"],postcard:["postcard"],project:["project"],sick:["sick"],warn:["warn"],left:["left"],
       return:["return"],reunion:["return"],conflict:["conflict"],conflictResult:[ev.ok?"resolve":"thud"],love:["love"],strandgut:["sparkle"],wish:["sparkle"],gift:["sparkle"],
-      kapsel:["sparkle"],fest:["fest"],discovery:["aurora"],reply:["postcard"],travel:["project"],farewell:["farewell"],boat:["boat"],welcome:["return"],
+      kapsel:["sparkle"],fest:["fest"],discovery:["aurora"],reply:["postcard"],unlock:["sparkle"],travel:["project"],farewell:["farewell"],boat:["boat"],welcome:["return"],
       visitor:[ev.kind==="aurora"?"aurora":ev.kind==="birds"?"birds":"horn"],day:[ev.min<=S.budget?"goodday":"badday"]};
     const m=map[ev.type]; if(m) sfx(m[0],m[1]);
   }catch(e){}
@@ -2123,6 +2172,14 @@ function showPending(){
     const pt=S.residents.find(x=>x.id===ev.pet), o=S.residents.find(x=>x.id===ev.owner);
     if(!pt||!o) return showPending();
     return sheet(`<div class="anim">${base(`<g class="sail-in" style="animation-duration:1.4s">${figure(pt,200,134)}</g>${figure(o,232,134)}`+hearts(216,100),false)}</div><p class="label" style="color:var(--lime)">Wiedersehen</p><h2>${esc(pt.name)} hat ${esc(o.name)} wieder</h2><p class="muted">${esc(SOUND[pt.art]||"")} Jeden Abend hat ${esc(pt.name)} am Steg gewartet. Jetzt ist das Warten vorbei.</p><button class="btn" data-ok>Wie schön</button>`);
+  }
+  if(ev.type==="unlock"){
+    const fs=(ev.ids||[]).map(id=>FEATURES.find(f=>f.id===id)).filter(Boolean); if(!fs.length) return showPending();
+    const go=fs[0].tab;
+    return sheet(`<p class="label" style="color:var(--lime)">Neu freigeschaltet</p><h2>${fs.length>1?["","","Zwei","Drei","Vier"][fs.length]+" neue Sachen":esc(fs[0].name)}</h2>
+      ${fs.map(f=>`<div class="row" style="align-items:flex-start">${featIcon(f,44)}<div class="grow"><p><b>${esc(f.name)}</b></p><p class="small muted">${esc(f.text)}</p></div></div>`).join("")}
+      <button class="btn" id="unlGo">Ansehen</button><button class="btn ghost" data-ok>Später</button>`,
+      ()=>{$("#unlGo").onclick=()=>{closeModal();tab=go;render();window.scrollTo(0,0);showPending()}});
   }
   if(ev.type==="reply"){
     const t=(S.tickets||[]).find(x=>x.id===ev.id); if(!t||!t.reply) return showPending();
@@ -2738,7 +2795,7 @@ function ticketHtml(t){
 }
 let replyCheck=0;
 async function checkReplies(force){
-  if(!netConfigured()||!S.setup) return;
+  if(!netConfigured()||!S.setup||!(S.tickets||[]).length) return;           // nur wer selbst eine Anfrage geschickt hat
   if(!force&&Date.now()-replyCheck<10*60000) return; replyCheck=Date.now();
   let N; try{N=await netInit()}catch(e){return}
   // alle eigenen Anfragen dieses Geräts holen (findet auch ältere, die die App sich nicht gemerkt hat)
@@ -2755,6 +2812,102 @@ async function checkReplies(force){
   }
   if(added&&!got) save();
   if(got){save();log("Das OffLand-Team hat auf deine Anfrage geantwortet.","good");showPending()}
+}
+
+/* ---------- Online-Backup: verschlüsselt, nur mit Wiederherstellungs-Code lesbar ----------
+   Dokument-ID und Schlüssel werden aus dem Code abgeleitet. Ohne Code kann niemand das Backup
+   finden oder lesen, auch nicht in der Firebase-Konsole. */
+const fmtCode=c=>c.replace(/(.{4})(?=.)/g,"$1-");
+const newBackupCode=()=>Array.from(crypto.getRandomValues(new Uint8Array(12)),x=>CODE_ABC[x%32]).join("");
+const cleanBackupCode=c=>String(c||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,12);
+const b64=buf=>{const u=new Uint8Array(buf);let s="";for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return btoa(s)};
+const unb64=t=>Uint8Array.from(atob(t),c=>c.charCodeAt(0));
+async function backupKeys(code){
+  const enc=new TextEncoder();
+  const h=new Uint8Array(await crypto.subtle.digest("SHA-256",enc.encode("offland-backup-id:"+code)));
+  const id=Array.from(h,x=>x.toString(16).padStart(2,"0")).join("").slice(0,40);
+  const base=await crypto.subtle.importKey("raw",enc.encode(code),"PBKDF2",false,["deriveKey"]);
+  const key=await crypto.subtle.deriveKey({name:"PBKDF2",salt:enc.encode("offland-backup-v1"),iterations:100000,hash:"SHA-256"},base,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]);
+  return {id,key};
+}
+async function pipeBytes(bytes,stream){return new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(stream)).arrayBuffer())}
+async function backupNow(force){
+  const b=S.backup; if(!b||!b.on||!b.code||!netConfigured()) return false;
+  if(!force&&b.at&&Date.now()-b.at<30*60000) return true;
+  try{
+    const N=await netInit(), {id,key}=await backupKeys(b.code);
+    b.at=Date.now();
+    let bytes=new TextEncoder().encode(JSON.stringify({profile:ACC?{name:ACC.name,avatar:ACC.avatar}:null,state:S}));
+    const gz=typeof CompressionStream==="function"; if(gz) bytes=await pipeBytes(bytes,new CompressionStream("gzip"));
+    const iv=crypto.getRandomValues(new Uint8Array(12));
+    const data=b64(await crypto.subtle.encrypt({name:"AES-GCM",iv},key,bytes));
+    if(data.length>900000) throw new Error("zu groß");
+    await N.set("backups/"+id,{v:1,gz,iv:b64(iv),data,at:b.at,size:data.length});
+    save(); return true;
+  }catch(e){return false}
+}
+async function backupLoad(code){
+  const N=await netInit(), {id,key}=await backupKeys(code);
+  const d=await N.get("backups/"+id);
+  if(!d) return null;
+  let bytes=new Uint8Array(await crypto.subtle.decrypt({name:"AES-GCM",iv:unb64(d.iv)},key,unb64(d.data)));
+  if(d.gz) bytes=await pipeBytes(bytes,new DecompressionStream("gzip"));
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+async function backupDelete(){
+  const b=S.backup; if(!b||!b.code) return;
+  try{const N=await netInit(), {id}=await backupKeys(b.code); await N.del("backups/"+id)}catch(e){}
+  S.backup={on:false,code:null,at:null}; save();
+}
+function backupCard(){
+  const b=S.backup||{};
+  if(!b.on) return `<div class="card"><p class="label">Online-Backup</p>
+    <p class="small muted">Sichert deine Insel verschlüsselt online, damit sie bei einem neuen Handy nicht verloren geht. Du bekommst einen Wiederherstellungs-Code. Ohne ihn kann niemand das Backup öffnen, auch wir nicht.</p>
+    <button class="btn secondary" id="bkOn">Backup einschalten</button></div>`;
+  return `<div class="card"><p class="label">Online-Backup</p>
+    <p class="small muted">Wird automatisch nach jedem Tag gesichert. ${b.at?"Zuletzt: "+new Date(b.at).toLocaleString("de-DE",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"Noch nicht gesichert."}</p>
+    <div style="background:var(--ground);border-radius:16px;padding:12px;text-align:center"><span class="small muted">Dein Wiederherstellungs-Code</span><br><b class="num" style="font-size:22px;letter-spacing:.08em">${fmtCode(b.code)}</b></div>
+    <p class="small" style="color:var(--amber)">Schreib dir den Code auf oder mach einen Screenshot. Ohne ihn lässt sich die Insel nicht zurückholen.</p>
+    <div class="row"><button class="btn secondary grow" id="bkCopy">Code kopieren</button><button class="btn secondary grow" id="bkNow">Jetzt sichern</button></div>
+    <button class="btn ghost" id="bkOff">Backup ausschalten und löschen</button></div>`;
+}
+async function backupEnable(){
+  const btn=$("#bkOn"); if(btn){btn.disabled=true;btn.textContent="Richte ein …"}
+  S.backup={on:true,code:newBackupCode(),at:null};
+  const ok=await backupNow(true);
+  if(!ok){S.backup={on:false,code:null,at:null};save();toast("Keine Verbindung. Versuch es später noch mal.");return settingsSheet()}
+  modal(`<p class="label" style="color:var(--lime)">Online-Backup ist an</p><h2>Dein Wiederherstellungs-Code</h2>
+    <div style="background:var(--ground);border-radius:16px;padding:16px;text-align:center"><b class="num" style="font-size:26px;letter-spacing:.08em">${fmtCode(S.backup.code)}</b></div>
+    <p class="muted">Mit diesem Code holst du deine Insel auf jedes Handy zurück: Startbildschirm → „Insel aus Backup holen“.</p>
+    <p class="small" style="color:var(--amber)">Bitte jetzt aufschreiben oder einen Screenshot machen. Wir können den Code nicht wiederherstellen.</p>
+    <button class="btn secondary" id="bkCopy2">Code kopieren</button><button class="btn" id="bkDone">Hab ich notiert</button>`);
+  $("#bkCopy2").onclick=async()=>{try{await navigator.clipboard.writeText(S.backup.code);toast("Code kopiert")}catch(e){toast("Bitte abschreiben")}};
+  $("#bkDone").onclick=settingsSheet;
+}
+function restoreSheet(){
+  modal(`<p class="label" style="color:var(--lime)">Backup</p><h2>Insel zurückholen</h2>
+    <p class="muted">Gib deinen Wiederherstellungs-Code ein. Die Insel wird als eigenes Konto auf diesem Gerät angelegt.</p>
+    <label class="field" for="rsCode">Wiederherstellungs-Code<input id="rsCode" type="text" maxlength="16" autocomplete="off" autocapitalize="characters" placeholder="XXXX-XXXX-XXXX" style="text-transform:uppercase;letter-spacing:.1em"></label>
+    <p class="err" id="rsErr" role="alert"></p>
+    <button class="btn" id="rsGo">Insel holen</button><button class="btn ghost" id="rsNo">Abbrechen</button>`);
+  $("#rsNo").onclick=closeModal;
+  $("#rsGo").onclick=async()=>{
+    const code=cleanBackupCode($("#rsCode").value), btn=$("#rsGo");
+    if(code.length!==12) return $("#rsErr").textContent="Der Code hat 12 Zeichen.";
+    btn.disabled=true; btn.textContent="Hole Insel …";
+    let bk=null; try{bk=await backupLoad(code)}catch(e){bk=false}
+    if(!document.body.contains(btn)) return;
+    btn.disabled=false; btn.textContent="Insel holen";
+    if(bk===null) return $("#rsErr").textContent="Zu diesem Code gibt es kein Backup.";
+    if(!bk||!bk.state||bk.state.v!==1) return $("#rsErr").textContent="Das Backup konnte nicht geöffnet werden. Stimmt der Code? Bist du online?";
+    const pr=bk.profile||{}, list=profiles();
+    let name=(pr.name||"Insel").slice(0,20); if(list.some(x=>x.name===name)) name=(name.slice(0,17)+" (2)");
+    const p={id:uid(),name,avatar:pr.avatar||AVATARS[0],salt:uid(),pin:null,created:Date.now()};
+    const st=bk.state; st.backup={on:true,code,at:Date.now()};
+    try{localStorage.setItem(profKey(p.id),JSON.stringify(st))}catch(e){return $("#rsErr").textContent="Auf diesem Gerät ist nicht genug Speicher frei."}
+    list.push(p); storeProfiles(list);
+    login(p); toast("Willkommen zurück, "+name+"!");
+  };
 }
 
 /* ---------- Insel teilen: Story-Bild 1080 × 1920 ---------- */
@@ -2899,10 +3052,12 @@ function showStart(){
       <button class="btn secondary" id="newAcc">Neues Konto anlegen</button>`
     :`<div class="card"><p class="label">So funktioniert's</p><ul class="steps"><li>Trag abends deine Bildschirmzeit ein.</li><li>Bleibst du im Budget, wird deine Insel glücklicher und wächst.</li><li>Zu viel Handy bringt Wolken, Streit und App-Monster.</li></ul></div>
       <button class="btn" id="newAcc">Konto anlegen</button>`}
-    <p class="small muted" style="text-align:center">Alle Daten bleiben auf diesem Gerät.</p>
+    ${netConfigured()?`<button class="btn ghost" id="restoreBtn">Insel aus Backup holen</button>`:""}
+    <p class="small muted" style="text-align:center">Alle Daten bleiben auf diesem Gerät, außer du schaltest Online-Funktionen ein.</p>
   </div>`;
   document.querySelectorAll("[data-login]").forEach(b=>b.onclick=()=>{const p=profiles().find(x=>x.id===b.dataset.login);if(p)tryLogin(p)});
   $("#newAcc").onclick=showCreate;
+  const rb=$("#restoreBtn"); if(rb) rb.onclick=restoreSheet;
 }
 
 function accFields(p){
@@ -3012,6 +3167,7 @@ function deleteSheet(){
     if(ACC.pin&&await hashPin($("#delPin").value,ACC.salt)!==ACC.pin) return $("#delErr").textContent="Die PIN stimmt nicht.";
     const id=ACC.id;
     if(S.online&&S.online.pid){yes.disabled=true;yes.textContent="Lösche …";await netDeleteAll()}
+    if(S.backup&&S.backup.on){yes.disabled=true;yes.textContent="Lösche …";await backupDelete()}
     try{localStorage.removeItem(profKey(id))}catch(e){}
     storeProfiles(profiles().filter(x=>x.id!==id));
     ACC=null; LS=null; logout(); toast("Konto gelöscht");
@@ -3019,7 +3175,7 @@ function deleteSheet(){
 }
 
 $("#accBtn").onclick=accountSheet;
-document.addEventListener("visibilitychange",()=>{if(!document.hidden&&ACC&&S.setup)checkReplies(false)});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&ACC&&S.setup)checkReplies(false); if(document.hidden&&ACC&&S.setup)backupNow(false)});
 
 function boot(){
   migrateOldSave();
