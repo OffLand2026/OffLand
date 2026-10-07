@@ -70,6 +70,35 @@ service cloud.firestore {
         && request.resource.data.iv is string && request.resource.data.iv.size() <= 24;
     }
 
+    // Familieninsel: Mitglieder sehen sich gegenseitig, sonst niemand.
+    function isFamMember(fid) { return signedIn() && exists(/databases/$(database)/documents/families/$(fid)/uids/$(request.auth.uid)); }
+    match /families/{fid} {
+      allow get: if signedIn();
+      allow create: if signedIn() && fid.size() >= 12 && request.resource.data.owner == request.auth.uid
+        && request.resource.data.keys().hasOnly(["name", "code", "at", "owner"]) && shortText(request.resource.data.name, 30);
+      allow update: if signedIn() && resource.data.owner == request.auth.uid
+        && request.resource.data.keys().hasOnly(["name", "code", "at", "owner"]) && shortText(request.resource.data.name, 30);
+      match /uids/{uid} {
+        allow get, create, delete: if signedIn() && uid == request.auth.uid
+          && exists(/databases/$(database)/documents/families/$(fid));
+      }
+      match /members/{mid} {
+        allow read: if isFamMember(fid);
+        allow create, update: if isFamMember(fid) && request.resource.data.owner == request.auth.uid
+          && (resource == null || resource.data.owner == request.auth.uid)
+          && request.resource.data.keys().hasOnly(["owner", "name", "avatar", "joined", "share", "days", "good", "streak", "updated"])
+          && shortText(request.resource.data.name, 20) && shortText(request.resource.data.avatar, 20)
+          && request.resource.data.days is map && request.resource.data.days.size() <= 21
+          && request.resource.data.good is int && request.resource.data.good >= 0 && request.resource.data.good <= 100000;
+        allow delete: if signedIn() && resource.data.owner == request.auth.uid;
+      }
+    }
+    match /famcodes/{code} {
+      allow get: if signedIn();
+      allow create: if signedIn() && code.size() == 6 && request.resource.data.owner == request.auth.uid
+        && exists(/databases/$(database)/documents/families/$(request.resource.data.fam));
+    }
+
     // Rangliste für alle: nur wer zugestimmt hat, steht hier.
     match /weeks/{wk}/public/{pid} {
       allow get: if signedIn();
