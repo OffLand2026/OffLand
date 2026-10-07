@@ -1234,10 +1234,6 @@ function viewZeit(){
   ${S.apps.map(a=>{const ds=S.days.filter(d=>d.apps&&d.apps[a.id]!=null);const tot=ds.reduce((x,d)=>x+(d.apps[a.id]||0),0);const over=ds.filter(d=>d.apps[a.id]>a.limit).length;
     return `<div class="row" style="padding:6px 0;border-top:1px solid var(--card2)"><svg width="44" height="36" viewBox="-24 -34 48 40" aria-hidden="true" style="${over?"":"opacity:.35"}">${monsterSvg(a.m)}</svg><div class="grow"><p><b>${esc(a.name)}</b> <span class="small muted">· Limit ${a.limit} min</span></p><p class="small muted">${ds.length?`${hm(tot)} in ${ds.length} Tagen · ${over}× ${esc(monName(a,false))} aufgetaucht`:"Noch nicht eingetragen"}</p></div></div>`}).join("")}
   <p class="small muted">Trag beim Tagesabschluss die Minuten pro App ein, dann siehst du hier, welche App die meiste Zeit frisst.</p></div>
-  <div class="card"><p class="label">Echte Zeit statt Bildschirm</p>
-    <div class="eq">${ACTIVITIES.map(a=>`<div class="eqi" style="color:var(--lime)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${a.ic}</svg><div><b class="num" style="color:var(--ink)">${S.actTotals[a.id]||0}</b><span class="small muted">${esc(a.n)}</span></div></div>`).join("")}
-    <div class="eqi" style="color:var(--lilac)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 15h18l-3 4H6zM12 15V4l6 9"/></svg><div><b class="num" style="color:var(--ink)">${hm(S.focusMin)}</b><span class="small muted">Fokus-Bootsfahrten, ${S.fish} Fische</span></div></div></div>
-  </div>
   <p class="small muted" style="padding:0 4px">Die Umrechnungen sind Faustwerte, zum Beispiel 30 Minuten für einen Spaziergang oder 6 Stunden für ein Buch.</p>`;
 }
 function viewShop(){
