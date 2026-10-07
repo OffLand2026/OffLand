@@ -1,6 +1,5 @@
-rules_version = '2';
 // Sicherheitsregeln für OffLand (Freunde und Ranglisten).
-// In der Firebase-Konsole unter Firestore Database → Regeln einfügen und veröffentlichen.
+// In der Firebase-Konsole unter Firestore Database (nicht Realtime Database) → Regeln einfügen und veröffentlichen.
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
@@ -11,7 +10,7 @@ service cloud.firestore {
     function shortText(v, n) { return v is string && v.size() <= n; }
     function validPlayer(d) {
       return d.owner == request.auth.uid && shortText(d.name, 20) && shortText(d.avatar, 20)
-        && (!('code' in d) || shortText(d.code, 6)) && (!('world' in d) || shortText(d.world, 30));
+        && (!("code" in d) || shortText(d.code, 6)) && (!("world" in d) || shortText(d.world, 30));
     }
     function validRow(d) {
       return d.owner == request.auth.uid && shortText(d.name, 20) && shortText(d.avatar, 20)
@@ -30,7 +29,7 @@ service cloud.firestore {
       // Freundschaften: jede Seite darf die Verbindung anlegen oder lösen.
       match /friends/{fid} {
         allow read: if ownsPlayer(pid);
-        allow create, update: if (ownsPlayer(pid) || ownsPlayer(fid)) && request.resource.data.keys().hasOnly(['since', 'code']);
+        allow create, update: if (ownsPlayer(pid) || ownsPlayer(fid)) && request.resource.data.keys().hasOnly(["since", "code"]);
         allow delete: if ownsPlayer(pid) || ownsPlayer(fid);
       }
     }

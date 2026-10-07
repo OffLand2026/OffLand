@@ -1,5 +1,5 @@
 /* Service Worker: macht OffLand auch ohne Internet spielbar. */
-const CACHE = "offland-v18";
+const CACHE = "offland-v19";
 const ASSETS = [
   "./",
   "index.html",
@@ -38,6 +38,7 @@ self.addEventListener("fetch", e => {
         }
         return res;
       })
-      .catch(() => caches.match(e.request).then(r => r || caches.match("index.html")))
+      // Ersatzseite nur beim Seitenaufruf, nie für Skripte (sonst bekommt z. B. Firebase HTML statt Code)
+      .catch(() => caches.match(e.request).then(r => r || (e.request.mode === "navigate" ? caches.match("index.html") : Response.error())))
   );
 });

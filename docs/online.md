@@ -5,6 +5,8 @@ Die Einrichtung dauert etwa 10 Minuten und geht komplett im Browser.
 
 Solange nichts eingerichtet ist, läuft OffLand ganz normal offline weiter.
 
+**Stand:** Für OffLand ist das Projekt `offland2026` eingerichtet und in `js/online-config.js` eingetragen.
+
 ## 1. Firebase-Projekt anlegen
 
 1. <https://console.firebase.google.com> öffnen und mit einem Google-Konto anmelden.
@@ -15,7 +17,8 @@ Solange nichts eingerichtet ist, läuft OffLand ganz normal offline weiter.
 
 1. In der Projektübersicht auf das Symbol **`</>`** (Web) klicken.
 2. Spitzname `OffLand` → **App registrieren** (Firebase Hosting **nicht** anhaken).
-3. Es erscheint ein Code-Block mit `const firebaseConfig = { … }`. Diesen Block brauchen wir gleich.
+3. Es erscheint ein Code-Block mit `const firebaseConfig = { … }`. Diesen Block brauchen wir gleich. Später findest du ihn unter ⚙︎ → **Projekteinstellungen → Allgemein → Meine Apps**.
+   Achtung: Den Block unter **Dienstkonten** („firebase-admin“, „serviceAccountKey“) brauchen wir **nicht**, und dort bitte auch keinen privaten Schlüssel erzeugen.
 
 ## 3. Anonyme Anmeldung einschalten
 
@@ -27,9 +30,9 @@ Niemand muss sich mit E-Mail registrieren. Jedes Gerät bekommt automatisch eine
 
 ## 4. Datenbank anlegen
 
-1. Links **Build → Firestore Database** → **Datenbank erstellen**.
-2. Standort **eur3 (Europa)** wählen. Der lässt sich später nicht mehr ändern, und Europa ist für den Datenschutz am einfachsten.
-3. **Im Produktionsmodus starten** → Erstellen.
+1. Links **Erstellen → Firestore Database** → **Datenbank erstellen**. Wichtig: **Firestore**, nicht „Realtime Database“. Die Realtime Database erwartet ein anderes Regel-Format und meldet sonst „Line 1: Parse error“.
+2. Edition **Standard**, Standort **europe-west1 (Belgien)**. Der Standort lässt sich später nicht mehr ändern, und die EU ist für den Datenschutz am einfachsten.
+3. **Sperrmodus** wählen (nicht Testmodus) → Erstellen.
 4. Reiter **Regeln** → alles löschen → den kompletten Inhalt der Datei [`firestore.rules`](../firestore.rules) aus diesem Repository einfügen → **Veröffentlichen**.
 
 ## 5. Konfiguration eintragen

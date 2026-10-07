@@ -2406,7 +2406,7 @@ function friendsSheet(){
     ${netConfigured()?`<button class="btn secondary" id="frRank">Freunde und Ranglisten</button>`:""}
     <button class="btn ghost" id="frClose">Schließen</button>`);
   $("#frShare").onclick=()=>shareText("Spiel mit mir OffLand! Weniger Handy, mehr Insel. Mit meinem Code "+code+" bekommen wir beide einen Monat Plus.",inviteLink());
-  $("#frRedeem").onclick=async()=>{const e=await addFriend($("#frCode").value,false);if(e) return $("#frErr").textContent=e;toast("Verbunden! Ein Monat Plus ist aktiv.");sfx("project");friendsSheet()};
+  $("#frRedeem").onclick=async()=>{const btn=$("#frRedeem");btn.disabled=true;const e=await addFriend($("#frCode").value,false);if(!document.body.contains(btn)) return;btn.disabled=false;if(e) return $("#frErr").textContent=e;toast("Verbunden! Ein Monat Plus ist aktiv.");sfx("project");friendsSheet()};
   const rk=$("#frRank"); if(rk) rk.onclick=rankSheet;
   $("#frClose").onclick=()=>{closeModal();render()};
 }
@@ -2626,7 +2626,9 @@ async function rankSheet(){
   document.querySelectorAll("[data-rk]").forEach(b=>b.onclick=()=>{rankTab=b.dataset.rk;rankSheet()});
   document.querySelectorAll("[data-unfriend]").forEach(b=>b.onclick=async()=>{b.disabled=true;await netRemove(b.dataset.unfriend);S.buddies=S.buddies.filter(x=>x.pid!==b.dataset.unfriend);save();rankSheet()});
   $("#rkInvite").onclick=friendsSheet;
-  $("#rkAdd").onclick=async()=>{const btn=$("#rkAdd");btn.disabled=true;const e=await addFriend($("#rkCode").value,false);btn.disabled=false;
+  $("#rkAdd").onclick=async()=>{const btn=$("#rkAdd");btn.disabled=true;btn.textContent="Suche …";const e=await addFriend($("#rkCode").value,false);
+    if(!document.body.contains(btn)) return;                                    // Fenster inzwischen geschlossen
+    btn.disabled=false;btn.textContent="Hinzufügen";
     if(e) return $("#rkErr").textContent=e; sfx("project"); toast("Verbunden! Ein Monat Plus ist aktiv."); rankTab="freunde"; rankSheet()};
 }
 
