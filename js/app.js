@@ -169,7 +169,7 @@ const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
 const parse=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
 const addDays=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return iso(d)};
 const nice=s=>parse(s).toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"short"});
-const hm=m=>{m=Math.round(m);const h=Math.floor(Math.abs(m)/60),r=Math.abs(m)%60;return (m<0?"−":"")+(h?h+" h ":"")+(r||!h?r+" min":"")};
+const hm=m=>{m=Math.round(m);const h=Math.floor(Math.abs(m)/60),r=Math.abs(m)%60;return ((m<0?"−":"")+(h?h+" h ":"")+(r||!h?r+" min":"")).trim()};
 const today=()=>iso(new Date());
 
 function freeName(list,used){const free=list.filter(n=>!used.includes(n));return pick(free.length?free:list)}
@@ -1025,6 +1025,7 @@ function viewHeute(){
   const mons=(S.monsters||[]).map(id=>S.apps.find(a=>a.id===id)).filter(Boolean);
   const guard=S.vacation&&S.vacation.guard?S.residents.find(r=>r.id===S.vacation.guard):null;
   return `
+  ${goalCard(ok,nd)}
   <div class="stats">
     <div class="stat"><span class="label">Glück</span><b class="num" style="color:${mCls==="good"?"var(--lime)":mCls==="ok"?"var(--amber)":"var(--coral)"}">${S.glueck} %</b><span class="small muted">${mText}</span></div>
     <div class="stat"><span class="label">Bewohner</span><b class="num">${here().length}/${capacity()}</b><span class="small muted">Plätze</span></div>
@@ -1047,7 +1048,7 @@ function viewHeute(){
       return `<button data-act="${a.id}" ${done?"disabled":""} style="min-height:56px;border:none;border-radius:16px;background:${done?"#22301F":"var(--ground)"};color:${done?"var(--lime)":"var(--ink)"};display:flex;align-items:center;gap:8px;padding:8px 10px;text-align:left;font-weight:700;font-size:13px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${a.ic}</svg>${esc(a.n)}${done?" ✓":""}</button>`}).join("")}</div>
     <p class="small muted">Einmal pro Tag und Aktivität. Spaziergänge verlängern den Weg über die Insel.</p>
   </div>
-  <div class="card">
+  <div class="card" id="closeCard">
     <div class="row between"><h2>${S.vacation?"Urlaub":ok?"Tag eintragen":"Bis morgen!"}</h2><span class="small muted">${nice(nd)}</span></div>
     ${ok?`
     ${S.repair?`<p class="small" style="color:var(--amber)">Reparatur möglich: Bleib im Budget und schaff 2 Quests, dann holst du ${S.repair.amount} % Glück zurück.</p>`:""}
@@ -1056,6 +1057,8 @@ function viewHeute(){
       <label class="field" for="inH">Stunden<input id="inH" type="number" min="0" max="24" inputmode="numeric" value="${last?Math.floor(last.min/60):2}"></label>
       <label class="field" for="inM">Minuten<input id="inM" type="number" min="0" max="59" step="5" inputmode="numeric" value="${last?last.min%60:30}"></label>
     </div>
+    <div class="goal-bar" id="liveBar" aria-hidden="true"><i></i><span class="goal-mark"></span></div>
+    <p class="small" id="liveTxt" aria-live="polite" style="font-weight:700;margin-top:-4px"></p>
     <details><summary style="cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center">Pro App eintragen (für die App-Monster)</summary>
       <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:6px">${S.apps.map(a=>`<label class="field" for="app_${a.id}" style="font-size:13px">${esc(a.name)} <span class="muted" style="font-weight:500">Limit ${a.limit} min</span><input id="app_${a.id}" type="number" min="0" max="1440" inputmode="numeric" placeholder="Minuten"></label>`).join("")}</div>
     </details>
@@ -1074,6 +1077,49 @@ function viewHeute(){
     <button class="btn ghost" id="resetBtn">Spielstand zurücksetzen</button>`:""}
   </div>`;
 }
+/* Tagesziel: Budget, letzter Tag und die letzten 7 Tage auf einen Blick */
+function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
+function goalCard(ok,nd){
+  const last=S.days[S.days.length-1], week=S.days.slice(-7);
+  const inB=week.filter(d=>d.min<=S.budget).length;
+  let main;
+  if(last){
+    const good=last.min<=S.budget, diff=Math.abs(S.budget-last.min), col=good?"var(--lime)":"var(--coral)";
+    const scale=Math.max(S.budget*1.5,last.min), bp=S.budget/scale*100;
+    main=`<div class="row between" style="align-items:flex-end">
+        <div><p class="small muted">${dayLabel(last.day)}</p><p class="goal-num num" style="color:${col}">${hm(last.min)}</p></div>
+        <p class="small" style="text-align:right;font-weight:700;color:${col}">${hm(diff)} ${good?"unter":"über"}<br>deinem Ziel</p></div>
+      <div class="goal-bar" role="img" aria-label="${hm(last.min)} von ${hm(S.budget)} Tagesziel"><i style="width:${Math.min(100,last.min/scale*100)}%;background:${col}"></i><span class="goal-mark" style="left:${bp}%"></span></div>
+      <div class="goal-scale"><span style="left:${clamp(bp,14,86)}%">Ziel ${hm(S.budget)}</span></div>`;
+  } else {
+    main=`<p class="goal-num num">${hm(S.budget)}</p><p class="small muted">So viel Bildschirmzeit gibst du dir pro Tag. Trag abends ein, wie lange du am Handy warst.</p>`;
+  }
+  const wmax=Math.max(S.budget*1.5,...week.map(d=>d.min));
+  const strip=Array.from({length:7},(_,i)=>{
+    const d=week[i-(7-week.length)];
+    if(!d) return `<div class="wk"><div class="wk-bar"></div><span>&nbsp;</span></div>`;
+    const good=d.min<=S.budget;
+    return `<div class="wk${d.day===today()?" now":""}" title="${nice(d.day)}: ${hm(d.min)}"><div class="wk-bar"><i style="height:${Math.max(6,d.min/wmax*100)}%;background:${good?"var(--lime)":"var(--coral)"}"></i><span class="wk-line" style="bottom:${S.budget/wmax*100}%"></span></div><span>${parse(d.day).toLocaleDateString("de-DE",{weekday:"short"}).replace(".","")}</span></div>`;
+  }).join("");
+  return `<div class="card goal">
+    <div class="row between"><p class="label">Tagesziel</p>${S.budgetStreak>1?`<span class="chip good">${S.budgetStreak} Tage in Folge im Ziel</span>`:""}</div>
+    ${main}
+    ${week.length?`<div class="week" role="img" aria-label="${inB} von ${week.length} Tagen im Ziel">${strip}</div>
+    <p class="small muted">Letzte ${week.length} ${week.length===1?"Tag":"Tage"}: <b style="color:var(--ink)">${inB} von ${week.length}</b> im Ziel</p>`:""}
+    ${ok?`<button class="btn" id="goalGo">${nd===today()?"Heute eintragen":"Tag eintragen · "+nice(nd)}</button>`
+      :S.vacation?"":`<p class="small" style="color:var(--lime);font-weight:700">Heute ist eingetragen. Bis morgen!</p>`}
+  </div>`;
+}
+function liveUpdate(){
+  const h=$("#inH"), m=$("#inM"), bar=$("#liveBar"); if(!h||!m||!bar) return;
+  const min=clamp((+h.value||0)*60+(+m.value||0),0,1440), good=min<=S.budget;
+  const scale=Math.max(S.budget*1.5,min), col=good?"var(--lime)":"var(--coral)";
+  const i=bar.querySelector("i"); i.style.width=Math.min(100,min/scale*100)+"%"; i.style.background=col;
+  bar.querySelector(".goal-mark").style.left=(S.budget/scale*100)+"%";
+  const t=$("#liveTxt"); t.style.color=col;
+  t.textContent=hm(min)+(good?" · "+hm(S.budget-min)+" unter deinem Ziel":" · "+hm(min-S.budget)+" über deinem Ziel");
+}
+
 function resRow(r){
   const [mText,mCls]=r.status==="verstorben"?["in Erinnerung","gone"]:r.status==="weg"?["weggezogen","gone"]:r.sick?["krank: "+r.sick.kind,"bad"]:mood();
   const partner=r.pair?S.residents.find(x=>x.id===r.pair):null;
@@ -1339,6 +1385,8 @@ function bind(){
   if(sa) sa.oninput=()=>{S.baseline=+sa.value;$("#setBaseOut").textContent=hm(S.baseline)};
   if(sb) sb.onchange=save; if(sa) sa.onchange=save;
   const st=$("#startBtn"); if(st) st.onclick=()=>{S.setup=true;log("Deine Insel ist gegründet. "+here().map(r=>r.name).join(", ")+" ziehen ein.","good");save();render()};
+  const gg=$("#goalGo"); if(gg) gg.onclick=()=>{const c=$("#closeCard");if(c)c.scrollIntoView({behavior:"smooth",block:"start"});setTimeout(()=>{const h=$("#inH");if(h)h.focus({preventScroll:true})},450)};
+  ["#inH","#inM"].forEach(id=>{const el=$(id);if(el)el.oninput=liveUpdate}); liveUpdate();
   const cb=$("#closeBtn"); if(cb) cb.onclick=()=>{
     const h=+($("#inH").value||0), m=+($("#inM").value||0);
     const min=clamp(h*60+m,0,1440);

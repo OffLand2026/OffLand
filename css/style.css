@@ -142,3 +142,18 @@ body.start .app,body.start .tabs{display:none}
 .accbtn{border:none;background:transparent;padding:0;border-radius:50%;line-height:0}
 .btn.danger{color:var(--coral);border-color:#5A3330}
 .err{color:var(--coral);font-size:13px;font-weight:700;min-height:1em}
+
+/* Tagesziel */
+.goal{gap:12px}
+.goal-num{font-family:var(--display);font-size:36px;font-weight:800;letter-spacing:-1px;line-height:1.05}
+.goal-bar{position:relative;height:16px;border-radius:8px;background:var(--card2)}
+.goal-bar>i{display:block;height:100%;width:0;border-radius:8px;transition:width .4s,background .3s}
+.goal-mark{position:absolute;top:-5px;bottom:-5px;width:3px;margin-left:-1.5px;border-radius:2px;background:var(--ink)}
+.goal-scale{position:relative;height:16px;margin-top:-6px;font-size:12px;font-weight:700;color:var(--muted)}
+.goal-scale span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.wk{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--muted)}
+.wk.now span{color:var(--ink)}
+.wk-bar{position:relative;width:100%;max-width:30px;height:48px;border-radius:7px;background:var(--card2);overflow:hidden;display:flex;align-items:flex-end}
+.wk-bar i{display:block;width:100%;border-radius:7px}
+.wk-line{position:absolute;left:0;right:0;height:2px;margin-bottom:-1px;background:rgba(243,241,234,.55)}
