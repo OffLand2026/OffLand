@@ -83,5 +83,6 @@ In der App unter Profilbild → **Hilfe und Support** können Spieler:innen Fehl
 - Firebase-Konsole → **Firestore Database** → Reiter **Daten** → Ordner **support**.
 - Jede Meldung enthält Art (`fehler`, `idee`, `frage`, `sonst`), Text, freiwillige E-Mail (`contact`), Name, Zeitpunkt (`at`, Millisekunden) und technische Infos (`info`: Web oder iPhone-App, Gerät, Bildschirm, Inselwelt, Tage).
 - Das Feld `status` steht auf `neu`. Du kannst es in der Konsole z. B. auf `erledigt` setzen, um den Überblick zu behalten.
-- Spieler:innen können Meldungen nur senden, nicht lesen. Lesen geht nur in der Konsole.
+- **Antworten:** Meldung öffnen → **Feld hinzufügen** → Name `antwort`, Typ **string**, deinen Antworttext eintragen → Hinzufügen. Am besten auch `status` auf `beantwortet` setzen. Die App zeigt die Antwort beim nächsten Öffnen als „Post vom OffLand-Team“ und unter Hilfe und Support → Meine Anfragen. Die Person muss dafür nicht online gegangen sein.
+- Spieler:innen können nur Meldungen senden und ihre eigenen Anfragen samt Antwort lesen. Fremde Meldungen kann niemand lesen, auflisten oder ändern.
 - Nach dem Erweitern der Regeln (`firestore.rules`) müssen sie in der Konsole neu eingefügt und veröffentlicht werden.

@@ -270,7 +270,7 @@ function migrate(st){
   if(st.points==null)st.points=0; if(!st.items)st.items=[]; if(!st.sun)st.sun=0;
   if(!st.rel)st.rel={}; if(st.conflict===undefined)st.conflict=null;
   if(!st.arrC)st.arrC=0; if(!st.birthC)st.birthC=0;
-  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null}};
+  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[]};
   for(const k in D){ if(st[k]===undefined) st[k]=D[k]; }
   const prevS=S; S=st;
   st.residents.forEach(r=>{if(r.born==null)r.born=0; if(r.kind==="mensch"){if(!r.trait)r.trait=pick(TRAITS).id; if(!r.job&&!r.parents)r.job=pickJob()}});
@@ -2041,7 +2041,7 @@ function soundFor(ev){
     const r=ev.id?S.residents.find(x=>x.id===ev.id):null;
     const map={arrival:r&&r.kind==="tier"?["animal",r.art]:["human"],birth:["birth"],postcard:["postcard"],project:["project"],sick:["sick"],warn:["warn"],left:["left"],
       return:["return"],reunion:["return"],conflict:["conflict"],conflictResult:[ev.ok?"resolve":"thud"],love:["love"],strandgut:["sparkle"],wish:["sparkle"],gift:["sparkle"],
-      kapsel:["sparkle"],fest:["fest"],discovery:["aurora"],travel:["project"],farewell:["farewell"],boat:["boat"],welcome:["return"],
+      kapsel:["sparkle"],fest:["fest"],discovery:["aurora"],reply:["postcard"],travel:["project"],farewell:["farewell"],boat:["boat"],welcome:["return"],
       visitor:[ev.kind==="aurora"?"aurora":ev.kind==="birds"?"birds":"horn"],day:[ev.min<=S.budget?"goodday":"badday"]};
     const m=map[ev.type]; if(m) sfx(m[0],m[1]);
   }catch(e){}
@@ -2123,6 +2123,11 @@ function showPending(){
     const pt=S.residents.find(x=>x.id===ev.pet), o=S.residents.find(x=>x.id===ev.owner);
     if(!pt||!o) return showPending();
     return sheet(`<div class="anim">${base(`<g class="sail-in" style="animation-duration:1.4s">${figure(pt,200,134)}</g>${figure(o,232,134)}`+hearts(216,100),false)}</div><p class="label" style="color:var(--lime)">Wiedersehen</p><h2>${esc(pt.name)} hat ${esc(o.name)} wieder</h2><p class="muted">${esc(SOUND[pt.art]||"")} Jeden Abend hat ${esc(pt.name)} am Steg gewartet. Jetzt ist das Warten vorbei.</p><button class="btn" data-ok>Wie schön</button>`);
+  }
+  if(ev.type==="reply"){
+    const t=(S.tickets||[]).find(x=>x.id===ev.id); if(!t||!t.reply) return showPending();
+    t.seen=true; save();
+    return sheet(`<p class="label" style="color:var(--lime)">Post vom OffLand-Team</p><h2>Antwort auf deine Anfrage</h2>${ticketHtml(t)}<button class="btn" data-ok>Danke!</button>`);
   }
   if(ev.type==="buddy"){
     return sheet(`<div class="anim">${base(here().filter(r=>r.kind==="mensch").slice(0,4).map((r,i)=>`<g class="bob" style="animation-delay:${i*.2}s">${figure(r,214+i*18,134)}</g>`).join("")+hearts(250,96)+confetti(),false)}</div>
@@ -2696,8 +2701,11 @@ function supportSheet(prefill){
     <details><summary class="small muted" style="cursor:pointer;min-height:40px;display:flex;align-items:center">Diese technischen Infos werden mitgeschickt</summary>
       <p class="small muted">${info.app==="ios"?"iPhone-App":"Web-App"} · ${esc(info.screen)} · ${esc(info.lang)} · ${esc(info.world)} · ${info.days} Tage · ${info.residents} Bewohner · Budget ${hm(info.budget)} · Gerät: ${esc(info.ua)}</p></details>
     <p class="err" id="supErr" role="alert"></p>
-    <button class="btn" id="supSend">Absenden</button><button class="btn ghost" id="supNo">Abbrechen</button>`);
+    <button class="btn" id="supSend">Absenden</button>
+    ${S.tickets.length?`<details id="supMine"><summary style="cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:700">Meine Anfragen (${S.tickets.length})</summary><div style="display:flex;flex-direction:column;gap:10px">${S.tickets.slice().reverse().map(ticketHtml).join("")}</div></details>`:""}
+    <button class="btn ghost" id="supNo">Abbrechen</button>`);
   $("#supNo").onclick=()=>{closeModal();render()};
+  const mine=$("#supMine"); if(mine) mine.ontoggle=()=>{if(mine.open) checkReplies(true)};
   $("#supSend").onclick=async()=>{
     const text=$("#supText").value.trim(), mail=$("#supMail").value.trim(), cat=(document.querySelector("[name=supCat]:checked")||{}).value||"sonst";
     if(text.length<5) return $("#supErr").textContent="Schreib bitte ein paar Worte mehr.";
@@ -2706,15 +2714,40 @@ function supportSheet(prefill){
     const btn=$("#supSend"); btn.disabled=true; btn.textContent="Sende …";
     try{
       const N=await netInit();
-      await N.set("support/"+rid(),{owner:N.uid,cat,text:text.slice(0,2000),contact:mail.slice(0,100),name:netName(),info:supportInfo(),at:Date.now(),status:"neu"});
+      const id=rid();
+      await N.set("support/"+id,{owner:N.uid,cat,text:text.slice(0,2000),contact:mail.slice(0,100),name:netName(),info:supportInfo(),at:Date.now(),status:"neu"});
+      S.tickets.push({id,at:Date.now(),cat,text:text.slice(0,140),reply:null,seen:false}); save();
       sfx("postcard");
-      modal(`<p class="label" style="color:var(--lime)">Danke!</p><h2>Nachricht ist angekommen</h2><p class="muted">${mail?"Wir melden uns per E-Mail bei dir.":"Danke, dass du OffLand besser machst."}</p><button class="btn" id="supOk">Schließen</button>`);
+      modal(`<p class="label" style="color:var(--lime)">Danke!</p><h2>Nachricht ist angekommen</h2><p class="muted">Unsere Antwort erscheint hier in der App${mail?" und kommt per E-Mail":""}. Du findest sie auch unter Hilfe und Support → Meine Anfragen.</p><button class="btn" id="supOk">Schließen</button>`);
       $("#supOk").onclick=()=>{closeModal();render()};
     }catch(e){
       if(!document.body.contains(btn)) return;
       btn.disabled=false; btn.textContent="Absenden"; $("#supErr").textContent="Senden hat nicht geklappt. Bist du online? Versuch es gleich noch mal.";
     }
   };
+}
+
+/* Antworten: im Support-Dokument das Feld "antwort" in der Firebase-Konsole ausfüllen */
+function ticketHtml(t){
+  const cat=(SUPPORT_CATS.find(c=>c[0]===t.cat)||["",""])[1];
+  return `<div style="background:var(--ground);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:6px">
+    <div class="row between"><span class="small muted">${esc(cat)} · ${new Date(t.at).toLocaleDateString("de-DE")}</span><span class="small" style="font-weight:700;color:${t.reply?"var(--lime)":"var(--muted)"}">${t.reply?"beantwortet":"offen"}</span></div>
+    <p class="small">„${esc(t.text)}${t.text.length>=140?"…":""}“</p>
+    ${t.reply?`<div style="border-left:3px solid var(--lime);padding-left:10px"><p class="small" style="font-weight:700;color:var(--lime)">OffLand-Team</p><p class="small" style="white-space:pre-wrap">${esc(t.reply)}</p></div>`:""}</div>`;
+}
+let replyCheck=0;
+async function checkReplies(force){
+  const open=(S.tickets||[]).filter(t=>!t.reply);
+  if(!open.length||!netConfigured()) return;
+  if(!force&&Date.now()-replyCheck<10*60000) return; replyCheck=Date.now();
+  let N; try{N=await netInit()}catch(e){return}
+  let got=0;
+  for(const t of open){
+    const d=await N.get("support/"+t.id).catch(()=>null);
+    const a=d&&typeof d.antwort==="string"&&d.antwort.trim();
+    if(a){t.reply=a.slice(0,3000);t.replyAt=Date.now();S.pending.push({type:"reply",id:t.id});got++}
+  }
+  if(got){save();log("Das OffLand-Team hat auf deine Anfrage geantwortet.","good");showPending()}
 }
 
 /* ---------- Insel teilen: Story-Bild 1080 × 1920 ---------- */
@@ -2835,6 +2868,7 @@ function login(p){
   closeModal(); render(); window.scrollTo(0,0); showPending();
   if(S.setup&&pendingInvite()&&!$("#modalRoot").innerHTML) inviteSheet();
   if(netOn()) netSync().then(()=>{if(tab==="heute"&&!$("#modalRoot").innerHTML)render()});
+  setTimeout(()=>checkReplies(false),1500);
 }
 function logout(){
   if(ACC) lsSet();
@@ -2978,6 +3012,7 @@ function deleteSheet(){
 }
 
 $("#accBtn").onclick=accountSheet;
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&ACC&&S.setup)checkReplies(false)});
 
 function boot(){
   migrateOldSave();
