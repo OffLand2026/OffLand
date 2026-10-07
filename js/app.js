@@ -1036,8 +1036,10 @@ function scene(){
     if(sea==="winter") s+=`<path d="M${tx-14} ${ty-10}q14-14 28 0" stroke="#F3F1EA" stroke-width="4" fill="none" stroke-linecap="round"/>`;}
   const place={palme:[cx-90,170],laternen:[cx-74,170],brunnen:[cx-54,174],haengematte:[cx-36,160],bank:[cx-16,178],feuer:[cx+4,168],blumen:[cx+18,172],spielplatz:[cx+70,186],stall:two?[318,156]:[cx+94,178],glocke:[cx+76,150],teleskop:[cx-100,180],
     bienen:[cx-66,158],vogelhaus:[cx-48,150],schaukel:[cx-82,158],garten:[cx+40,184],picknick:[cx-30,191],angel:[cx+108,198],zwerg:[cx+26,177],windspiel:[cx+28,160],flagge:[cx+50,122],lichter:[cx+50,148],schirm:[cx+86,192],sandburg:[cx-60,195],
-    teich:two?[290,168]:[cx-4,196],sternwarte:three?[328,212]:two?[340,160]:[cx+98,158]};
-  S.items.filter(id=>place[id]).sort((a,b)=>place[a][1]-place[b][1]).forEach(id=>{const p=place[id];s+=`<g transform="translate(${p[0]} ${p[1]}) scale(.8)">${itemSvg(id)}</g>`});
+    teich:two?[290,170]:[cx-4,192],sternwarte:three?[328,212]:two?[340,160]:[cx+98,158]};
+  // Gegenstände auf den Nebeninseln (x ≥ 244) erst nach diesen Inseln zeichnen, sonst verdecken die Inseln sie
+  const drawItems=far=>S.items.filter(id=>place[id]&&(two&&place[id][0]>=244)===far).sort((a,b)=>place[a][1]-place[b][1]).forEach(id=>{const p=place[id];s+=`<g transform="translate(${p[0]} ${p[1]}) scale(.8)">${itemSvg(id)}</g>`});
+  drawItems(false);
   if(owns("laternen")) s+=`<g transform="translate(${cx+92} 170) scale(.8)">${itemSvg("laternen")}</g>`;
   if(S.sun>0&&!clouds&&!night) s+=`<g transform="translate(46 54) scale(.9)">${itemSvg("sonne")}</g>`;
   // Erinnerungsbäume
@@ -1053,6 +1055,7 @@ function scene(){
     s+=`<ellipse cx="300" cy="160" rx="56" ry="14" fill="${sand}"/><path d="M252 158c8-26 30-36 48-36s40 10 48 36z" fill="${grass}"/>`;
   }
   if(three){ s+=`<ellipse cx="300" cy="214" rx="40" ry="9" fill="${sand}"/><path d="M266 213c6-16 20-22 34-22s28 6 34 22z" fill="${grass}"/>`; }
+  drawItems(true);
   // Neue Großprojekte
   const PPOS={baumhaus:[cx-96,168,.8],festzelt:two?[318,152,.72]:[cx+60,186,.7],strandhaus:two?[262,168,.62]:[cx+96,194,.75],beachclub:three?[288,216,.66]:two?[268,170,.7]:[cx-70,196,.7],floss:[72,222,.8]};
   ["baumhaus","festzelt","beachclub","strandhaus","floss"].forEach(id=>{if(has(id)){const q=PPOS[id];s+=`<g transform="translate(${q[0]} ${q[1]}) scale(${q[2]})">${projectSvg(id)}</g>`}});
