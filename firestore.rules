@@ -1,0 +1,61 @@
+rules_version = '2';
+// Sicherheitsregeln für OffLand (Freunde und Ranglisten).
+// In der Firebase-Konsole unter Firestore Database → Regeln einfügen und veröffentlichen.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function ownsPlayer(pid) {
+      return signedIn() && exists(/databases/$(database)/documents/players/$(pid))
+        && get(/databases/$(database)/documents/players/$(pid)).data.owner == request.auth.uid;
+    }
+    function shortText(v, n) { return v is string && v.size() <= n; }
+    function validPlayer(d) {
+      return d.owner == request.auth.uid && shortText(d.name, 20) && shortText(d.avatar, 20)
+        && (!('code' in d) || shortText(d.code, 6)) && (!('world' in d) || shortText(d.world, 30));
+    }
+    function validRow(d) {
+      return d.owner == request.auth.uid && shortText(d.name, 20) && shortText(d.avatar, 20)
+        && (d.avg == null || (d.avg is int && d.avg >= 0 && d.avg <= 1440))
+        && d.days is int && d.days >= 0 && d.days <= 7
+        && d.good is int && d.good >= 0 && d.good <= 7 && shortText(d.world, 30);
+    }
+
+    // Spielerprofil: Name, Avatar, Code, Inselwelt. Lesen nur einzeln (keine Liste aller Spieler).
+    match /players/{pid} {
+      allow get: if signedIn();
+      allow create: if signedIn() && pid.size() >= 12 && validPlayer(request.resource.data);
+      allow update: if signedIn() && resource.data.owner == request.auth.uid && validPlayer(request.resource.data);
+      allow delete: if signedIn() && resource.data.owner == request.auth.uid;
+
+      // Freundschaften: jede Seite darf die Verbindung anlegen oder lösen.
+      match /friends/{fid} {
+        allow read: if ownsPlayer(pid);
+        allow create, update: if (ownsPlayer(pid) || ownsPlayer(fid)) && request.resource.data.keys().hasOnly(['since', 'code']);
+        allow delete: if ownsPlayer(pid) || ownsPlayer(fid);
+      }
+    }
+
+    // Code → Spieler. Nur einzeln abrufbar, nicht auflistbar.
+    match /codes/{code} {
+      allow get: if signedIn();
+      allow create: if signedIn() && code.size() == 6 && request.resource.data.owner == request.auth.uid
+        && ownsPlayer(request.resource.data.pid);
+      allow delete: if signedIn() && resource.data.owner == request.auth.uid;
+    }
+
+    // Wochenwerte für Freund:innen: nur einzeln abrufbar.
+    match /weeks/{wk}/ranks/{pid} {
+      allow get: if signedIn();
+      allow create, update: if ownsPlayer(pid) && validRow(request.resource.data);
+      allow delete: if ownsPlayer(pid);
+    }
+
+    // Rangliste für alle: nur wer zugestimmt hat, steht hier.
+    match /weeks/{wk}/public/{pid} {
+      allow get: if signedIn();
+      allow list: if signedIn() && request.query.limit <= 100;
+      allow create, update: if ownsPlayer(pid) && validRow(request.resource.data);
+      allow delete: if ownsPlayer(pid);
+    }
+  }
+}

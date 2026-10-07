@@ -270,7 +270,7 @@ function migrate(st){
   if(st.points==null)st.points=0; if(!st.items)st.items=[]; if(!st.sun)st.sun=0;
   if(!st.rel)st.rel={}; if(st.conflict===undefined)st.conflict=null;
   if(!st.arrC)st.arrC=0; if(!st.birthC)st.birthC=0;
-  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null};
+  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null}};
   for(const k in D){ if(st[k]===undefined) st[k]=D[k]; }
   const prevS=S; S=st;
   st.residents.forEach(r=>{if(r.born==null)r.born=0; if(r.kind==="mensch"){if(!r.trait)r.trait=pick(TRAITS).id; if(!r.job&&!r.parents)r.job=pickJob()}});
@@ -872,6 +872,7 @@ function closeDay(min,quests,appMin){
   S.lastDay=day; S.dayCount++;
   S.budgetStreak=diff>=0?S.budgetStreak+1:0;
   if(diff>=0) buddyProgress();
+  setTimeout(netSync,800);
 
   log((diff>=0?"Im Budget: ":"Über dem Budget: ")+hm(min)+" Bildschirmzeit. Inselglück "+before+" → "+S.glueck+" %, +"+pts+" Punkte.", diff>=0?"good":"bad");
   if(sunny) log("Dein Sonnenschein hat die Wolken vertrieben. Der Tag hat nur halb so viel Glück gekostet.","info");
@@ -1817,6 +1818,11 @@ function settingsHtml(){
     <label class="check" for="vacToggle" style="margin-top:6px"><input type="checkbox" id="vacToggle" ${S.vacation?"checked":""}> Urlaubsmodus: Die Insel schläft, nichts geht verloren</label>
     <label class="check" for="soundToggle"><input type="checkbox" id="soundToggle" ${S.sound!==false?"checked":""}> Töne und Geräusche</label>
   </div>
+  ${netConfigured()?`<div class="card"><p class="label">Online: Freunde und Ranglisten</p>
+    <label class="check" for="netToggle"><input type="checkbox" id="netToggle" ${netOn()?"checked":""}> Online sein (Name, Avatar und Wochen-Bildschirmzeit für Freund:innen sichtbar)</label>
+    ${netOn()?`<label class="check" for="netPub"><input type="checkbox" id="netPub" ${S.online.pub?"checked":""}> Auch in der Rangliste für alle erscheinen</label>
+    <p class="small muted">Ausschalten löscht alle Online-Daten dieses Kontos und trennt die Online-Freundschaften.</p>`:""}
+  </div>`:""}
   <div class="card"><p class="label">Sicherung</p>
     <p class="small muted">Dein Spielstand liegt nur in diesem Browser. Lade ab und zu eine Sicherung herunter, um ihn auf ein anderes Gerät mitzunehmen.</p>
     <div class="row"><button class="btn secondary grow" id="exportBtn">Sichern</button><button class="btn secondary grow" id="importBtn">Laden</button></div>
@@ -1894,6 +1900,9 @@ function bind(){
   const st=$("#startBtn"); if(st) st.onclick=()=>{S.setup=true;log("Deine Insel ist gegründet. "+nameList(here().map(r=>r.name))+" ziehen ein.","good");save();render()};
   const sh=$("#shareBtn"); if(sh) sh.onclick=shareSheet;
   const fb=$("#friendsBtn"); if(fb) fb.onclick=friendsSheet;
+  const rb=$("#rankBtn"); if(rb) rb.onclick=rankSheet;
+  const on=$("#netToggle"); if(on) on.onchange=async()=>{if(on.checked){on.checked=false;onlineConsent(()=>{closeModal();render();toast("Du bist online!")})}else{on.disabled=true;await netDeleteAll();toast("Online-Daten gelöscht");render()}};
+  const pb=$("#netPub"); if(pb) pb.onchange=()=>{S.online.pub=pb.checked;save();netSync()};
   const ia=$("#inviteAccept"); if(ia) ia.onclick=inviteSheet;
   const gg=$("#goalGo"); if(gg) gg.onclick=()=>{const c=$("#closeCard");if(c)c.scrollIntoView({behavior:"smooth",block:"start"});setTimeout(()=>{const h=$("#inH");if(h)h.focus({preventScroll:true})},450)};
   ["#inH","#inM"].forEach(id=>{const el=$(id);if(el)el.oninput=liveUpdate}); liveUpdate();
@@ -2378,6 +2387,7 @@ function friendsCard(){
     ${S.buddies.length?`<p class="small muted">Gemeinsame Ziele: je ${GOAL_DAYS} Tage im Budget. Jede Seite zählt ihre eigenen Tage.</p>${buddyRows()}`
       :`<p class="small muted">Lade jemanden ein: Ihr bekommt beide einen Monat OffLand Plus und ein gemeinsames Ziel von ${GOAL_DAYS} guten Tagen.</p>`}
     <div class="row"><button class="btn secondary grow" id="shareBtn">Insel teilen</button><button class="btn secondary grow" id="friendsBtn">Freunde einladen</button></div>
+    ${netConfigured()?`<button class="btn" id="rankBtn">Freunde und Ranglisten</button>`:""}
   </div>`;
 }
 function friendsSheet(){
@@ -2387,15 +2397,17 @@ function friendsSheet(){
     <div style="background:var(--ground);border-radius:16px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:4px">
       <span class="small muted">Dein Code</span><b class="num" style="font-size:30px;letter-spacing:.18em">${code}</b></div>
     <button class="btn" id="frShare">Einladung schicken</button>
-    <ol class="steps small muted" style="margin:0"><li>Schick den Link an deine Freundin oder deinen Freund.</li><li>Sie oder er öffnet den Link, legt ein Konto an und nimmt die Einladung an.</li><li>Dann schickt sie oder er dir den eigenen Code zurück. Den trägst du hier ein.</li></ol>
+    <ol class="steps small muted" style="margin:0"><li>Schick den Link an deine Freundin oder deinen Freund.</li><li>Sie oder er öffnet den Link, legt ein Konto an und nimmt die Einladung an.</li>${netOn()?`<li>Seid ihr beide online, seid ihr sofort befreundet.</li>`:`<li>Dann schickt sie oder er dir den eigenen Code zurück. Den trägst du hier ein.</li>`}</ol>
     <label class="field" for="frCode">Code von Freund:in eintragen<input id="frCode" type="text" maxlength="7" autocomplete="off" autocapitalize="characters" placeholder="z. B. K7M2QX" style="text-transform:uppercase;letter-spacing:.12em"></label>
     <p class="err" id="frErr" role="alert"></p>
     <button class="btn secondary" id="frRedeem">Code einlösen</button>
     ${S.buddies.length?`<p class="label">Gemeinsame Ziele</p>${buddyRows()}`:""}
     <p class="small muted">OffLand Plus ist eine Vorschau: +10 % Punkte pro Tag und ein goldener Rahmen beim Teilen. Später läuft es über ein Abo im App Store.</p>
+    ${netConfigured()?`<button class="btn secondary" id="frRank">Freunde und Ranglisten</button>`:""}
     <button class="btn ghost" id="frClose">Schließen</button>`);
   $("#frShare").onclick=()=>shareText("Spiel mit mir OffLand! Weniger Handy, mehr Insel. Mit meinem Code "+code+" bekommen wir beide einen Monat Plus.",inviteLink());
-  $("#frRedeem").onclick=()=>{const e=redeemCode($("#frCode").value,false);if(e) return $("#frErr").textContent=e;toast("Verbunden! Ein Monat Plus ist aktiv.");sfx("project");friendsSheet()};
+  $("#frRedeem").onclick=async()=>{const e=await addFriend($("#frCode").value,false);if(e) return $("#frErr").textContent=e;toast("Verbunden! Ein Monat Plus ist aktiv.");sfx("project");friendsSheet()};
+  const rk=$("#frRank"); if(rk) rk.onclick=rankSheet;
   $("#frClose").onclick=()=>{closeModal();render()};
 }
 function inviteSheet(){
@@ -2405,24 +2417,248 @@ function inviteSheet(){
     <p class="muted">Code <b class="num" style="color:var(--ink)">${esc(c)}</b> lädt dich ein. Nimmst du an, bekommt ihr beide einen Monat OffLand Plus und ein gemeinsames Ziel: ${GOAL_DAYS} Tage im Budget.</p>
     <button class="btn" id="invYes">Annehmen</button><button class="btn ghost" id="invNo">Nicht jetzt</button>`);
   $("#invNo").onclick=()=>{closeModal();render()};
-  $("#invYes").onclick=()=>{
-    const e=redeemCode(c,true); clearInvite(); sfx("project");
+  $("#invYes").onclick=()=>{ if(netConfigured()&&!netOn()) onlineConsent(acceptInvite); else acceptInvite(); };
+  async function acceptInvite(){
+    const yb=$("#invYes"); if(yb) yb.disabled=true;
+    const e=await addFriend(c,true); clearInvite(); sfx("project");
     if(e){toast(e);closeModal();render();return}
+    if(netOn()){modal(`<p class="label" style="color:var(--lime)">Verbunden</p><h2>Ihr seid jetzt Freunde</h2><p class="muted">Ein Monat Plus ist für euch beide aktiv. In den Ranglisten seht ihr, wer diese Woche weniger am Handy war.</p><button class="btn" id="invRk">Zu den Ranglisten</button><button class="btn ghost" id="invDone">Fertig</button>`);
+      $("#invRk").onclick=rankSheet; $("#invDone").onclick=()=>{closeModal();render()}; return}
     modal(`<p class="label" style="color:var(--lime)">Verbunden</p><h2>Ein Monat Plus ist aktiv</h2>
       <p class="muted">Damit auch ${esc(c)} das Plus bekommt, schick deinen Code zurück:</p>
       <div style="background:var(--ground);border-radius:16px;padding:14px;text-align:center"><b class="num" style="font-size:30px;letter-spacing:.18em">${myCode()}</b></div>
       <button class="btn" id="invBack">Code zurückschicken</button><button class="btn ghost" id="invDone">Fertig</button>`);
     $("#invBack").onclick=()=>shareText("Ich bin dabei! Mein OffLand-Code: "+myCode()+" (unter Freunde einladen → Code einlösen)",inviteLink());
     $("#invDone").onclick=()=>{closeModal();render()};
+  }
+}
+
+/* ---------- Online: Freunde und Ranglisten (Firebase) ----------
+   Nur aktiv, wenn js/online-config.js eine Firebase-Konfiguration enthält und
+   die Person zugestimmt hat. Geteilt werden Name, Avatar, Inselwelt und die
+   Bildschirmzeit der aktuellen Woche. Regeln: firestore.rules */
+const FB_VER="10.14.1";
+let NET=null, netBusy=null;
+const netConfigured=()=>!!(window.OFFLAND_FAKE_NET||(window.OFFLAND_FIREBASE&&window.OFFLAND_FIREBASE.apiKey));
+const netOn=()=>netConfigured()&&S.online&&S.online.on&&S.online.pid;
+async function netInit(){
+  if(NET) return NET;
+  if(netBusy) return netBusy;
+  netBusy=(async()=>{
+    if(window.OFFLAND_FAKE_NET) return NET=window.OFFLAND_FAKE_NET;
+    const b="https://www.gstatic.com/firebasejs/"+FB_VER+"/";
+    const [A,U,F]=await Promise.all([import(b+"firebase-app.js"),import(b+"firebase-auth.js"),import(b+"firebase-firestore.js")]);
+    const app=A.initializeApp(window.OFFLAND_FIREBASE), auth=U.getAuth(app), db=F.getFirestore(app);
+    await auth.authStateReady(); if(!auth.currentUser) await U.signInAnonymously(auth);
+    return NET={uid:auth.currentUser.uid,
+      get:async p=>{const d=await F.getDoc(F.doc(db,p));return d.exists()?d.data():null},
+      set:(p,v)=>F.setDoc(F.doc(db,p),v,{merge:true}),
+      del:p=>F.deleteDoc(F.doc(db,p)),
+      list:async(p,o)=>{o=o||{};const c=F.collection(db,p);const q=o.orderBy?F.query(c,F.orderBy(o.orderBy),F.limit(o.limit||50)):c;
+        const r=await F.getDocs(q);return r.docs.map(d=>Object.assign({id:d.id},d.data()))}};
+  })();
+  try{return await netBusy}finally{netBusy=null}
+}
+const rid=()=>Array.from(crypto.getRandomValues(new Uint8Array(15)),x=>CODE_ABC[x%32]).join("");
+function isoWeek(day){
+  const d=new Date(day+"T12:00:00"); const t=new Date(d); t.setDate(d.getDate()+3-(d.getDay()+6)%7);
+  const y=t.getFullYear(), w1=new Date(y,0,4);
+  const w=1+Math.round(((t-w1)/864e5-3+(w1.getDay()+6)%7)/7);
+  return y+"-W"+String(w).padStart(2,"0");
+}
+function weekStats(){
+  const wk=isoWeek(today()), ds=S.days.filter(d=>isoWeek(d.day)===wk);
+  const avg=ds.length?Math.round(ds.reduce((a,d)=>a+d.min,0)/ds.length):null;
+  return {wk,days:ds.length,avg,good:ds.filter(d=>d.min<=S.budget).length};
+}
+const netName=()=>(ACC?ACC.name:"Insel").slice(0,20), netAv=()=>ACC?ACC.avatar:"Ziege";
+/* Spielerprofil und Code anlegen bzw. zurückholen */
+async function netEnsure(){
+  const N=await netInit(); const o=S.online;
+  if(o.pid){const me=await N.get("players/"+o.pid).catch(()=>null); if(me&&me.owner!==N.uid){o.pid=null}}   // anderes Gerät: neu anlegen
+  if(!o.pid){o.pid=rid(); S.buddies.forEach(b=>{delete b.pid})}
+  await N.set("players/"+o.pid,{owner:N.uid,name:netName(),avatar:netAv(),code:myCode(),world:curWorld().name,updated:Date.now()});
+  for(let i=0;i<5;i++){
+    const c=await N.get("codes/"+myCode()).catch(()=>null);
+    if(c&&c.pid===o.pid) break;
+    if(!c){try{await N.set("codes/"+myCode(),{pid:o.pid,owner:N.uid});break}catch(e){}}
+    S.code=null; myCode();                                                                   // Code vergeben: neuen würfeln
+  }
+  await N.set("players/"+o.pid,{code:myCode()});
+  save(); return N;
+}
+/* Wochenwerte veröffentlichen (Freunde immer, alle nur mit Zustimmung) */
+async function netSync(){
+  if(!netOn()) return;
+  try{
+    const N=await netInit(), o=S.online, w=weekStats();
+    const row={owner:N.uid,name:netName(),avatar:netAv(),avg:w.avg,days:w.days,good:w.good,streak:S.budgetStreak,world:curWorld().name,updated:Date.now()};
+    await N.set("players/"+o.pid,{owner:N.uid,name:row.name,avatar:row.avatar,world:row.world,updated:row.updated});
+    await N.set("weeks/"+w.wk+"/ranks/"+o.pid,row);
+    if(o.pub&&w.avg!=null) await N.set("weeks/"+w.wk+"/public/"+o.pid,row);
+    else await N.del("weeks/"+w.wk+"/public/"+o.pid).catch(()=>{});
+    await netPullFriends();
+  }catch(e){}
+}
+/* neue Freund:innen (z. B. wer uns per Code hinzugefügt hat) übernehmen */
+async function netPullFriends(){
+  const N=await netInit(); const fr=await N.list("players/"+S.online.pid+"/friends");
+  let changed=false;
+  for(const f of fr){
+    let b=S.buddies.find(x=>x.pid===f.id||(f.code&&x.code===f.code));
+    if(!b){
+      const p=await N.get("players/"+f.id).catch(()=>null); if(!p) continue;
+      b={code:p.code||"?",since:today(),done:0,reward:false}; S.buddies.push(b); grantPlus(PLUS_DAYS);
+      log((p.name||"Jemand")+" hat dich als Freund:in hinzugefügt. Gemeinsames Ziel gestartet, "+PLUS_DAYS+" Tage Plus.","good");
+      toast((p.name||"Jemand")+" ist jetzt mit dir befreundet!"); changed=true;
+      b.name=p.name;
+    }
+    if(b.pid!==f.id){b.pid=f.id;changed=true}
+  }
+  if(changed) save();
+  return fr;
+}
+/* Freund:in per Code verbinden (beide Seiten) */
+async function netConnect(code){
+  const N=await netEnsure(); const c=await N.get("codes/"+code);
+  if(!c) return {err:"Diesen Code gibt es nicht. Ist die andere Person schon online?"};
+  if(c.pid===S.online.pid) return {err:"Das ist dein eigener Code."};
+  const at=Date.now();
+  await N.set("players/"+S.online.pid+"/friends/"+c.pid,{since:at,code});
+  await N.set("players/"+c.pid+"/friends/"+S.online.pid,{since:at,code:myCode()});
+  const p=await N.get("players/"+c.pid).catch(()=>null);
+  return {pid:c.pid,name:p&&p.name};
+}
+async function netRemove(pid){
+  const N=await netInit();
+  await N.del("players/"+S.online.pid+"/friends/"+pid).catch(()=>{});
+  await N.del("players/"+pid+"/friends/"+S.online.pid).catch(()=>{});
+}
+/* Freund:in hinzufügen: online wenn möglich, sonst nur auf diesem Gerät */
+async function addFriend(raw,invited){
+  const c=cleanCode(raw);
+  if(c.length!==6) return "Ein Code hat 6 Zeichen.";
+  if(c===myCode()) return "Das ist dein eigener Code.";
+  if(netOn()){
+    let r; try{r=await netConnect(c)}catch(e){return "Keine Verbindung. Versuch es gleich noch mal."}
+    if(r.err) return r.err;
+    const known=S.buddies.find(b=>b.code===c||b.pid===r.pid);
+    if(known){known.pid=r.pid;known.name=r.name;save();return null}
+    const e=redeemCode(c,invited); if(e) return e;
+    const b=S.buddies.find(x=>x.code===c); b.pid=r.pid; b.name=r.name; save(); netSync();
+    return null;
+  }
+  return redeemCode(c,invited);
+}
+async function netDeleteAll(){
+  const o=S.online; if(!o||!o.pid) return;
+  try{
+    const N=await netInit(), wk=isoWeek(today());
+    const fr=await N.list("players/"+o.pid+"/friends").catch(()=>[]);
+    for(const f of fr) await netRemove(f.id);
+    await N.del("weeks/"+wk+"/ranks/"+o.pid).catch(()=>{}); await N.del("weeks/"+wk+"/public/"+o.pid).catch(()=>{});
+    await N.del("codes/"+myCode()).catch(()=>{}); await N.del("players/"+o.pid).catch(()=>{});
+  }catch(e){}
+  S.online={on:false,pub:false,pid:null}; S.buddies.forEach(b=>{delete b.pid}); save();
+}
+function onlineConsent(after){
+  modal(`<p class="label" style="color:var(--lime)">Online</p><h2>Freunde und Ranglisten</h2>
+    <p class="muted">Damit Freund:innen dich finden und ihr euch vergleichen könnt, speichert OffLand ein paar Dinge online:</p>
+    <ul class="steps small"><li>deinen Namen „${esc(netName())}“ und deinen Avatar</li><li>deinen Code und deine Inselwelt</li><li>deine Bildschirmzeit dieser Woche (Durchschnitt, gute Tage, Serie)</li></ul>
+    <p class="small muted">Deine Insel, Bewohner und alle anderen Daten bleiben auf dem Gerät. Du kannst das jederzeit in den Einstellungen ausschalten und die Online-Daten löschen.</p>
+    <label class="check" for="ocPub"><input type="checkbox" id="ocPub"> Auch in der Rangliste für alle erscheinen</label>
+    <p class="err" id="ocErr" role="alert"></p>
+    <button class="btn" id="ocYes">Einverstanden, online gehen</button><button class="btn ghost" id="ocNo">Lieber nicht</button>`);
+  $("#ocNo").onclick=()=>{closeModal();render()};
+  $("#ocYes").onclick=async()=>{
+    const btn=$("#ocYes"); btn.disabled=true; btn.textContent="Verbinde …";
+    S.online.on=true; S.online.pub=$("#ocPub").checked;
+    try{
+      await netEnsure();
+      for(const b of S.buddies.filter(x=>!x.pid)){try{const r=await netConnect(b.code);if(r.pid){b.pid=r.pid;b.name=r.name}}catch(e){}}
+      save(); await netSync(); toast("Du bist online!"); after?after():rankSheet();
+    }catch(e){S.online.on=false;save();btn.disabled=false;btn.textContent="Einverstanden, online gehen";$("#ocErr").textContent="Keine Verbindung zum Online-Speicher. Versuch es später noch mal."}
   };
+}
+let rankTab="freunde";
+function rankRow(r,i,me){
+  const v=r.avg==null?"noch kein Tag":hm(r.avg)+" / Tag";
+  return `<div class="row" style="padding:8px 10px;border-radius:14px;${me?"background:#26233D;":""}">
+    <b class="num" style="width:26px;color:${i===0?"var(--amber)":i===1?"#C9CBDD":i===2?"#E0A06A":"var(--muted)"}">${i+1}</b>${avatarSvg(r.avatar||"Ziege",36)}
+    <span class="grow" style="min-width:0"><b style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.name||"?")}${me?" (du)":""}</b><span class="small muted">${r.good||0} gute ${r.good===1?"Tag":"Tage"} · ${esc(r.world||"")}</span></span>
+    <b class="num small" style="text-align:right">${v}</b></div>`;
+}
+const byAvg=(a,b)=>(a.avg==null)-(b.avg==null)||(a.avg-b.avg)||((b.good||0)-(a.good||0));
+async function rankSheet(){
+  if(!netConfigured()) return friendsSheet();
+  if(!netOn()) return onlineConsent();
+  const wk=isoWeek(today()), me=S.online.pid;
+  const head=`<div class="row between"><div><p class="label" style="color:var(--lime)">Diese Woche</p><h2>Ranglisten</h2></div><button class="iconbtn" id="rkClose" aria-label="Schließen"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F3F1EA" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="row" role="tablist"><button class="btn ${rankTab==="freunde"?"":"secondary"} grow" data-rk="freunde" role="tab" aria-selected="${rankTab==="freunde"}">Freunde</button><button class="btn ${rankTab==="alle"?"":"secondary"} grow" data-rk="alle" role="tab" aria-selected="${rankTab==="alle"}">Alle</button></div>`;
+  modal(head+`<p class="muted">Lade …</p>`);
+  let body="";
+  try{
+    await netSync(); const N=await netInit();
+    if(rankTab==="freunde"){
+      const fr=await N.list("players/"+me+"/friends");
+      const rows=(await Promise.all([me].concat(fr.map(f=>f.id)).map(async id=>{
+        const r=await N.get("weeks/"+wk+"/ranks/"+id).catch(()=>null);
+        if(r) return Object.assign({id},r);
+        const p=await N.get("players/"+id).catch(()=>null); return p?{id,name:p.name,avatar:p.avatar,world:p.world,avg:null,good:0}:null;
+      }))).filter(Boolean).sort(byAvg);
+      body=(fr.length?"":`<p class="small muted">Noch keine Freund:innen online. Füg jemanden mit dem Code hinzu oder schick eine Einladung.</p>`)+
+        `<div style="display:flex;flex-direction:column;gap:4px">${rows.map((r,i)=>rankRow(r,i,r.id===me)).join("")}</div>`+
+        (fr.length?`<details><summary class="small muted" style="cursor:pointer;min-height:44px;display:flex;align-items:center">Freund:innen verwalten</summary>${rows.filter(r=>r.id!==me).map(r=>`<div class="row between"><span>${esc(r.name||"?")}</span><button class="btn ghost" style="width:auto;padding:0 12px" data-unfriend="${r.id}">Entfernen</button></div>`).join("")}</details>`:"");
+    } else {
+      const all=(await N.list("weeks/"+wk+"/public",{orderBy:"avg",limit:100})).filter(r=>(r.days||0)>=3||r.id===me);
+      const mine=all.findIndex(r=>r.id===me);
+      body=`<p class="small muted">Wer diese Woche im Schnitt am wenigsten am Handy war (ab 3 eingetragenen Tagen).</p>
+        <div style="display:flex;flex-direction:column;gap:4px">${all.slice(0,50).map((r,i)=>rankRow(r,i,r.id===me)).join("")||`<p class="small muted">Noch niemand diese Woche.</p>`}</div>
+        ${mine>=50?rankRow(all[mine],mine,true):""}
+        ${S.online.pub?"":`<p class="small muted">Du erscheinst hier nicht. Das kannst du in den Einstellungen ändern.</p>`}`;
+    }
+  }catch(e){body=`<p class="err">Keine Verbindung zum Online-Speicher. Versuch es später noch mal.</p>`}
+  modal(head+body+`<label class="field" for="rkCode">Freund:in per Code hinzufügen<input id="rkCode" type="text" maxlength="7" autocomplete="off" autocapitalize="characters" placeholder="z. B. K7M2QX" style="text-transform:uppercase;letter-spacing:.12em"></label>
+    <p class="err" id="rkErr" role="alert"></p>
+    <div class="row"><button class="btn secondary grow" id="rkAdd">Hinzufügen</button><button class="btn secondary grow" id="rkInvite">Einladen</button></div>
+    <p class="small muted" style="text-align:center">Dein Code: <b class="num" style="color:var(--ink);letter-spacing:.1em">${myCode()}</b></p>`);
+  $("#rkClose").onclick=()=>{closeModal();render()};
+  document.querySelectorAll("[data-rk]").forEach(b=>b.onclick=()=>{rankTab=b.dataset.rk;rankSheet()});
+  document.querySelectorAll("[data-unfriend]").forEach(b=>b.onclick=async()=>{b.disabled=true;await netRemove(b.dataset.unfriend);S.buddies=S.buddies.filter(x=>x.pid!==b.dataset.unfriend);save();rankSheet()});
+  $("#rkInvite").onclick=friendsSheet;
+  $("#rkAdd").onclick=async()=>{const btn=$("#rkAdd");btn.disabled=true;const e=await addFriend($("#rkCode").value,false);btn.disabled=false;
+    if(e) return $("#rkErr").textContent=e; sfx("project"); toast("Verbunden! Ein Monat Plus ist aktiv."); rankTab="freunde"; rankSheet()};
 }
 
 /* ---------- Insel teilen: Story-Bild 1080 × 1920 ---------- */
+/* Was man mit der gesparten Zeit hätte schaffen können: immer das größte passende Beispiel */
+const WOW=[
+  [12000,n=>n>1?n+"-mal den ganzen Jakobsweg zu laufen":"den kompletten Jakobsweg zu laufen"],
+  [6000,n=>n>1?n+" neue Sprachen bis zum ersten Gespräch zu lernen":"eine neue Sprache bis zum ersten Gespräch zu lernen"],
+  [4200,n=>n>1?n+"-mal alle Harry-Potter-Bände zu lesen":"alle sieben Harry-Potter-Bände zu lesen"],
+  [2160,n=>n>1?n+"-mal zu Fuß über die Alpen zu wandern":"zu Fuß über die Alpen zu wandern"],
+  [1800,()=>"Gitarre zu lernen, bis die ersten 10 Songs sitzen"],
+  [270,n=>n>1?n+" Marathons zu laufen":"einen ganzen Marathon zu laufen"],
+  [120,()=>"einen Halbmarathon zu laufen"],
+  [60,n=>n>1?n*10+" Kilometer zu joggen":"10 Kilometer zu joggen"],
+  [30,()=>"einen Kuchen zu backen"],
+  [0,()=>"einen Spaziergang in den Sonnenuntergang zu machen"]
+];
+function wowText(min){
+  const [m,f]=WOW.find(w=>min>=w[0]);
+  const n=m?Math.min(Math.floor(min/m),m>=270?9:1):1;
+  return "Genug Zeit, um "+f(n)+"!";
+}
+function wrapText(c,t,max){
+  const out=[]; let line="";
+  for(const w of t.split(" ")){const tr=line?line+" "+w:w; if(c.measureText(tr).width>max&&line){out.push(line);line=w}else line=tr}
+  return out.concat(line?[line]:[]);
+}
 function hoursText(m){return m%60===0?(m/60)+" "+(m===60?"Stunde":"Stunden"):hm(m)}
 function shareStat(){
   const good=S.days.filter(d=>d.min<=S.budget).length;
-  if(S.budgetStreak>=3) return {big:S.budgetStreak+" Tage",small:"in Folge unter "+hoursText(S.budget)};
-  if(good) return {big:good+(good===1?" Tag":" Tage"),small:"unter "+hoursText(S.budget)+" Bildschirmzeit"};
+  if(S.budgetStreak>=3) return {big:S.budgetStreak+" Tage",small:"in Folge unter "+hoursText(S.budget)+" Screentime"};
+  if(good) return {big:good+(good===1?" Tag":" Tage"),small:"unter "+hoursText(S.budget)+" Screentime"};
   return {big:"Meine Insel",small:"wächst, wenn ich das Handy weglege"};
 }
 async function islandImage(){
@@ -2443,15 +2679,17 @@ async function islandImage(){
   c.fillText("Off",lx,190); c.fillStyle="#C8F169"; c.fillText("Land",lx+w1,190); c.textAlign="center";
   c.fillStyle="#A4A6BD"; c.font="500 40px Manrope, sans-serif"; c.fillText("Grow your world beyond the screen.",Wd/2,256);
   c.fillStyle="#C8F169"; c.font="800 150px 'Bricolage Grotesque', sans-serif"; c.fillText(st.big,Wd/2,450);
-  c.fillStyle="#F3F1EA"; c.font="700 52px Manrope, sans-serif"; c.fillText(st.small,Wd/2,530);
+  c.fillStyle="#F3F1EA"; let fs=52; do{c.font="700 "+fs+"px Manrope, sans-serif"}while(c.measureText(st.small).width>990&&--fs>30); c.fillText(st.small,Wd/2,530);
   c.fillStyle="#F3F1EA"; c.font="700 46px Manrope, sans-serif";
-  c.fillText(curWorld().name+" · "+here().length+" Bewohner · Glück "+S.glueck+" %",Wd/2,1380);
+  c.fillText(curWorld().name+" · "+here().length+" Bewohner · Glück "+S.glueck+" %",Wd/2,1340);
   const saved=savedTotal();
-  if(saved>=60){c.fillStyle="#A4A6BD"; c.font="500 42px Manrope, sans-serif"; c.fillText(hm(saved)+" Handyzeit gespart",Wd/2,1450)}
-  c.fillStyle="#26233D"; c.beginPath(); c.roundRect(140,1620,800,150,75); c.fill();
-  c.fillStyle="#F3F1EA"; c.font="700 44px Manrope, sans-serif"; c.fillText("Spiel mit: Code "+myCode(),Wd/2,1690);
-  c.fillStyle="#A4A6BD"; c.font="500 34px Manrope, sans-serif"; c.fillText(APP_URL.replace(/^https:\/\//,"").replace(/\/$/,""),Wd/2,1740);
-  if(plus){c.fillStyle="#FFD27A"; c.font="800 40px Manrope, sans-serif"; c.fillText("★ PLUS",Wd/2,1580)}
+  c.fillStyle="#A4A6BD"; c.font="500 42px Manrope, sans-serif"; c.fillText(saved>0?hm(saved)+" Screentime gespart":"Jede Minute offline zählt",Wd/2,1410);
+  c.fillStyle="#FFD27A"; c.font="800 54px 'Bricolage Grotesque', sans-serif";
+  wrapText(c,wowText(saved),940).slice(0,2).forEach((l,i)=>c.fillText(l,Wd/2,1490+i*64));
+  c.fillStyle="#26233D"; c.beginPath(); c.roundRect(140,1660,800,150,75); c.fill();
+  c.fillStyle="#F3F1EA"; c.font="700 44px Manrope, sans-serif"; c.fillText("Spiel mit: Code "+myCode(),Wd/2,1730);
+  c.fillStyle="#A4A6BD"; c.font="500 34px Manrope, sans-serif"; c.fillText(APP_URL.replace(/^https:\/\//,"").replace(/\/$/,""),Wd/2,1780);
+  if(plus){c.fillStyle="#FFD27A"; c.font="800 36px Manrope, sans-serif"; c.fillText("★ PLUS",Wd/2,1880)}
   return await new Promise(res=>cv.toBlob(res,"image/png"));
 }
 let shareUrl=null;
@@ -2509,6 +2747,7 @@ function login(p){
   document.body.classList.remove("start"); $("#start").innerHTML="";
   closeModal(); render(); window.scrollTo(0,0); showPending();
   if(S.setup&&pendingInvite()&&!$("#modalRoot").innerHTML) inviteSheet();
+  if(netOn()) netSync().then(()=>{if(tab==="heute"&&!$("#modalRoot").innerHTML)render()});
 }
 function logout(){
   if(ACC) lsSet();
@@ -2643,6 +2882,7 @@ function deleteSheet(){
   yes.onclick=async()=>{
     if(ACC.pin&&await hashPin($("#delPin").value,ACC.salt)!==ACC.pin) return $("#delErr").textContent="Die PIN stimmt nicht.";
     const id=ACC.id;
+    if(S.online&&S.online.pid){yes.disabled=true;yes.textContent="Lösche …";await netDeleteAll()}
     try{localStorage.removeItem(profKey(id))}catch(e){}
     storeProfiles(profiles().filter(x=>x.id!==id));
     ACC=null; LS=null; logout(); toast("Konto gelöscht");
