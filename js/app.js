@@ -260,7 +260,7 @@ const TAB_FEATURE={zeit:"zeit",freunde:"freunde",verlauf:"album"};
 function feature(id){
   if(S.allFeatures) return true;
   const f=FEATURES.find(x=>x.id===id); if(!f) return true;
-  if(id==="freunde"&&(S.buddies.length||(S.online&&S.online.on)||(typeof pendingInvite==="function"&&pendingInvite()))) return true;
+  if(id==="freunde"&&(S.buddies.length||(S.online&&S.online.on)||S.family||(typeof pendingInvite==="function"&&(pendingInvite()||famInvite())))) return true;
   if(id==="reise"&&(S.found||S.world)) return true;
   return S.dayCount>=f.day;
 }
@@ -299,7 +299,7 @@ function migrate(st){
   if(st.points==null)st.points=0; if(!st.items)st.items=[]; if(!st.sun)st.sun=0;
   if(!st.rel)st.rel={}; if(st.conflict===undefined)st.conflict=null;
   if(!st.arrC)st.arrC=0; if(!st.birthC)st.birthC=0;
-  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null}};
+  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null},family:null};
   if(st.allFeatures===undefined) st.allFeatures=(st.dayCount||0)>=1;          // wer schon gespielt hat, behält alles
   for(const k in D){ if(st[k]===undefined) st[k]=D[k]; }
   const prevS=S; S=st;
@@ -903,7 +903,7 @@ function closeDay(min,quests,appMin){
   unlockCheck();
   S.budgetStreak=diff>=0?S.budgetStreak+1:0;
   if(diff>=0) buddyProgress();
-  setTimeout(netSync,800); setTimeout(()=>backupNow(true),1500);
+  setTimeout(netSync,800); setTimeout(()=>backupNow(true),1500); setTimeout(famSync,1100);
 
   log((diff>=0?"Im Budget: ":"Über dem Budget: ")+hm(min)+" Bildschirmzeit. Inselglück "+before+" → "+S.glueck+" %, +"+pts+" Punkte.", diff>=0?"good":"bad");
   if(sunny) log("Dein Sonnenschein hat die Wolken vertrieben. Der Tag hat nur halb so viel Glück gekostet.","info");
@@ -1870,11 +1870,12 @@ function settingsHtml(){
     <div class="row"><button class="btn secondary grow" id="exportBtn">Sichern</button><button class="btn secondary grow" id="importBtn">Laden</button></div>
     <input type="file" id="importFile" accept="application/json,.json" hidden>
   </div>
-  <div class="card"><p class="label">Familieninsel</p>
-    ${!db?`<p class="small muted">Die Familieninsel braucht einen Online-Speicher und ist in dieser Version noch nicht verfügbar.</p>`
-    :fam?`<p>Du spielst auf der Familieninsel <b>„${esc(fam)}“</b>. Alle mit demselben Code sehen und pflegen dieselbe Insel.</p><button class="btn ghost" id="famLeave">Zurück zur eigenen Insel</button>`
-    :`<p class="small muted">Eltern und Kinder teilen sich eine Insel. Denkt euch einen Code aus und gebt ihn alle ein. Deine eigene Insel bleibt gespeichert.</p>
-      <div class="row"><input id="famIn" type="text" maxlength="30" placeholder="z. B. inselbande-7" aria-label="Code der Familieninsel"><button class="btn" id="famJoin" style="height:52px">Beitreten</button></div>`}
+  ${netConfigured()?`<div class="card"><p class="label">Familieninsel</p>
+    ${S.family?`<p>Du bist auf der Familieninsel <b>${esc(S.family.name)}</b>.</p>
+      <label class="check" for="famShare"><input type="checkbox" id="famShare" ${S.family.share?"checked":""}> Meine Minuten für die Familie sichtbar machen (sonst nur „im Budget“ ja/nein)</label>
+      <button class="btn ghost" id="famLeaveBtn">Familieninsel verlassen</button>`
+    :`<p class="small muted">Gründe eine Familieninsel oder tritt einer bei: im Tab Freunde.</p>`}
+  </div>`:""}
   </div>`;
 }
 
@@ -1937,13 +1938,14 @@ function render(){
   bind();
   renderFocus();
   if(tab==="freunde"&&$("#rankBox")) fillRanks();
+  if(tab==="freunde"&&$("#famBox")) fillFamily();
 }
 function bind(){
   const sb=$("#setBudget"), sa=$("#setBase");
   if(sb) sb.oninput=()=>{S.budget=+sb.value;$("#setBudgetOut").textContent=hm(S.budget)};
   if(sa) sa.oninput=()=>{S.baseline=+sa.value;$("#setBaseOut").textContent=hm(S.baseline)};
   if(sb) sb.onchange=save; if(sa) sa.onchange=save;
-  const st=$("#startBtn"); if(st) st.onclick=()=>{S.setup=true;log("Deine Insel ist gegründet. "+nameList(here().map(r=>r.name))+" ziehen ein.","good");save();render()};
+  const st=$("#startBtn"); if(st) st.onclick=()=>{S.setup=true;log("Deine Insel ist gegründet. "+nameList(here().map(r=>r.name))+" ziehen ein.","good");save();render();if(famInvite())famJoinSheet(famInvite())};
   const bo=$("#bkOn"); if(bo) bo.onclick=backupEnable;
   const stS=$("#stSetup"); if(stS) stS.onclick=stSetup;
   const stA=$("#stApps"); if(stA) stA.onclick=async()=>{try{await ST.pickApps()}catch(e){} await stStatus(); settingsSheet()};
@@ -1990,8 +1992,11 @@ function bind(){
   const vt=$("#vacToggle"); if(vt) vt.onchange=()=>setVacation(vt.checked);
   const so=$("#soundToggle"); if(so) so.onchange=()=>{S.sound=so.checked;save();if(so.checked)sfx("return")};
   document.querySelectorAll("[data-lim]").forEach(x=>x.onchange=()=>{const a=S.apps.find(y=>y.id===x.dataset.lim);if(a){a.limit=clamp(+x.value||a.limit,5,600);save()}});
-  const fj=$("#famJoin"); if(fj) fj.onclick=()=>joinFamily($("#famIn").value);
-  const fl=$("#famLeave"); if(fl) fl.onclick=leaveFamily;
+  const fsh=$("#famShare"); if(fsh) fsh.onchange=()=>{S.family.share=fsh.checked;save();famSync()};
+  const flv=$("#famLeaveBtn"); if(flv) flv.onclick=async()=>{flv.disabled=true;await famLeave();toast("Familieninsel verlassen");settingsSheet()};
+  const fnew=$("#famNew"); if(fnew) fnew.onclick=famCreateSheet;
+  const fjoin=$("#famJoinBtn"); if(fjoin) fjoin.onclick=async()=>{const c=cleanCode($("#famCodeIn").value);if(c.length!==6)return $("#famErr").textContent="Ein Familien-Code hat 6 Zeichen.";famJoinSheet(c)};
+  const finv=$("#famInvite"); if(finv) finv.onclick=()=>shareText("Komm auf unsere Familieninsel „"+S.family.name+"“ in OffLand! Code: "+S.family.code,APP_URL+"?familie="+S.family.code);
   document.querySelectorAll("[data-visit]").forEach(x=>x.onclick=()=>visitSheet(x.dataset.visit));
   document.querySelectorAll("[data-kapsel]").forEach(x=>x.onclick=()=>{const c=S.capsules.find(y=>y.id===x.dataset.kapsel);if(c) capsuleSheet(c)});
   const rs=$("#resetBtn"); if(rs) rs.onclick=confirmReset;
@@ -2096,7 +2101,7 @@ function soundFor(ev){
     const r=ev.id?S.residents.find(x=>x.id===ev.id):null;
     const map={arrival:r&&r.kind==="tier"?["animal",r.art]:["human"],birth:["birth"],postcard:["postcard"],project:["project"],sick:["sick"],warn:["warn"],left:["left"],
       return:["return"],reunion:["return"],conflict:["conflict"],conflictResult:[ev.ok?"resolve":"thud"],love:["love"],strandgut:["sparkle"],wish:["sparkle"],gift:["sparkle"],
-      kapsel:["sparkle"],fest:["fest"],discovery:["aurora"],reply:["postcard"],unlock:["sparkle"],travel:["project"],farewell:["farewell"],boat:["boat"],welcome:["return"],
+      kapsel:["sparkle"],fest:["fest"],discovery:["aurora"],reply:["postcard"],unlock:["sparkle"],famgoal:["fest"],travel:["project"],farewell:["farewell"],boat:["boat"],welcome:["return"],
       visitor:[ev.kind==="aurora"?"aurora":ev.kind==="birds"?"birds":"horn"],day:[ev.min<=S.budget?"goodday":"badday"]};
     const m=map[ev.type]; if(m) sfx(m[0],m[1]);
   }catch(e){}
@@ -2178,6 +2183,10 @@ function showPending(){
     const pt=S.residents.find(x=>x.id===ev.pet), o=S.residents.find(x=>x.id===ev.owner);
     if(!pt||!o) return showPending();
     return sheet(`<div class="anim">${base(`<g class="sail-in" style="animation-duration:1.4s">${figure(pt,200,134)}</g>${figure(o,232,134)}`+hearts(216,100),false)}</div><p class="label" style="color:var(--lime)">Wiedersehen</p><h2>${esc(pt.name)} hat ${esc(o.name)} wieder</h2><p class="muted">${esc(SOUND[pt.art]||"")} Jeden Abend hat ${esc(pt.name)} am Steg gewartet. Jetzt ist das Warten vorbei.</p><button class="btn" data-ok>Wie schön</button>`);
+  }
+  if(ev.type==="famgoal"){
+    return sheet(`<div class="anim">${famScene(ev.members||[],ev.total||0,true)}</div><p class="label" style="color:var(--lime)">Familienziel geschafft</p><h2>Ihr habt es zusammen geschafft!</h2>
+      <p class="muted">${ev.good} gute Tage diese Woche, Ziel war ${ev.target}. Jede:r in der Familie bekommt +50 Punkte und +5 % Glück.</p><button class="btn" data-ok>Feiern!</button>`);
   }
   if(ev.type==="unlock"){
     const fs=(ev.ids||[]).map(id=>FEATURES.find(f=>f.id===id)).filter(Boolean); if(!fs.length) return showPending();
@@ -2419,8 +2428,10 @@ function pendingInvite(){
 function clearInvite(){try{localStorage.removeItem(INVITE_KEY)}catch(e){}}
 (function readInviteFromUrl(){
   try{
-    const u=new URL(location.href), c=cleanCode(u.searchParams.get("einladung"));
-    if(c.length===6){localStorage.setItem(INVITE_KEY,c);u.searchParams.delete("einladung");history.replaceState(null,"",u.pathname+u.search+u.hash)}
+    const u=new URL(location.href), c=cleanCode(u.searchParams.get("einladung")), f=cleanCode(u.searchParams.get("familie"));
+    if(c.length===6){localStorage.setItem(INVITE_KEY,c);u.searchParams.delete("einladung")}
+    if(f.length===6){localStorage.setItem("offline-insel-familie-einladung",f);u.searchParams.delete("familie")}
+    if(c.length===6||f.length===6) history.replaceState(null,"",u.pathname+u.search+u.hash);
   }catch(e){}
 })();
 function redeemCode(raw,invited){
@@ -2671,7 +2682,7 @@ const TROPHY='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-
 /* Tab „Freunde“: Vorschau, Ranglisten, Freunde hinzufügen, gemeinsame Ziele */
 function viewFreunde(){
   const inv=pendingInvite();
-  let h=inv?friendsCardInvite(inv):"";
+  let h=(inv?friendsCardInvite(inv):"")+famCard();
   if(!netConfigured()||!netOn()){
     h+=`<div class="card" style="align-items:center;text-align:center">
       <div style="width:64px;height:64px;border-radius:32px;background:#26233D;color:var(--amber);display:flex;align-items:center;justify-content:center"><span style="width:34px;height:34px;display:block">${TROPHY}</span></div>
@@ -2952,6 +2963,153 @@ function restoreSheet(){
   };
 }
 
+/* ---------- Familieninsel ----------
+   Jede Person behält ihre Insel. Die Familieninsel wächst mit den guten Tagen aller.
+   Firestore: families/{fid} (Name, Code), famcodes/{code}, families/{fid}/uids/{uid} (Mitgliedschaft
+   je Gerät), families/{fid}/members/{mid} (Name, Avatar, gute Tage, letzte 14 Tage). */
+const FAMINV_KEY="offline-insel-familie-einladung";
+function famInvite(){let c=null;try{c=localStorage.getItem(FAMINV_KEY)}catch(e){} c=cleanCode(c); return c&&c.length===6&&!(S.family&&S.family.code===c)?c:null}
+const FAM_PROJECTS=[
+  {id:"feuer",n:"Lagerfeuer",need:5},{id:"bank",n:"Familienbank",need:12},{id:"garten",n:"Gemüsegarten",need:20},
+  {id:"baumhaus",n:"Baumhaus",need:35},{id:"floss",n:"Bootssteg mit Floß",need:50},{id:"laternen",n:"Laternenweg",need:75},{id:"festzelt",n:"Festzelt",need:100}
+];
+let FAMC=null;
+function famMine(){
+  const f=S.family, since=f.joined||"0000", days={};
+  S.days.slice(-14).forEach(d=>{days[d.day]=f.share?{g:d.min<=S.budget,m:d.min}:{g:d.min<=S.budget}});
+  const good=S.days.filter(d=>d.day>=since&&d.min<=S.budget).length;
+  return {name:netName(),avatar:netAv(),joined:since,share:!!f.share,days,good,streak:S.budgetStreak,updated:Date.now()};
+}
+async function famSync(){
+  const f=S.family; if(!f||!netConfigured()) return null;
+  try{
+    const N=await netInit();
+    await N.set("families/"+f.id+"/members/"+f.mid,Object.assign({owner:N.uid},famMine()));
+    const members=await N.list("families/"+f.id+"/members");
+    FAMC={at:Date.now(),members};
+    famGoalCheck(members);
+    return members;
+  }catch(e){return null}
+}
+function famStats(members){
+  const wk=isoWeek(today()), td=today();
+  let week=0,total=0,todayGood=0,todayIn=0;
+  members.forEach(m=>{total+=m.good||0;const d=m.days||{};
+    Object.keys(d).forEach(k=>{if(isoWeek(k)===wk&&d[k].g)week++});
+    if(d[td]){todayIn++;if(d[td].g)todayGood++}});
+  const target=Math.max(4,members.length*4);
+  return {wk,week,total,todayGood,todayIn,target};
+}
+function famGoalCheck(members){
+  const f=S.family; if(!f) return;
+  const st=famStats(members); f.claimed=f.claimed||{};
+  if(st.week>=st.target&&!f.claimed[st.wk]){
+    f.claimed[st.wk]=true; S.points+=50; S.glueck=clamp(S.glueck+5,0,100);
+    log("Familienziel geschafft: "+st.week+" gute Tage zusammen. +50 Punkte, +5 % Glück.","good");
+    S.pending.push({type:"famgoal",good:st.week,target:st.target,total:st.total,members:members.map(m=>({name:m.name,id:m.id}))});
+    save(); showPending();
+  }
+}
+function famScene(members,total,party){
+  const built=FAM_PROJECTS.filter(p=>total>=p.need);
+  const pos={feuer:[180,138,.9],bank:[118,150,.9],garten:[248,152,.9],baumhaus:[92,146,.75],floss:[300,180,.7],laternen:[210,146,.9],festzelt:[268,140,.65]};
+  let s=`<svg viewBox="0 0 360 200" aria-hidden="true"><rect width="360" height="200" fill="#86BFE6"/><circle cx="310" cy="36" r="14" fill="#FFE7A3"/>
+    <rect y="150" width="360" height="50" fill="#3A6FA8"/><ellipse cx="180" cy="160" rx="150" ry="28" fill="#E9D7A6"/><path d="M60 152c14-44 70-62 120-62s106 18 120 62z" fill="#7FC57A"/>
+    <rect x="58" y="112" width="6" height="26" rx="2" fill="#8A5A3B"/><circle cx="61" cy="106" r="14" fill="#4E9A58"/><rect x="292" y="114" width="6" height="24" rx="2" fill="#8A5A3B"/><circle cx="295" cy="108" r="13" fill="#4E9A58"/>`;
+  built.slice().sort((a,b)=>pos[a.id][1]-pos[b.id][1]).forEach(p=>{const q=pos[p.id];const svg=["baumhaus","floss","festzelt"].includes(p.id)?projectSvg(p.id):itemSvg(p.id);s+=`<g transform="translate(${q[0]} ${q[1]}) scale(${q[2]})">${svg}</g>`});
+  const n=Math.max(1,members.length), step=Math.min(34,200/n);
+  members.slice(0,12).forEach((m,i)=>{const x=180-(n-1)*step/2+i*step, y=170+(i%2)*5;
+    s+=`<g transform="translate(${x} ${y})"><g class="bob" style="animation-delay:${i*.3}s">${figure({kind:"mensch",name:m.name,id:m.id||m.name},0,0)}</g>
+      <text y="9" text-anchor="middle" font-size="6.5" font-weight="700" fill="#14151F" font-family="Manrope, sans-serif">${esc((m.name||"").slice(0,10))}</text></g>`});
+  if(party) s+=hearts(180,90)+confetti();
+  return s+"</svg>";
+}
+function famCard(){
+  if(!netConfigured()) return "";
+  if(!S.family) return `<div class="card"><p class="label">Familieninsel</p>
+    <p class="muted">Spielt als Familie zusammen: Jede:r behält die eigene Insel, und eure gemeinsame Familieninsel wächst mit den guten Tagen aller.</p>
+    <button class="btn" id="famNew">Familieninsel gründen</button>
+    <div class="row"><input id="famCodeIn" type="text" maxlength="7" autocomplete="off" autocapitalize="characters" placeholder="Familien-Code" aria-label="Familien-Code" value="${famInvite()||""}" style="text-transform:uppercase;letter-spacing:.12em"><button class="btn secondary" id="famJoinBtn" style="width:auto;padding:0 18px;height:52px">Beitreten</button></div>
+    <p class="err" id="famErr" role="alert"></p></div>`;
+  return `<div class="card" id="famBox"><p class="label" style="color:var(--lime)">Familieninsel</p><h2>${esc(S.family.name)}</h2><p class="muted">Lade …</p></div>`;
+}
+async function fillFamily(){
+  const box=$("#famBox"); if(!box||!S.family) return;
+  let members=FAMC&&Date.now()-FAMC.at<60000?FAMC.members:await famSync();
+  if(!$("#famBox")||tab!=="freunde") return;
+  if(!members){$("#famBox").innerHTML=`<p class="label">Familieninsel</p><h2>${esc(S.family.name)}</h2><p class="err">Keine Verbindung. Versuch es später noch mal.</p>`;return}
+  const st=famStats(members), next=FAM_PROJECTS.find(p=>st.total<p.need);
+  members.sort((a,b)=>(b.good||0)-(a.good||0));
+  $("#famBox").innerHTML=`<p class="label" style="color:var(--lime)">Familieninsel</p><h2>${esc(S.family.name)}</h2>
+    <div class="anim" style="border-radius:18px;overflow:hidden">${famScene(members,st.total,st.todayIn>0&&st.todayGood===members.length)}</div>
+    <p><b>Heute:</b> ${st.todayIn?`${st.todayGood} von ${members.length} im Budget`:"noch niemand eingetragen"}</p>
+    <div><div class="row between"><span class="small"><b>Wochenziel</b> · ${st.week} / ${st.target} gute Tage</span><span class="small muted">${S.family.claimed&&S.family.claimed[st.wk]?"geschafft ✓":"+50 Punkte für alle"}</span></div>
+      <div class="bar"><i style="width:${Math.min(100,st.week/st.target*100)}%"></i></div></div>
+    <div><div class="row between"><span class="small"><b>Familienprojekte</b> · ${st.total} gute Tage zusammen</span><span class="small muted">${next?"nächstes: "+esc(next.n)+" bei "+next.need:"alles gebaut!"}</span></div>
+      <div class="bar"><i style="width:${next?Math.min(100,st.total/next.need*100):100}%"></i></div></div>
+    <div style="display:flex;flex-direction:column;gap:6px">${members.map(m=>{const d=(m.days||{})[today()];
+      return `<div class="row between"><span>${esc(m.name||"?")}${m.id===S.family.mid?" (du)":""}</span><span class="small ${d?(d.g?"":"muted"):"muted"}" style="${d&&d.g?"color:var(--lime);font-weight:700":""}">${d?(d.g?"heute im Budget":"heute drüber"):"noch offen"}${d&&d.m!=null?" · "+hm(d.m):""} · ${m.good||0} gute Tage</span></div>`}).join("")}</div>
+    <p class="small muted" style="text-align:center">Familien-Code: <b class="num" style="color:var(--ink);letter-spacing:.1em">${S.family.code}</b></p>
+    <button class="btn secondary" id="famInvite">Familie einladen</button>`;
+  const fi=$("#famInvite"); if(fi) fi.onclick=()=>shareText("Komm auf unsere Familieninsel „"+S.family.name+"“ in OffLand! Code: "+S.family.code,APP_URL+"?familie="+S.family.code);
+}
+function famConsent(title,after){
+  modal(`<p class="label" style="color:var(--lime)">Familieninsel</p><h2>${esc(title)}</h2>
+    <p class="muted">Deine Familie sieht deinen Namen „${esc(netName())}“, deinen Avatar und an welchen Tagen du im Budget warst.</p>
+    <label class="check" for="fcShare"><input type="checkbox" id="fcShare"> Auch meine Minuten zeigen</label>
+    <p class="small muted">Deine eigene Insel bleibt unverändert. Verlassen kannst du die Familieninsel jederzeit in den Einstellungen.</p>
+    <p class="err" id="fcErr" role="alert"></p>
+    <button class="btn" id="fcYes">Los geht's</button><button class="btn ghost" id="fcNo">Abbrechen</button>`);
+  $("#fcNo").onclick=()=>{closeModal();render()};
+  $("#fcYes").onclick=async()=>{const b=$("#fcYes");b.disabled=true;b.textContent="Verbinde …";
+    const e=await after($("#fcShare").checked); if(e){b.disabled=false;b.textContent="Los geht's";return $("#fcErr").textContent=e}
+    closeModal();FAMC=null;tab="freunde";render();window.scrollTo(0,0);sfx("project")};
+}
+function famCreateSheet(){
+  modal(`<p class="label" style="color:var(--lime)">Familieninsel</p><h2>Familieninsel gründen</h2>
+    <label class="field" for="fnName">Name eurer Insel<input id="fnName" type="text" maxlength="30" placeholder="z. B. Familie Sonnenschein"></label>
+    <p class="err" id="fnErr" role="alert"></p><button class="btn" id="fnGo">Weiter</button><button class="btn ghost" id="fnNo">Abbrechen</button>`);
+  $("#fnNo").onclick=closeModal;
+  $("#fnGo").onclick=()=>{const name=$("#fnName").value.trim().slice(0,30); if(name.length<2) return $("#fnErr").textContent="Gib eurer Insel einen Namen.";
+    famConsent("„"+name+"“ gründen",async share=>{
+      try{const N=await netInit(), fid=rid();
+        let code=null; for(let i=0;i<5&&!code;i++){const c=Array.from(crypto.getRandomValues(new Uint8Array(6)),x=>CODE_ABC[x%32]).join(""); if(!(await N.get("famcodes/"+c).catch(()=>null))) code=c}
+        if(!code) return "Bitte versuch es noch mal.";
+        await N.set("families/"+fid,{name,code,at:Date.now(),owner:N.uid});
+        await N.set("famcodes/"+code,{fam:fid,owner:N.uid});
+        return await famJoinId(fid,name,code,share);
+      }catch(e){return "Keine Verbindung. Versuch es später noch mal."}
+    });
+  };
+}
+async function famJoinId(fid,name,code,share){
+  const N=await netInit(), mid=rid();
+  await N.set("families/"+fid+"/uids/"+N.uid,{at:Date.now()});
+  S.family={id:fid,name,code,mid,share:!!share,joined:today(),claimed:{}};
+  await N.set("families/"+fid+"/members/"+mid,Object.assign({owner:N.uid},famMine()));
+  try{localStorage.removeItem(FAMINV_KEY)}catch(e){}
+  log("Du bist jetzt auf der Familieninsel „"+name+"“.","good"); save();
+  return null;
+}
+async function famJoinSheet(code){
+  if(S.family) return toast("Du bist schon auf einer Familieninsel.");
+  let fam=null, name="";
+  try{const N=await netInit(); const c=await N.get("famcodes/"+code); if(c){fam=c.fam; const f=await N.get("families/"+fam); name=f&&f.name}}catch(e){return toast("Keine Verbindung. Versuch es später noch mal.")}
+  if(!fam||!name){try{localStorage.removeItem(FAMINV_KEY)}catch(e){} const fe=$("#famErr"); if(fe) fe.textContent="Diesen Familien-Code gibt es nicht."; else toast("Diesen Familien-Code gibt es nicht."); return}
+  const others=await (async()=>{try{const N=await netInit();return (await N.list("families/"+fam+"/members")).length}catch(e){return 0}})();
+  if(others>=12) return toast("Diese Familieninsel ist voll (12 Personen).");
+  famConsent("„"+name+"“ beitreten",async share=>{try{return await famJoinId(fam,name,code,share)}catch(e){return "Keine Verbindung. Versuch es später noch mal."}});
+}
+async function famLeave(){
+  const f=S.family; if(!f) return;
+  try{const N=await netInit();
+    await N.del("families/"+f.id+"/members/"+f.mid).catch(()=>{});
+    const sameDevice=profiles().some(p=>p.id!==(ACC&&ACC.id)&&(()=>{const st=peek(p.id);return st&&st.family&&st.family.id===f.id})());
+    if(!sameDevice) await N.del("families/"+f.id+"/uids/"+N.uid).catch(()=>{});
+  }catch(e){}
+  S.family=null; FAMC=null; save();
+}
+
 /* ---------- Insel teilen: Story-Bild 1080 × 1920 ---------- */
 /* Was man mit der gesparten Zeit hätte schaffen können: immer das größte passende Beispiel */
 const WOW=[
@@ -3069,6 +3227,8 @@ function login(p){
   document.body.classList.remove("start"); $("#start").innerHTML="";
   closeModal(); render(); window.scrollTo(0,0); showPending();
   if(S.setup&&pendingInvite()&&!$("#modalRoot").innerHTML) inviteSheet();
+  if(S.setup&&famInvite()&&!S.family&&!$("#modalRoot").innerHTML) famJoinSheet(famInvite());
+  if(S.family) setTimeout(famSync,1200);
   if(netOn()) netSync().then(()=>{if(tab==="heute"&&!$("#modalRoot").innerHTML)render()});
   setTimeout(()=>checkReplies(false),1500);
 }
@@ -3211,6 +3371,7 @@ function deleteSheet(){
     const id=ACC.id;
     if(S.online&&S.online.pid){yes.disabled=true;yes.textContent="Lösche …";await netDeleteAll()}
     if(S.backup&&S.backup.on){yes.disabled=true;yes.textContent="Lösche …";await backupDelete()}
+    if(S.family){yes.disabled=true;yes.textContent="Lösche …";await famLeave()}
     try{localStorage.removeItem(profKey(id))}catch(e){}
     storeProfiles(profiles().filter(x=>x.id!==id));
     ACC=null; LS=null; logout(); toast("Konto gelöscht");
