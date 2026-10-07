@@ -1,5 +1,5 @@
 /* Service Worker: macht die Offline-Insel auch ohne Internet spielbar. */
-const CACHE = "offline-insel-v2";
+const CACHE = "offline-insel-v3";
 const ASSETS = [
   "./",
   "index.html",
@@ -12,7 +12,7 @@ const ASSETS = [
 ];
 
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS.map(u => new Request(u, { cache: "reload" })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", e => {
@@ -23,11 +23,13 @@ self.addEventListener("activate", e => {
   );
 });
 
-/* Netzwerk zuerst (damit Updates ankommen), bei Offline aus dem Cache. */
+/* Netzwerk zuerst (damit Updates ankommen), bei Offline aus dem Cache.
+   Eigene Dateien immer beim Server nachfragen, statt den HTTP-Cache zu nutzen. */
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
+  const own = new URL(e.request.url).origin === location.origin;
   e.respondWith(
-    fetch(e.request)
+    fetch(e.request, own ? { cache: "no-cache" } : undefined)
       .then(res => {
         if (res.ok && (res.type === "basic" || res.type === "cors")) {
           const copy = res.clone();
