@@ -286,3 +286,10 @@ body.focus-on{overflow:hidden}
 .coin-up{opacity:0;animation:coinUp 1.8s cubic-bezier(.2,.8,.3,1) both}
 @keyframes coinUp{0%{transform:translateY(22px);opacity:0}20%{opacity:1}65%{transform:translateY(0);opacity:1}100%{transform:translateY(-8px);opacity:0}}
 @media (prefers-reduced-motion:reduce){.chest-shake,.lid-fly,.chest-in,.chest-glow,.coin-up{animation:none}.lid-fly{opacity:0}.coin-up,.chest-in{opacity:1}}
+.joker-line{display:flex;gap:10px;align-items:center;background:#2A2418;border:1px solid #4A3D22;border-radius:14px;padding:8px 12px}
+.joker-line.used{background:var(--ground);border-color:var(--line);opacity:.75}
+.joker-mini{font-size:22px;line-height:1;flex-shrink:0}
+.joker-big{font-size:64px;line-height:1;align-self:center;animation:jokerWiggle 2.4s ease-in-out infinite}
+.joker-big.flip{animation:jokerFlip 1s cubic-bezier(.2,.8,.3,1.3) both}
+@keyframes jokerWiggle{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+@media (prefers-reduced-motion:reduce){.joker-big{animation:none}}

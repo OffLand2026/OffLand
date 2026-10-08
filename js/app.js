@@ -220,7 +220,10 @@ const PLANS=[
   {id:"spiel",n:"Brettspiel",pp:"ein Brettspiel gespielt",min:60,ic:'<rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1.3"/><circle cx="15" cy="15" r="1.3"/><circle cx="15" cy="9" r="1.3"/><circle cx="9" cy="15" r="1.3"/>'},
   {id:"anruf",n:"Jemanden anrufen",pp:"jemanden angerufen",min:20,ic:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>'},
   {id:"musik",n:"Musik machen",pp:"Musik gemacht",min:20,ic:'<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>'},
-  {id:"malen",n:"Malen oder basteln",pp:"gemalt oder gebastelt",min:45,ic:'<path d="M12 3a9 9 0 0 0 0 18c1.5 0 2-1 2-2s-1-1.5-1-2.5 1-1.5 2-1.5h2a4 4 0 0 0 4-4c0-4.4-4-8-9-8z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="15" cy="7" r="1.2"/>'}
+  {id:"malen",n:"Hobby",pp:"Zeit fürs Hobby gehabt",min:45,ic:'<path d="M12 3a9 9 0 0 0 0 18c1.5 0 2-1 2-2s-1-1.5-1-2.5 1-1.5 2-1.5h2a4 4 0 0 0 4-4c0-4.4-4-8-9-8z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="15" cy="7" r="1.2"/>'},
+  {id:"lernen",n:"Lernen",pp:"gelernt",min:45,ic:'<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2.5 9 2.5 12 0v-5M22 9v6"/>'},
+  {id:"haushalt",n:"Haushalt",pp:"den Haushalt erledigt",min:30,ic:'<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/>'},
+  {id:"familie",n:"Familienzeit",pp:"Zeit mit der Familie verbracht",min:60,ic:'<circle cx="7" cy="6" r="2.5"/><circle cx="17" cy="6" r="2.5"/><circle cx="12" cy="12" r="2"/><path d="M3 21v-5a4 4 0 0 1 8 0M13 21v-5a4 4 0 0 1 8 0M9.5 21v-3a2.5 2.5 0 0 1 5 0v3"/>'}
 ];
 const planIcon=p=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p.ic}</svg>`;
 const PETS=["Hund","Katze","Meerschweinchen","Hase"];
@@ -386,7 +389,7 @@ function migrate(st){
   if(st.points==null)st.points=0; if(!st.items)st.items=[]; if(!st.sun)st.sun=0;
   if(!st.rel)st.rel={}; if(st.conflict===undefined)st.conflict=null;
   if(!st.arrC)st.arrC=0; if(!st.birthC)st.birthC=0;
-  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,focusLog:[],alarm:true,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null},family:null,plan:null,planLog:[],jokerWk:null,lastSurprise:0,surprises:[],duel:null,duelLog:[]};
+  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,focusLog:[],alarm:true,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null},family:null,plan:null,planLog:[],weekReady:null,jokerWk:null,lastSurprise:0,surprises:[],duel:null,duelLog:[]};
   if(st.plusFriend===undefined) st.plusFriend=(st.buddies||[]).length?"alt":null;   // Plus-Monat fürs Einladen gibt es nur einmal
   if(st.allFeatures===undefined) st.allFeatures=(st.dayCount||0)>=1;          // wer schon gespielt hat, behält alles
   for(const k in D){ if(st[k]===undefined) st[k]=D[k]; }
@@ -776,8 +779,8 @@ function extras(day,diff,quests,dreamt){
     const offer=RARE.filter(x=>!owns(x.id));
     if(offer.length){S.trader={until:addDays(day,2),items:shuffle(offer).slice(0,2).map(x=>x.id)};S.pending.push({type:"visitor",kind:"trader"});log("Ein Händlerschiff hat angelegt. Es bleibt 2 Tage.","info")}
   }
-  // Seltene Überraschung an guten Tagen (unvorhersehbar, höchstens alle 4 Tage)
-  if(good&&S.dayCount-(S.lastSurprise||0)>=4&&!S.pending.some(e=>e.type==="visitor")&&Math.random()<.14) surprise(day);
+  // Seltene Überraschung an guten Tagen (unvorhersehbar, höchstens alle 3 Tage)
+  if(good&&S.dayCount-(S.lastSurprise||0)>=3&&!S.pending.some(e=>e.type==="visitor")&&Math.random()<.25) surprise(day);
   // Inselfest nach einer guten Woche
   if(S.dayCount%7===0){
     const g=S.days.slice(-7).filter(d=>d.min<=S.budget).length;
@@ -1360,9 +1363,9 @@ function closeDay(min,quests,appMin){
   S.lastDay=day; S.dayCount++;
   unlockCheck();
   // Joker: einmal pro Woche bricht ein schlechter Tag die Serie nicht
-  let joker=false;
-  if(diff<0&&S.budgetStreak>=2&&S.jokerWk!==isoWeek(day)){S.jokerWk=isoWeek(day);joker=true}
-  S.budgetStreak=diff>=0?S.budgetStreak+1:joker?S.budgetStreak:0;
+  // Joker möglich? Dann fragt die Insel gleich nach (vor der Tagesbilanz)
+  if(diff<0&&S.budgetStreak>=2&&S.jokerWk!==isoWeek(day)&&!S.testmode) S.pending.push({type:"jokerAsk",streak:S.budgetStreak,wk:isoWeek(day),day});
+  S.budgetStreak=diff>=0?S.budgetStreak+1:0;
   if(diff>=0) buddyProgress();
   wishProgress(min,quests,diff);
   setTimeout(netSync,800); setTimeout(()=>backupNow(true),1500); setTimeout(famSync,1100);
@@ -1372,9 +1375,8 @@ function closeDay(min,quests,appMin){
   if(repaired) log("Reparatur geschafft: "+repaired+" % Glück vom schlechten Tag zurückgeholt.","good");
   if(dreamt) log("Gute-Nacht-Ritual: +15 Traumpunkte.","good");
   monsters.forEach(id=>{const a=S.apps.find(x=>x.id===id);const n=monName(a);log(n.charAt(0).toUpperCase()+n.slice(1)+" ist aufgetaucht: "+a.name+" lag über "+hm(a.limit)+".","bad")});
-  if(joker) log("Joker eingesetzt: Deine Serie von "+S.budgetStreak+" Tagen im Budget bleibt bestehen.","info");
-  if(!S.testmode) S.pending.push({type:"day",day,min,before,after:S.glueck,saved,pts,sunny,repaired,dreamt,monsters,joker:joker?S.budgetStreak:0});
-  if(!S.testmode&&parse(day).getDay()===0&&S.days.filter(d=>isoWeek(d.day)===isoWeek(day)).length>=2) S.pending.push({type:"week",wk:isoWeek(day)});
+  if(!S.testmode) S.pending.push({type:"day",day,min,before,after:S.glueck,saved,pts,sunny,repaired,dreamt,monsters,joker:0});
+  if(!S.testmode&&parse(day).getDay()===0&&S.days.filter(d=>isoWeek(d.day)===isoWeek(day)).length>=2){S.pending.push({type:"week",wk:isoWeek(day)});S.weekReady={wk:isoWeek(day),until:addDays(day,3)}}
 
   social(diff>=0);
   extras(day,diff,quests,dreamt);
@@ -2094,6 +2096,7 @@ function viewHeute(){
     <div class="stat"><span class="label">Punkte</span><b class="num" style="color:var(--lilac)">${S.points}</b><span class="small muted">${S.sun?S.sun+"× Sonne":"zum Bauen"}</span></div>
   </div>
   ${planCard()}
+  ${S.weekReady&&today()<=S.weekReady.until?`<div class="card week-ready"><div class="row"><span class="plan-ic" style="background:#26233D;color:var(--lilac)"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h6a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4zM20 5h-6a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h6z"/></svg></span><div class="grow"><p class="label" style="color:var(--lilac)">Neu</p><p><b>Deine Inselwoche KW ${+S.weekReady.wk.split("-W")[1]} ist da</b></p><p class="small muted">Gewonnene Zeit, bester Tag und was auf der Insel los war.</p></div></div><button class="btn secondary" id="weekReadyBtn">Wochenrückblick ansehen</button></div>`:""}
   ${S.vacation?`<div class="card" style="border:1.5px solid var(--lilac)"><p class="label" style="color:var(--lilac)">Urlaubsmodus</p><p>${guard?`<b>${esc(guard.name)}</b> hütet die Insel, bis du zurück bist.`:"Die Insel schläft, bis du zurück bist."} Das Glück sinkt in der Zeit nicht.</p><button class="btn secondary" id="vacOff">Ich bin zurück</button></div>`:""}
   ${warn?`<div class="card warn"><p class="label" style="color:var(--amber)">Wegzug droht</p><p><b>${esc(groupName(warn))}</b> ${vb(warn,"packt","packen")} die Koffer. Bring das Inselglück bis ${nice(S.warn.deadline)} über 40 %, dann ${vb(warn,"bleibt "+esc(warn[0].name),"bleiben alle")}.</p></div>`:""}
   ${wh.length?`<div class="card"><p class="label">Inselgeflüster</p>${wh.map(w=>`<div class="row" style="align-items:flex-start"><div class="avatar" style="background:${w.r.kind==="mensch"?"#26233D":SEA.includes(w.r.art)?"#1F2A3A":"#22301F"}"><svg width="40" height="40" viewBox="${figVB(w.r)}" aria-hidden="true">${figure(w.r,0,0)}</svg></div><div class="grow" style="background:var(--ground);border-radius:4px 16px 16px 16px;padding:10px 12px"><p class="small" style="font-weight:700;color:var(--lilac)">${esc(w.r.name)}${w.r.job?" · "+esc(jobName(w.r.job)):""}</p><p>${esc(w.t)}</p></div></div>`).join("")}</div>`:""}
@@ -2154,7 +2157,8 @@ function goalCard(ok,nd){
     return `<div class="wk${d.day===today()?" now":""}" title="${nice(d.day)}: ${hm(d.min)}"><div class="wk-bar"><i style="height:${Math.max(6,d.min/wmax*100)}%;background:${good?"var(--lime)":"var(--coral)"}"></i><span class="wk-line" style="bottom:${S.budget/wmax*100}%"></span></div><span>${parse(d.day).toLocaleDateString("de-DE",{weekday:"short"}).replace(".","")}</span></div>`;
   }).join("");
   return `<div class="card goal">
-    <div class="row between"><p class="label">Tagesziel</p>${S.budgetStreak>1?`<span class="row" style="gap:6px"><span class="chip good">${S.budgetStreak} Tage in Folge im Ziel</span><span class="chip ${S.jokerWk===isoWeek(today())?"gone":"ok"}" title="Einmal pro Woche bricht ein schlechter Tag deine Serie nicht">🃏 ${S.jokerWk===isoWeek(today())?"Joker weg":"Joker bereit"}</span></span>`:""}</div>
+    <div class="row between"><p class="label">Tagesziel</p>${S.budgetStreak>1?`<span class="chip good">${S.budgetStreak} Tage in Folge</span>`:""}</div>
+    ${S.budgetStreak>1?`<div class="joker-line${S.jokerWk===isoWeek(today())?" used":""}"><span class="joker-mini" aria-hidden="true">🃏</span><span class="small">${S.jokerWk===isoWeek(today())?"Joker diese Woche schon eingesetzt. Ab Montag gibt es einen neuen.":"<b>Joker bereit:</b> Einmal pro Woche kannst du einen schlechten Tag wegstecken, ohne dass deine Serie reißt."}</span></div>`:""}
     ${main}
     ${week.length?`<div class="week" role="img" aria-label="${inB} von ${week.length} Tagen im Ziel">${strip}</div>
     <p class="small muted">Letzte ${week.length} ${week.length===1?"Tag":"Tage"}: <b style="color:var(--ink)">${inB} von ${week.length}</b> im Ziel</p>`:""}
@@ -2657,6 +2661,7 @@ function bind(){
   const nb=$("#nightBtn"); if(nb) nb.onclick=goodNight;
   const pdn=$("#planDone"); if(pdn) pdn.onclick=()=>{const pl=S.plan, p=pl&&PLANS.find(x=>x.id===pl.id); if(!p) return; pl.res=true; const r=planResult(true,pl.id,pl.day); save(); render(); planDoneSheet(p,r)};
   const wrb=$("#weekBtn"); if(wrb) wrb.onclick=()=>weekSheet(wrb.dataset.wk);
+  const wrr=$("#weekReadyBtn"); if(wrr) wrr.onclick=()=>weekSheet(S.weekReady.wk);
   const vo=$("#vacOff"); if(vo) vo.onclick=()=>setVacation(false);
   const dt=$("#deathToggle"); if(dt) dt.onchange=()=>{S.natDeath=dt.checked;save()};
   document.querySelectorAll("[data-tea]").forEach(x=>x.onclick=()=>giveTea(x.dataset.tea));
@@ -2797,6 +2802,21 @@ function showPending(){
     return;
   }
   if(ev.type==="week") return weekSheet(ev.wk);
+  if(ev.type==="jokerAsk"){
+    if(S.jokerWk===ev.wk||S.lastDay!==ev.day) return showPending();
+    $("#modalRoot").innerHTML=`<div class="modal"><div class="sheet" role="dialog" aria-modal="true">
+      <div class="joker-big" aria-hidden="true">🃏</div>
+      <p class="label" style="color:var(--amber)">Deine Serie ist in Gefahr</p><h2>Joker einsetzen?</h2>
+      <p class="muted">Heute warst du über deinem Budget. Damit würde deine Serie von <b style="color:var(--ink)">${ev.streak} Tagen</b> reißen. Mit dem Joker bleibt sie bestehen.</p>
+      <p class="small muted">Du hast einen Joker pro Woche. Setzt du ihn jetzt nicht ein, kannst du ihn bis Sonntag für einen anderen Tag aufheben.</p>
+      <button class="btn" id="jkYes">Joker einsetzen</button><button class="btn ghost" id="jkNo">Aufheben</button></div></div>`;
+    $("#jkYes").onclick=()=>{S.jokerWk=ev.wk;S.budgetStreak=ev.streak;log("Joker eingesetzt: Deine Serie von "+ev.streak+" Tagen im Budget bleibt bestehen.","info");
+      const d=S.pending.find(x=>x.type==="day"&&x.day===ev.day); if(d) d.joker=ev.streak;
+      save();render();setTimeout(netSync,300);
+      sheet(`<div class="joker-big flip" aria-hidden="true">🃏</div><p class="label" style="color:var(--amber)">Joker eingesetzt</p><h2>Deine Serie lebt!</h2><p class="muted">${ev.streak} Tage im Budget, und es geht weiter. Morgen ist ein neuer guter Tag.</p><button class="btn" data-ok>Weiter</button>`)};
+    $("#jkNo").onclick=()=>{closeModal();render();showPending()};
+    return;
+  }
   if(ev.type==="surprise") return surpriseSheet(ev);
   if(ev.type==="duelStart") return duelStartSheet(ev);
   if(ev.type==="duelEnd") return duelEndSheet(ev);
@@ -3485,10 +3505,10 @@ function viewFreunde(){
       <h2>Freunde und Ranglisten</h2>
       <p class="muted">Vergleicht euch jede Woche: Wer war am wenigsten am Handy? Ladet euch gegenseitig ein, dann bekommt ihr ${plusOffer(false)}ein gemeinsames Ziel.</p>
       ${netConfigured()?`<button class="btn" id="goOnline" style="align-self:stretch">Mitmachen</button>`:`<p class="small muted">Ranglisten sind in dieser Version noch nicht verfügbar.</p>`}
-    </div>`;
+    </div>`+(netConfigured()?duelTeaser("Dafür musst du oben bei Freunde und Ranglisten mitmachen."):"");
   } else {
     h+=`<div class="card goal" id="rankHero"><p class="label" style="color:var(--lime)">Diese Woche</p><p class="muted">Lade Rangliste …</p></div>
-    <div id="duelBox"></div>
+    <div id="duelBox">${duelTeaser("Lade Freund:innen …")}</div>
     <div class="card">
       <div class="row" role="tablist"><button class="btn ${rankTab==="freunde"?"":"secondary"} grow" data-rk="freunde" role="tab" aria-selected="${rankTab==="freunde"}">Freunde</button><button class="btn ${rankTab==="alle"?"":"secondary"} grow" data-rk="alle" role="tab" aria-selected="${rankTab==="alle"}">Alle</button></div>
       <div id="rankBox"><p class="small muted">Lade …</p></div>
@@ -3636,8 +3656,14 @@ function duelRace(me,them){
     <text x="328" y="26" text-anchor="end" font-size="12" fill="#C8F169" font-family="Manrope, sans-serif" font-weight="800">Du: ${me.avg!=null?hm(me.avg)+" / Tag":"noch nichts"}</text>
     ${ticks}</svg>`;
 }
+function duelTeaser(text,btn){
+  return `<div class="card duel-card"><p class="label" style="color:var(--amber)">⚔️ Duell der Woche</p>
+    <div class="duel-vs" style="justify-content:flex-start"><span>${avatarSvg(netAv(),48)}</span><b class="duel-x" style="font-size:24px">⚔️</b><span class="avatar" style="width:48px;height:48px;border-radius:24px;background:var(--card2);display:inline-flex;align-items:center;justify-content:center;font-weight:800;color:var(--muted)">?</span></div>
+    <p>Fordere eine:n Freund:in heraus: Wer diese Woche im Schnitt weniger am Handy ist, gewinnt eine <b>Deko für die Insel</b>. Ihr seht als Wettsegeln, wer vorne liegt.</p>
+    <p class="small muted">${text}</p>${btn||""}</div>`;
+}
 function duelHtml(R){
-  if(!R.nFriends) return "";
+  if(!R.nFriends) return duelTeaser("Füge zuerst jemanden mit dem Code unten hinzu oder schick eine Einladung. Dann kannst du hier herausfordern.");
   const me=S.online.pid, wk=isoWeek(today()), d=S.duel&&S.duel.wk===wk?S.duel:null;
   if(!d){
     const fr=R.friends.filter(r=>r.id!==me);
