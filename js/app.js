@@ -1534,7 +1534,7 @@ function hairSvg(style,c){
     case 8: return {back:`<path d="M-6 -16.6a6 6.2 0 0 1 12 0v4.6q-1.6.6-2.6-.4v-3.6h-6.8v3.6q-1 1-2.6.4z" fill="${c}"/>`,front:`<path d="M-5.6 -16.4a5.6 5.4 0 0 1 11.2 0q-2.8-.4-5.6-2.2q-2.8 1.8-5.6 2.2z" fill="${c}"/>`};
     case 9: return {back:"",front:`<path d="M-1.6 -20.4q-1.4-3.6 1.6-5.6q3 2 1.6 5.6z" fill="${c}"/><path d="M-5 -17.6a5 4 0 0 1 10 0q-5-1-10 0z" fill="${c}" opacity=".45"/>`};
     case 10: return {back:"",front:`<path d="M-3 -19.8q1.6-.8 3.2-.4" stroke="#FFFFFF" stroke-width=".7" fill="none" opacity=".35" stroke-linecap="round"/>`};
-    case 11: return {back:`<path d="M-5.6 -15q-3 1.6-2.6 6.4l1.8.2q-.4-3.8 1.4-5z" fill="${c}"/><path d="M5.6 -15q3 1.6 2.6 6.4l-1.8.2q.4-3.8-1.4-5z" fill="${c}"/>`,front:`<path d="M-5.3 -16.4a5.3 5.5 0 0 1 10.6 0q-2.6-1.6-5.3-1.6t-5.3 1.6z" fill="${c}"/><circle cx="-6.4" cy="-14.6" r=".9" fill="#E07AB8"/><circle cx="6.4" cy="-14.6" r=".9" fill="#E07AB8"/>`};
+    case 11: return {back:`<g stroke="${c}" stroke-width="2.3" stroke-linecap="round" fill="none"><path d="M-4.4 -16.4q-2.4 1.4-2.2 6.4"/><path d="M4.4 -16.4q2.4 1.4 2.2 6.4"/></g><path d="M-6.9 -13.6l1.2.5M-6.8 -11.6l1.2.4M6.9 -13.6l-1.2.5M6.8 -11.6l-1.2.4" stroke="#14151F" stroke-width=".35" opacity=".25"/>`,front:`<path d="M-5.3 -16.4a5.3 5.5 0 0 1 10.6 0q-2.6-1.6-5.3-1.6t-5.3 1.6z" fill="${c}"/><circle cx="-6.5" cy="-10.6" r=".95" fill="#E07AB8"/><circle cx="6.5" cy="-10.6" r=".95" fill="#E07AB8"/>`};
     case 12: return {back:"",front:`<path d="M-5.4 -16.2a5.4 5.6 0 0 1 10.8 0q-1.6-.6-3.4-2.6q-3 2.2-7.4 2.6z" fill="${c}"/>`};
     default: return {back:"",front:`<path d="M-5 -17.6a5 4 0 0 1 10 0q-5-1.2-10 0z" fill="${c}"/>`};
   }
@@ -1588,7 +1588,7 @@ function figure(r,x,y){
     const hair0=hairSvg(L.style,L.style===5?L.cap:L.hair), acc=accSvg(L.acc,L.accC);
     // Mit Mütze oder Kappe: keine Haare über der Krempe (Locken, Dutt, Iro lappen sonst heraus)
     const hat=L.acc.includes(4)||L.acc.includes(5), hcl=hat?`<clipPath id="hatclip"><rect x="-20" y="-17.6" width="40" height="40"/></clipPath>`:"";
-    const hair=hat?{back:hcl+(hair0.back?`<g clip-path="url(#hatclip)">${hair0.back}</g>`:""),front:hair0.front?`<g clip-path="url(#hatclip)">${hair0.front}</g>`:""}:hair0;
+    const hair=hat?{back:hcl+(hair0.back&&L.style===2?`<g clip-path="url(#hatclip)">${hair0.back}</g>`:hair0.back),front:hair0.front?`<g clip-path="url(#hatclip)">${hair0.front}</g>`:""}:hair0;
     if(r.sick) return `<g transform="translate(${x} ${y}) scale(${kid})"><title>${esc(r.name)} (krank: ${esc(r.sick.kind)})</title><rect x="-9" y="-6" width="18" height="6" rx="2" fill="#8A5A3B"/><rect x="-8" y="-9" width="16" height="5" rx="2" fill="#9CC8EE"/><circle cx="-6" cy="-10" r="4" fill="${L.skin}"/><path d="M-9.6 -11a4 4 0 0 1 6.6-2.6" stroke="${L.hair}" stroke-width="2" fill="none"/><path d="M-7.4 -10.4h1.2M-5 -10.4h1.2" stroke="#14151F" stroke-width=".6"/><circle cx="-8" cy="-9" r="1" fill="#E5484D" opacity=".7"/><text x="2" y="-12" font-size="6" fill="#F3F1EA" font-family="Manrope, sans-serif">z</text></g>`;
     const sad=typeof S!=="undefined"&&S.glueck<40;
     if(st==="baby") return `<g transform="translate(${x} ${y}) scale(${kid})"><title>${esc(r.name)} (Baby)</title>
