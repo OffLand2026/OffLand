@@ -1178,8 +1178,10 @@ function closeDay(min,quests,appMin){
   }
 
   // Wegzug
-  if(S.unhappyStreak===3&&!S.warn){
-    const cands=here(); if(cands.length){
+  if(S.unhappyStreak>=3&&!S.warn){
+    // Mindestens eine Person bleibt immer, damit die Insel nie ganz leer wird
+    const humans=here().filter(r=>r.kind==="mensch").length;
+    const cands=here().filter(r=>familyOf(r).filter(x=>x.kind==="mensch").length<humans); if(cands.length){
       const g=familyOf(pick(cands));
       S.warn={ids:g.map(x=>x.id),deadline:addDays(day,2+(jobOn("aerztin")?1:0)+(owns("brunnen")?1:0)+(has("o_brunnen")?1:0))};
       log(groupName(g)+vb(g," packt die Koffer. Noch 2 Tage bis zum Wegzug."," packen die Koffer. Noch 2 Tage bis zum Wegzug."),"bad");
@@ -1195,6 +1197,7 @@ function closeDay(min,quests,appMin){
       S.pending.push({type:"left",ids:g.map(x=>x.id)});
     }
     S.warn=null;
+    S.unhappyStreak=0;   // nach 3 weiteren unglücklichen Tagen packt die nächste Familie (vorher kam nach dem ersten Wegzug keiner mehr)
   }
   // Rückkehr
   const gone=S.residents.filter(r=>r.status==="weg");
