@@ -3288,16 +3288,28 @@ function famMine(){
   if(f.look) o.look=f.look;
   return o;
 }
+/* Doppelte Einträge derselben Person (z. B. nach Backup oder Gerätewechsel) nur einmal zeigen */
+function famDedupe(members){
+  const seen={};
+  members.slice().sort((a,b)=>(b.updated||0)-(a.updated||0)).forEach(m=>{const k=(m.name||"")+"|"+(m.avatar||"");if(!seen[k]||m.id===S.family.mid&&seen[k].id!==S.family.mid)seen[k]=m});
+  return members.filter(m=>Object.values(seen).includes(m));
+}
 async function famSync(){
   const f=S.family; if(!f||!netConfigured()) return null;
   try{
-    const N=await netInit();
-    await N.set("families/"+f.id+"/members/"+f.mid,Object.assign({owner:N.uid},famMine()));
-    const members=await N.list("families/"+f.id+"/members");
+    const N=await netInit(), path=()=>"families/"+f.id+"/members/"+f.mid, mine=()=>Object.assign({owner:N.uid},famMine());
+    try{await N.set(path(),mine())}catch(e){
+      // Gerät hat eine neue Online-Kennung (Backup, anderes Gerät, Browserdaten gelöscht): neu anmelden
+      const fam=await N.get("families/"+f.id);
+      if(!fam){FAMC={at:Date.now(),gone:true};return "gone"}
+      await N.set("families/"+f.id+"/uids/"+N.uid,{at:Date.now()}).catch(()=>{});
+      try{await N.set(path(),mine())}catch(e2){f.mid=rid();save();await N.set(path(),mine())}
+    }
+    const members=famDedupe(await N.list("families/"+f.id+"/members"));
     FAMC={at:Date.now(),members};
     famGoalCheck(members);
     return members;
-  }catch(e){return null}
+  }catch(e){console.warn("Familieninsel:",e);return null}
 }
 function famStats(members){
   const wk=isoWeek(today()), td=today();
@@ -3343,9 +3355,12 @@ function famCard(){
 }
 async function fillFamily(){
   const box=$("#famBox"); if(!box||!S.family) return;
-  let members=FAMC&&Date.now()-FAMC.at<60000?FAMC.members:await famSync();
+  let members=FAMC&&FAMC.members&&Date.now()-FAMC.at<60000?FAMC.members:await famSync();
   if(!$("#famBox")||tab!=="freunde") return;
-  if(!members){$("#famBox").innerHTML=`<p class="label">Familieninsel</p><h2>${esc(S.family.name)}</h2><p class="err">Keine Verbindung. Versuch es später noch mal.</p>`;return}
+  if(members==="gone"){$("#famBox").innerHTML=`<p class="label">Familieninsel</p><h2>${esc(S.family.name)}</h2><p class="muted">Diese Familieninsel gibt es nicht mehr. Du kannst eine neue gründen oder einer anderen beitreten.</p><button class="btn secondary" id="famGone">Verlassen</button>`;
+    $("#famGone").onclick=async()=>{await famLeave();render()};return}
+  if(!members){$("#famBox").innerHTML=`<p class="label">Familieninsel</p><h2>${esc(S.family.name)}</h2><p class="err">Keine Verbindung. Prüf dein Internet und versuch es noch mal.</p><button class="btn secondary" id="famRetry">Noch mal versuchen</button>`;
+    $("#famRetry").onclick=()=>{FAMC=null;$("#famBox").innerHTML=`<p class="label">Familieninsel</p><h2>${esc(S.family.name)}</h2><p class="muted">Lade …</p>`;fillFamily()};return}
   const st=famStats(members), next=FAM_PROJECTS.find(p=>st.total<p.need);
   members.sort((a,b)=>(b.good||0)-(a.good||0));
   $("#famBox").innerHTML=`<p class="label" style="color:var(--lime)">Familieninsel</p><h2>${esc(S.family.name)}</h2>
