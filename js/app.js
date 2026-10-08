@@ -340,7 +340,7 @@ function migrate(st){
   if(st.points==null)st.points=0; if(!st.items)st.items=[]; if(!st.sun)st.sun=0;
   if(!st.rel)st.rel={}; if(st.conflict===undefined)st.conflict=null;
   if(!st.arrC)st.arrC=0; if(!st.birthC)st.birthC=0;
-  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,focusLog:[],activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null},family:null};
+  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,focusLog:[],alarm:true,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null},family:null};
   if(st.plusFriend===undefined) st.plusFriend=(st.buddies||[]).length?"alt":null;   // Plus-Monat fürs Einladen gibt es nur einmal
   if(st.allFeatures===undefined) st.allFeatures=(st.dayCount||0)>=1;          // wer schon gespielt hat, behält alles
   for(const k in D){ if(st[k]===undefined) st[k]=D[k]; }
@@ -853,9 +853,26 @@ function focusSheet(dur){
   };
   draw();
 }
+/* Wecker am Ende der Fokusfahrt: in der App ein Klingelton, in der iPhone-App zusätzlich
+   eine Mitteilung mit Ton, die auch bei gesperrtem Handy kommt */
+const FA=(()=>{try{const C=window.Capacitor;return C&&C.isNativePlatform&&C.isNativePlatform()&&C.registerPlugin?C.registerPlugin("FocusAlarm"):null}catch(e){return null}})();
+function alarmSchedule(b){
+  if(!FA||S.alarm===false) return;
+  const sec=Math.max(1,Math.round((b.start+b.dur*60000-Date.now())/1000));
+  FA.schedule({seconds:sec,title:"Das Boot ist zurück",body:b.dur+" Minuten Fokus"+(b.task?" für „"+b.task+"“":"")+" sind um. Komm zurück auf deine Insel!"}).catch(()=>{});
+}
+function alarmCancel(){if(FA) FA.cancel().catch(()=>{})}
+function ringAlarm(){
+  if(S.alarm===false) return;
+  const keep=S.sound; S.sound=true; const ac=audio(); S.sound=keep;
+  if(ac) for(let r=0;r<3;r++){const t=r*1.1;[1047,1319,1568,2093].forEach((f,i)=>tone(ac,f,t+i*.12,.35,{type:"triangle",vol:.16}))}
+  try{if(navigator.vibrate) navigator.vibrate([300,150,300,150,300])}catch(e){}
+}
 function startBoat(dur,cat,task){
   const crew=adults().find(r=>r.job==="fischer")||pick(adults())||null;
   S.boat={start:Date.now(),dur,crew:crew?crew.id:null,left:0,cat:cat||"ruhe",task:task||""}; save();
+  if(S.alarm!==false){const keep=S.sound;S.sound=true;audio();S.sound=keep}   // Ton jetzt freischalten, solange getippt wurde
+  alarmSchedule(S.boat);
   const el=document.documentElement;
   if(el.requestFullscreen&&!document.fullscreenElement) el.requestFullscreen().catch(()=>{});
   render();
@@ -864,6 +881,9 @@ function boatLeft(){if(!S.boat)return 0;return Math.max(0,S.boat.start+S.boat.du
 function finishBoat(){
   if(!S.boat) return;
   const b=S.boat; S.boat=null;
+  const late=Date.now()-(b.start+b.dur*60000)>5000;          // in der iPhone-App hat dann schon die Mitteilung geklingelt
+  if(!document.hidden&&!(FA&&late)) ringAlarm();
+  alarmCancel();
   S.pending.push({type:"boat",dur:b.dur,crew:b.crew,left:b.left||0,cat:b.cat||null,task:b.task||""});
   save(); render(); showPending();
 }
@@ -951,7 +971,7 @@ function renderFocus(){
     modal(`<h2>Bootsfahrt abbrechen?</h2><p class="muted">Das Boot kehrt ohne Fang zurück. Punkte und Baumaterial gibt es nur, wenn du durchhältst.</p>
       <div class="row"><button class="btn grow" id="stopNo">Weiterfahren</button><button class="btn secondary grow" id="stopYes">Abbrechen</button></div>`);
     $("#stopNo").onclick=closeModal;
-    $("#stopYes").onclick=()=>{S.boat=null;log("Bootsfahrt abgebrochen.","info");save();closeModal();render()};
+    $("#stopYes").onclick=()=>{S.boat=null;alarmCancel();log("Bootsfahrt abgebrochen.","info");save();closeModal();render()};
     $("#stopNo").focus();
   };
   updateFocus();
@@ -2205,6 +2225,7 @@ function settingsHtml(){
     <label class="check" for="deathToggle"><input type="checkbox" id="deathToggle" ${S.natDeath?"checked":""}> Natürlicher Abschied im hohen Alter</label>
     <label class="check" for="vacToggle" style="margin-top:6px"><input type="checkbox" id="vacToggle" ${S.vacation?"checked":""}> Urlaubsmodus: Die Insel schläft, nichts geht verloren</label>
     ${S.allFeatures?"":`<label class="check" for="allFeat"><input type="checkbox" id="allFeat"> Alle Funktionen sofort zeigen (statt nach und nach)</label>`}
+    <label class="check" for="alarmToggle"><input type="checkbox" id="alarmToggle" ${S.alarm!==false?"checked":""}> Wecker-Ton, wenn die Fokus-Bootsfahrt geschafft ist</label>
     <label class="check" for="soundToggle"><input type="checkbox" id="soundToggle" ${S.sound!==false?"checked":""}> Töne und Geräusche</label>
   </div>
   ${netConfigured()?`<div class="card"><p class="label">Online: Freunde und Ranglisten</p>
@@ -2341,6 +2362,7 @@ function bind(){
   const dt=$("#deathToggle"); if(dt) dt.onchange=()=>{S.natDeath=dt.checked;save()};
   document.querySelectorAll("[data-tea]").forEach(x=>x.onclick=()=>giveTea(x.dataset.tea));
   const vt=$("#vacToggle"); if(vt) vt.onchange=()=>setVacation(vt.checked);
+  const al=$("#alarmToggle"); if(al) al.onchange=()=>{S.alarm=al.checked;save();if(al.checked)ringAlarm()};
   const so=$("#soundToggle"); if(so) so.onchange=()=>{S.sound=so.checked;save();if(so.checked)sfx("return")};
   document.querySelectorAll("[data-lim]").forEach(x=>x.onchange=()=>{const a=S.apps.find(y=>y.id===x.dataset.lim);if(a){a.limit=clamp(+x.value||a.limit,5,600);save()}});
   const fsh=$("#famShare"); if(fsh) fsh.onchange=()=>{S.family.share=fsh.checked;save();famSync()};
@@ -3514,8 +3536,9 @@ async function fillFamily(){
     <div class="anim" style="border-radius:18px;overflow:hidden">${famScene(members,st.total,st.todayIn>0&&st.todayGood===members.length)}</div>
     <p><b>Heute:</b> ${st.todayIn?`${st.todayGood} von ${members.length} im Budget`:"noch niemand eingetragen"}</p>
     <div style="background:var(--ground);border-radius:16px;padding:12px 14px"><p class="small muted">Gemeinsame OffLand-Zeit</p><p class="num" style="font-size:26px;font-weight:800;color:var(--lime)">${hm(st.saved)}</p></div>
-    <div><div class="row between"><span class="small"><b>Familienprojekte</b> · ${st.total} gute Tage zusammen</span><span class="small muted">${next?"nächstes: "+esc(next.n)+" bei "+next.need:"alles gebaut!"}</span></div>
-      <div class="bar"><i style="width:${next?Math.min(100,st.total/next.need*100):100}%"></i></div></div>
+    <div><div class="row between" style="flex-wrap:nowrap"><b class="small">Familienprojekte</b><span class="small num" style="white-space:nowrap">${st.total} gute Tage zusammen</span></div>
+      <div class="bar"><i style="width:${next?Math.min(100,st.total/next.need*100):100}%"></i></div>
+      <p class="small muted" style="margin-top:4px">${next?"Nächstes Projekt: <b style=\"color:var(--ink)\">"+esc(next.n)+"</b> bei "+next.need+" guten Tagen":"Alle Familienprojekte sind gebaut!"}</p></div>
     <div style="display:flex;flex-direction:column;gap:6px">${members.map(m=>{const d=(m.days||{})[today()];
       return `<div class="row between"><span>${esc(m.name||"?")}${m.id===S.family.mid?" (du)":""}</span><span class="small ${d?(d.g?"":"muted"):"muted"}" style="${d&&d.g?"color:var(--lime);font-weight:700":""}">${d?(d.g?"heute im Budget":"heute drüber"):"noch offen"}${d&&d.m!=null?" · "+hm(d.m):""}</span></div>
         <div class="row between" style="margin-top:-4px"><span class="small muted">${m.good||0} gute ${m.good===1?"Tag":"Tage"}</span><span class="small" style="font-weight:700">${m.saved!=null?hm(m.saved)+" gespart":"–"}</span></div>`}).join("")}</div>
