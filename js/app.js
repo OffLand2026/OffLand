@@ -2983,6 +2983,18 @@ async function netConnect(code){
   const p=await N.get("players/"+c.pid).catch(()=>null);
   return {pid:c.pid,name:p&&p.name};
 }
+/* Profil gehört einer alten Online-Kennung: neu anlegen und alle Freund:innen per Code wieder verbinden */
+async function netRelink(){
+  const N=await netInit(), o=S.online;
+  const cur=o.pid?await N.get("players/"+o.pid).catch(()=>null):null;
+  if(cur&&cur.owner===N.uid) return;
+  o.pid=null; await netEnsure();
+  for(const b of S.buddies||[]){
+    if(!b.code||b.code==="?") continue;
+    try{const r=await netConnect(b.code); if(r&&r.pid) b.pid=r.pid}catch(e){}
+  }
+  RANKC=null; save();
+}
 async function netRemove(pid){
   const N=await netInit();
   await N.del("players/"+S.online.pid+"/friends/"+pid).catch(()=>{});
@@ -3085,15 +3097,27 @@ function friendsCardInvite(inv){
 /* Ranglisten laden (kurz zwischengespeichert, damit nicht jedes Neuzeichnen lädt) */
 let RANKC=null;
 async function loadRanks(force){
-  const wk=isoWeek(today()), me=S.online.pid, key=me+wk;
+  const wk=isoWeek(today()), key=S.online.pid+wk; let me=S.online.pid;
   if(!force&&RANKC&&RANKC.key===key&&Date.now()-RANKC.at<60000&&(rankTab!=="alle"||RANKC.all)) return RANKC;
-  await netSync(); const N=await netInit();
-  const fr=await N.list("players/"+me+"/friends");
+  await netSync(); let N=await netInit();
+  let fr;
+  try{fr=await N.list("players/"+S.online.pid+"/friends")}
+  catch(e){
+    if(!e||e.code!=="permission-denied") throw e;
+    // Neue Online-Kennung auf diesem Gerät (anderes Gerät, App statt Browser, Backup): Profil neu anlegen und Freund:innen neu verbinden
+    await netRelink(); await netSync(); N=await netInit();
+    fr=await N.list("players/"+S.online.pid+"/friends");
+  }
+  me=S.online.pid;
   const friends=(await Promise.all([me].concat(fr.map(f=>f.id)).map(async id=>{
     const r=await N.get("weeks/"+wk+"/ranks/"+id).catch(()=>null);
     if(r) return Object.assign({id},r);
-    const p=await N.get("players/"+id).catch(()=>null); return p?{id,name:p.name,avatar:p.avatar,world:p.world,avg:null,good:0}:null;
-  }))).filter(Boolean).sort(byAvg);
+    const p=await N.get("players/"+id).catch(()=>null); return p?{id,name:p.name,avatar:p.avatar,world:p.world,avg:null,good:0,updated:p.updated||0}:null;
+  }))).filter(Boolean)
+    // dieselbe Person doppelt (altes Profil nach Gerätewechsel): nur den neueren Eintrag zeigen
+    .sort((a,b)=>(b.id===me)-(a.id===me)||(b.updated||0)-(a.updated||0))
+    .filter((r,i,arr)=>r.id===me||arr.findIndex(x=>x.id!==me&&x.name===r.name&&x.avatar===r.avatar)===i)
+    .sort(byAvg);
   let all=RANKC&&RANKC.key===key&&!force?RANKC.all:null;
   let place=null,total=null;
   if(rankTab==="alle"||S.online.pub){
@@ -3111,7 +3135,7 @@ async function loadRanks(force){
 }
 async function fillRanks(force){
   const box=$("#rankBox"); if(!box) return;
-  let R; try{R=await loadRanks(force)}catch(e){if($("#rankBox")) $("#rankBox").innerHTML=`<p class="err">Keine Verbindung zum Online-Speicher. Versuch es später noch mal.</p>`;return}
+  let R; try{R=await loadRanks(force)}catch(e){console.warn("Ranglisten:",e);if($("#rankBox")) $("#rankBox").innerHTML=`<p class="err">Keine Verbindung zum Online-Speicher. Versuch es später noch mal.</p><p class="small muted">Fehlercode: ${esc(String(e&&(e.code||e.message)||"unbekannt"))}</p><button class="btn secondary" id="rkRetry">Noch mal versuchen</button>`;const rr=$("#rkRetry");if(rr)rr.onclick=()=>{RANKC=null;$("#rankBox").innerHTML=`<p class="small muted">Lade …</p>`;fillRanks(true)};return}
   if(!$("#rankBox")||tab!=="freunde") return;                                  // inzwischen woanders
   const me=S.online.pid, fi=R.friends.findIndex(r=>r.id===me), mine=R.friends[fi]||{};
   const ai=R.all?R.all.findIndex(r=>r.id===me):-1, pl=R.all?rankPlaces(R.all):[];
