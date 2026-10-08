@@ -920,17 +920,11 @@ function doActivity(id){
   save(); render();
 }
 /* Vorhaben: gewonnene Zeit für etwas Echtes nutzen */
-function planOpts(min){
-  const fit=PLANS.filter(p=>p.min<=Math.max(min,30));
-  const opts=shuffle(fit.length>=4?fit:PLANS).slice(0,4);
-  const cur=S.plan&&PLANS.find(p=>p.id===S.plan.id);
-  if(cur&&!opts.includes(cur)) opts[3]=cur;
-  return opts;
-}
+function planOpts(){return PLANS}   // immer alle Vorhaben zur Auswahl
 function planPick(ev,good){
   const forDay=addDays(ev.day,1), cur=S.plan&&S.plan.day===forDay?S.plan.id:null;
   return `<div class="card plan-box"><p><b>${good?"Was machst du morgen mit der gewonnenen Zeit?":"Was machst du morgen statt Handy?"}</b></p>
-    <div class="plan-opts">${planOpts(good?ev.saved:30).map(p=>`<button type="button" class="plan-opt${p.id===cur?" on":""}" data-plan="${p.id}" aria-pressed="${p.id===cur}">${planIcon(p)}<span>${esc(p.n)}</span></button>`).join("")}</div>
+    <div class="plan-opts">${planOpts().map(p=>`<button type="button" class="plan-opt${p.id===cur?" on":""}" data-plan="${p.id}" aria-pressed="${p.id===cur}">${planIcon(p)}<span>${esc(p.n)}</span></button>`).join("")}</div>
     <p class="small muted" id="planNote">${cur?"Vorgemerkt für morgen.":"Morgen Abend fragt die Insel nach. Geschafft: +20 Punkte, +2 % Glück, und ein Bewohner macht mit."}</p></div>`;
 }
 function bindPlanPick(ev){
