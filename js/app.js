@@ -1697,26 +1697,8 @@ function viewHeute(){
   const canNight=feature("nacht")&&S.lastDay&&!sleeping()&&(S.testmode||S.lastDay===today())&&!(S.night&&S.night.after===S.lastDay);
   const mons=(S.monsters||[]).map(id=>S.apps.find(a=>a.id===id)).filter(Boolean);
   const guard=S.vacation&&S.vacation.guard?S.residents.find(r=>r.id===S.vacation.guard):null;
-  return `
-  ${goalCard(ok,nd)}
-  <div class="stats">
-    <div class="stat"><span class="label">Glück</span><b class="num" style="color:${mCls==="good"?"var(--lime)":mCls==="ok"?"var(--amber)":"var(--coral)"}">${S.glueck} %</b><span class="small muted">${mText}</span></div>
-    <div class="stat"><span class="label">Bewohner</span><b class="num">${here().length}/${capacity()}</b><span class="small muted">Plätze</span></div>
-    <div class="stat"><span class="label">Punkte</span><b class="num" style="color:var(--lilac)">${S.points}</b><span class="small muted">${S.sun?S.sun+"× Sonne":"zum Bauen"}</span></div>
-  </div>
-  ${S.vacation?`<div class="card" style="border:1.5px solid var(--lilac)"><p class="label" style="color:var(--lilac)">Urlaubsmodus</p><p>${guard?`<b>${esc(guard.name)}</b> hütet die Insel, bis du zurück bist.`:"Die Insel schläft, bis du zurück bist."} Das Glück sinkt in der Zeit nicht.</p><button class="btn secondary" id="vacOff">Ich bin zurück</button></div>`:""}
-  ${warn?`<div class="card warn"><p class="label" style="color:var(--amber)">Wegzug droht</p><p><b>${esc(groupName(warn))}</b> ${vb(warn,"packt","packen")} die Koffer. Bring das Inselglück bis ${nice(S.warn.deadline)} über 40 %, dann ${vb(warn,"bleibt "+esc(warn[0].name),"bleiben alle")}.</p></div>`:""}
-  ${wh.length?`<div class="card"><p class="label">Inselgeflüster</p>${wh.map(w=>`<div class="row" style="align-items:flex-start"><div class="avatar" style="background:${w.r.kind==="mensch"?"#26233D":"#22301F"}"><svg width="40" height="40" viewBox="-13 -24 26 27" aria-hidden="true">${figure(w.r,0,0)}</svg></div><div class="grow" style="background:var(--ground);border-radius:4px 16px 16px 16px;padding:10px 12px"><p class="small" style="font-weight:700;color:var(--lilac)">${esc(w.r.name)}${w.r.job?" · "+esc(jobName(w.r.job)):""}</p><p>${esc(w.t)}</p></div></div>`).join("")}</div>`:""}
-  ${S.wish&&wisher?wishCard(S.wish,wisher):""}
-  ${mons.length?`<div class="card" style="border:1.5px solid #9B6BD6"><p class="label" style="color:#C8A8FF">App-Monster vor der Insel</p>${mons.map(a=>`<div class="row"><svg width="48" height="40" viewBox="-24 -34 48 40" aria-hidden="true">${monsterSvg(a.m)}</svg><p class="grow">${esc(monName(a,false))}: ${esc(a.name)} lag gestern über ${hm(a.limit)}. Es verscheucht die Fische und kostet Glück.</p></div>`).join("")}<p class="small muted">Bleib heute bei diesen Apps unter dem Limit, dann tauchen sie wieder ab.</p></div>`:""}
-  ${feature("boot")?`<div class="card">
-    <div class="row between"><p class="label">Fokus-Bootsfahrt</p></div>
-    ${S.boat?`<p>Das Boot ist draußen. Leg das Handy weg, bis es zurück ist.</p>`
-    :`<p class="small muted">Ein Bewohner fährt zum Fischen raus, solange du das Handy weglegst. Hältst du durch, bringt das Boot Punkte und Baumaterial.</p>
-      <div class="row">${[15,30,60].map(m=>`<button class="btn secondary grow" style="padding:0" data-boat="${m}" ${adults().length?"":"disabled"}>${m} min</button>`).join("")}</div>`}
-  </div>`:""}
-  ${nextCard()}
-  <div class="card" id="closeCard">
+  const closeFirst=ok&&(new Date().getHours()>=17||S.testmode);
+  const closeCard=`<div class="card" id="closeCard">
     <div class="row between"><h2>${S.vacation?"Urlaub":ok?"Tag eintragen":"Bis morgen!"}</h2><span class="small muted">${nice(nd)}</span></div>
     ${ok?`
     ${S.repair?`<p class="small" style="color:var(--amber)">Reparatur möglich: Bleib im Budget und schaff 2 Quests, dann holst du ${S.repair.amount} % Glück zurück.</p>`:""}
@@ -1735,17 +1717,41 @@ function viewHeute(){
     :S.vacation?`<p class="muted">Im Urlaubsmodus musst du nichts eintragen.</p>`:`<p class="muted">Heute ist schon eingetragen. Komm morgen Abend wieder und trag den Tag ein.</p>`}
     ${canNight?`<button class="btn secondary" id="nightBtn">Gute Nacht, Insel</button><p class="small muted" style="margin-top:-4px">Leg danach das Handy weg. Morgen gibt es +15 Traumpunkte und mehr Strandgut.</p>`:""}
     ${sleeping()?`<p class="small" style="color:var(--lilac)">Die Insel schläft. Bis morgen!</p>`:""}
+  </div>`;
+  return `
+  ${goalCard(ok,nd)}
+  ${closeFirst?closeCard:""}
+  <div class="stats">
+    <div class="stat"><span class="label">Glück</span><b class="num" style="color:${mCls==="good"?"var(--lime)":mCls==="ok"?"var(--amber)":"var(--coral)"}">${S.glueck} %</b><span class="small muted">${mText}</span></div>
+    <div class="stat"><span class="label">Bewohner</span><b class="num">${here().length}/${capacity()}</b><span class="small muted">Plätze</span></div>
+    <div class="stat"><span class="label">Punkte</span><b class="num" style="color:var(--lilac)">${S.points}</b><span class="small muted">${S.sun?S.sun+"× Sonne":"zum Bauen"}</span></div>
   </div>
+  ${S.vacation?`<div class="card" style="border:1.5px solid var(--lilac)"><p class="label" style="color:var(--lilac)">Urlaubsmodus</p><p>${guard?`<b>${esc(guard.name)}</b> hütet die Insel, bis du zurück bist.`:"Die Insel schläft, bis du zurück bist."} Das Glück sinkt in der Zeit nicht.</p><button class="btn secondary" id="vacOff">Ich bin zurück</button></div>`:""}
+  ${warn?`<div class="card warn"><p class="label" style="color:var(--amber)">Wegzug droht</p><p><b>${esc(groupName(warn))}</b> ${vb(warn,"packt","packen")} die Koffer. Bring das Inselglück bis ${nice(S.warn.deadline)} über 40 %, dann ${vb(warn,"bleibt "+esc(warn[0].name),"bleiben alle")}.</p></div>`:""}
+  ${wh.length?`<div class="card"><p class="label">Inselgeflüster</p>${wh.map(w=>`<div class="row" style="align-items:flex-start"><div class="avatar" style="background:${w.r.kind==="mensch"?"#26233D":"#22301F"}"><svg width="40" height="40" viewBox="-13 -24 26 27" aria-hidden="true">${figure(w.r,0,0)}</svg></div><div class="grow" style="background:var(--ground);border-radius:4px 16px 16px 16px;padding:10px 12px"><p class="small" style="font-weight:700;color:var(--lilac)">${esc(w.r.name)}${w.r.job?" · "+esc(jobName(w.r.job)):""}</p><p>${esc(w.t)}</p></div></div>`).join("")}</div>`:""}
+  ${S.wish&&wisher?wishCard(S.wish,wisher):""}
+  ${mons.length?`<div class="card" style="border:1.5px solid #9B6BD6"><p class="label" style="color:#C8A8FF">App-Monster vor der Insel</p>${mons.map(a=>`<div class="row"><svg width="48" height="40" viewBox="-24 -34 48 40" aria-hidden="true">${monsterSvg(a.m)}</svg><p class="grow">${esc(monName(a,false))}: ${esc(a.name)} lag gestern über ${hm(a.limit)}. Es verscheucht die Fische und kostet Glück.</p></div>`).join("")}<p class="small muted">Bleib heute bei diesen Apps unter dem Limit, dann tauchen sie wieder ab.</p></div>`:""}
+  ${feature("boot")?`<div class="card">
+    <div class="row between"><p class="label">Fokus-Bootsfahrt</p></div>
+    ${S.boat?`<p>Das Boot ist draußen. Leg das Handy weg, bis es zurück ist.</p>`
+    :`<p class="small muted">Ein Bewohner fährt zum Fischen raus, solange du das Handy weglegst. Hältst du durch, bringt das Boot Punkte und Baumaterial.</p>
+      <div class="row">${[15,30,60].map(m=>`<button class="btn secondary grow" style="padding:0" data-boat="${m}" ${adults().length?"":"disabled"}>${m} min</button>`).join("")}</div>`}
+  </div>`:""}
+  ${nextCard()}
+  ${closeFirst?"":closeCard}
   ${p?`<div class="card"><div class="row between"><p class="label">Großprojekt</p><span class="small muted num">${Math.floor(S.material/60)} / ${p.hours} h</span></div><p><b>${p.name}</b></p><div class="bar"><i style="width:${Math.min(100,S.material/(p.hours*60)*100)}%;background:var(--lilac)"></i></div><p class="small muted">Jede Minute unter deinem bisherigen Schnitt (${hm(S.baseline)}) wird Baumaterial.</p></div>`:""}
   ${friendsCard()}
-  <div class="card">
+  ${devMode()||S.testmode?`<div class="card">
     <div class="row between"><p class="label">Testmodus</p><label class="check" for="tm" style="min-height:auto"><input type="checkbox" id="tm" ${S.testmode?"checked":""}> an</label></div>
     <p class="small muted">Im Testmodus kannst du beliebig viele Tage nacheinander eintragen oder zufällig simulieren.</p>
     ${S.testmode?`<div class="row"><button class="btn secondary grow" id="simGood">Guter Tag</button><button class="btn secondary grow" id="simBad">Schlechter Tag</button></div>
     <button class="btn ghost" id="sim10">10 Tage gemischt</button>
     <button class="btn ghost" id="resetBtn">Spielstand zurücksetzen</button>`:""}
-  </div>`;
+  </div>`:""}`;
 }
+/* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
+const APP_VERSION="1.31";
+function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* Was als Nächstes freigeschaltet wird */
 function nextCard(){
   const f=nextFeature(); if(!f||!S.setup) return "";
@@ -2037,8 +2043,14 @@ function projectSvg(id){
   }
   return "";
 }
+let bauTab="laden";
 function viewProjekt(){
-  return (feature("reise")?viewReise():"")+(feature("laden")?viewShop():`<div class="card"><p class="label">Inselladen</p><p class="muted">Der Laden öffnet nach deinem ersten eingetragenen Tag. Dann kannst du Punkte für Deko und Nützliches ausgeben.</p></div>`)+`<div class="card"><p class="label">${esc(curWorld().name)}</p><h2>Großprojekte</h2><p class="muted small">Ist ein Projekt fertig, startet sofort das nächste.</p>
+  const tabs=[["laden","Laden"],["projekte","Projekte"]].concat(feature("reise")?[["reise","Weltreise"]]:[]);
+  if(!tabs.some(t=>t[0]===bauTab)) bauTab="laden";
+  const seg=`<div class="row" role="tablist" style="position:sticky;top:0;z-index:5;background:var(--ground);padding:8px 0;margin:-8px 0">${tabs.map(([id,n])=>`<button class="btn ${bauTab===id?"":"secondary"} grow" style="padding:0 6px" data-bau="${id}" role="tab" aria-selected="${bauTab===id}">${n}</button>`).join("")}</div>`;
+  if(bauTab==="reise") return seg+viewReise();
+  if(bauTab==="laden") return seg+(feature("laden")?viewShop():`<div class="card"><p class="label">Inselladen</p><p class="muted">Der Laden öffnet nach deinem ersten eingetragenen Tag. Dann kannst du Punkte für Deko und Nützliches ausgeben.</p></div>`);
+  return seg+`<div class="card"><p class="label">${esc(curWorld().name)}</p><h2>Großprojekte</h2><p class="muted small">Ist ein Projekt fertig, startet sofort das nächste.</p>
   ${curProjects().map((p,i)=>{
     const done=S.built.includes(p.id), cur=i===S.projectIdx;
     const prog=cur?Math.min(100,S.material/(p.hours*60)*100):done?100:0;
@@ -2049,7 +2061,7 @@ function viewProjekt(){
   </div>${viewGemeinsam()}`;
 }
 function viewGemeinsam(){
-  if(!db||!MY_ID) return `<div class="card"><p class="label">Gemeinsam</p><p class="small muted">Inseln von Freund:innen, Geschenke und das gemeinsame Projekt brauchen einen Online-Speicher. In dieser Version bleibt deine Insel nur auf diesem Gerät.</p></div>`;
+  if(!db||!MY_ID) return "";
   const GOAL=100*60;
   const jt=JOINT?JOINT.total:0;
   const canSail=has("schiff")||S.testmode;
@@ -2138,6 +2150,7 @@ function settingsHtml(){
       <button class="btn ghost" id="famLeaveBtn">Familieninsel verlassen</button>`
     :`<p class="small muted">Gründe eine Familieninsel oder tritt einer bei: im Tab Freunde.</p>`}
   </div>`:""}
+  <p class="small muted" id="verLine" style="text-align:center;padding:8px;user-select:none">OffLand · Version ${APP_VERSION}${devMode()?" · Entwicklermodus":""}</p>
   </div>`;
 }
 
@@ -2187,7 +2200,7 @@ function goView(i){
 /* ---------- Rendern ---------- */
 function render(){
   renderScene();
-  $("#streakChip").textContent=S.happyStreak>0?S.happyStreak+" glückliche Tage":S.dayCount+(S.dayCount===1?" Tag":" Tage")+" gespielt";
+  $("#streakChip").textContent=S.happyStreak>0?S.happyStreak+(S.happyStreak===1?" glücklicher Tag":" glückliche Tage"):S.dayCount+(S.dayCount===1?" Tag":" Tage")+" gespielt";
   $("#streakChip").className="chip "+(S.happyStreak>0?"good":"gone");
   $("#accBtn").innerHTML=ACC?avatarSvg(ACC.avatar,40):"";
   $("#dateline").textContent="OffLand · "+new Date().toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"});
@@ -2209,7 +2222,8 @@ function bind(){
   if(sb) sb.onchange=save; if(sa) sa.onchange=save;
   const st=$("#startBtn"); if(st) st.onclick=()=>{S.setup=true;log("Deine Insel ist gegründet. "+nameList(here().map(r=>r.name))+" ziehen ein.","good");save();render();if(famInvite())famJoinSheet(famInvite())};
   const bo=$("#bkOn"); if(bo) bo.onclick=backupEnable;
-  const wsb=$("#wishShop"); if(wsb) wsb.onclick=()=>{tab="projekt";render();window.scrollTo(0,0)};
+  const wsb=$("#wishShop"); if(wsb) wsb.onclick=()=>{tab="projekt";bauTab="laden";render();window.scrollTo(0,0)};
+  document.querySelectorAll("[data-bau]").forEach(b=>b.onclick=()=>{bauTab=b.dataset.bau;render();const t=$("[data-bau]");if(t&&t.getBoundingClientRect().top<0)t.scrollIntoView({block:"start"})});
   const stS=$("#stSetup"); if(stS) stS.onclick=stSetup;
   const stA=$("#stApps"); if(stA) stA.onclick=async()=>{try{await ST.pickApps()}catch(e){} await stStatus(); settingsSheet()};
   const stO=$("#stOff"); if(stO) stO.onclick=async()=>{try{await ST.stop()}catch(e){} S.autoTime=false; save(); await stStatus(); settingsSheet()};
@@ -2498,7 +2512,7 @@ function showPending(){
     return sheet(`<p class="label" style="color:var(--lime)">Neu freigeschaltet</p><h2>${fs.length>1?["","","Zwei","Drei","Vier"][fs.length]+" neue Sachen":esc(fs[0].name)}</h2>
       ${fs.map(f=>`<div class="row" style="align-items:flex-start">${featIcon(f,44)}<div class="grow"><p><b>${esc(f.name)}</b></p><p class="small muted">${esc(f.text)}</p></div></div>`).join("")}
       <button class="btn" id="unlGo">Ansehen</button><button class="btn ghost" data-ok>Später</button>`,
-      ()=>{$("#unlGo").onclick=()=>{closeModal();tab=go;render();window.scrollTo(0,0);showPending()}});
+      ()=>{$("#unlGo").onclick=()=>{closeModal();tab=go;if(go==="projekt")bauTab=fs[0].id==="reise"?"reise":"laden";render();window.scrollTo(0,0);showPending()}});
   }
   if(ev.type==="reply"){
     const t=(S.tickets||[]).find(x=>x.id===ev.id); if(!t||!t.reply) return showPending();
@@ -3681,7 +3695,10 @@ function settingsSheet(){
     <button class="btn" id="setDone">Fertig</button>`);
   bind();
   const done=()=>{closeModal();render();showPending()};
-  $("#setClose").onclick=done; $("#setDone").onclick=done; $("#setBack").onclick=()=>{render();accountSheet()};
+  $("#setClose").onclick=done; $("#setDone").onclick=done;
+  let vt=0; const vl=$("#verLine"); if(vl) vl.onclick=()=>{if(++vt<7)return; vt=0; const on=localStorage.getItem("offland-dev")!=="1";
+    try{on?localStorage.setItem("offland-dev","1"):localStorage.removeItem("offland-dev")}catch(e){}
+    if(!on&&S.testmode){S.testmode=false;save()} toast(on?"Entwicklermodus an: Testmodus im Tab Heute":"Entwicklermodus aus"); settingsSheet()}; $("#setBack").onclick=()=>{render();accountSheet()};
 }
 function editSheet(){
   modal(`<p class="label">Konto</p><h2>Name und Avatar</h2>${accFields(ACC)}<p class="err" id="accErr" role="alert"></p>
