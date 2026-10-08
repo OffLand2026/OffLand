@@ -1585,7 +1585,10 @@ function stage(r){
 function figure(r,x,y){
   if(r.kind==="mensch"){
     const L=looks(r), st=stage(r), kid=st==="baby"?0.6:st==="kind"?0.74:1;
-    const hair=hairSvg(L.style,L.style===5?L.cap:L.hair), acc=accSvg(L.acc,L.accC);
+    const hair0=hairSvg(L.style,L.style===5?L.cap:L.hair), acc=accSvg(L.acc,L.accC);
+    // Mit Mütze oder Kappe: keine Haare über der Krempe (Locken, Dutt, Iro lappen sonst heraus)
+    const hat=L.acc.includes(4)||L.acc.includes(5), hcl=hat?`<clipPath id="hatclip"><rect x="-20" y="-17.6" width="40" height="40"/></clipPath>`:"";
+    const hair=hat?{back:hcl+(hair0.back?`<g clip-path="url(#hatclip)">${hair0.back}</g>`:""),front:hair0.front?`<g clip-path="url(#hatclip)">${hair0.front}</g>`:""}:hair0;
     if(r.sick) return `<g transform="translate(${x} ${y}) scale(${kid})"><title>${esc(r.name)} (krank: ${esc(r.sick.kind)})</title><rect x="-9" y="-6" width="18" height="6" rx="2" fill="#8A5A3B"/><rect x="-8" y="-9" width="16" height="5" rx="2" fill="#9CC8EE"/><circle cx="-6" cy="-10" r="4" fill="${L.skin}"/><path d="M-9.6 -11a4 4 0 0 1 6.6-2.6" stroke="${L.hair}" stroke-width="2" fill="none"/><path d="M-7.4 -10.4h1.2M-5 -10.4h1.2" stroke="#14151F" stroke-width=".6"/><circle cx="-8" cy="-9" r="1" fill="#E5484D" opacity=".7"/><text x="2" y="-12" font-size="6" fill="#F3F1EA" font-family="Manrope, sans-serif">z</text></g>`;
     const sad=typeof S!=="undefined"&&S.glueck<40;
     if(st==="baby") return `<g transform="translate(${x} ${y}) scale(${kid})"><title>${esc(r.name)} (Baby)</title>
@@ -2596,6 +2599,8 @@ let scenePaused=false;
 
 /* ---------- Rendern ---------- */
 function render(){
+  // Im Tab Freunde steht die Familieninsel, dort die eigene Insel oben ausblenden
+  $("#scene").hidden=tab==="freunde";
   renderScene();
   $("#streakChip").textContent=S.happyStreak>0?S.happyStreak+(S.happyStreak===1?" glücklicher Tag":" glückliche Tage"):S.dayCount+(S.dayCount===1?" Tag":" Tage")+" gespielt";
   $("#streakChip").className="chip "+(S.happyStreak>0?"good":"gone");
@@ -3664,10 +3669,9 @@ function duelRace(me,them){
       <path class="wake" d="M-30 8q-10 2-22 0M-30 4q-8 2-16 0" stroke="#9CC8EE" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".7"/>
       <text x="0" y="24" text-anchor="middle" font-size="10" font-weight="800" fill="${sail}" font-family="Manrope, sans-serif">${esc(r.name)}</text></g></g></g>`;
   const back=Math.max(10,Math.min(xm,xt)-78);
-  const ticks=["Mo","Di","Mi","Do","Fr","Sa","So"].map((t,i)=>{const x=70+190*(i+1)/7;return `<path d="M${x} 196v6" stroke="#5F6380" stroke-width="1.5"/><text x="${x}" y="214" text-anchor="middle" font-size="10" fill="${i===wd?"#C8F169":"#9EA3B8"}" font-family="Manrope, sans-serif" font-weight="${i===wd?800:500}">${t}</text>`}).join("");
   return `<svg viewBox="0 0 340 220" class="duel-svg" role="img" aria-label="Wettsegeln: ${esc(me.name)} gegen ${esc(them.name)}">
     <defs><linearGradient id="dSea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A4A7A"/><stop offset="1" stop-color="#16294A"/></linearGradient></defs>
-    <rect width="340" height="220" rx="18" fill="#1B2340"/><rect y="40" width="340" height="164" fill="url(#dSea)"/>
+    <rect width="340" height="220" rx="18" fill="#1B2340"/><rect y="40" width="340" height="180" fill="url(#dSea)"/>
     <g stroke="#9CC8EE" fill="none" stroke-linecap="round" opacity=".35"><path class="wscroll" style="animation-duration:5s" d="${wavePath(70,2)}" stroke-width="1.4"/><path class="wscroll" style="animation-duration:3.8s" d="${wavePath(130,2.5)}" stroke-width="1.6"/><path class="wscroll" style="animation-duration:4.4s" d="${wavePath(186,2)}" stroke-width="1.4"/></g>
     <g transform="translate(272 0)"><path d="M0 196V36" stroke="#F3F1EA" stroke-width="2"/><g class="flagwave">${[0,1,2,3].map(r=>[0,1,2].map(c=>`<rect x="${1+c*7}" y="${36+r*6}" width="7" height="6" fill="${(r+c)%2?"#14151F":"#F3F1EA"}"/>`).join("")).join("")}</g></g>
     <g transform="translate(${back} 140) scale(1.4)"><g class="chase">${monsterSvg("strudel")}</g></g>
@@ -3675,7 +3679,7 @@ function duelRace(me,them){
     ${boat(me,xm,170,"#C8F169",.3,known&&lead>0)}
     <text x="12" y="26" font-size="12" fill="#F3F1EA" font-family="Manrope, sans-serif" font-weight="800">${esc(them.name)}: ${them.avg!=null?hm(them.avg)+" / Tag":"noch nichts eingetragen"}</text>
     <text x="328" y="26" text-anchor="end" font-size="12" fill="#C8F169" font-family="Manrope, sans-serif" font-weight="800">Du: ${me.avg!=null?hm(me.avg)+" / Tag":"noch nichts"}</text>
-    ${ticks}</svg>`;
+</svg>`;
 }
 function duelTeaser(text,btn){
   return `<div class="card duel-card"><p class="label" style="color:var(--amber)">⚔️ Duell der Woche</p>
@@ -3996,6 +4000,20 @@ function famScene(members,total,party){
   if(party) s+=hearts(180,90)+confetti();
   return s+"</svg>";
 }
+/* „Deine Familie“: näher an die Figuren heran, mit Steckbrief pro Person */
+function famZoomSheet(members){
+  const ms=members.slice(0,12), n=Math.max(1,ms.length), step=Math.min(34,200/n);
+  const x0=180-(n-1)*step/2-24, w=(n-1)*step+48, h=Math.max(52,w*0.45), vb=`${x0} ${186-h} ${w} ${h}`;
+  const big=famScene(ms,0,false).replace('viewBox="0 0 360 200"',`viewBox="${vb}"`);
+  sheet(`<p class="label" style="color:var(--lime)">Familieninsel</p><h2>Deine Familie</h2>
+    <div class="anim fam-big" style="border-radius:18px;overflow:hidden">${big}</div>
+    <div class="fam-people">${ms.map(m=>{const d=(m.days||{})[today()], me=m.id===S.family.mid;
+      return `<div class="fam-person${me?" me":""}"><svg width="64" height="70" viewBox="-13 -25 26 28" aria-hidden="true">${figure({kind:"mensch",name:m.name,id:m.id||m.name,look:m.look||null},0,0)}</svg>
+        <div class="grow"><p><b>${esc(m.name||"?")}</b>${me?' <span class="small muted">(du)</span>':""}</p>
+        <p class="small ${d&&d.g?"":"muted"}" style="${d&&d.g?"color:var(--lime);font-weight:700":""}">${d?(d.g?"heute im Budget":"heute drüber"):"heute noch offen"}${d&&d.m!=null?" · "+hm(d.m):""}</p>
+        <p class="small muted">${m.good||0} gute ${m.good===1?"Tag":"Tage"} · ${m.saved!=null?hm(m.saved)+" gespart":"–"}</p></div></div>`}).join("")}</div>
+    <button class="btn" data-ok>Schließen</button>`);
+}
 function famCard(){
   if(!netConfigured()) return "";
   if(!S.family) return `<div class="card"><p class="label">Familieninsel</p>
@@ -4017,7 +4035,7 @@ async function fillFamily(){
   const st=famStats(members), next=FAM_PROJECTS.find(p=>st.total<p.need);
   members.sort((a,b)=>(b.saved||0)-(a.saved||0)||(b.good||0)-(a.good||0));
   $("#famBox").innerHTML=`<p class="label" style="color:var(--lime)">Familieninsel</p><h2>${esc(S.family.name)}</h2>
-    <div class="anim" style="border-radius:18px;overflow:hidden">${famScene(members,st.total,st.todayIn>0&&st.todayGood===members.length)}</div>
+    <button type="button" class="anim fam-zoom" id="famZoom" aria-label="Deine Familie näher ansehen" style="border-radius:18px;overflow:hidden">${famScene(members,st.total,st.todayIn>0&&st.todayGood===members.length)}<span class="fam-zoom-hint">🔍 Deine Familie</span></button>
     <p><b>Heute:</b> ${st.todayIn?`${st.todayGood} von ${members.length} im Budget`:"noch niemand eingetragen"}</p>
     <div style="background:var(--ground);border-radius:16px;padding:12px 14px"><p class="small muted">Gemeinsame OffLand-Zeit</p><p class="num" style="font-size:26px;font-weight:800;color:var(--lime)">${hm(st.saved)}</p></div>
     <div><div class="row between" style="flex-wrap:nowrap"><b class="small">Familienprojekte</b><span class="small num" style="white-space:nowrap">${st.total} gute Tage zusammen</span></div>
@@ -4030,6 +4048,7 @@ async function fillFamily(){
     <div class="row"><button class="btn secondary grow" id="famLook">Meine Figur anpassen</button><button class="btn secondary grow" id="famInvite">Familie einladen</button></div>
     <button class="btn ghost" id="famQuit">Familieninsel verlassen</button>`;
   const fl=$("#famLook"); if(fl) fl.onclick=famLookSheet;
+  const fz=$("#famZoom"); if(fz) fz.onclick=()=>famZoomSheet(members);
   const fq=$("#famQuit"); if(fq) fq.onclick=famLeaveSheet;
   const fi=$("#famInvite"); if(fi) fi.onclick=()=>shareText("Komm auf unsere Familieninsel „"+S.family.name+"“ in OffLand! Code: "+S.family.code,APP_URL+"?familie="+S.family.code);
 }
