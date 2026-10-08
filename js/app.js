@@ -8,6 +8,9 @@ const ANIMAL_NAMES=["Lotte","Bruno","Krümel","Gerda","Paula","Socke","Wolke","K
 const LAND=["Ziege","Huhn","Schaf","Esel","Katze","Hund","Meerschweinchen","Hase","Robbe"];
 const SEA=["Delfin","Wal"];
 const FAR_ANIMALS=["Papagei","Elch","Kamel","Eisbär"];
+/* Geschlecht der Tierarten für „ein kleiner Hund“, „eine kleine Katze“, „ein kleines Schaf“ */
+const GENUS={Ziege:"f",Katze:"f",Robbe:"f",Huhn:"n",Schaf:"n",Meerschweinchen:"n",Kamel:"n",Esel:"m",Hund:"m",Hase:"m",Delfin:"m",Wal:"m",Papagei:"m",Elch:"m",Eisbär:"m"};
+function artikel(art,gross,klein){const g=GENUS[art]||"n";let a=g==="f"?"eine":"ein";if(klein)a+=g==="f"?" kleine":g==="m"?" kleiner":" kleines";return gross?a[0].toUpperCase()+a.slice(1):a}
 const PLURAL={Papagei:"Papageien",Elch:"Elche",Kamel:"Kamele",Eisbär:"Eisbären",Ziege:"Ziegen",Huhn:"Hühner",Schaf:"Schafe",Esel:"Esel",Katze:"Katzen",Hund:"Hunde",Meerschweinchen:"Meerschweinchen",Hase:"Hasen",Robbe:"Robben",Delfin:"Delfine",Wal:"Wale"};
 const SOUND={Papagei:"Krah! Hallo!",Elch:"Mööööh!",Kamel:"Brrrmpf!",Eisbär:"Grrrumm!",Ziege:"Mäh!",Huhn:"Gack-gack!",Schaf:"Bäh!",Esel:"I-ah!",Katze:"Miau!",Hund:"Wuff!",Meerschweinchen:"Quiek!",Hase:"Schnupper-schnupper!",Robbe:"Ö-ö-ö!",Delfin:"Kliek-kliek!",Wal:"Wuuuuh!"};
 const isSea=r=>SEA.includes(r.art);
@@ -2759,12 +2762,12 @@ function nameSheet(ev){
   let head="", text="";
   if(ev.type==="arrival"){
     const partner=ev.partner?S.residents.find(x=>x.id===ev.partner):null;
-    head=r.kind==="mensch"?"Jemand Neues zieht ein":isSea(r)?"Ein "+r.art+" ist dem Leuchtturm gefolgt":"Neu auf der Insel: "+(["Katze","Ziege","Robbe"].includes(r.art)?"eine ":"ein ")+r.art;
+    head=r.kind==="mensch"?"Jemand Neues zieht ein":isSea(r)?artikel(r.art,true)+" "+r.art+" ist dem Leuchtturm gefolgt":"Neu auf der Insel: "+artikel(r.art)+" "+r.art;
     text=(r.owner?"Gehört ab jetzt zu "+((S.residents.find(x=>x.id===r.owner)||{}).name||"")+". ":"")+(r.kind==="mensch"?"Arbeitet als "+jobName(r.job)+", "+traitName(r.trait)+". ":"")+"Deine Insel war mehrere Tage glücklich. Das hat sich herumgesprochen."+(partner?" Und: "+partner.name+" ist nicht mehr allein.":"");
   } else if(ev.type==="birth"){
     const ps=ev.parents.map(id=>S.residents.find(x=>x.id===id)).filter(Boolean);
     head="Nachwuchs bei "+ps.map(p=>p.name).join(" & ")+"!";
-    text=r.kind==="mensch"?"Die Familie wächst, weil sich alle auf der Insel wohlfühlen.":"Ein kleines "+r.art+" ist da.";
+    text=r.kind==="mensch"?"Die Familie wächst, weil sich alle auf der Insel wohlfühlen.":artikel(r.art,true,true)+" "+r.art+" ist da.";
   } else { head=r.name+" bearbeiten"; text="Ändere Namen und Aussehen."; }
   const list=r.kind==="mensch"?HUMAN_NAMES:ANIMAL_NAMES;
   const draft=r.kind==="mensch"?lookIdx(r):{fur:animalVar(r)};
@@ -3799,7 +3802,7 @@ function showStart(){
   const lock=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A4A6BD" stroke-width="2" stroke-linecap="round" aria-label="mit PIN"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>`;
   $("#start").innerHTML=`<div class="start-wrap">
     <div class="start-hero">${hero}</div>
-    <div style="display:flex;flex-direction:column;gap:6px"><h1 class="start-title">Off<span>Land</span></h1><p class="tagline">Grow your world beyond the screen.</p><p class="muted">Je weniger Bildschirmzeit, desto glücklicher werden deine Bewohner – und gemeinsam bringt ihr die Insel zum Blühen.</p></div>
+    <div style="display:flex;flex-direction:column;gap:6px"><h1 class="start-title">Off<span>Land</span></h1><p class="tagline">Grow your world beyond the screen.</p><p class="muted">Je weniger Bildschirmzeit, desto glücklicher werden deine Bewohner und gemeinsam bringt ihr die Insel zum Blühen.</p></div>
     ${list.length?`<div class="card"><p class="label">Wer spielt?</p>${list.map(p=>{const st=peek(p.id);const info=st&&st.setup?`${st.dayCount} ${st.dayCount===1?"Tag":"Tage"} · Glück ${st.glueck} %`:"Insel noch nicht gestartet";
         return `<button class="profile" data-login="${p.id}">${avatarSvg(p.avatar,48)}<span class="grow"><b>${esc(p.name)}</b><span class="small muted">${info}</span></span>${p.pin?lock:""}${chev}</button>`}).join("")}</div>
       <button class="btn secondary" id="newAcc">Neues Konto anlegen</button>`
