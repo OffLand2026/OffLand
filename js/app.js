@@ -1265,6 +1265,19 @@ function figure(r,x,y){
   const s=(r.parents?0.7:1)*(r.art==="Wal"?1.6:["Elch","Kamel","Eisbär"].includes(r.art)?1.1:1);
   return `<g transform="translate(${x} ${y}) scale(${s})"><title>${esc(r.name)} (${esc(r.art)})</title>${animalSvg(r.art,animalVar(r))}</g>`;
 }
+/* Bildausschnitt, in dem ein Tier ganz zu sehen ist (Wal und Delfin sind breiter als die anderen) */
+const ART_BOX={Wal:[-16.4,-20.4,21.2,5.4],Delfin:[-17.2,-19.4,22.8,2.6]};
+function artVB(a,ratio){
+  if(!ART_BOX[a]) return ["Elch","Kamel"].includes(a)?"-20 -33 40 35":"-16 -22 32 24";
+  const [x0,y0,x1,y1]=ART_BOX[a], cx=(x0+x1)/2, cy=(y0+y1)/2, w=Math.max(x1-x0,(y1-y0)*ratio)+2, h=w/ratio;
+  return [cx-w/2,cy-h/2,w,h].map(v=>+v.toFixed(1)).join(" ");
+}
+function figVB(r){
+  if(r.kind==="mensch"||!ART_BOX[r.art]) return "-13 -24 26 27";
+  const s=(r.parents?0.7:1)*(r.art==="Wal"?1.6:1), [x0,y0,x1,y1]=ART_BOX[r.art];
+  const cx=(x0+x1)/2*s, cy=(y0+y1)/2*s, d=(Math.max(x1-x0,y1-y0)+3)*s;   // Kreis: etwas Rand rundum
+  return [cx-d/2,cy-d/2,d,d].map(v=>+v.toFixed(1)).join(" ");
+}
 /* Fellfarben: Ersetzungen der Grundfarben je Tierart */
 const FUR={
   Huhn:[{},{"#F3F1EA":"#C98A52","#D9D4C6":"#A86A38"},{"#F3F1EA":"#5A5D78","#D9D4C6":"#3A3D58"}],
@@ -1277,7 +1290,7 @@ const FUR={
   Hase:[{},{"#A88A70":"#9EA3B8"},{"#A88A70":"#F3F1EA"}],
   Robbe:[{},{"#8F96A8":"#5F6680","#6E7488":"#454B63"},{"#8F96A8":"#C9CBDD","#6E7488":"#9EA3B8"}],
   Delfin:[{},{"#7C9CC4":"#9EA3B8","#5F82B0":"#7C7F99"},{"#7C9CC4":"#5F7FB8","#5F82B0":"#3E5C8A"}],
-  Wal:[{},{"#3E5C8A":"#2F3B57"},{"#3E5C8A":"#5F6680"}],
+  Wal:[{},{"#2C4770":"#2A2F45"},{"#2C4770":"#5F6680"}],
   Papagei:[{},{"#E5484D":"#5B8CD6","#FFD27A":"#C8F169"},{"#E5484D":"#4FB06A","#FFD27A":"#FFB86B"}],
   Elch:[{},{"#7A5038":"#5A3A2A","#A0703F":"#7A5038"},{"#7A5038":"#9A6A48","#A0703F":"#C2925E"}],
   Kamel:[{},{"#D9A86A":"#C98A52"},{"#D9A86A":"#E9D2A6"}],
@@ -1308,8 +1321,8 @@ function animalShape(art){
   case "Meerschweinchen": return `<ellipse cx="0" cy="-4.6" rx="8" ry="4.8" fill="#C98A52"/><path d="M-1 -9.2q4 -1 6 2q1 3 -1 5.6h-4q-2 -3 -1 -7.6z" fill="#F3F1EA"/><circle cx="-6.4" cy="-6.6" r="3.4" fill="#C98A52"/><circle cx="-4.6" cy="-9.4" r="1.4" fill="#E8B48F"/>${E(-7.4,-7.2)}<circle cx="-9.4" cy="-5.6" r=".7" fill="#E5484D"/>`;
   case "Hase": return `<circle cx="7.2" cy="-6" r="2.2" fill="#F3F1EA"/><ellipse cx="2" cy="-5.4" rx="6.4" ry="5" fill="#A88A70"/><circle cx="-4.6" cy="-9" r="3.6" fill="#A88A70"/><path d="M-5.6 -11.6q-2.6 -6 -.6 -8.4q2 2 1.6 8M-3.4 -11.8q0 -6.4 2.6 -7.6q1.2 2.6 -1 7.8" fill="#A88A70"/><path d="M-5 -13q-1 -3 -.4 -5M-2.6 -13q.2 -3 1.4 -4.4" stroke="#E8B48F" stroke-width=".9"/>${E(-5.8,-9.4)}<circle cx="-8" cy="-8.2" r=".7" fill="#E5484D"/>`;
   case "Robbe": return `<path d="M-10 -1c0-8 6-12 13-12 4 0 6 2 6 5 0 2-2 3-4 3 3 2 6 3 9 6z" fill="#8F96A8"/><path d="M2 -2l-2 2.6M8 -1.4l4 2" stroke="#6E7488" stroke-width="2" stroke-linecap="round"/>${E(3.6,-9.6)}<path d="M8 -8.2h3M8 -7.2l3 .6" stroke="#F3F1EA" stroke-width=".5"/><circle cx="7.6" cy="-8.4" r=".8" fill="#14151F"/>`;
-  case "Delfin": return `<path d="M3 -12.6q1.6-5.6 6-6.8q-1.4 3.4 0 7z" fill="#7C9CC4"/><path d="M-15.6 -6.6q1.6-2 4.6-2.2q4-5.2 12-4.8q8 .4 11.4 5.6l5.2-3.6-1.4 5 1.4 4.8-5.2-3q-4.4 3.4-11.6 3.6q-8.4.4-12.6-2.8q-3.2-.4-3.8-2.6z" fill="#7C9CC4"/><path d="M-12 -4.6q6 3.2 14.4 2.6q4.4-.4 7.6-2.4q-3.8 3.8-11.4 4q-7 .2-10.6-4.2z" fill="#C8D6EA"/><path d="M-1 -4q.6 4.4-3 6.4q4.6-.6 6-5.6z" fill="#5F82B0"/><path d="M-15.4 -5.8q3 1.2 6.2 0" stroke="#3E5C8A" stroke-width=".7" fill="none" stroke-linecap="round"/><circle cx="-8.6" cy="-8.6" r="1.25" fill="#14151F"/><circle cx="-8.2" cy="-9" r=".4" fill="#F3F1EA"/>`;
-  case "Wal": return `<path d="M-14 -2q2 -10 14 -10q10 0 14 6l5 -4 -1 6 1 6 -5 -3q-4 3 -14 2q-10 0 -14 -3z" fill="#3E5C8A"/><path d="M-12 -1q10 3 22 0" stroke="#9CB4D4" stroke-width="1.4" fill="none"/>${E(-8,-6)}<path d="M-6 -12q-1 -4 -3 -5M-6 -12q1 -4 3 -5" stroke="#C8E2F5" stroke-width="1.4" fill="none" stroke-linecap="round"/>`;
+  case "Delfin": return `<path d="M15.4 -5.8q3.4-4 7.4-3.6q-2.4 1.8-2.8 3.8q.8 1.8 3.2 3.4q-4 .4-7.8-3.6z" fill="#5F82B0"/><path d="M-0.6 -12.6q1.8-5.2 6.8-6.8q-1.4 3.4.6 7.6z" fill="#5F82B0"/><path d="M-17.2 -6.2q1.4-1.4 4.4-1.6q1.6-4.6 8-5.6q9-1.4 15.6 3.4q3.6 2.6 6.2 4.2l-.2 1.4q-3.8-.4-7.2 1q-6.6 3.6-14.8 3q-5.8-.4-8.4-3.4q-2.6-.6-3.6-2.6z" fill="#7C9CC4"/><path d="M-13.8 -3.8q6.2 3.4 14.6 2.4q5-.6 8.6-2.6q-4.2 3.8-11.6 4.2q-7.2.2-11.6-4z" fill="#C8D6EA"/><path d="M-4.6 -3.6q.4 4-3.6 6q4.8-.2 6.4-5.2z" fill="#5F82B0"/><path d="M-16.8 -5.4q2.8 1.4 5.8.2" stroke="#3E5C8A" stroke-width=".7" fill="none" stroke-linecap="round"/><path d="M-4 -12.2q1.2-.6 2.2-.2" stroke="#C8D6EA" stroke-width=".6" fill="none" stroke-linecap="round" opacity=".7"/><circle cx="-9.4" cy="-8.4" r="1.25" fill="#14151F"/><circle cx="-9" cy="-8.8" r=".42" fill="#F3F1EA"/>`;
+  case "Wal": return `<path d="M12.6 -5.6q3.6-4.8 8.6-4.6q-2.8 2-3.2 4.4q.8 2.4 3.6 4.2q-5.2.4-9-4z" fill="#2C4770"/><path d="M-16.4 -4.6q-.4-7.8 9.6-9.6q11-1.8 18.2 4.2q2.6 2.2 4.2 4.6l-.4 1.2q-4.6 0-7.6 1.4q-6.2 2.8-15.4 2.6q-8.2-.2-8.6-4.4z" fill="#2C4770"/><path d="M-15.6 -3.2q8.6 4.6 20 2q-5.4 3.2-12.4 3q-5.8-.2-7.6-5z" fill="#9CB4D4"/><path d="M-14.4 -8.6q3.6-5 11.4-5.4q8.6-.4 14.6 4.8" stroke="#7FA2D0" stroke-width="1.1" fill="none" stroke-linecap="round" opacity=".85"/><path d="M-11 -.6l.6 1.6M-7.6 .2l.4 1.6M-4.2.4l.2 1.4M-.8.2v1.2" stroke="#2C4770" stroke-width=".5" stroke-linecap="round" opacity=".7"/><path d="M-5.2 -1.4q1.8 4.6-3 7q5.6-.4 6.6-6.4z" fill="#1C3052"/><path d="M-15.8 -4.4q3.6 1.6 8 .8" stroke="#18284A" stroke-width=".7" fill="none" stroke-linecap="round"/>${E(-10.4,-6.6)}<circle cx="-10.05" cy="-6.95" r=".35" fill="#F3F1EA"/><path d="M-6 -14q-.6-3.6-3.4-5.2M-6 -14q.6-3.6 3.4-5.2M-6 -14v-5.2" stroke="#C8E2F5" stroke-width="1.3" fill="none" stroke-linecap="round"/><circle cx="-9.6" cy="-19.8" r=".9" fill="#C8E2F5"/><circle cx="-2.4" cy="-19.8" r=".9" fill="#C8E2F5"/><circle cx="-6" cy="-20.4" r=".9" fill="#C8E2F5"/>`;
   case "Papagei": return `<path d="M-1 -10v4" stroke="#8A5A3B" stroke-width="1.4"/><path d="M-6 -4h12" stroke="#8A5A3B" stroke-width="2" stroke-linecap="round"/><path d="M2 -10l9 10-3 1-8-8z" fill="#5B8CD6"/><ellipse cx="0" cy="-11" rx="4.4" ry="6" fill="#E5484D"/><path d="M1 -13q5 2 5 8l-4-2z" fill="#FFD27A"/><circle cx="-2" cy="-17.4" r="3.6" fill="#E5484D"/><circle cx="-3" cy="-18" r="1.4" fill="#F3F1EA"/>${E(-3,-18)}<path d="M-5.6 -18q-2.6 .4-2.4 3.4q1.6-.6 2.6-1.6z" fill="#3A3D58"/>`;
   case "Elch": return `<path d="M-4 -9v9M-1 -9v9M6 -9v9M9 -9v9" stroke="#5A3A2A" stroke-width="2.2" stroke-linecap="round"/><ellipse cx="3" cy="-12" rx="9" ry="5.4" fill="#7A5038"/><path d="M-4 -14l-5-5" stroke="#7A5038" stroke-width="4.6" stroke-linecap="round"/><path d="M-11 -20q-5 0-6 4q1 2 4 1l4-1z" fill="#7A5038"/><path d="M-9 -22q-3-5-1-9M-9 -22q-6-1-9-5M-7 -22q1-5 5-7M-7 -22q4-2 7-1" stroke="#A0703F" stroke-width="1.8" fill="none" stroke-linecap="round"/>${E(-11,-19.6)}<circle cx="-16" cy="-16.4" r=".7" fill="#3A2A20"/>`;
   case "Kamel": return `<path d="M-4 -10v10M-1 -10v10M6 -10v10M9 -10v10" stroke="#B8844E" stroke-width="2" stroke-linecap="round"/><ellipse cx="3" cy="-12" rx="9" ry="4.6" fill="#D9A86A"/><path d="M-2 -15q3-7 6 0M4 -15q3-7 6 0" fill="#D9A86A"/><path d="M-5 -13q-4-2-5-9" stroke="#D9A86A" stroke-width="3.4" fill="none" stroke-linecap="round"/><ellipse cx="-12" cy="-22.4" rx="3.6" ry="2.4" fill="#D9A86A"/><path d="M-10 -24.6l1-1.6" stroke="#B8844E" stroke-width="1.2"/>${E(-12,-23)}<path d="M-15.2 -21.4h1.6" stroke="#8A5A3B" stroke-width=".6"/><path d="M12 -13q2 3 0 6" stroke="#B8844E" stroke-width="1" fill="none"/>`;
@@ -1659,7 +1672,7 @@ function motifSvg(m,small){
 }
 function postcardHtml(card){
   const m=MOTIFS.find(x=>x.id===card.motif)||MOTIFS[0];
-  const sig=card.animal?`<svg width="44" height="30" viewBox="-22 -24 44 30" aria-hidden="true">${animalSvg(card.animal)}</svg>`:"";
+  const sig=card.animal?`<svg width="44" height="30" viewBox="${SEA.includes(card.animal)?artVB(card.animal,44/30):"-22 -24 44 30"}" aria-hidden="true">${animalSvg(card.animal)}</svg>`:"";
   return `<div class="postcard">${motifSvg(m)}
     <div style="padding:16px 18px;display:flex;gap:12px;align-items:flex-start">
       <div style="flex:1;display:flex;flex-direction:column;gap:6px"><p class="hand">${esc(card.text)}</p>${sig}${card.day?`<p style="font-size:12px;color:#5F6E82">${nice(card.day)}</p>`:""}</div>
@@ -1728,7 +1741,7 @@ function viewHeute(){
   </div>
   ${S.vacation?`<div class="card" style="border:1.5px solid var(--lilac)"><p class="label" style="color:var(--lilac)">Urlaubsmodus</p><p>${guard?`<b>${esc(guard.name)}</b> hütet die Insel, bis du zurück bist.`:"Die Insel schläft, bis du zurück bist."} Das Glück sinkt in der Zeit nicht.</p><button class="btn secondary" id="vacOff">Ich bin zurück</button></div>`:""}
   ${warn?`<div class="card warn"><p class="label" style="color:var(--amber)">Wegzug droht</p><p><b>${esc(groupName(warn))}</b> ${vb(warn,"packt","packen")} die Koffer. Bring das Inselglück bis ${nice(S.warn.deadline)} über 40 %, dann ${vb(warn,"bleibt "+esc(warn[0].name),"bleiben alle")}.</p></div>`:""}
-  ${wh.length?`<div class="card"><p class="label">Inselgeflüster</p>${wh.map(w=>`<div class="row" style="align-items:flex-start"><div class="avatar" style="background:${w.r.kind==="mensch"?"#26233D":"#22301F"}"><svg width="40" height="40" viewBox="-13 -24 26 27" aria-hidden="true">${figure(w.r,0,0)}</svg></div><div class="grow" style="background:var(--ground);border-radius:4px 16px 16px 16px;padding:10px 12px"><p class="small" style="font-weight:700;color:var(--lilac)">${esc(w.r.name)}${w.r.job?" · "+esc(jobName(w.r.job)):""}</p><p>${esc(w.t)}</p></div></div>`).join("")}</div>`:""}
+  ${wh.length?`<div class="card"><p class="label">Inselgeflüster</p>${wh.map(w=>`<div class="row" style="align-items:flex-start"><div class="avatar" style="background:${w.r.kind==="mensch"?"#26233D":SEA.includes(w.r.art)?"#1F2A3A":"#22301F"}"><svg width="40" height="40" viewBox="${figVB(w.r)}" aria-hidden="true">${figure(w.r,0,0)}</svg></div><div class="grow" style="background:var(--ground);border-radius:4px 16px 16px 16px;padding:10px 12px"><p class="small" style="font-weight:700;color:var(--lilac)">${esc(w.r.name)}${w.r.job?" · "+esc(jobName(w.r.job)):""}</p><p>${esc(w.t)}</p></div></div>`).join("")}</div>`:""}
   ${S.wish&&wisher?wishCard(S.wish,wisher):""}
   ${mons.length?`<div class="card" style="border:1.5px solid #9B6BD6"><p class="label" style="color:#C8A8FF">App-Monster vor der Insel</p>${mons.map(a=>`<div class="row"><svg width="48" height="40" viewBox="-24 -34 48 40" aria-hidden="true">${monsterSvg(a.m)}</svg><p class="grow">${esc(monName(a,false))}: ${esc(a.name)} lag gestern über ${hm(a.limit)}. Es verscheucht die Fische und kostet Glück.</p></div>`).join("")}<p class="small muted">Bleib heute bei diesen Apps unter dem Limit, dann tauchen sie wieder ab.</p></div>`:""}
   ${feature("boot")?`<div class="card">
@@ -1820,8 +1833,8 @@ function resRow(r){
     r.kind==="mensch"&&partner?(()=>{const st=S.residents.filter(k=>k.status!=="verstorben"&&k.parents&&k.parents.includes(partner.id)&&!k.parents.includes(r.id));return st.length?"Stiefelternteil von "+nameList(st.map(k=>k.name)):""})():"",
     r.kind==="mensch"?(()=>{const pets=here().filter(p=>p.kind==="tier"&&p.owner===r.id);return pets.length?"Tiere: "+pets.map(p=>p.name).join(", "):""})():"",
     friend?"befreundet mit "+friend[0].name:"", foe?"zerstritten mit "+foe[0].name:"", parents.length?"Kind von "+parents.map(p=>p.name).join(" & "):"", r.status==="weg"?"Rückkehr "+r.ret+"/5 gute Tage":""].filter(Boolean).join(" · ");
-  const bg=r.kind==="mensch"?"#26233D":"#22301F";
-  return `<div class="res"><div class="avatar" style="background:${bg}"><svg width="40" height="40" viewBox="-13 -24 26 27" aria-hidden="true">${figure(r,0,0)}</svg></div>
+  const bg=r.kind==="mensch"?"#26233D":SEA.includes(r.art)?"#1F2A3A":"#22301F";
+  return `<div class="res"><div class="avatar" style="background:${bg}"><svg width="40" height="40" viewBox="${figVB(r)}" aria-hidden="true">${figure(r,0,0)}</svg></div>
     <div class="grow"><p><b>${esc(r.name)}</b></p><p class="small muted">${esc(sub||"Bewohner:in")}</p></div>
     <span class="chip ${mCls}">${mText}</span>
     ${r.sick&&S.tea>0?`<button class="iconbtn" style="width:44px;height:44px;background:#22301F" data-tea="${r.id}" aria-label="${esc(r.name)} Kräutertee geben"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C8F169" stroke-width="2" stroke-linecap="round"><path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM17 10h2a2 2 0 0 1 0 4h-2M8 5c0-1 1-1 1-2M12 5c0-1 1-1 1-2"/></svg></button>`:""}
@@ -1849,7 +1862,7 @@ function viewStammbaum(){
   const seen=new Set(); const fams=[];
   roots.forEach(r=>{if(seen.has(r.id))return;const p=r.pair?S.residents.find(x=>x.id===r.pair):null;seen.add(r.id);if(p)seen.add(p.id);
     const kids=allH.filter(k=>k.parents&&k.parents.some(x=>x===r.id||(p&&x===p.id)));fams.push({a:r,b:p,kids})});
-  const tag=r=>`<span style="display:inline-flex;align-items:center;gap:4px;background:var(--ground);border-radius:999px;padding:3px 10px 3px 4px;font-size:13px;font-weight:700;${r.status!=="da"?"opacity:.5":""}" title="${r.status==="verstorben"?"in Erinnerung":""}"><svg width="22" height="22" viewBox="-13 -24 26 27" aria-hidden="true">${figure(r,0,0)}</svg>${esc(r.name)}</span>`;
+  const tag=r=>`<span style="display:inline-flex;align-items:center;gap:4px;background:var(--ground);border-radius:999px;padding:3px 10px 3px 4px;font-size:13px;font-weight:700;${r.status!=="da"?"opacity:.5":""}" title="${r.status==="verstorben"?"in Erinnerung":""}"><svg width="22" height="22" viewBox="${figVB(r)}" aria-hidden="true">${figure(r,0,0)}</svg>${esc(r.name)}</span>`;
   return `<div class="card"><p class="label">Stammbaum</p>${fams.filter(f=>f.b||f.kids.length).map(f=>`<div style="display:flex;flex-direction:column;gap:6px;padding:6px 0;border-top:1px solid var(--card2)">
     <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">${tag(f.a)}${f.b?`<span class="muted">${f.a.married?"💍":"♥"}</span>${tag(f.b)}`:""}${(()=>{const ex=(f.a.ex||[]).map(id=>S.residents.find(x=>x.id===id)).filter(Boolean);return ex.length?`<span class="small muted">· getrennt von</span>${ex.map(tag).join("")}`:""})()}</div>
     ${f.kids.length?`<div style="display:flex;flex-wrap:wrap;gap:6px;padding-left:18px;border-left:2px solid var(--line);margin-left:12px">${f.kids.map(tag).join("")}</div>`:""}</div>`).join("")||`<p class="small muted">Noch keine Familien. Paare entstehen durch Zuzug oder wenn sich zwei verlieben.</p>`}</div>`;
@@ -1864,7 +1877,7 @@ function viewArten(){
   return `<div class="card"><div class="row between"><p class="label">Tierarten entdeckt</p><span class="small muted num">${all.filter(a=>seen.has(a)).length} / ${all.length}</span></div>
   <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">${all.map(a=>{const ok=seen.has(a);
     return `<div style="background:var(--ground);border-radius:14px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;${ok?"":"opacity:.4"}">
-      <svg width="48" height="34" viewBox="${a==="Wal"?"-24 -20 48 26":["Elch","Kamel"].includes(a)?"-20 -33 40 35":"-16 -22 32 24"}" aria-hidden="true">${ok?animalSvg(a):`<g opacity=".5" style="filter:brightness(0) invert(.45)">${animalSvg(a)}</g>`}</svg>
+      <svg width="48" height="34" viewBox="${artVB(a,48/34)}" aria-hidden="true">${ok?animalSvg(a):`<g opacity=".5" style="filter:brightness(0) invert(.45)">${animalSvg(a)}</g>`}</svg>
       <span style="font-size:11px;font-weight:700;text-align:center;line-height:1.2">${ok?a:"?"}</span></div>`}).join("")}</div>
   <p class="small muted">Delfine und Wale kommen erst, wenn der Leuchtturm steht. Papagei, Elch, Kamel und Eisbär leben nur in fernen Inselwelten.</p></div>`;
 }
@@ -2150,8 +2163,7 @@ function settingsHtml(){
       <button class="btn ghost" id="famLeaveBtn">Familieninsel verlassen</button>`
     :`<p class="small muted">Gründe eine Familieninsel oder tritt einer bei: im Tab Freunde.</p>`}
   </div>`:""}
-  <p class="small muted" id="verLine" style="text-align:center;padding:8px;user-select:none">OffLand · Version ${APP_VERSION}${devMode()?" · Entwicklermodus":""}</p>
-  </div>`;
+  <p class="small muted" id="verLine" style="text-align:center;padding:8px;user-select:none">OffLand · Version ${APP_VERSION}${devMode()?" · Entwicklermodus":""}</p>`;
 }
 
 /* ---------- Inselansicht: Gesamtbild oder einzelne Insel, per Wischen ---------- */
@@ -2656,7 +2668,7 @@ function nameSheet(ev){
 function lookPreview(r,draft){
   const tmp=Object.assign({},r,{sick:null});
   if(r.kind==="mensch") tmp.look=draft; else tmp.fur=draft.fur;
-  return `<svg width="72" height="78" viewBox="${r.kind==="mensch"?"-12 -25 24 26":"-16 -22 32 25"}" aria-hidden="true">${figure(tmp,0,0)}</svg>`;
+  return `<svg width="72" height="78" viewBox="${r.kind==="mensch"?"-12 -25 24 26":SEA.includes(tmp.art)?figVB(tmp):"-16 -22 32 25"}" aria-hidden="true">${figure(tmp,0,0)}</svg>`;
 }
 function lookEditor(r,d){
   const row=(label,key,list,sel)=>`<div class="sw-row" role="radiogroup" aria-label="${label}"><span class="small muted">${label}</span>${list.map((c,i)=>`<button type="button" class="sw${i===sel?" on":""}" data-look="${key}" data-v="${i}" style="background:${c}" aria-label="${label} ${i+1}" aria-pressed="${i===sel}"></button>`).join("")}</div>`;
@@ -2667,7 +2679,7 @@ function lookEditor(r,d){
       ${row("Haut","skin",SKIN,d.skin)}${styles}${row("Haare","hair",HAIR,d.hair)}${row("Shirt","shirt",SHIRT,d.shirt)}</div></div></div>`;
   }
   const n=(FUR[r.art]||[]).length; if(n<2) return "";
-  return `<div class="field"><span>Fellfarbe</span><div class="sw-row" role="radiogroup" aria-label="Fellfarbe">${Array.from({length:n},(_,i)=>`<button type="button" class="sw sw-ic sw-big${i===d.fur?" on":""}" data-look="fur" data-v="${i}" aria-label="Fellfarbe ${i+1}" aria-pressed="${i===d.fur}"><svg width="38" height="30" viewBox="${r.art==="Wal"?"-24 -20 48 26":"-16 -22 32 24"}" aria-hidden="true">${animalSvg(r.art,i)}</svg></button>`).join("")}</div></div>`;
+  return `<div class="field"><span>Fellfarbe</span><div class="sw-row" role="radiogroup" aria-label="Fellfarbe">${Array.from({length:n},(_,i)=>`<button type="button" class="sw sw-ic sw-big${i===d.fur?" on":""}" data-look="fur" data-v="${i}" aria-label="Fellfarbe ${i+1}" aria-pressed="${i===d.fur}"><svg width="38" height="30" viewBox="${artVB(r.art,38/30)}" aria-hidden="true">${animalSvg(r.art,i)}</svg></button>`).join("")}</div></div>`;
 }
 function bindLookEditor(r,draft){
   document.querySelectorAll("#modalRoot [data-look]").forEach(b=>b.onclick=()=>{
@@ -3567,7 +3579,7 @@ function profiles(){try{return JSON.parse(localStorage.getItem(PROF_KEY))||[]}ca
 function storeProfiles(list){try{localStorage.setItem(PROF_KEY,JSON.stringify(list))}catch(e){}}
 function updateProfile(id,patch){const list=profiles(),p=list.find(x=>x.id===id);if(!p)return null;Object.assign(p,patch);storeProfiles(list);if(ACC&&ACC.id===id)ACC=p;return p}
 function peek(id){try{return JSON.parse(localStorage.getItem(profKey(id)))}catch(e){return null}}
-function avatarSvg(art,size){return `<span class="avatar" style="background:${AV_BG[art]||"#26233D"};width:${size}px;height:${size}px;border-radius:${size/2}px"><svg width="${Math.round(size*.8)}" height="${Math.round(size*.8)}" viewBox="-16 -22 32 24" aria-hidden="true">${animalSvg(art)}</svg></span>`}
+function avatarSvg(art,size){return `<span class="avatar" style="background:${AV_BG[art]||"#26233D"};width:${size}px;height:${size}px;border-radius:${size/2}px"><svg width="${Math.round(size*.8)}" height="${Math.round(size*.8)}" viewBox="${SEA.includes(art)?artVB(art,32/24):"-16 -22 32 24"}" aria-hidden="true">${animalSvg(art)}</svg></span>`}
 async function hashPin(pin,salt){
   const t=salt+":"+pin;
   try{const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t));return Array.from(new Uint8Array(b),x=>x.toString(16).padStart(2,"0")).join("")}
