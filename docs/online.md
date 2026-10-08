@@ -110,3 +110,14 @@ Im Tab **Freunde** → „Familieninsel gründen“ oder mit einem Familien-Code
 - **Geteilt wird** Name, Avatar, die gesparte Zeit insgesamt und pro Tag nur „im Budget ja/nein“ (letzte 14 Tage). Minuten nur, wenn die Person „Auch meine Minuten zeigen“ anhakt.
 - In Firestore: `families/{id}` (Name, Code), `famcodes/{code}`, `families/{id}/uids/{uid}` (Mitgliedschaft pro Gerät) und `families/{id}/members/{id}`. Lesen dürfen nur Mitglieder.
 - Bis zu 12 Personen pro Familieninsel. Verlassen geht in den Einstellungen, beim Löschen des Kontos passiert es automatisch.
+
+## Warteliste
+
+Die Seite `warteliste/` sammelt E-Mail-Adressen für den Start. Sie ist online unter <https://offland2026.github.io/OffLand/warteliste/>.
+
+1. **Regeln aktualisieren:** Firebase-Konsole → Firestore Database → **Regeln** → den kompletten Inhalt von [`firestore.rules`](../firestore.rules) einfügen → **Veröffentlichen**. Ohne diesen Schritt schlägt jede Anmeldung fehl.
+2. **Kontakt eintragen:** In `js/online-config.js` bei `window.OFFLAND_CONTACT` deine E-Mail-Adresse eintragen, damit sich Leute abmelden können.
+3. **Anmeldungen ansehen:** Firestore Database → **Daten** → Sammlung `waitlist`. Jede Adresse steht dort genau einmal, mit Zeitpunkt (`at`) und Herkunft (`src`, z. B. `?src=tiktok` im Link).
+4. **Eigene Domain:** Wenn die Warteliste unter einer eigenen Domain laufen soll, diese unter **Authentication → Einstellungen → Autorisierte Domains** hinzufügen, sonst klappt die Anmeldung dort nicht.
+
+Vor dem öffentlichen Teilen braucht die Seite ein Impressum und eine vollständige Datenschutzerklärung.

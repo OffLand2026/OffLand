@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#14151F">
+<title>OffLand – Warteliste</title>
+<meta name="description" content="Weniger scrollen, mehr Leben. OffLand macht aus weniger Bildschirmzeit eine Insel, die wächst. Jetzt auf die Warteliste.">
+<meta property="og:title" content="OffLand – Weniger scrollen, mehr Leben.">
+<meta property="og:description" content="Deine Insel wächst nur, wenn du offline bist. Trag dich auf die Warteliste ein.">
+<meta property="og:image" content="img/insel.webp">
+<link rel="icon" href="../icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ground:#14151F; --card:#1E2030; --card2:#2F3248; --line:#3A3D58;
+  --ink:#F3F1EA; --muted:#A4A6BD; --lime:#C8F169; --lilac:#B6A4FF; --amber:#FFB86B; --coral:#FF9C7A;
+  --sea:#24375A; --sky:#1B2340;
+  --display:'Bricolage Grotesque','Avenir Next',system-ui,sans-serif;
+  --body:'Manrope','Segoe UI',system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;overflow-x:hidden}
+a{color:var(--lilac)}
+.sky{position:absolute;inset:0 0 auto 0;height:900px;background:linear-gradient(180deg,var(--sky),var(--ground));overflow:hidden;z-index:-1}
+.sky i{position:absolute;width:3px;height:3px;border-radius:50%;background:var(--ink);opacity:.6;animation:tw 4s ease-in-out infinite}
+@keyframes tw{50%{opacity:.15}}
+.glow{position:absolute;border-radius:50%;filter:blur(110px);opacity:.18}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+header{display:flex;align-items:center;gap:12px;padding:22px 0}
+header img{width:44px;height:44px;border-radius:12px}
+header b{font-family:var(--display);font-weight:800;font-size:24px;letter-spacing:-.4px}
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;padding:30px 0 60px}
+.eyebrow{font-weight:700;font-size:14px;letter-spacing:3px;text-transform:uppercase;color:var(--lime);margin:0 0 14px}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(42px,7vw,72px);line-height:1.02;letter-spacing:-1.5px;margin:0 0 18px;text-wrap:balance}
+h1 em{font-style:normal;color:var(--lime)}
+.lead{color:var(--muted);font-size:19px;max-width:520px;margin:0 0 28px}
+form{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:22px;max-width:520px;box-shadow:0 30px 60px rgba(0,0,0,.35)}
+.row{display:flex;gap:10px}
+input[type=email]{flex:1;min-width:0;font:inherit;color:var(--ink);background:var(--ground);border:2px solid var(--line);border-radius:999px;padding:15px 20px;outline:none}
+input[type=email]:focus{border-color:var(--lilac)}
+button{font:inherit;font-weight:700;color:var(--ground);background:var(--lime);border:0;border-radius:999px;padding:15px 24px;cursor:pointer;white-space:nowrap;transition:transform .15s}
+button:hover{transform:translateY(-1px)}
+button:disabled{opacity:.6;cursor:default;transform:none}
+.check{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:14px;color:var(--muted);cursor:pointer}
+.check input{margin-top:3px;width:18px;height:18px;accent-color:var(--lime);flex:none}
+.msg{margin:14px 0 0;font-weight:700;min-height:1.5em}
+.msg.ok{color:var(--lime)} .msg.err{color:var(--coral)}
+.phones{position:relative;height:560px}
+.phone{position:absolute;width:250px;border-radius:38px;background:#0A0B11;padding:9px;box-shadow:0 40px 80px rgba(0,0,0,.55),inset 0 0 0 2px var(--line)}
+.phone img{display:block;width:100%;border-radius:30px}
+.phone.a{left:50%;top:0;transform:translateX(-50%);z-index:2}
+.phone.b{left:0;top:70px;transform:rotate(-8deg);opacity:.85}
+.phone.c{right:0;top:70px;transform:rotate(8deg);opacity:.85}
+.how{padding:30px 0 70px}
+.how h2{font-family:var(--display);font-weight:800;font-size:clamp(30px,4.5vw,44px);letter-spacing:-.8px;margin:0 0 26px;text-align:center}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:24px}
+.card .n{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;font-family:var(--display);font-weight:800;color:var(--ground);margin-bottom:14px}
+.card h3{font-family:var(--display);font-weight:800;font-size:22px;margin:0 0 6px}
+.card p{margin:0;color:var(--muted)}
+.cta{text-align:center;padding:10px 0 70px}
+.cta a{display:inline-block;font-weight:700;color:var(--ground);background:var(--lime);border-radius:999px;padding:16px 30px;text-decoration:none}
+footer{border-top:1px solid var(--card2);padding:26px 0 40px;color:var(--muted);font-size:14px}
+footer h4{color:var(--ink);margin:0 0 6px;font-size:15px}
+@media (max-width:820px){
+  .hero{grid-template-columns:1fr;gap:10px;padding-top:10px}
+  .phones{height:430px;max-width:420px;margin:0 auto;width:100%}
+  .phone{width:190px;border-radius:30px;padding:7px}.phone img{border-radius:24px}
+  .cards{grid-template-columns:1fr}
+}
+@media (max-width:460px){.row{flex-direction:column}button{width:100%}}
+</style>
+</head>
+<body>
+<div class="sky" id="sky">
+  <div class="glow" style="width:520px;height:520px;background:var(--lilac);left:-160px;top:-120px"></div>
+  <div class="glow" style="width:460px;height:460px;background:var(--lime);right:-160px;top:320px"></div>
+</div>
+
+<div class="wrap">
+  <header><img src="../icons/icon.svg" alt=""><b>OffLand</b></header>
+
+  <section class="hero">
+    <div>
+      <p class="eyebrow">Bald verfügbar</p>
+      <h1>Weniger scrollen, <em>mehr Leben.</em></h1>
+      <p class="lead">OffLand macht aus weniger Bildschirmzeit eine kleine Insel, die wächst. Bewohner ziehen ein, Postkarten kommen an und deine gewonnene Zeit wird sichtbar. Trag dich ein und erfahre als Erste:r, wenn es losgeht.</p>
+      <form id="wl" novalidate>
+        <div class="row">
+          <input type="email" id="email" name="email" placeholder="deine@email.de" autocomplete="email" required aria-label="E-Mail-Adresse">
+          <button type="submit" id="go">Auf die Warteliste</button>
+        </div>
+        <label class="check"><input type="checkbox" id="consent"> <span>Ja, ich möchte per E-Mail erfahren, wenn OffLand startet. Mehr schicken wir nicht. Abmelden geht jederzeit, siehe <a href="#datenschutz">Datenschutz</a>.</span></label>
+        <p class="msg" id="msg" role="status"></p>
+      </form>
+    </div>
+    <div class="phones" aria-hidden="true">
+      <div class="phone b"><img src="img/bilanz.webp" alt=""></div>
+      <div class="phone c"><img src="img/postkarte.webp" alt=""></div>
+      <div class="phone a"><img src="img/insel.webp" alt=""></div>
+    </div>
+  </section>
+
+  <section class="how">
+    <h2>So funktioniert OffLand</h2>
+    <div class="cards">
+      <div class="card"><span class="n" style="background:var(--lilac)">1</span><h3>Bildschirmzeit eintragen</h3><p>Abends trägst du ein, wie lange du am Handy warst. Das dauert zehn Sekunden.</p></div>
+      <div class="card"><span class="n" style="background:var(--lime)">2</span><h3>Deine Insel wächst</h3><p>Bleibst du unter deinem Ziel, wird die Insel glücklicher. Neue Bewohner ziehen ein, Großprojekte werden fertig.</p></div>
+      <div class="card"><span class="n" style="background:var(--amber)">3</span><h3>Zeit zurückgewinnen</h3><p>Du siehst, wie viele Stunden du gewonnen hast. Allein, mit der Familie oder im Duell mit Freund:innen.</p></div>
+    </div>
+  </section>
+
+  <section class="cta"><a href="#wl" onclick="setTimeout(()=>document.getElementById('email').focus(),400)">Jetzt für die Warteliste anmelden</a></section>
+
+  <footer id="datenschutz">
+    <h4>Datenschutz</h4>
+    <p>Wir speichern nur deine E-Mail-Adresse und den Zeitpunkt der Anmeldung, um dich über den Start von OffLand zu informieren. Gespeichert wird bei Google Firebase (Google Ireland Ltd., Server in der EU). Wir geben die Adresse nicht weiter und löschen sie nach dem Start oder sobald du es möchtest. Zum Abmelden reicht eine kurze Nachricht an <span id="contact">uns</span>.</p>
+  </footer>
+</div>
+
+<script src="../js/online-config.js"></script>
+<script type="module">
+const FB_VER = "10.14.1";
+const $ = id => document.getElementById(id);
+
+// Sterne im Hintergrund
+const sky = $("sky");
+for (let i = 0; i < 70; i++) {
+  const s = document.createElement("i");
+  s.style.left = Math.random() * 100 + "%"; s.style.top = Math.random() * 100 + "%";
+  s.style.animationDelay = (Math.random() * 4).toFixed(2) + "s";
+  sky.appendChild(s);
+}
+
+// Kontaktadresse für Abmeldungen (in js/online-config.js als OFFLAND_CONTACT eintragen)
+if (window.OFFLAND_CONTACT) $("contact").innerHTML = `<a href="mailto:${window.OFFLAND_CONTACT}">${window.OFFLAND_CONTACT}</a>`;
+
+let net = null;
+async function connect() {
+  if (net) return net;
+  const b = "https://www.gstatic.com/firebasejs/" + FB_VER + "/";
+  const [A, U, F] = await Promise.all([import(b + "firebase-app.js"), import(b + "firebase-auth.js"), import(b + "firebase-firestore.js")]);
+  const app = A.initializeApp(window.OFFLAND_FIREBASE, "warteliste"), auth = U.getAuth(app), db = F.getFirestore(app);
+  await auth.authStateReady(); if (!auth.currentUser) await U.signInAnonymously(auth);
+  return net = { db, F };
+}
+// Dokument-ID = SHA-256 der Adresse: dieselbe Adresse landet nur einmal auf der Liste
+async function idOf(email) {
+  const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(email));
+  return [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+const say = (t, ok) => { const m = $("msg"); m.textContent = t; m.className = "msg " + (ok ? "ok" : "err"); };
+
+$("wl").addEventListener("submit", async e => {
+  e.preventDefault();
+  const email = $("email").value.trim().toLowerCase();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || email.length > 120) return say("Bitte gib eine gültige E-Mail-Adresse ein.");
+  if (!$("consent").checked) return say("Bitte setz noch den Haken, damit wir dir schreiben dürfen.");
+  if (!window.OFFLAND_FIREBASE) return say("Die Warteliste ist gerade nicht erreichbar. Bitte versuch es später noch einmal.");
+  $("go").disabled = true; say("Einen Moment …", true);
+  try {
+    const { db, F } = await connect();
+    const ref = F.doc(db, "waitlist", await idOf(email));
+    if ((await F.getDoc(ref)).exists()) { say("Du stehst schon auf der Warteliste. Wir melden uns!", true); return; }
+    await F.setDoc(ref, { email, consent: true, src: new URLSearchParams(location.search).get("src") || "web", at: F.serverTimestamp() });
+    say("Geschafft! Du stehst auf der Warteliste. Wir schreiben dir, sobald deine Insel bereit ist.", true);
+    $("email").value = ""; $("consent").checked = false;
+  } catch (err) {
+    console.error(err);
+    say("Das hat leider nicht geklappt. Bitte versuch es gleich noch einmal.");
+  } finally { $("go").disabled = false; }
+});
+</script>
+</body>
+</html>

@@ -9,3 +9,6 @@ window.OFFLAND_FIREBASE = {
   messagingSenderId: "287186820099",
   appId: "1:287186820099:web:e420878c5eebf2cf894236"
 };
+
+// Kontakt-E-Mail für Abmeldungen von der Warteliste (warteliste/index.html), z. B. "hallo@offland.app".
+window.OFFLAND_CONTACT = null;
