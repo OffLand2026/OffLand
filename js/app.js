@@ -1328,8 +1328,8 @@ const ACC_NAMES=["Nichts","Schal","Brille","Sonnenbrille","Bommelmütze","Kappe"
 function accSvg(a,c){
   switch(a){
     case 1: return {body:`<path d="M-4.8 -11.8q4.8 2.4 9.6 0l.5 2.1q-5.3 2.6-10.6 0z" fill="${c}"/><path d="M2.2 -10.2l1.8 5.4h-2.6z" fill="${c}"/>`,head:""};
-    case 2: return {body:"",head:`<g fill="none" stroke="#14151F" stroke-width=".55"><circle cx="-1.9" cy="-15.6" r="1.55"/><circle cx="1.9" cy="-15.6" r="1.55"/><path d="M-.35 -15.7h.7M-3.45 -15.8l-1.5-.4M3.45 -15.8l1.5-.4"/></g>`};
-    case 3: return {body:"",head:`<g fill="#14151F"><rect x="-3.7" y="-16.8" width="3.1" height="2.2" rx=".9"/><rect x=".6" y="-16.8" width="3.1" height="2.2" rx=".9"/></g><path d="M-.6 -16h1.2M-3.7 -16.2l-1.3-.3M3.7 -16.2l1.3-.3" stroke="#14151F" stroke-width=".5"/>`};
+    case 2: return {body:"",head:`<g fill="none" stroke="${c}" stroke-width=".65"><circle cx="-1.9" cy="-15.6" r="1.55"/><circle cx="1.9" cy="-15.6" r="1.55"/><path d="M-.35 -15.7h.7M-3.45 -15.8l-1.5-.4M3.45 -15.8l1.5-.4"/></g>`};
+    case 3: return {body:"",head:`<g fill="#14151F" stroke="${c}" stroke-width=".5"><rect x="-3.7" y="-16.8" width="3.1" height="2.2" rx=".9"/><rect x=".6" y="-16.8" width="3.1" height="2.2" rx=".9"/></g><path d="M-.6 -16h1.2M-3.7 -16.2l-1.3-.3M3.7 -16.2l1.3-.3" stroke="${c}" stroke-width=".55"/><path d="M-3 -16.2l.8-.4M1.3 -16.2l.8-.4" stroke="#F3F1EA" stroke-width=".35" opacity=".6"/>`};
     case 4: return {body:"",head:`<path d="M-5.4 -17.4a5.4 5.2 0 0 1 10.8 0z" fill="${c}"/><rect x="-5.9" y="-18.6" width="11.8" height="2.6" rx="1.3" fill="#F3F1EA" opacity=".9"/><circle cx="0" cy="-22.9" r="1.9" fill="#F3F1EA"/>`};
     case 5: return {body:"",head:`<path d="M-5.3 -17.3a5.3 4.8 0 0 1 10.6 0z" fill="${c}"/><path d="M-1.2 -17.6h8.6q.7 1.3-.6 1.5h-8z" fill="${c}"/><circle cx="0" cy="-21.9" r=".6" fill="#14151F" opacity=".4"/>`};
     case 6: return {body:"",head:`<g transform="translate(3.9 -20)">${[0,72,144,216,288].map(d=>`<circle cx="${(1.3*Math.cos(d*Math.PI/180)).toFixed(2)}" cy="${(1.3*Math.sin(d*Math.PI/180)).toFixed(2)}" r="1.05" fill="${c}"/>`).join("")}<circle r=".75" fill="#FFD27A"/></g>`};
