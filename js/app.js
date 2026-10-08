@@ -624,7 +624,7 @@ function social(good){
   coupleDay(good);
   // Kinder werden erwachsen und bekommen einen Beruf
   here().filter(r=>r.kind==="mensch"&&r.parents&&!r.job).forEach(r=>{
-    if(S.dayCount-(r.born||0)>=(jobOn("lehrer")?6:10)){r.job=pickJob();log(r.name+" ist erwachsen geworden und arbeitet jetzt als "+jobName(r.job)+".","good");chron([r.id],r.name+" ist erwachsen und wird "+jobName(r.job)+".")}
+    if(S.dayCount-(r.born||0)>=(jobOn("lehrer")?6:10)){r.job=pickJob();log(r.name+" ist erwachsen geworden und arbeitet jetzt als "+jobName(r.job)+".","good");chron([r.id],r.name+" ist erwachsen und wird "+jobName(r.job)+".");S.pending.push({type:"grownup",id:r.id})}
   });
   // Laufender Streit: Klärungsabend
   if(S.conflict&&S.conflict.state==="abend"){
@@ -702,9 +702,13 @@ function extras(day,diff,quests,dreamt){
   // Lebensgeschichten: Rente, Berufswechsel
   adults().forEach(r=>{
     const age=S.dayCount-(r.born||0);
-    if(!r.retired&&age>=(r.parents?150:90)){r.retired=true;r.retiredAt=S.dayCount;log(r.name+" geht in Rente und erzählt jetzt Geschichten am Strand.","info");chron([r.id],r.name+" ist in Rente gegangen.")}
+    if(!r.retired&&age>=(r.parents?150:90)){r.retired=true;r.retiredAt=S.dayCount;log(r.name+" geht in Rente und erzählt jetzt Geschichten am Strand.","info");chron([r.id],r.name+" ist in Rente gegangen.");S.pending.push({type:"retire",id:r.id})}
     else if(!r.retired&&S.dayCount-(S.lastJobChange||0)>=10&&Math.random()<0.03){S.lastJobChange=S.dayCount;const old=r.job,nj=pickJob();if(nj!==old){r.job=nj;log(r.name+" wechselt den Beruf: "+jobName(old)+" → "+jobName(nj)+".","info");chron([r.id],r.name+" arbeitet jetzt als "+jobName(nj)+" statt als "+jobName(old)+".")}}
   });
+  // Geburtstag: alle 30 Inseltage feiert jemand (höchstens ein Fest pro Tag)
+  const bday=here().find(r=>r.kind==="mensch"&&!r.sick&&S.dayCount-(r.born||0)>0&&(S.dayCount-(r.born||0))%30===0);
+  if(bday){const n=(S.dayCount-(bday.born||0))/30;S.points+=15;S.glueck=clamp(S.glueck+3,0,100);bday.happyUntil=Math.max(bday.happyUntil||0,S.dayCount+1);
+    log(bday.name+" feiert den "+n+". Inselgeburtstag! +15 Punkte, +3 % Glück.","good");chron([bday.id],bday.name+" hat den "+n+". Inselgeburtstag gefeiert.");S.pending.push({type:"birthday",id:bday.id,n})}
   // Wünsche
   wishCheck();
   if(!S.wish&&S.dayCount-(S.lastWishEnd||0)>=1&&Math.random()<.65) makeWish();
@@ -1349,35 +1353,48 @@ function looks(r){
   return {skin:SKIN[i.skin],hair:r.retired?"#D9D6CE":HAIR[i.hair]||HAIR[0],style:i.style,
     shirt:SHIRT[i.shirt]||SHIRT[0],pants:PANTS[(h>>>12)%PANTS.length],cap:SHIRT[(h>>>15)%8],acc:i.acc||0,accC:SHIRT[i.accC]||SHIRT[0]};
 }
+/* Lebensphase für die Figur: Baby, Kind, erwachsen, Rente */
+function stage(r){
+  if(r.retired) return "alt";
+  if(r.parents&&!r.job){const age=typeof S!=="undefined"&&S?S.dayCount-(r.born||0):5;return age<3?"baby":"kind"}
+  return "erw";
+}
 function figure(r,x,y){
   if(r.kind==="mensch"){
-    const L=looks(r), kid=r.parents&&!r.job?0.72:1;
+    const L=looks(r), st=stage(r), kid=st==="baby"?0.6:st==="kind"?0.74:1;
     const hair=hairSvg(L.style,L.style===5?L.cap:L.hair), acc=accSvg(L.acc,L.accC);
     if(r.sick) return `<g transform="translate(${x} ${y}) scale(${kid})"><title>${esc(r.name)} (krank: ${esc(r.sick.kind)})</title><rect x="-9" y="-6" width="18" height="6" rx="2" fill="#8A5A3B"/><rect x="-8" y="-9" width="16" height="5" rx="2" fill="#9CC8EE"/><circle cx="-6" cy="-10" r="4" fill="${L.skin}"/><path d="M-9.6 -11a4 4 0 0 1 6.6-2.6" stroke="${L.hair}" stroke-width="2" fill="none"/><path d="M-7.4 -10.4h1.2M-5 -10.4h1.2" stroke="#14151F" stroke-width=".6"/><circle cx="-8" cy="-9" r="1" fill="#E5484D" opacity=".7"/><text x="2" y="-12" font-size="6" fill="#F3F1EA" font-family="Manrope, sans-serif">z</text></g>`;
     const sad=typeof S!=="undefined"&&S.glueck<40;
+    if(st==="baby") return `<g transform="translate(${x} ${y}) scale(${kid})"><title>${esc(r.name)} (Baby)</title>
+      <ellipse cx="0" cy="-5" rx="5.6" ry="5.4" fill="${L.shirt}"/><path d="M-3.4 -1v1.4M3.4 -1v1.4" stroke="${L.skin}" stroke-width="2.4" stroke-linecap="round"/>
+      <circle cx="0" cy="-14" r="5.4" fill="${L.skin}"/><path d="M-1 -19.2q1-2.4 2.6-1.6q-1.6.2-1.4 1.8" stroke="${L.hair}" stroke-width="1" fill="none" stroke-linecap="round"/>
+      <circle cx="-1.9" cy="-14" r=".75" fill="#14151F"/><circle cx="1.9" cy="-14" r=".75" fill="#14151F"/><circle cx="-3.4" cy="-12.4" r="1.1" fill="#FF9C7A" opacity=".4"/><circle cx="3.4" cy="-12.4" r="1.1" fill="#FF9C7A" opacity=".4"/>
+      <circle cx="0" cy="-11.4" r="1.4" fill="#9CC8EE"/><circle cx="0" cy="-11.4" r=".6" fill="#F3F1EA"/></g>`;
     const mouth=sad?`<path d="M-1.4 -12.6q1.4-1 2.8 0" stroke="#5A3A2A" stroke-width=".7" fill="none" stroke-linecap="round"/>`:`<path d="M-1.6 -13.3q1.6 1.3 3.2 0" stroke="#5A3A2A" stroke-width=".7" fill="none" stroke-linecap="round"/>`;
     return `<g transform="translate(${x} ${y}) scale(${kid})"><title>${esc(r.name)}</title>
       <path d="M-2.4 -3.4v3.2M2.4 -3.4v3.2" stroke="${L.pants}" stroke-width="2.4" stroke-linecap="round"/>
       <path d="M-6 -2.6c0-6 2.4-8.6 6-8.6s6 2.6 6 8.6z" fill="${L.shirt}"/>${acc.body}
-      ${hair.back}<circle cx="0" cy="-16" r="5" fill="${L.skin}"/>${hair.front}
+      ${st==="kind"?`<g transform="translate(0 -12) scale(1.18) translate(0 12)">`:""}${hair.back}<circle cx="0" cy="-16" r="5" fill="${L.skin}"/>${hair.front}
       <circle cx="-1.8" cy="-15.6" r=".75" fill="#14151F"/><circle cx="1.8" cy="-15.6" r=".75" fill="#14151F"/>
       <circle cx="-3.2" cy="-13.8" r="1" fill="#FF9C7A" opacity=".35"/><circle cx="3.2" cy="-13.8" r="1" fill="#FF9C7A" opacity=".35"/>${mouth}${acc.head}
-      ${r.retired?`<path d="M-3.6 -16.4h2.6M1 -16.4h2.6M-1 -16.4h2" stroke="#3A3D58" stroke-width=".5" fill="none"/><circle cx="-1.8" cy="-16" r="1.5" fill="none" stroke="#3A3D58" stroke-width=".5"/><circle cx="1.8" cy="-16" r="1.5" fill="none" stroke="#3A3D58" stroke-width=".5"/>`:""}</g>`;
+      ${r.retired?`<path d="M-3.6 -16.4h2.6M1 -16.4h2.6M-1 -16.4h2" stroke="#3A3D58" stroke-width=".5" fill="none"/><circle cx="-1.8" cy="-16" r="1.5" fill="none" stroke="#3A3D58" stroke-width=".5"/><circle cx="1.8" cy="-16" r="1.5" fill="none" stroke="#3A3D58" stroke-width=".5"/>`:""}${st==="kind"?"</g>":""}
+      ${st==="alt"?`<path d="M7.4 0v-9.4q0-1.8-1.8-1.8" stroke="#8A5A3B" stroke-width="1.1" fill="none" stroke-linecap="round"/>`:""}</g>`;
   }
   const s=(r.parents?0.7:1)*(r.art==="Wal"?1.6:["Elch","Kamel","Eisbär"].includes(r.art)?1.1:1);
   return `<g transform="translate(${x} ${y}) scale(${s})"><title>${esc(r.name)} (${esc(r.art)})</title>${animalSvg(r.art,animalVar(r))}</g>`;
 }
 /* Bildausschnitt, in dem ein Tier ganz zu sehen ist (Wal und Delfin sind breiter als die anderen) */
-const ART_BOX={Wal:[-16.4,-20.4,21.2,5.4],Delfin:[-17.2,-19.4,22.8,2.6]};
+const ART_BOX={Wal:[-16.4,-21.3,21.6,5.6],Delfin:[-17.2,-19.4,23.2,2.6],Ziege:[-12.2,-21,12,1],Huhn:[-11.4,-16,11,1.2],Schaf:[-11.9,-13.9,10.3,1.5],Esel:[-15,-23,12.5,1],
+  Katze:[-9,-16.6,11.5,0],Hund:[-12.7,-15.5,11.2,0.4],Meerschweinchen:[-10.1,-10.8,8,0.2],Hase:[-8.7,-20,9.4,0],Robbe:[-10,-13,14,1],Papagei:[-8,-21,11,1],Elch:[-18,-31,12,0],Kamel:[-15.6,-26.2,13,0],Eisbär:[-16.6,-17.6,12,0]};
 function artVB(a,ratio){
-  if(!ART_BOX[a]) return ["Elch","Kamel"].includes(a)?"-20 -33 40 35":"-16 -22 32 24";
+  if(!ART_BOX[a]||!SEA.includes(a)) return ["Elch","Kamel"].includes(a)?"-20 -33 40 35":"-16 -22 32 24";
   const [x0,y0,x1,y1]=ART_BOX[a], cx=(x0+x1)/2, cy=(y0+y1)/2, w=Math.max(x1-x0,(y1-y0)*ratio)+2, h=w/ratio;
   return [cx-w/2,cy-h/2,w,h].map(v=>+v.toFixed(1)).join(" ");
 }
 function figVB(r){
   if(r.kind==="mensch"||!ART_BOX[r.art]) return "-13 -24 26 27";
-  const s=(r.parents?0.7:1)*(r.art==="Wal"?1.6:1), [x0,y0,x1,y1]=ART_BOX[r.art];
-  const cx=(x0+x1)/2*s, cy=(y0+y1)/2*s, d=(Math.max(x1-x0,y1-y0)+3)*s;   // Kreis: etwas Rand rundum
+  const s=(r.parents?0.7:1)*(r.art==="Wal"?1.6:["Elch","Kamel","Eisbär"].includes(r.art)?1.1:1), [x0,y0,x1,y1]=ART_BOX[r.art];
+  const cx=(x0+x1)/2*s, cy=(y0+y1)/2*s, d=Math.max(Math.max(x1-x0,y1-y0)+4,26)*s;   // Kreis: etwas Rand rundum, kleine Tiere nicht riesig
   return [cx-d/2,cy-d/2,d,d].map(v=>+v.toFixed(1)).join(" ");
 }
 /* Fellfarben: Ersetzungen der Grundfarben je Tierart */
@@ -2313,6 +2330,7 @@ function renderScene(){
       <button class="snav" data-snav="1" aria-label="Nächste Insel">›</button></div>`:"";
   $("#scene").innerHTML=scene()+nav;
   setViewBox(views[islandView].vb);
+  if(scenePaused){const sv=$("#scene > svg"); if(sv&&sv.pauseAnimations) sv.pauseAnimations()}
   document.querySelectorAll("[data-snav]").forEach(b=>b.onclick=()=>goView(islandView+ +b.dataset.snav));
   document.querySelectorAll("[data-sview]").forEach(b=>b.onclick=()=>goView(+b.dataset.sview));
 }
@@ -2329,6 +2347,15 @@ function goView(i){
   (function step(t){const k=Math.min(1,(t-t0)/dur), e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
     setViewBox(from.map((f,j)=>f+(to[j]-f)*e)); if(k<1) vbAnim=requestAnimationFrame(step)})(t0);
 }
+/* Animationen im Inselbild anhalten, solange es nicht zu sehen ist: spart Rechenzeit, das Scrollen ruckelt nicht */
+let scenePaused=false;
+(function(){
+  if(!("IntersectionObserver" in window)) return;
+  new IntersectionObserver(es=>{const vis=es[es.length-1].isIntersecting; scenePaused=!vis;
+    const el=$("#scene"); el.classList.toggle("paused",!vis);
+    const sv=$("#scene > svg"); if(sv&&sv.pauseAnimations){vis?sv.unpauseAnimations():sv.pauseAnimations()}
+  }).observe($("#scene"));
+})();
 (function(){ // Wischen auf dem Inselbild
   const el=$("#scene"); let x0=null,y0=0;
   el.addEventListener("touchstart",e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY},{passive:true});
@@ -2518,7 +2545,7 @@ function soundFor(ev){
     const r=ev.id?S.residents.find(x=>x.id===ev.id):null;
     const map={arrival:r&&r.kind==="tier"?["animal",r.art]:["human"],birth:["birth"],postcard:["postcard"],project:["project"],sick:["sick"],warn:["warn"],left:["left"],
       return:["return"],reunion:["return"],conflict:["conflict"],conflictResult:[ev.ok?"resolve":"thud"],love:["love"],crisis:["conflict"],crisisResult:[ev.ok?"resolve":"thud"],breakup:["farewell"],wedding:["fest"],strandgut:["sparkle"],wish:["sparkle"],gift:["sparkle"],
-      kapsel:["sparkle"],fest:["fest"],discovery:["aurora"],reply:["postcard"],unlock:["sparkle"],famgoal:["fest"],travel:["project"],farewell:["farewell"],boat:["boat"],welcome:["return"],
+      kapsel:["sparkle"],fest:["fest"],discovery:["aurora"],reply:["postcard"],unlock:["sparkle"],famgoal:["fest"],birthday:["fest"],grownup:["sparkle"],retire:["sparkle"],travel:["project"],farewell:["farewell"],boat:["boat"],welcome:["return"],
       visitor:[ev.kind==="aurora"?"aurora":ev.kind==="birds"?"birds":"horn"],day:[ev.min<=S.budget?"goodday":"badday"]};
     const m=map[ev.type]; if(m) sfx(m[0],m[1]);
   }catch(e){}
@@ -2641,6 +2668,17 @@ function showPending(){
     const pt=S.residents.find(x=>x.id===ev.pet), o=S.residents.find(x=>x.id===ev.owner);
     if(!pt||!o) return showPending();
     return sheet(`<div class="anim">${base(`<g class="sail-in" style="animation-duration:1.4s">${figure(pt,200,134)}</g>${figure(o,232,134)}`+hearts(216,100),false)}</div><p class="label" style="color:var(--lime)">Wiedersehen</p><h2>${esc(pt.name)} hat ${esc(o.name)} wieder</h2><p class="muted">${esc(SOUND[pt.art]||"")} Jeden Abend hat ${esc(pt.name)} am Steg gewartet. Jetzt ist das Warten vorbei.</p><button class="btn" data-ok>Wie schön</button>`);
+  }
+  if(ev.type==="birthday"||ev.type==="grownup"||ev.type==="retire"){
+    const r=S.residents.find(x=>x.id===ev.id); if(!r) return showPending();
+    const cake=`<g transform="translate(206 140)"><rect x="-14" y="-12" width="28" height="12" rx="3" fill="#F3F1EA"/><rect x="-14" y="-8" width="28" height="3" fill="#FF9C7A"/><rect x="-12" y="-20" width="24" height="8" rx="2" fill="#FFB3C7"/>${[-7,0,7].map(x=>`<rect x="${x-.8}" y="-27" width="1.6" height="7" fill="#B6A4FF"/><g class="glow"><path d="M${x} -31q-1.6 2 0 3.6q1.6-1.6 0-3.6z" fill="#FFD27A"/></g>`).join("")}</g>`;
+    const fig=`<g class="bob"><g transform="translate(170 140) scale(1.6)">${figure(r,0,0)}</g></g>`;
+    if(ev.type==="birthday") return sheet(`<div class="anim">${base(fig+cake+confetti(),false)}</div><p class="label" style="color:var(--lime)">Geburtstag</p><h2>${esc(r.name)} feiert den ${ev.n}. Inselgeburtstag!</h2>
+      <p class="muted">Die ganze Insel singt. Es gibt Kuchen am Strand, +15 Punkte und +3 % Glück.</p><button class="btn" data-ok>Happy Birthday!</button>`);
+    if(ev.type==="grownup") return sheet(`<div class="anim">${base(fig+hearts(170,96),false)}</div><p class="label" style="color:var(--lime)">Erwachsen</p><h2>${esc(r.name)} ist erwachsen!</h2>
+      <p class="muted">Aus dem Kind ist ein:e ${esc(jobName(r.job))} geworden. ${r.parents?"Die Eltern sind mächtig stolz.":""}</p><button class="btn" data-ok>Herzlichen Glückwunsch</button>`);
+    return sheet(`<div class="anim">${base(fig,false)}</div><p class="label" style="color:var(--lilac)">Ruhestand</p><h2>${esc(r.name)} geht in Rente</h2>
+      <p class="muted">Nach vielen Jahren als ${esc(jobName(r.job))} gibt es jetzt Zeit für Spaziergänge mit dem Gehstock und Geschichten am Strand.</p><button class="btn" data-ok>Schönen Ruhestand!</button>`);
   }
   if(ev.type==="famgoal"){
     return sheet(`<div class="anim">${famScene(ev.members||[],ev.total||0,true)}</div><p class="label" style="color:var(--lime)">Familienziel geschafft</p><h2>Ihr habt es zusammen geschafft!</h2>
@@ -2777,8 +2815,11 @@ function nameSheet(ev){
     <div class="row"><input id="nameIn" type="text" maxlength="20" value="${esc(r.name)}"><button class="iconbtn" id="dice" aria-label="Zufälligen Namen würfeln"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B6A4FF" stroke-width="2" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="9" cy="9" r="1.3" fill="#B6A4FF"/><circle cx="15" cy="15" r="1.3" fill="#B6A4FF"/><circle cx="15" cy="9" r="1.3" fill="#B6A4FF"/><circle cx="9" cy="15" r="1.3" fill="#B6A4FF"/></svg></button></div>
     ${lookEditor(r,draft)}
     ${r.kind==="tier"&&!isSea(r)&&adults().length?`<label class="field" for="ownSel">Gehört zu<select id="ownSel" style="height:52px;border:1.5px solid var(--line);border-radius:16px;background:var(--ground);color:var(--ink);font:700 17px var(--body);padding:0 12px">${adults().map(a=>`<option value="${a.id}" ${a.id===r.owner?"selected":""}>${esc(a.name)}</option>`).join("")}<option value="" ${r.owner?"":"selected"}>allen zusammen</option></select></label>`:""}
-    <button class="btn" id="nameOk">${ev.type==="rename"?"Speichern":"Willkommen heißen"}</button>`);
+    <button class="btn" id="nameOk">${ev.type==="rename"?"Speichern":"Willkommen heißen"}</button>
+    <button class="btn ghost" id="nameNo">${ev.type==="rename"?"Verwerfen":"Änderungen verwerfen"}</button>`);
   const inp=$("#nameIn");
+  // Verwerfen: beim Bearbeiten ohne Speichern schließen, bei Ankunft und Nachwuchs auf den Anfang zurücksetzen
+  $("#nameNo").onclick=()=>{if(ev.type==="rename"){closeModal();render()}else nameSheet(ev)};
   $("#dice").onclick=()=>{inp.value=freeName(list,S.residents.map(x=>x.name))};
   // Ankunftsbild oben gleich mit dem neuen Aussehen zeigen (ohne die Animation neu zu starten)
   bindLookEditor(r,draft,()=>{
