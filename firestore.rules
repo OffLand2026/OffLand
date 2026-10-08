@@ -103,7 +103,8 @@ service cloud.firestore {
     // Rangliste für alle: nur wer zugestimmt hat, steht hier.
     match /weeks/{wk}/public/{pid} {
       allow get: if signedIn();
-      allow list: if signedIn() && request.query.limit <= 100;
+      // Ohne limit nur für Zähl-Abfragen (Platz X von Y) gedacht; die Einträge sind ohnehin öffentlich.
+      allow list: if signedIn() && (request.query.limit == null || request.query.limit <= 100);
       allow create, update: if ownsPlayer(pid) && validRow(request.resource.data);
       allow delete: if ownsPlayer(pid);
     }

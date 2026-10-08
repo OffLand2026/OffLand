@@ -74,6 +74,8 @@ In den Einstellungen lässt sich „Online sein“ ausschalten. Dabei werden all
 
 - 50.000 Lesezugriffe und 20.000 Schreibzugriffe pro Tag. Das reicht für einige Hundert aktive Spieler:innen.
 - Die Bildschirmzeit wird von den Spieler:innen selbst eingetragen, die Ranglisten beruhen also auf Ehrlichkeit.
+- Die Rangliste für alle zeigt die besten 50. Den eigenen Platz („Platz 1.284 von 5.310“) zählt Firestore direkt aus, das kostet nur einen Lesezugriff pro 1.000 Einträge. Dabei sind nur Spieler:innen mit mindestens 3 eingetragenen Tagen in der laufenden Woche.
+- Im Testmodus simulierte Tage liegen in der Zukunft und zählen nicht für die Ranglisten.
 - Wer die App löscht oder die Browserdaten leert, bekommt beim nächsten Online-Gehen ein neues Online-Profil. Freundschaften müssen dann neu verbunden werden.
 
 ## Support-Meldungen lesen
