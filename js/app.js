@@ -4034,18 +4034,22 @@ async function fillFamily(){
     $("#famRetry").onclick=()=>{FAMC=null;$("#famBox").innerHTML=`<p class="label">Familieninsel</p><h2>${esc(S.family.name)}</h2><p class="muted">Lade …</p>`;fillFamily()};return}
   const st=famStats(members), next=FAM_PROJECTS.find(p=>st.total<p.need);
   members.sort((a,b)=>(b.saved||0)-(a.saved||0)||(b.good||0)-(a.good||0));
-  $("#famBox").innerHTML=`<p class="label" style="color:var(--lime)">Familieninsel</p><h2>${esc(S.family.name)}</h2>
+  const ring=(n,t)=>{const r=15,c=2*Math.PI*r,f=t?n/t:0;return `<svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="${r}" fill="none" stroke="var(--card2)" stroke-width="5"/><circle cx="20" cy="20" r="${r}" fill="none" stroke="var(--lime)" stroke-width="5" stroke-linecap="round" stroke-dasharray="${(c*f).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 20 20)"/></svg>`};
+  $("#famBox").innerHTML=`<div class="row between"><div><p class="label" style="color:var(--lime)">Familieninsel</p><h2>${esc(S.family.name)}</h2></div><span class="chip" style="color:var(--ink);background:var(--card2)" title="Familien-Code">Code <b class="num" style="letter-spacing:.08em">${S.family.code}</b></span></div>
     <button type="button" class="anim fam-zoom" id="famZoom" aria-label="Deine Familie näher ansehen" style="border-radius:18px;overflow:hidden">${famScene(members,st.total,st.todayIn>0&&st.todayGood===members.length)}<span class="fam-zoom-hint">🔍 Deine Familie</span></button>
-    <p><b>Heute:</b> ${st.todayIn?`${st.todayGood} von ${members.length} im Budget`:"noch niemand eingetragen"}</p>
-    <div style="background:var(--ground);border-radius:16px;padding:12px 14px"><p class="small muted">Gemeinsame OffLand-Zeit</p><p class="num" style="font-size:26px;font-weight:800;color:var(--lime)">${hm(st.saved)}</p></div>
-    <div><div class="row between" style="flex-wrap:nowrap"><b class="small">Familienprojekte</b><span class="small num" style="white-space:nowrap">${st.total} gute Tage zusammen</span></div>
-      <div class="bar"><i style="width:${next?Math.min(100,st.total/next.need*100):100}%"></i></div>
-      <p class="small muted" style="margin-top:4px">${next?"Nächstes Projekt: <b style=\"color:var(--ink)\">"+esc(next.n)+"</b> bei "+next.need+" guten Tagen":"Alle Familienprojekte sind gebaut!"}</p></div>
-    <div style="display:flex;flex-direction:column;gap:6px">${members.map(m=>{const d=(m.days||{})[today()];
-      return `<div class="row between"><span>${esc(m.name||"?")}${m.id===S.family.mid?" (du)":""}</span><span class="small ${d?(d.g?"":"muted"):"muted"}" style="${d&&d.g?"color:var(--lime);font-weight:700":""}">${d?(d.g?"heute im Budget":"heute drüber"):"noch offen"}${d&&d.m!=null?" · "+hm(d.m):""}</span></div>
-        <div class="row between" style="margin-top:-4px"><span class="small muted">${m.good||0} gute ${m.good===1?"Tag":"Tage"}</span><span class="small" style="font-weight:700">${m.saved!=null?hm(m.saved)+" gespart":"–"}</span></div>`}).join("")}</div>
-    <p class="small muted" style="text-align:center">Familien-Code: <b class="num" style="color:var(--ink);letter-spacing:.1em">${S.family.code}</b></p>
-    <div class="row"><button class="btn secondary grow" id="famLook">Meine Figur anpassen</button><button class="btn secondary grow" id="famInvite">Familie einladen</button></div>
+    <div class="fam-stats">
+      <div class="fam-stat">${ring(st.todayGood,members.length)}<div><b class="num">${st.todayGood}/${members.length}</b><span class="small muted">heute im Budget</span></div></div>
+      <div class="fam-stat"><div><b class="num" style="color:var(--lime)">${hm(st.saved)}</b><span class="small muted">gemeinsam gespart</span></div></div>
+    </div>
+    <div class="fam-sec"><div class="row between"><p class="label">Familienprojekt</p><span class="small muted num">${st.total} gute Tage</span></div>
+      ${next?`<p><b>${esc(next.n)}</b> <span class="small muted">bei ${next.need} guten Tagen</span></p><div class="bar"><i style="width:${Math.min(100,st.total/next.need*100)}%"></i></div><p class="small muted">Noch ${next.need-st.total} ${next.need-st.total===1?"guter Tag":"gute Tage"} zusammen</p>`
+        :`<p><b>Alle Familienprojekte sind gebaut!</b></p>`}</div>
+    <div class="fam-sec"><p class="label">Mitglieder</p>
+      ${members.map(m=>{const d=(m.days||{})[today()], me=m.id===S.family.mid;
+        const chip=d?(d.g?`<span class="chip good">im Budget</span>`:`<span class="chip bad">drüber</span>`):`<span class="chip gone">offen</span>`;
+        return `<div class="fam-row${me?" me":""}"><svg width="34" height="38" viewBox="-13 -25 26 28" aria-hidden="true">${figure({kind:"mensch",name:m.name,id:m.id||m.name,look:m.look||null},0,0)}</svg>
+          <div class="grow" style="min-width:0"><p class="fam-name"><b>${esc(m.name||"?")}</b>${me?' <span class="small muted">(du)</span>':""}</p><p class="small muted">${m.good||0} gute ${m.good===1?"Tag":"Tage"} · ${m.saved!=null?hm(m.saved)+" gespart":"–"}</p></div>${chip}</div>`}).join("")}</div>
+    <div class="row"><button class="btn secondary grow" id="famLook">Meine Figur</button><button class="btn secondary grow" id="famInvite">Einladen</button></div>
     <button class="btn ghost" id="famQuit">Familieninsel verlassen</button>`;
   const fl=$("#famLook"); if(fl) fl.onclick=famLookSheet;
   const fz=$("#famZoom"); if(fz) fz.onclick=()=>famZoomSheet(members);
