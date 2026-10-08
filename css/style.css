@@ -274,3 +274,15 @@ body.focus-on{overflow:hidden}
 .duel-vs{display:flex;align-items:center;justify-content:center;gap:18px}
 .duel-x{font-size:34px;animation:pop .8s cubic-bezier(.2,.8,.3,1.4) .3s both}
 @media (prefers-reduced-motion:reduce){.joker-card,.lid-open,.shoot,.firefly,.sailflap,.chase,.wake,.duel-x{animation:none;opacity:1}}
+/* Schatztruhe öffnet sich */
+.chest-shake{animation:chestShake .6s ease-in-out 1s 2;transform-box:fill-box;transform-origin:50% 100%}
+@keyframes chestShake{0%,100%{transform:rotate(0)}25%{transform:rotate(-5deg)}75%{transform:rotate(5deg)}}
+.lid-fly{animation:lidFly .7s cubic-bezier(.3,1.4,.5,1) 2.1s both;transform-box:fill-box;transform-origin:50% 100%}
+@keyframes lidFly{0%{transform:translate(0,0) rotate(0);opacity:1}60%{opacity:1}100%{transform:translate(-6px,-14px) rotate(-24deg);opacity:0}}
+.chest-in{animation:chestIn .3s ease 2.3s both}
+@keyframes chestIn{from{opacity:0}to{opacity:1}}
+.chest-glow{opacity:0;animation:chestGlow 2.4s ease-in-out 2.2s infinite;mix-blend-mode:screen}
+@keyframes chestGlow{0%,100%{opacity:.12}50%{opacity:.35}}
+.coin-up{opacity:0;animation:coinUp 1.8s cubic-bezier(.2,.8,.3,1) both}
+@keyframes coinUp{0%{transform:translateY(22px);opacity:0}20%{opacity:1}65%{transform:translateY(0);opacity:1}100%{transform:translateY(-8px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.chest-shake,.lid-fly,.chest-in,.chest-glow,.coin-up{animation:none}.lid-fly{opacity:0}.coin-up,.chest-in{opacity:1}}

@@ -234,6 +234,23 @@ const SPECIAL=[
 ];
 const DUEL_PRIZES=["pokal","siegerbanner","goldanker"];
 const itemDef=id=>SHOP.find(x=>x.id===id)||RARE.find(x=>x.id===id)||SPECIAL.find(x=>x.id===id);
+function chestSvg(open,anim){
+  const body=`<ellipse cx="0" cy="0" rx="13.5" ry="2" fill="#14151F" opacity=".25"/>
+    <rect x="-11" y="-12" width="22" height="12" rx="1.6" fill="#9A6235"/><path d="M-11 -8h22M-11 -4h22" stroke="#7A4A26" stroke-width=".6"/>
+    <rect x="-8.6" y="-12" width="2.6" height="12" fill="#E0A93C"/><rect x="6" y="-12" width="2.6" height="12" fill="#E0A93C"/>
+    <rect x="-11.6" y="-1.8" width="23.2" height="1.8" rx=".6" fill="#C88A2E"/><rect x="-11.6" y="-12.6" width="23.2" height="1.6" rx=".6" fill="#C88A2E"/>
+    <rect x="-2.2" y="-10.4" width="4.4" height="5" rx="1" fill="#FFD27A" stroke="#C88A2E" stroke-width=".5"/><circle cx="0" cy="-8.4" r=".75" fill="#6E4022"/><path d="M0 -8v1.4" stroke="#6E4022" stroke-width=".6"/>`;
+  const loot=`<path d="M-10.4 -12.4q3.6-5.4 10.4-5.6q6.8.2 10.4 5.6z" fill="#FFD27A"/>
+    ${[[-6,-14.6],[-2.4,-16.4],[1.8,-16.6],[5.6,-14.8],[-0.4,-14]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.5" fill="#FFE7A3" stroke="#E0A93C" stroke-width=".45"/>`).join("")}
+    <path d="M-5 -15.6l1.6-2 1.6 2-1.6 1.6z" fill="#E5484D"/><path d="M3 -16.6l1.4-1.8 1.4 1.8-1.4 1.4z" fill="#5BC0A8"/>`;
+  const lidOpen=`<path d="M-11 -12.6l1-8.4q10-3.6 20 0l1 8.4z" fill="#6E4022"/><path d="M-10 -21q10-3.6 20 0" stroke="#C88A2E" stroke-width="1.4" fill="none"/>`;
+  const lidShut=`<path d="M-11.6 -12.4v-3q0-6.6 11.6-6.6t11.6 6.6v3z" fill="#A86A38"/><path d="M-8.6 -12.4v-5.6q0-2.6 1.6-3.4M8.6 -12.4v-5.6q0-2.6-1.6-3.4" stroke="#E0A93C" stroke-width="2.6" fill="none"/><path d="M-11.6 -12.6h23.2" stroke="#C88A2E" stroke-width="1.6"/>`;
+  if(!anim) return (open?lidOpen+loot:lidShut)+body+(open?`<g class="firefly" style="animation-duration:2s"><path d="M9 -22l.8 1.6 1.6.8-1.6.8-.8 1.6-.8-1.6-1.6-.8 1.6-.8z" fill="#FFE7A3"/></g><g class="firefly" style="animation-duration:2.6s;animation-delay:.8s"><circle cx="-8" cy="-20" r=".9" fill="#FFE7A3"/></g>`:"");
+  // Animation: Truhe wackelt, Deckel springt auf, Schatz leuchtet, Münzen fliegen heraus
+  return `<g class="chest-shake">${lidOpen.replace("<path",'<path class="chest-in"')}<g class="chest-in">${loot}</g>${body}<g class="lid-fly">${lidShut}</g></g>
+    <circle class="chest-glow" cx="0" cy="-16" r="14" fill="#FFD27A"/>
+    ${[[-9,-30,0],[0,-36,.15],[9,-31,.3],[-4,-40,.45],[6,-42,.6]].map(([x,y,d])=>`<g class="coin-up" style="animation-delay:${2.1+d}s"><circle cx="${x}" cy="${y}" r="2.2" fill="#FFE7A3" stroke="#E0A93C" stroke-width=".7"/></g>`).join("")}`;
+}
 function grantItem(id){if(S.items.includes(id)) return false; S.items.push(id); S.itemW=S.itemW||{}; S.itemW[id]=curWorldId(); return true}
 function itemHome(id){const d=itemDef(id); if(d&&d.world) return d.world; if(d&&SHOP.includes(d)) return "heimat"; return (S.itemW&&S.itemW[id])||"heimat"}
 const curWorldId=()=>(typeof WORLDS!=="undefined"?WORLDS[S.world||0].id:"heimat");
@@ -801,9 +818,7 @@ function surpriseSheet(ev){
   const watch=ppl.map((r,i)=>`<g class="bob" style="animation-delay:${i*.3}s">${figure(r,200+i*14,134)}</g>`).join("");
   let art="",head="",text="",gain="";
   if(ev.kind==="truhe"){
-    art=`<g class="pop fb" style="animation-delay:.4s"><g transform="translate(262 150) scale(1.3)"><rect x="-11" y="-12" width="22" height="12" rx="2" fill="#8A5A3B"/><rect x="-2" y="-14" width="4" height="5" rx="1" fill="#FFD27A"/><path d="M-11 -12h22M0 -12v12" stroke="#FFD27A" stroke-width="1.6"/>
-      <g class="lid-open" style="animation-delay:1.4s"><path d="M-11 -12q0-8 11-8t11 8z" fill="#A0703F" stroke="#FFD27A" stroke-width="1.2"/></g></g></g>
-      ${[[-14,-30],[0,-38],[14,-30],[-7,-44],[8,-46]].map(([x,y],i)=>`<circle class="firefly" style="animation-delay:${1.8+i*.2}s" cx="${262+x}" cy="${150+y}" r="${2+i%2}" fill="#FFD27A"/>`).join("")}`;
+    art=`<g class="pop fb" style="animation-delay:.3s"><g transform="translate(262 150) scale(1.7)">${chestSvg(true,true)}</g></g>`;
     head="Eine Schatztruhe am Strand!"; text="Über Nacht angespült. Alle sind neugierig, was drin ist …";
     gain=[ev.item?"<b style=\"color:var(--amber)\">Schatztruhe</b> als Deko für deine Insel":"",ev.pts?`<b style="color:var(--lilac)">+${ev.pts} Punkte</b>`:"",ev.sun?`<b style="color:var(--amber)">${ev.sun}× Sonnenschein</b>`:"",ev.tea?`<b style="color:var(--lime)">1 Kräutertee</b>`:""].filter(Boolean).join(" · ");
   } else if(ev.kind==="schildkroete"){
@@ -1760,8 +1775,8 @@ function worldStructs(W,cx,two,three){
 
 /* Gekaufte Gegenstände automatisch verteilen: Jeder Gegenstand nimmt den freien Platz,
    der am weitesten von den schon platzierten entfernt ist, und weicht Gebäuden und Bäumen aus. */
-const ITEM_W={t_kanu:30,t_kokos:26,t_haengematte:30,t_orchidee:26,t_tiki:20,t_huette:32,t_surf:22,t_flamingo:22,f_kanu:30,f_schaukel:26,f_beeren:28,f_feuerschale:18,f_scheune:34,f_moos:24,f_wimpel:34,f_runen:14,o_teppich:34,o_dattel:28,o_tee:26,o_wasser:28,o_zelt:34,o_kaktus:26,o_laternen:16,a_eisloch:26,a_kakao:24,a_feuerkorb:16,a_eisbahn:38,a_huskys:44,a_schneemann:16,a_laternen:16,a_eisskulptur:18,teich:36,picknick:34,garten:32,sandburg:30,schaukel:30,spielplatz:28,haengematte:28,stall:28,blumen:28,palme:26,bank:26,feuer:22,brunnen:24,sternwarte:26,bienen:22,schirm:30,vogelhaus:20,zwerg:12,laternen:12,glocke:18,teleskop:28,muschelweg:34,regenbogen:34};
-const ITEM_H={t_kokos:22,t_haengematte:28,t_tiki:26,t_huette:30,t_surf:28,t_flamingo:24,f_schaukel:36,f_scheune:28,f_wimpel:22,f_runen:22,o_dattel:36,o_tee:22,o_zelt:28,o_laternen:26,a_kakao:24,a_feuerkorb:28,a_huskys:16,a_schneemann:26,a_laternen:24,a_eisskulptur:16,palme:30,laternen:28,vogelhaus:30,schirm:26,glocke:28,sternwarte:30,schaukel:26,haengematte:20,spielplatz:22,stall:22,bienen:24,teleskop:24,feuer:24};
+const ITEM_W={truhe:28,pokal:22,goldanker:26,siegerbanner:22,t_kanu:30,t_kokos:26,t_haengematte:30,t_orchidee:26,t_tiki:20,t_huette:32,t_surf:22,t_flamingo:22,f_kanu:30,f_schaukel:26,f_beeren:28,f_feuerschale:18,f_scheune:34,f_moos:24,f_wimpel:34,f_runen:14,o_teppich:34,o_dattel:28,o_tee:26,o_wasser:28,o_zelt:34,o_kaktus:26,o_laternen:16,a_eisloch:26,a_kakao:24,a_feuerkorb:16,a_eisbahn:38,a_huskys:44,a_schneemann:16,a_laternen:16,a_eisskulptur:18,teich:36,picknick:34,garten:32,sandburg:30,schaukel:30,spielplatz:28,haengematte:28,stall:28,blumen:28,palme:26,bank:26,feuer:22,brunnen:24,sternwarte:26,bienen:22,schirm:30,vogelhaus:20,zwerg:12,laternen:12,glocke:18,teleskop:28,muschelweg:34,regenbogen:34};
+const ITEM_H={truhe:24,pokal:26,goldanker:28,siegerbanner:34,t_kokos:22,t_haengematte:28,t_tiki:26,t_huette:30,t_surf:28,t_flamingo:24,f_schaukel:36,f_scheune:28,f_wimpel:22,f_runen:22,o_dattel:36,o_tee:22,o_zelt:28,o_laternen:26,a_kakao:24,a_feuerkorb:28,a_huskys:16,a_schneemann:26,a_laternen:24,a_eisskulptur:16,palme:30,laternen:28,vogelhaus:30,schirm:26,glocke:28,sternwarte:30,schaukel:26,haengematte:20,spielplatz:22,stall:22,bienen:24,teleskop:24,feuer:24};
 const FIXED_ITEMS={flagge:c=>[c.cx+50,122],lichter:c=>[c.cx+50,148],windspiel:c=>[c.cx+28,160],angel:c=>[c.cx+108,198]};
 function layoutItems(cx,two,three,nTrees,extra,home){
   const out={}, S8=.8, ctx={cx};
@@ -2374,7 +2389,7 @@ function itemSvg(id){
   case "pokal": return `<rect x="-7" y="-5" width="14" height="5" rx="1" fill="#8A5A3B"/><path d="M-2 -5v-4h4v4" fill="#E0A93C"/><path d="M-8 -22h16v3a8 8 0 0 1-16 0z" fill="#FFD27A" stroke="#E0A93C" stroke-width=".8"/><path d="M-8 -20h-3a4 4 0 0 0 4 5M8 -20h3a4 4 0 0 1-4 5" stroke="#FFD27A" stroke-width="1.4" fill="none"/><g class="firefly" style="animation-duration:1.8s"><path d="M10 -27l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" fill="#FFE7A3"/></g>`;
   case "siegerbanner": return `<path d="M-8 0v-32" stroke="#A4A6BD" stroke-width="1.8" stroke-linecap="round"/><circle cx="-8" cy="-33" r="1.6" fill="#FFD27A"/><g class="flagwave"><path d="M-7 -31h18l-4 6 4 6h-18z" fill="#B6A4FF"/><path d="M-1 -27l1.5 3 3 .4-2.2 2 .6 3-2.9-1.5-2.9 1.5.6-3-2.2-2 3-.4z" fill="#FFD27A"/></g>`;
   case "goldanker": return `<ellipse cx="0" cy="-2" rx="12" ry="3" fill="#8F96A8"/><g stroke="#FFD27A" stroke-width="2.2" fill="none" stroke-linecap="round"><circle cx="0" cy="-24" r="2.6"/><path d="M0 -21.4v17M-5 -16h10M-9 -9q1 6 9 6q8 0 9-6"/></g><g class="firefly" style="animation-duration:2.2s"><circle cx="8" cy="-22" r="1.2" fill="#FFE7A3"/></g>`;
-  case "truhe": return `<rect x="-11" y="-12" width="22" height="12" rx="2" fill="#8A5A3B"/><path d="M-11 -12q0-8 11-8t11 8z" fill="#A0703F"/><path d="M-11 -12h22M0 -20v20" stroke="#FFD27A" stroke-width="1.6"/><rect x="-2" y="-14" width="4" height="5" rx="1" fill="#FFD27A"/><g class="firefly" style="animation-duration:2s"><circle cx="-6" cy="-22" r="1.2" fill="#FFD27A"/><circle cx="6" cy="-23" r="1" fill="#FFD27A"/></g>`;
+  case "truhe": return chestSvg(true);
   case "muschelweg": return `<path d="M-16 -4q16 -8 32 0" stroke="#D9C38E" stroke-width="5" fill="none" stroke-linecap="round"/><g fill="#F3F1EA">${[[-10,-6],[-2,-8],[6,-8],[13,-6]].map((c,i)=>`<g class="glow" style="animation-duration:2.6s;animation-delay:${i*.5}s"><circle cx="${c[0]}" cy="${c[1]}" r="2.4"/></g><circle cx="${c[0]}" cy="${c[1]}" r="2"/>`).join("")}</g>`;
   }
   return "";
