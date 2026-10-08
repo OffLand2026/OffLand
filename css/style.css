@@ -229,3 +229,4 @@ body.focus-on{overflow:hidden}
 .anim.skip .sail-in,.anim.skip .pop,.anim.skip .hop{animation-delay:-20s!important}
 #title{white-space:nowrap}
 @media (max-width:370px){#title{font-size:23px}.head{gap:8px}}
+.scene.paused *{animation-play-state:paused!important}
