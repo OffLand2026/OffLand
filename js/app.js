@@ -1611,20 +1611,17 @@ function figure(r,x,y){
 }
 /* ---------- Geschichte: Mr. Bay (Bürgermeister) und Lucifer (Inselkatze) ---------- */
 function baySvg(){
-  // Mr. Bay: weißes Hemd mit offenem Kragen, dunkelblaues Sakko mit goldenem Bürgermeister-Anstecker, Tolle, kleiner Schnurrbart
+  // Mr. Bay: weißes Hemd mit offenem Kragen, dunkelblaues Sakko mit goldenem Bürgermeister-Anstecker, Locken, kleiner Schnurrbart, schiefes Grinsen
   return `<path d="M-2.4 -3.4v3.4M2.4 -3.4v3.4" stroke="#2C3550" stroke-width="2.5" stroke-linecap="round"/>
     <path d="M-6.6 -2.4c0-6.8 2.8-9.4 6.6-9.4s6.6 2.6 6.6 9.4z" fill="#2C3550"/>
     <path d="M-2.7 -11.6L0 -4.2L2.7 -11.6z" fill="#F7F5EF"/><path d="M-1.2 -11.4L0 -9.7L1.2 -11.4" stroke="#D9D4C6" stroke-width=".6" fill="none"/>
     <path d="M-2.7 -11.5L-4 -5.6M2.7 -11.5L4 -5.6" stroke="#47557A" stroke-width=".8"/>
     <circle cx="4.1" cy="-8.2" r=".95" fill="#FFD27A" stroke="#E0A93C" stroke-width=".3"/>
     <circle cx="0" cy="-16" r="5.1" fill="#F0C2A0"/>
-    <path d="M-5.3 -16.3a5.3 5.5 0 0 1 10.6 0q-1.3-1.6-3.1-1.5q-.9-2.6-4.6-2.4q1.8.9 1.5 2.5q-2.4.1-4.4 1.4z" fill="#6B4226"/>
-    <path d="M-2.4 -20.7q2.9-3.1 6.7-.6q-3-.3-4 1.4z" fill="#6B4226"/>
-    <path d="M-2.9 -17.3l1.9-.5M1 -17.8l1.9.5" stroke="#6B4226" stroke-width=".6" stroke-linecap="round"/>
+    <g fill="#6B4226"><circle cx="-3.6" cy="-18.6" r="2.3"/><circle cx="-1" cy="-20.3" r="2.4"/><circle cx="2" cy="-20.2" r="2.4"/><circle cx="4.2" cy="-18.3" r="2.1"/><path d="M-5.3 -16.4a5.3 5 0 0 1 10.6 0q-5.3-1.4-10.6 0z"/></g>
     <circle cx="-1.8" cy="-15.7" r=".75" fill="#14151F"/><circle cx="1.8" cy="-15.7" r=".75" fill="#14151F"/>
     <circle cx="-3.3" cy="-13.9" r="1" fill="#FF9C7A" opacity=".4"/><circle cx="3.3" cy="-13.9" r="1" fill="#FF9C7A" opacity=".4"/>
-    <path d="M-2.2 -13.7q1.1-.8 2.2-.2q1.1-.6 2.2.2q-1.1.4-2.2 0q-1.1.4-2.2 0z" fill="#6B4226"/>
-    <path d="M-1.5 -12.4q1.5 1.1 3 0" stroke="#5A3A2A" stroke-width=".65" fill="none" stroke-linecap="round"/>`;
+    <path d="M-1.9 -13.6q.95-.7 1.9-.15q.95-.55 1.9.15q-.95.35-1.9 0q-.95.35-1.9 0z" fill="#6B4226"/><path d="M-1.1 -12.3q1.3.8 2.6-.6" stroke="#5A3A2A" stroke-width=".65" fill="none" stroke-linecap="round"/>`;
 }
 function lucSvg(){
   return `<path d="M5.6 -1.4q6.4-.6 5.2-7.2" stroke="#1E1F2B" stroke-width="2.3" fill="none" stroke-linecap="round"/>
