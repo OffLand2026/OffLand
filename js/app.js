@@ -1500,7 +1500,8 @@ function worldStructs(W,cx,two,three){
     const q=p.sea?[74,222,.8]:slots[k++];
     // Wohnhäuser sind klein gezeichnet: größer, damit sie nicht kleiner als die Bewohner wirken
     const big={t_bambus:1.45,f_stugor:1.5,o_lehm:1.45,a_iglus:1.4}[p.id]||1;
-    if(has(p.id)) out.push({id:p.id,x:q[0]+(big>1&&q===s0?8:0),y:q[1],sc:q[2]*big});
+    // Wohnhäuser stehen oben auf der Kuppel zwischen Baum und Haupthaus, damit unten am Strand Platz bleibt
+    if(has(p.id)) out.push(big>1&&q===s0?{id:p.id,x:cx-8,y:130,sc:1.1*big/1.45}:{id:p.id,x:q[0],y:q[1],sc:q[2]*big});
   });
   return out;
 }
