@@ -226,3 +226,4 @@ body.focus-on{overflow:hidden}
 .sheet .card{background:var(--ground)}
 .sheet>*{flex-shrink:0}
 .tabs button[hidden]{display:none}
+.anim.skip .sail-in,.anim.skip .pop,.anim.skip .hop{animation-delay:-20s!important}
