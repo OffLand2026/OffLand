@@ -64,6 +64,12 @@ input[type=range]{width:100%;accent-color:var(--lime)}
 .feed li{list-style:none;padding:10px 0;border-top:1px solid var(--card2);display:flex;gap:10px}
 .feed li:first-child{border-top:none}
 .feed ul{margin:0;padding:0}
+ul.feed{margin:0;padding:0}
+.feed-day{margin:10px 0 0;font:700 12px var(--body);letter-spacing:1px;text-transform:uppercase;color:var(--amber)}
+.feed-filter{display:flex;gap:6px;flex-wrap:wrap}
+.feed-filter .chip{border:1.5px solid var(--line);background:none;color:var(--ink);font:700 13px var(--body);min-height:36px;padding:0 12px;cursor:pointer}
+.feed-filter .chip.on{background:var(--lime);border-color:var(--lime);color:#14151F}
+.feed-body{display:flex;flex-direction:column}
 .dot{width:10px;height:10px;border-radius:5px;margin-top:6px;flex-shrink:0}
 .modal{position:fixed;inset:0;background:rgba(10,11,18,.75);display:flex;align-items:flex-end;justify-content:center;padding:16px;z-index:40}
 .sheet{max-height:calc(100% - 8px);overflow-y:auto;width:100%;max-width:428px;background:var(--card);border-radius:28px;padding:22px 20px calc(22px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px}
@@ -235,6 +241,9 @@ body.focus-on{overflow:hidden}
 .plan-opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .plan-opt{display:flex;align-items:center;gap:8px;min-height:52px;padding:8px 10px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font:700 14px var(--body);text-align:left;cursor:pointer}
 .plan-opt svg{width:22px;height:22px;flex-shrink:0;color:var(--lime)}
+.plan-opt{position:relative}
+.plan-opt{position:relative}
+.plan-wish{position:absolute;top:-8px;right:8px;font:700 10px var(--body);font-style:normal;color:#14151F;background:var(--lilac);padding:2px 7px;border-radius:8px}
 .plan-opt.on{border-color:var(--lime);background:#22301F}
 .plan-ic{width:44px;height:44px;border-radius:14px;background:#22301F;color:var(--lime);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .plan-ic svg{width:26px;height:26px}
@@ -343,3 +352,24 @@ body.focus-on{overflow:hidden}
 .bay-photo{margin:0;display:flex;flex-direction:column;gap:6px;align-items:center}
 .bay-photo .story-art{width:100%;transform:rotate(-1deg)}
 .bay-photo figcaption{font-size:12px;color:var(--muted)}
+/* Startbild: Mr. Bay und Lucifer */
+.start-hero{position:relative}
+.start-bub{position:absolute;top:10px;max-width:62%;background:#F7F5EF;color:#14151F;border-radius:16px;padding:8px 12px;font:600 13px/1.35 var(--body);box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.start-bub b{display:block;font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:#B5782A}
+.start-bub.luc b{color:#7A5CE0}
+.start-bub.bay{left:12px}
+.start-bub.luc{right:12px}
+.start-bub::after{content:"";position:absolute;bottom:-7px;width:14px;height:14px;background:#F7F5EF;transform:rotate(45deg);border-radius:2px}
+.start-bub.bay::after{left:58%}
+.start-bub.luc::after{right:24%}
+.start-bub.pop{animation:bubPop .35s cubic-bezier(.2,1.4,.4,1)}
+@keyframes bubPop{from{opacity:0;transform:translateY(6px) scale(.92)}to{opacity:1;transform:none}}
+.blink{transform-box:fill-box;transform-origin:50% 50%;animation:blink 4.2s infinite}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
+.bay-wave{transform-box:fill-box;transform-origin:0% 100%;animation:bayWave 3.8s ease-in-out infinite}
+@keyframes bayWave{0%,40%,100%{transform:rotate(0)}50%{transform:rotate(-22deg)}60%{transform:rotate(8deg)}70%{transform:rotate(-22deg)}80%{transform:rotate(4deg)}}
+.luc-tail{transform-box:fill-box;transform-origin:0% 100%;animation:lucTail 2.6s ease-in-out infinite}
+@keyframes lucTail{0%,100%{transform:rotate(0)}50%{transform:rotate(-16deg)}}
+.luc-ear{transform-box:fill-box;transform-origin:80% 100%;animation:lucEar 5s infinite}
+@keyframes lucEar{0%,90%,100%{transform:rotate(0)}93%{transform:rotate(-18deg)}96%{transform:rotate(4deg)}}
+@media (prefers-reduced-motion:reduce){.start-bub.pop,.blink,.bay-wave,.luc-tail,.luc-ear{animation:none}}
