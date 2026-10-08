@@ -11,4 +11,4 @@ window.OFFLAND_FIREBASE = {
 };
 
 // Kontakt-E-Mail für Abmeldungen von der Warteliste (warteliste/index.html), z. B. "hallo@offland.app".
-window.OFFLAND_CONTACT = null;
+window.OFFLAND_CONTACT = "emily.sass1998@gmail.com";
