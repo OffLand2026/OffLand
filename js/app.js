@@ -939,7 +939,7 @@ function renderFocus(){
       <p class="label" style="color:#F3F1EA;opacity:.8">${S.boat.cat?esc(focusCat(S.boat.cat)[1]):"Fokus-Bootsfahrt"} · ${S.boat.dur} min</p>
       <p class="focus-time num" id="boatTime" aria-live="off">--:--</p>
       ${S.boat.task?`<p class="focus-msg" style="font-weight:800;font-size:19px">${esc(S.boat.task)}</p>`:""}
-      <p class="focus-msg">${S.boat.cat&&S.boat.cat!=="ruhe"?"Du "+focusCat(S.boat.cat)[2]+", "+(crew?esc(crew.name)+" fischt solange.":"das Boot fischt solange."):(crew?esc(crew.name)+" ist draußen beim Fischen.":"Das Boot ist draußen.")} Leg das Handy weg, bis es zurück ist.</p>
+      <p class="focus-msg">${S.boat.cat&&S.boat.cat!=="ruhe"?"Du "+focusCat(S.boat.cat)[2]+", "+(crew?esc(crew.name)+" fischt solange.":"das Boot fischt solange."):(crew?esc(crew.name)+" ist draußen beim Fischen.":"Das Boot ist draußen.")} Leg das Handy weg, bis das Boot zurück ist.</p>
     </div>
     <div class="focus-bottom">
       <div class="row between small" style="font-weight:700"><span id="focusFish">Noch kein Fang</span><span id="focusPct">0 %</span></div>
@@ -1806,7 +1806,7 @@ function viewHeute(){
   ${mons.length?`<div class="card" style="border:1.5px solid #9B6BD6"><p class="label" style="color:#C8A8FF">App-Monster vor der Insel</p>${mons.map(a=>`<div class="row"><svg width="48" height="40" viewBox="-24 -34 48 40" aria-hidden="true">${monsterSvg(a.m)}</svg><p class="grow">${esc(monName(a,false))}: ${esc(a.name)} lag gestern über ${hm(a.limit)}. Es verscheucht die Fische und kostet Glück.</p></div>`).join("")}<p class="small muted">Bleib heute bei diesen Apps unter dem Limit, dann tauchen sie wieder ab.</p></div>`:""}
   ${feature("boot")?`<div class="card">
     <div class="row between"><p class="label">Fokus-Bootsfahrt</p></div>
-    ${S.boat?`<p>Das Boot ist draußen. Leg das Handy weg, bis es zurück ist.</p>`
+    ${S.boat?`<p>Das Boot ist draußen. Leg das Handy weg, bis das Boot zurück ist.</p>`
     :`<p class="small muted">Deine Fokuszeit zum Lernen, für Aufgaben oder zum Lesen: Du nimmst dir etwas vor, legst das Handy weg, und ein Bewohner fährt solange fischen. Hältst du durch, gibt es Punkte und Baumaterial.</p>
       <div class="row">${[15,25,45,60].map(m=>`<button class="btn secondary grow" style="padding:0" data-boat="${m}" ${adults().length?"":"disabled"}>${m} min</button>`).join("")}</div>
       ${focusWeekLine()}`}
