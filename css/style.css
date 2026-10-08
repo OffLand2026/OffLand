@@ -296,8 +296,17 @@ body.focus-on{overflow:hidden}
 /* Familieninsel: Zoom „Deine Familie“ */
 .fam-zoom{position:relative;display:block;width:100%;padding:0;border:none;background:none;cursor:zoom-in}
 .fam-zoom svg{display:block;width:100%;height:auto}
-.fam-zoom-hint{position:absolute;right:10px;bottom:10px;background:rgba(20,21,31,.72);color:var(--ink);font:700 13px var(--body);padding:6px 10px;border-radius:999px}
+.fam-zoom-hint{position:absolute;right:10px;top:10px;background:rgba(20,21,31,.72);color:var(--ink);font:700 13px var(--body);padding:6px 10px;border-radius:999px}
 .fam-big svg{display:block;width:100%;height:auto}
 .fam-people{display:flex;flex-direction:column;gap:8px}
 .fam-person{display:flex;gap:12px;align-items:center;background:var(--ground);border-radius:16px;padding:8px 12px}
 .fam-person.me{border:1.5px solid var(--lime)}
+/* Familieninsel: aufgeräumte Übersicht */
+.fam-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.fam-stat{background:var(--ground);border-radius:16px;padding:10px 12px;display:flex;align-items:center;gap:10px;min-height:64px}
+.fam-stat b{display:block;font-family:var(--display);font-size:20px;font-weight:800;line-height:1.1}
+.fam-sec{background:var(--ground);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.fam-row{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:12px}
+.fam-row+.fam-row{border-top:1px solid var(--card2)}
+.fam-row.me{background:#22301F}
+.fam-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
