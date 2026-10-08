@@ -1501,7 +1501,7 @@ function worldStructs(W,cx,two,three){
     // Wohnhäuser sind klein gezeichnet: größer, damit sie nicht kleiner als die Bewohner wirken
     const big={t_bambus:1.45,f_stugor:1.5,o_lehm:1.45,a_iglus:1.4}[p.id]||1;
     // Wohnhäuser stehen oben auf der Kuppel zwischen Baum und Haupthaus, damit unten am Strand Platz bleibt
-    if(has(p.id)) out.push(big>1&&q===s0?{id:p.id,x:cx-8,y:130,sc:1.1*big/1.45}:{id:p.id,x:q[0],y:q[1],sc:q[2]*big});
+    if(has(p.id)) out.push(big>1&&q===s0?{id:p.id,x:cx-8,y:130,sc:1.1*big/1.45,dome:true}:{id:p.id,x:q[0],y:q[1],sc:q[2]*big});
   });
   return out;
 }
@@ -1589,11 +1589,13 @@ function scene(){
     if(night&&!clouds) s+=`<path d="M${cx-62} 82L0 50v50z" fill="#FFD27A" opacity=".18"/>`;
     s+=`<path d="M${cx-70} 160h16l-3-72h-10z" fill="#F3F1EA"/><path d="M${cx-69} 146h14M${cx-68} 126h12M${cx-67} 106h10" stroke="#FF9C7A" stroke-width="5"/><rect x="${cx-68}" y="76" width="12" height="12" rx="2" fill="${night?"#FFD27A":"#E9E2C8"}"/>`;
   }
+  // Wohnhäuser oben auf der Kuppel stehen hinter den Bäumen: zuerst zeichnen
+  const ws=home?[]:worldStructs(W,cx,two,three);
+  ws.filter(q=>q.dome).forEach(q=>{s+=`<g transform="translate(${q.x} ${q.y}) scale(${q.sc})">${projectSvg(q.id)}</g>`});
   for(let i=0;i<nTrees;i++){const tx=cx-40+i*22-(i%2)*6, ty=128+(i%2)*8;s+=treeSvg(home?"":T.tree,tx,ty,leaf);
     if(!home) continue;
     if(sea==="fruehling"&&!clouds) s+=`<g fill="#FFB3C7"><circle cx="${tx-6}" cy="${ty-10}" r="2"/><circle cx="${tx+5}" cy="${ty-4}" r="2"/><circle cx="${tx+2}" cy="${ty-14}" r="2"/></g>`;
     if(sea==="winter") s+=`<path d="M${tx-14} ${ty-10}q14-14 28 0" stroke="#F3F1EA" stroke-width="4" fill="none" stroke-linecap="round"/>`;}
-  const ws=home?[]:worldStructs(W,cx,two,three);
   const place=layoutItems(cx,two,three,nTrees,ws.map(q=>[q.x-26*q.sc,q.y-36*q.sc,q.x+26*q.sc,q.y]),home);
   // Gegenstände auf den Nebeninseln (x ≥ 244) erst nach diesen Inseln zeichnen, sonst verdecken die Inseln sie
   const memIds=S.memorials.slice(-6).map((m,i)=>"__mem"+i), mems=S.memorials.slice(-6);
@@ -1617,7 +1619,7 @@ function scene(){
   drawItems(true);
   // Neue Großprojekte
   const PPOS={baumhaus:[cx-40,196,.9],festzelt:two?[322,156,.95]:[cx+60,186,1],strandhaus:two?[282,172,.9]:[cx+96,194,1],beachclub:three?[292,216,.95]:two?[268,170,.95]:[cx-70,196,1],floss:[72,222,1]};
-  ws.slice().sort((a,b)=>a.y-b.y).forEach(q=>{s+=`<g transform="translate(${q.x} ${q.y}) scale(${q.sc})">${projectSvg(q.id)}</g>`});
+  ws.filter(q=>!q.dome).sort((a,b)=>a.y-b.y).forEach(q=>{s+=`<g transform="translate(${q.x} ${q.y}) scale(${q.sc})">${projectSvg(q.id)}</g>`});
   if(home) ["baumhaus","festzelt","beachclub","strandhaus","floss"].forEach(id=>{if(has(id)){const q=PPOS[id];s+=`<g transform="translate(${q[0]} ${q[1]}) scale(${q[2]})">${projectSvg(id)}</g>`}});
   // Händlerschiff
   if(S.trader) s+=`<g class="wave"><path d="M20 212h56l-8 12H28z" fill="#8A5A3B"/><path d="M48 212v-36l24 32z" fill="#FFD27A"/><path d="M48 180h20M48 190h22M48 200h24" stroke="#FF9C7A" stroke-width="3"/><path d="M46 212v-30l-18 28z" fill="#F3F1EA"/></g>`;
