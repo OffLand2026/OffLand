@@ -584,12 +584,13 @@ function makeWish(){
   if(!cand.length) return;
   const r=pick(cand), items=SHOP.filter(it=>!it.consumable&&shopHere(it)&&!owns(it.id));
   const opts=["streak","unter"];
-  if(feature("laden")&&items.length) opts.push("item","item");
   opts.push("plan","plan");
   if(S.glueck<85) opts.push("glueck");
   if(here().some(x=>x.kind==="mensch"&&x.phone)) opts.push("frei","frei");
   if(feature("boot")) opts.push("boot");
   if(feature("nacht")) opts.push("nacht");
+  // Gegenstände machen etwa jeden dritten Wunsch aus
+  if(feature("laden")&&items.length) for(let i=Math.round(opts.length/2);i>0;i--) opts.push("item");
   const type=pick(opts), w={rid:r.id,type,start:S.dayCount,until:S.dayCount+5,have:0,need:1};
   if(type==="item"){const it=pick(items);w.item=it.id;w.pts=30;w.gl=6;w.until=S.dayCount+999}
   if(type==="streak"){w.need=2+Math.floor(Math.random()*3);w.pts=20*w.need;w.gl=5;w.until=S.dayCount+w.need+3}
