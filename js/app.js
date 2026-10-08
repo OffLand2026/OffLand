@@ -20,16 +20,16 @@ const MOTIFS=[
   {id:"wal",title:"Walbeobachtung im Norden",sky:"#D6E6F0",sea:"#2F5F86"}
 ];
 const PROJECTS=[
-  {id:"leuchtturm",name:"Leuchtturm",hours:5,text:"Die Insel leuchtet nachts, +2 Plätze für Bewohner"},
-  {id:"bruecke",name:"Brücke zur Nachbarinsel",hours:6,text:"Eine zweite Insel kommt dazu, +4 Plätze"},
-  {id:"schiff",name:"Schiff",hours:7,text:"Hannes und Co. können fischen, +2 Plätze"},
-  {id:"windmuehle",name:"Windmühle",hours:8,text:"Brot für alle, +3 Plätze"},
-  {id:"insel3",name:"Dritte Insel",hours:10,text:"Noch mehr Platz, +4 Plätze"},
-  {id:"baumhaus",name:"Baumhaus",hours:9,text:"Ein Versteck in den Baumkronen, +2 Plätze"},
+  {id:"leuchtturm",name:"Leuchtturm",hours:5,text:"Die Insel leuchtet nachts, +1 Platz für Bewohner"},
+  {id:"bruecke",name:"Brücke zur Nachbarinsel",hours:6,text:"Eine zweite Insel kommt dazu, +2 Plätze"},
+  {id:"schiff",name:"Schiff",hours:7,text:"Hannes und Co. können fischen, +1 Platz"},
+  {id:"windmuehle",name:"Windmühle",hours:8,text:"Brot für alle, +2 Plätze"},
+  {id:"insel3",name:"Dritte Insel",hours:10,text:"Noch mehr Platz, +2 Plätze"},
+  {id:"baumhaus",name:"Baumhaus",hours:9,text:"Ein Versteck in den Baumkronen, +1 Platz"},
   {id:"floss",name:"Floß",hours:10,text:"Fokus-Bootsfahrten bringen doppelt so viele Fische"},
   {id:"festzelt",name:"Festzelt",hours:12,text:"Inselfeste schon ab 4 guten Tagen pro Woche, +20 Punkte extra"},
-  {id:"strandhaus",name:"Strandhaus",hours:14,text:"Wohnen direkt am Meer, +3 Plätze"},
-  {id:"beachclub",name:"Beachclub",hours:17,text:"+10 Punkte und +1 % Glück an jedem Tag im Budget, +2 Plätze"}
+  {id:"strandhaus",name:"Strandhaus",hours:14,text:"Wohnen direkt am Meer, +2 Plätze"},
+  {id:"beachclub",name:"Beachclub",hours:17,text:"+10 Punkte und +1 % Glück an jedem Tag im Budget, +1 Platz"}
 ];
 /* Weltreise: Sind alle Großprojekte einer Welt fertig, wird die nächste Insel entdeckt
    und die ganze Inselgemeinschaft kann umziehen. Bewohner, Gegenstände und Plätze reisen mit. */
@@ -38,39 +38,39 @@ const WORLDS=[
   {id:"tropen",name:"Tropeninsel",isle2:"t_haengebruecke",isle3:"t_vulkan",animals:["Papagei"],text:"Türkises Wasser, Palmen, Pfahlhütten und bunte Papageien.",
     theme:{sky:"#7FD4F0",sea:"#1FA2B8",sand:"#F5E1A4",grass:"#6CC46A",leaf:"#3FA35A",tree:"palme",hut:"pfahl",bridge:"#C9A26A",horizon:"tropen"},
     projects:[
-      {id:"t_bambus",name:"Bambushütten",hours:10,cap:4,text:"Luftige Hütten aus Bambus, +4 Plätze"},
-      {id:"t_haengebruecke",name:"Hängebrücke",hours:11,cap:4,text:"Eine Hängebrücke zur Nachbarinsel, +4 Plätze"},
-      {id:"t_riff",name:"Korallenriff-Steg",hours:12,cap:2,sea:true,text:"Ein Steg über das bunte Riff, +2 Plätze"},
-      {id:"t_wasserfall",name:"Wasserfall",hours:14,cap:2,text:"+1 % Glück an jedem guten Tag, +2 Plätze"},
-      {id:"t_vulkan",name:"Vulkaninsel",hours:15,cap:5,text:"Eine dritte Insel mit schlafendem Vulkan, +5 Plätze"},
-      {id:"t_mango",name:"Mangoplantage",hours:18,cap:3,text:"+10 Punkte an jedem Tag im Budget, +3 Plätze"}]},
+      {id:"t_bambus",name:"Bambushütten",hours:10,cap:2,text:"Luftige Hütten aus Bambus, +2 Plätze"},
+      {id:"t_haengebruecke",name:"Hängebrücke",hours:11,cap:2,text:"Eine Hängebrücke zur Nachbarinsel, +2 Plätze"},
+      {id:"t_riff",name:"Korallenriff-Steg",hours:12,cap:1,sea:true,text:"Ein Steg über das bunte Riff, +1 Platz"},
+      {id:"t_wasserfall",name:"Wasserfall",hours:14,cap:1,text:"+1 % Glück an jedem guten Tag, +1 Platz"},
+      {id:"t_vulkan",name:"Vulkaninsel",hours:15,cap:3,text:"Eine dritte Insel mit schlafendem Vulkan, +3 Plätze"},
+      {id:"t_mango",name:"Mangoplantage",hours:18,cap:2,text:"+10 Punkte an jedem Tag im Budget, +2 Plätze"}]},
   {id:"fjord",name:"Fjordinseln",isle2:"f_bruecke",isle3:"f_schaere",animals:["Elch"],text:"Rote Holzhäuser, dunkle Tannen und Berge im hohen Norden.",
     theme:{sky:"#BFD7EA",sea:"#2E5A7A",sand:"#B9B4A8",grass:"#7FA86A",leaf:"#2F6B45",tree:"tanne",hut:"stuga",bridge:"#7A5038",horizon:"berge"},
     projects:[
-      {id:"f_stugor",name:"Rote Holzhäuser",hours:12,cap:4,text:"Gemütliche Stugor für alle, +4 Plätze"},
-      {id:"f_bruecke",name:"Fjordbrücke",hours:14,cap:4,text:"Eine Brücke über den Fjord, +4 Plätze"},
-      {id:"f_sauna",name:"Sauna am See",hours:15,cap:2,text:"Weniger Streit auf der Insel, +2 Plätze"},
-      {id:"f_wikinger",name:"Wikingerschiff",hours:16,cap:3,sea:true,text:"Fokus-Bootsfahrten bringen 20 % mehr Punkte, +3 Plätze"},
-      {id:"f_schaere",name:"Schäreninsel",hours:18,cap:5,text:"Eine dritte Insel aus rundem Fels, +5 Plätze"},
-      {id:"f_nordlicht",name:"Nordlicht-Turm",hours:20,cap:3,text:"Polarlicht schon nach 5 Tagen im Budget, +3 Plätze"}]},
+      {id:"f_stugor",name:"Rote Holzhäuser",hours:12,cap:2,text:"Gemütliche Stugor für alle, +2 Plätze"},
+      {id:"f_bruecke",name:"Fjordbrücke",hours:14,cap:2,text:"Eine Brücke über den Fjord, +2 Plätze"},
+      {id:"f_sauna",name:"Sauna am See",hours:15,cap:1,text:"Weniger Streit auf der Insel, +1 Platz"},
+      {id:"f_wikinger",name:"Wikingerschiff",hours:16,cap:2,sea:true,text:"Fokus-Bootsfahrten bringen 20 % mehr Punkte, +2 Plätze"},
+      {id:"f_schaere",name:"Schäreninsel",hours:18,cap:3,text:"Eine dritte Insel aus rundem Fels, +3 Plätze"},
+      {id:"f_nordlicht",name:"Nordlicht-Turm",hours:20,cap:2,text:"Polarlicht schon nach 5 Tagen im Budget, +2 Plätze"}]},
   {id:"oase",name:"Wüsteninsel",isle2:"o_karawane",isle3:"o_duene",animals:["Kamel"],text:"Goldene Dünen, eine grüne Oase und Kamele in der Hitze.",
     theme:{sky:"#F7D9A0",sea:"#3FB8B0",sand:"#EBC27A",grass:"#C9A35A",leaf:"#6E8B3D",tree:"kaktus",hut:"lehm",bridge:"#B07A55",horizon:"duenen"},
     projects:[
-      {id:"o_lehm",name:"Lehmhäuser",hours:15,cap:4,text:"Kühle Häuser aus Lehm, +4 Plätze"},
-      {id:"o_karawane",name:"Karawanenweg",hours:16,cap:4,text:"Ein Weg zur Nachbarinsel, +4 Plätze"},
-      {id:"o_brunnen",name:"Oasenbrunnen",hours:18,cap:2,text:"Wer wegziehen will, wartet 1 Tag länger, +2 Plätze"},
-      {id:"o_markt",name:"Basar",hours:19,cap:3,text:"Alles im Laden 10 % billiger, +3 Plätze"},
-      {id:"o_duene",name:"Düneninsel",hours:20,cap:5,text:"Eine dritte Insel aus Sand, +5 Plätze"},
-      {id:"o_sternzelt",name:"Sternenzelt",hours:22,cap:3,text:"+1 % Glück an jedem guten Tag, +3 Plätze"}]},
+      {id:"o_lehm",name:"Lehmhäuser",hours:15,cap:2,text:"Kühle Häuser aus Lehm, +2 Plätze"},
+      {id:"o_karawane",name:"Karawanenweg",hours:16,cap:2,text:"Ein Weg zur Nachbarinsel, +2 Plätze"},
+      {id:"o_brunnen",name:"Oasenbrunnen",hours:18,cap:1,text:"Wer wegziehen will, wartet 1 Tag länger, +1 Platz"},
+      {id:"o_markt",name:"Basar",hours:19,cap:2,text:"Alles im Laden 10 % billiger, +2 Plätze"},
+      {id:"o_duene",name:"Düneninsel",hours:20,cap:3,text:"Eine dritte Insel aus Sand, +3 Plätze"},
+      {id:"o_sternzelt",name:"Sternenzelt",hours:22,cap:2,text:"+1 % Glück an jedem guten Tag, +2 Plätze"}]},
   {id:"alaska",name:"Eisinseln",isle2:"a_eisbruecke",isle3:"a_scholle",animals:["Eisbär"],text:"Iglus, Schnee, Eisschollen und Polarlichter am Ende der Welt.",
     theme:{sky:"#A9CDE8",sea:"#4F84AE",sand:"#F3F6F8",grass:"#D3E3EE",leaf:"#3E6B5A",tree:"schneetanne",hut:"iglu",bridge:"#BFE0F5",horizon:"eis"},
     projects:[
-      {id:"a_iglus",name:"Iglu-Dorf",hours:18,cap:5,text:"Warme Iglus für alle, +5 Plätze"},
-      {id:"a_eisbruecke",name:"Eisbrücke",hours:19,cap:4,text:"Eine Brücke aus Eis zur Nachbarinsel, +4 Plätze"},
-      {id:"a_schlitten",name:"Hundeschlitten-Station",hours:20,cap:3,text:"+5 Punkte an jedem Tag im Budget, +3 Plätze"},
-      {id:"a_eisfischen",name:"Eisfischer-Hütte",hours:21,cap:2,sea:true,text:"Doppelt so viele Fische bei Fokus-Bootsfahrten, +2 Plätze"},
-      {id:"a_scholle",name:"Große Eisscholle",hours:22,cap:5,text:"Eine dritte Insel aus Eis, +5 Plätze"},
-      {id:"a_polarwarte",name:"Polarlicht-Warte",hours:25,cap:4,text:"+2 % Glück an jedem guten Tag, +4 Plätze"}]}
+      {id:"a_iglus",name:"Iglu-Dorf",hours:18,cap:3,text:"Warme Iglus für alle, +3 Plätze"},
+      {id:"a_eisbruecke",name:"Eisbrücke",hours:19,cap:2,text:"Eine Brücke aus Eis zur Nachbarinsel, +2 Plätze"},
+      {id:"a_schlitten",name:"Hundeschlitten-Station",hours:20,cap:2,text:"+5 Punkte an jedem Tag im Budget, +2 Plätze"},
+      {id:"a_eisfischen",name:"Eisfischer-Hütte",hours:21,cap:1,sea:true,text:"Doppelt so viele Fische bei Fokus-Bootsfahrten, +1 Platz"},
+      {id:"a_scholle",name:"Große Eisscholle",hours:22,cap:3,text:"Eine dritte Insel aus Eis, +3 Plätze"},
+      {id:"a_polarwarte",name:"Polarlicht-Warte",hours:25,cap:2,text:"+2 % Glück an jedem guten Tag, +2 Plätze"}]}
 ];
 const curWorld=()=>WORLDS[S.world||0];
 const curProjects=()=>curWorld().projects;
@@ -289,7 +289,7 @@ function freeName(list,used){const free=list.filter(n=>!used.includes(n));return
 const FEATURES=[
   {id:"quests",day:1,name:"Tages-Quests",text:"Hake abends ab, was du heute ohne Handy gemacht hast, zum Beispiel ein Frühstück ohne Bildschirm. Jede erledigte Quest bringt +3 % Glück.",tab:"heute",ic:'<path d="M5 12l4 4 10-10"/>'},
   {id:"laden",day:1,name:"Inselladen",text:"Gib deine Punkte im Tab Bauen für Deko und Nützliches aus.",tab:"projekt",ic:'<path d="M4 9h16l-1 11H5zM8 9V7a4 4 0 0 1 8 0v2"/>'},
-  {id:"boot",day:2,name:"Fokus-Bootsfahrt",text:"Leg das Handy 15, 30 oder 60 Minuten weg. Ein Bewohner fährt fischen und bringt Punkte mit.",tab:"heute",ic:'<path d="M3 16h18l-3 4H6zM12 16V4l6 10"/>'},
+  {id:"boot",day:0,name:"Fokus-Bootsfahrt",text:"Deine Fokuszeit zum Lernen oder für Aufgaben: Leg das Handy weg, ein Bewohner fährt solange fischen und bringt Punkte mit.",tab:"heute",ic:'<path d="M3 16h18l-3 4H6zM12 16V4l6 10"/>'},
   {id:"nacht",day:2,name:"Gute-Nacht-Ritual",text:"Schick die Insel abends schlafen und leg das Handy weg. Morgen gibt es Traumpunkte.",tab:"heute",ic:'<path d="M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z"/>'},
   {id:"zeit",day:2,name:"Zeit-Statistik",text:"Im Tab Zeit siehst du, wie viel Handyzeit du schon gespart hast und was du damit gemacht hast.",tab:"zeit",ic:'<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>'},
   {id:"monster",day:3,name:"App-Monster",text:"Trag beim Tagesabschluss die Zeit pro App ein. Wer ein Limit sprengt, lockt ein Monster an.",tab:"heute",ic:'<circle cx="12" cy="11" r="7"/><circle cx="9.5" cy="10" r="1"/><circle cx="14.5" cy="10" r="1"/>'},
@@ -404,13 +404,13 @@ async function connectStore(){
 
 /* ---------- Abgeleitete Werte ---------- */
 const here=()=>S.residents.filter(r=>r.status==="da");
-/* Haustiere wohnen bei ihren Menschen im Haus und brauchen keinen eigenen Inselplatz (höchstens 1 pro erwachsener Person) */
+/* Haustiere wohnen bei ihren Menschen im Haus und brauchen keinen eigenen Inselplatz (höchstens eins pro zwei Erwachsene) */
 const isPet=r=>r.kind==="tier"&&PETS.includes(r.art);
 const occupied=()=>here().filter(r=>!isPet(r)).length;
-const petRoom=()=>here().filter(isPet).length<adults().length;
+const petRoom=()=>here().filter(isPet).length<Math.ceil(adults().length/2);
 function capacity(){
   let c=6+(owns("stall")?3:0);
-  for(const b of S.built){const p=projById(b);c+=p&&p.cap!=null?p.cap:({leuchtturm:2,bruecke:4,schiff:2,windmuehle:3,insel3:4,baumhaus:2,strandhaus:3,beachclub:2}[b]||0)}
+  for(const b of S.built){const p=projById(b);c+=p&&p.cap!=null?p.cap:({leuchtturm:1,bruecke:2,schiff:1,windmuehle:2,insel3:2,baumhaus:1,strandhaus:2,beachclub:1}[b]||0)}
   return c;
 }
 const has=b=>S.built.includes(b);
