@@ -1491,7 +1491,9 @@ function memorialSvg(m,leaf,type){
 
 /* Bauwerke der neuen Welten: Position je nach freigeschalteten Inseln */
 function worldStructs(W,cx,two,three){
-  const out=[], slots=[[cx-96,168,.8],two?[262,168,.62]:[cx+96,194,.7],two?[320,154,.7]:[cx+62,190,.7],three?[290,216,.66]:[cx-68,196,.7]];
+  // Plätze: links auf der Hauptinsel, auf der Nachbarinsel hinter dem Brückenende, auf der dritten Insel
+  const s0=[cx-96,168,.8], i2a=two?[280,170,.58]:[cx+96,194,.7], i2b=two?[328,156,.6]:[cx+62,190,.7], i3=three?[292,214,.64]:[cx-68,196,.7];
+  const out=[], slots=three?[s0,i2a,i3,i2b]:[s0,i2a,i2b,i3];
   let k=0;
   W.projects.forEach(p=>{
     if(p.id===W.isle2||p.id===W.isle3) return;
@@ -1611,7 +1613,7 @@ function scene(){
   if(three){ s+=`<ellipse cx="300" cy="214" rx="40" ry="9" fill="${sand}"/><path d="M266 213c6-16 20-22 34-22s28 6 34 22z" fill="${grass}"/>`; }
   drawItems(true);
   // Neue Großprojekte
-  const PPOS={baumhaus:[cx-96,168,.8],festzelt:two?[318,152,.72]:[cx+60,186,.7],strandhaus:two?[262,168,.62]:[cx+96,194,.75],beachclub:three?[288,216,.66]:two?[268,170,.7]:[cx-70,196,.7],floss:[72,222,.8]};
+  const PPOS={baumhaus:[cx-96,168,.8],festzelt:two?[318,152,.72]:[cx+60,186,.7],strandhaus:two?[280,170,.58]:[cx+96,194,.75],beachclub:three?[288,216,.66]:two?[268,170,.7]:[cx-70,196,.7],floss:[72,222,.8]};
   ws.slice().sort((a,b)=>a.y-b.y).forEach(q=>{s+=`<g transform="translate(${q.x} ${q.y}) scale(${q.sc})">${projectSvg(q.id)}</g>`});
   if(home) ["baumhaus","festzelt","beachclub","strandhaus","floss"].forEach(id=>{if(has(id)){const q=PPOS[id];s+=`<g transform="translate(${q[0]} ${q[1]}) scale(${q[2]})">${projectSvg(id)}</g>`}});
   // Händlerschiff

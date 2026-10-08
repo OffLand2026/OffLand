@@ -1,5 +1,5 @@
 /* Service Worker: macht OffLand auch ohne Internet spielbar. */
-const CACHE = "offland-v50";
+const CACHE = "offland-v51";
 const ASSETS = [
   "./",
   "index.html",
