@@ -293,7 +293,7 @@ const FEATURES=[
   {id:"nacht",day:2,name:"Gute-Nacht-Ritual",text:"Schick die Insel abends schlafen und leg das Handy weg. Morgen gibt es Traumpunkte.",tab:"heute",ic:'<path d="M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z"/>'},
   {id:"zeit",day:2,name:"Zeit-Statistik",text:"Im Tab Zeit siehst du, wie viel Handyzeit du schon gespart hast und was du damit gemacht hast.",tab:"zeit",ic:'<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>'},
   {id:"monster",day:3,name:"App-Monster",text:"Trag beim Tagesabschluss die Zeit pro App ein. Wer ein Limit sprengt, lockt ein Monster an.",tab:"heute",ic:'<circle cx="12" cy="11" r="7"/><circle cx="9.5" cy="10" r="1"/><circle cx="14.5" cy="10" r="1"/>'},
-  {id:"freunde",day:3,name:"Freunde und Ranglisten",text:"Lade Freund:innen ein, vergleicht euch jede Woche und bekommt zusammen einen Monat Plus.",tab:"freunde",ic:'<path d="M8 4h8v5a4 4 0 0 1-8 0zM12 13v4M8 20h8"/>'},
+  {id:"freunde",day:3,name:"Freunde und Ranglisten",text:"Lade Freund:innen ein, vergleicht euch jede Woche und bekommt einmalig zusammen einen Monat Plus.",tab:"freunde",ic:'<path d="M8 4h8v5a4 4 0 0 1-8 0zM12 13v4M8 20h8"/>'},
   {id:"album",day:4,name:"Album",text:"Postkarten, Strandgut, Zeitkapseln und dein Inseltagebuch.",tab:"verlauf",ic:'<path d="M4 5h7v15H4zM13 5h7v15h-7z"/>'},
   {id:"reise",day:5,name:"Weltreise",text:"Die Karte im Tab Bauen zeigt, welche Inselwelten auf euch warten.",tab:"projekt",ic:'<circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4a12 12 0 0 1 0 16M12 4a12 12 0 0 0 0 16"/>'}
 ];
@@ -341,6 +341,7 @@ function migrate(st){
   if(!st.rel)st.rel={}; if(st.conflict===undefined)st.conflict=null;
   if(!st.arrC)st.arrC=0; if(!st.birthC)st.birthC=0;
   const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null},family:null};
+  if(st.plusFriend===undefined) st.plusFriend=(st.buddies||[]).length?"alt":null;   // Plus-Monat fürs Einladen gibt es nur einmal
   if(st.allFeatures===undefined) st.allFeatures=(st.dayCount||0)>=1;          // wer schon gespielt hat, behält alles
   for(const k in D){ if(st[k]===undefined) st[k]=D[k]; }
   const prevS=S; S=st;
@@ -1568,10 +1569,18 @@ function scene(){
     s+=`<g transform="translate(${x} ${y})"><g class="${idle?"":"wander"}" style="--wx:${wx}px;animation-duration:${dur}s;animation-delay:${del}s"><g class="${sleep?"":"bob"}" style="animation-duration:${2.2+(h%9)/10}s;animation-delay:${-((h>>>3)%28)/10}s">${figure(r,0,0)}</g></g></g>`;
   });
   if(inside>0) s+=`<g transform="translate(${cx+50} 110)"><title>${inside} ${inside===1?"weitere Person ist":"weitere Bewohner sind"} gerade im Haus</title><rect x="-12" y="-8" width="24" height="13" rx="6.5" fill="#14151F" opacity=".78"/><text x="0" y="1.6" text-anchor="middle" font-size="8.5" font-weight="800" fill="#F3F1EA" font-family="Manrope, sans-serif">+${inside}</text></g>`;
-  const seaSlots=[[40,214],[80,226],[200,222],[240,212],[150,230],[330,228],[20,232],[270,232]];
-  seaP.forEach((r,i)=>{const sl=seaSlots[i%seaSlots.length];
+  // Meerestiere: freie Plätze im Wasser, nicht auf Floß, Schiff oder der dritten Insel
+  const blocked=[];
+  if((home&&has("floss"))||W.projects.some(p=>p.sea&&has(p.id))) blocked.push([50,98]);
+  if(home&&has("schiff")) blocked.push(two?[154,206]:[254,306]);
+  if(three) blocked.push([222,324]);
+  const seaSlots=[[140,234],[322,228],[30,220],[126,236],[342,230],[200,232],[240,214],[290,232],[64,232],[28,226]], used=[];
+  const free=(x,h)=>!blocked.some(([a,b])=>x+h>a&&x-h<b)&&!used.some(u=>Math.abs(u.x-x)<u.h+h-4)&&x-h>=-6&&x+h<=366;
+  seaP.slice().sort((a,b)=>(b.art==="Wal")-(a.art==="Wal")).forEach((r,i)=>{
+    const h=r.art==="Wal"?24:18, sl=seaSlots.find(([x])=>free(x,h))||seaSlots[i%seaSlots.length]; used.push({x:sl[0],h});
     if(r.art==="Delfin"){s+=dolphinJump(r,sl[0],sl[1],i);return}
-    s+=`<g class="wave fb" style="animation-delay:${i*0.5}s">${figure(r,sl[0],sl[1])}</g><path d="M${sl[0]-14} ${sl[1]+1}q7 -3 14 0t14 0" stroke="#5B7FB0" stroke-width="1.5" fill="none"/>`});
+    const sc=r.art==="Wal"?.75:1;   // im Bild etwas kleiner als in der Übersicht
+    s+=`<g class="wave fb" style="animation-delay:${i*0.5}s"><g transform="translate(${sl[0]} ${sl[1]}) scale(${sc})">${figure(r,0,0)}</g></g><path d="M${sl[0]-14} ${sl[1]+1}q7 -3 14 0t14 0" stroke="#5B7FB0" stroke-width="1.5" fill="none"/>`});
   // App-Monster im Wasser
   const mPos=[[110,222],[200,230],[310,214],[60,230]];
   (S.monsters||[]).forEach((id,i)=>{const a=S.apps.find(x=>x.id===id);if(!a)return;const p=mPos[i%4];s+=`<g transform="translate(${p[0]} ${p[1]})"><g class="wave"><title>${esc(monName(a,false))}</title>${monsterSvg(a.m)}</g></g>`});
@@ -2253,7 +2262,7 @@ function bind(){
   const ra=$("#rkAdd"); if(ra) ra.onclick=async()=>{ra.disabled=true;ra.textContent="Suche …";const e=await addFriend($("#rkCode").value,false);
     if(!document.body.contains(ra)) return;
     ra.disabled=false;ra.textContent="Hinzufügen";
-    if(e) return $("#rkErr").textContent=e; sfx("project"); toast("Verbunden! Ein Monat Plus ist aktiv."); rankTab="freunde"; RANKC=null; render()};
+    if(e) return $("#rkErr").textContent=e; sfx("project"); toast(LAST_PLUS?"Verbunden! Ein Monat Plus ist aktiv.":"Verbunden! Gemeinsames Ziel gestartet."); rankTab="freunde"; RANKC=null; render()};
   const on=$("#netToggle"); if(on) on.onchange=async()=>{if(on.checked){on.checked=false;onlineConsent(()=>{closeModal();render();toast("Du bist online!")})}else{on.disabled=true;await netDeleteAll();toast("Online-Daten gelöscht");render()}};
   const pb=$("#netPub"); if(pb) pb.onchange=()=>{S.online.pub=pb.checked;save();netSync()};
   const ia=$("#inviteAccept"); if(ia) ia.onclick=inviteSheet;
@@ -2750,6 +2759,21 @@ function myCode(){
 const inviteLink=()=>APP_URL+"?einladung="+myCode();
 const plusActive=()=>!!(S.plus&&S.plus.until>=today());
 function grantPlus(days){S.plus={until:addDays(plusActive()?S.plus.until:today(),days)}}
+/* Gratis-Monat fürs Einladen: einmal pro Konto und einmal pro Gerät */
+const PLUS_DEV_KEY="offland-plus-freund";
+function friendPlusFree(){
+  if(S.plusFriend) return false;
+  let d=null; try{d=localStorage.getItem(PLUS_DEV_KEY)}catch(e){}
+  return !d||d===(ACC&&ACC.id);
+}
+let LAST_PLUS=false;
+function friendPlus(){
+  LAST_PLUS=friendPlusFree(); if(!LAST_PLUS) return false;
+  S.plusFriend=today(); grantPlus(PLUS_DAYS);
+  try{localStorage.setItem(PLUS_DEV_KEY,ACC?ACC.id:"1")}catch(e){}
+  return true;
+}
+const plusOffer=(long)=>friendPlusFree()?(long?"einmalig einen Monat OffLand Plus und ":"einmalig einen Monat Plus und "):"";
 const cleanCode=c=>String(c||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,6);
 function pendingInvite(){
   let c=null; try{c=localStorage.getItem(INVITE_KEY)}catch(e){}
@@ -2774,8 +2798,8 @@ function redeemCode(raw,invited){
   if(S.buddies.length>=12) return "Du hast schon 12 gemeinsame Ziele.";
   S.buddies.push({code:c,since:today(),done:0,reward:false});
   if(invited) S.invitedBy=c;
-  grantPlus(PLUS_DAYS);
-  log("Mit "+c+" verbunden: gemeinsames Ziel gestartet und "+PLUS_DAYS+" Tage OffLand Plus.","good");
+  const got=friendPlus();
+  log("Mit "+c+" verbunden: gemeinsames Ziel gestartet"+(got?" und "+PLUS_DAYS+" Tage OffLand Plus.":"."),"good");
   chron([],"Neue Freundschaft über die Insel hinaus: "+c+".");
   save(); return null;
 }
@@ -2802,9 +2826,9 @@ function friendsCard(){
   if(!inv) return "";
   return `<div class="card"${inv?' style="border:1.5px solid var(--lime)"':""}>
     <div class="row between"><p class="label">Gemeinsam</p>${plusActive()?`<span class="chip" style="color:var(--amber)">★ Plus</span>`:""}</div>
-    ${inv?`<p><b>Du wurdest eingeladen!</b> Nimm die Einladung von <b class="num">${esc(inv)}</b> an: Ihr bekommt beide einen Monat Plus und ein gemeinsames Ziel.</p><button class="btn" id="inviteAccept">Einladung annehmen</button>`:""}
+    ${inv?`<p><b>Du wurdest eingeladen!</b> Nimm die Einladung von <b class="num">${esc(inv)}</b> an: Ihr bekommt ${plusOffer(false)}ein gemeinsames Ziel.</p><button class="btn" id="inviteAccept">Einladung annehmen</button>`:""}
     ${S.buddies.length?`<p class="small muted">Gemeinsame Ziele: je ${GOAL_DAYS} Tage im Budget. Jede Seite zählt ihre eigenen Tage.</p>${buddyRows()}`
-      :`<p class="small muted">Lade jemanden ein: Ihr bekommt beide einen Monat OffLand Plus und ein gemeinsames Ziel von ${GOAL_DAYS} guten Tagen.</p>`}
+      :`<p class="small muted">Lade jemanden ein: Ihr bekommt ${plusOffer(true)}ein gemeinsames Ziel von ${GOAL_DAYS} guten Tagen.</p>`}
     <div class="row"><button class="btn secondary grow" id="shareBtn">Insel teilen</button><button class="btn secondary grow" id="friendsBtn">Freunde einladen</button></div>
     ${netConfigured()?`<button class="btn" id="rankBtn">Freunde und Ranglisten</button>`:""}
   </div>`;
@@ -2812,7 +2836,7 @@ function friendsCard(){
 function friendsSheet(){
   const code=myCode();
   modal(`<div class="row between"><div><p class="label" style="color:var(--lime)">Gemeinsam</p><h2>Freunde einladen</h2>${plusActive()?`<p class="small" style="color:var(--amber);font-weight:700">★ Plus bis ${nice(S.plus.until)}</p>`:""}</div></div>
-    <p class="muted">Wer eine Freundin oder einen Freund einlädt, bekommt mit ihr oder ihm zusammen <b style="color:var(--ink)">einen Monat OffLand Plus</b> gratis. Dazu startet ein gemeinsames Ziel: ${GOAL_DAYS} Tage im Budget, dann gibt es +150 Punkte.</p>
+    <p class="muted">${friendPlusFree()?`Wer eine Freundin oder einen Freund einlädt, bekommt mit ihr oder ihm zusammen <b style="color:var(--ink)">einmalig einen Monat OffLand Plus</b> gratis. Dazu startet`:`Deinen Gratis-Monat Plus hast du schon bekommen. Mit jeder Einladung startet aber`} ein gemeinsames Ziel: ${GOAL_DAYS} Tage im Budget, dann gibt es +150 Punkte.</p>
     <div style="background:var(--ground);border-radius:16px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:4px">
       <span class="small muted">Dein Code</span><b class="num" style="font-size:30px;letter-spacing:.18em">${code}</b></div>
     <button class="btn" id="frShare">Einladung schicken</button>
@@ -2824,8 +2848,8 @@ function friendsSheet(){
     <p class="small muted">OffLand Plus ist eine Vorschau: +10 % Punkte pro Tag und ein goldener Rahmen beim Teilen. Später läuft es über ein Abo im App Store.</p>
     ${netConfigured()?`<button class="btn secondary" id="frRank">Freunde und Ranglisten</button>`:""}
     <button class="btn ghost" id="frClose">Schließen</button>`);
-  $("#frShare").onclick=()=>shareText("Spiel mit mir OffLand! Weniger Handy, mehr Insel. Mit meinem Code "+code+" bekommen wir beide einen Monat Plus.",inviteLink());
-  $("#frRedeem").onclick=async()=>{const btn=$("#frRedeem");btn.disabled=true;const e=await addFriend($("#frCode").value,false);if(!document.body.contains(btn)) return;btn.disabled=false;if(e) return $("#frErr").textContent=e;toast("Verbunden! Ein Monat Plus ist aktiv.");sfx("project");friendsSheet()};
+  $("#frShare").onclick=()=>shareText("Spiel mit mir OffLand! Weniger Handy, mehr Insel. Mit meinem Code "+code+" bekommen wir ein gemeinsames Ziel, und wer noch kein Plus bekommen hat, einen Monat gratis.",inviteLink());
+  $("#frRedeem").onclick=async()=>{const btn=$("#frRedeem");btn.disabled=true;const e=await addFriend($("#frCode").value,false);if(!document.body.contains(btn)) return;btn.disabled=false;if(e) return $("#frErr").textContent=e;toast(LAST_PLUS?"Verbunden! Ein Monat Plus ist aktiv.":"Verbunden! Gemeinsames Ziel gestartet.");sfx("project");friendsSheet()};
   const rk=$("#frRank"); if(rk) rk.onclick=rankSheet;
   $("#frClose").onclick=()=>{closeModal();render()};
 }
@@ -2833,7 +2857,7 @@ function inviteSheet(){
   const c=pendingInvite(); if(!c) return;
   modal(`${base(hearts(250,96)+`<g class="bob">${figure(here().find(r=>r.kind==="mensch")||{kind:"mensch",name:"Mia"},236,134)}</g>`,false)}
     <p class="label" style="color:var(--lime)">Einladung</p><h2>Du wurdest eingeladen!</h2>
-    <p class="muted">Code <b class="num" style="color:var(--ink)">${esc(c)}</b> lädt dich ein. Nimmst du an, bekommt ihr beide einen Monat OffLand Plus und ein gemeinsames Ziel: ${GOAL_DAYS} Tage im Budget.</p>
+    <p class="muted">Code <b class="num" style="color:var(--ink)">${esc(c)}</b> lädt dich ein. Nimmst du an, bekommt ihr ${plusOffer(true)}ein gemeinsames Ziel: ${GOAL_DAYS} Tage im Budget.</p>
     <button class="btn" id="invYes">Annehmen</button><button class="btn ghost" id="invNo">Nicht jetzt</button>`);
   $("#invNo").onclick=()=>{closeModal();render()};
   $("#invYes").onclick=()=>{ if(netConfigured()&&!netOn()) onlineConsent(acceptInvite); else acceptInvite(); };
@@ -2841,10 +2865,10 @@ function inviteSheet(){
     const yb=$("#invYes"); if(yb) yb.disabled=true;
     const e=await addFriend(c,true); clearInvite(); sfx("project");
     if(e){toast(e);closeModal();render();return}
-    if(netOn()){modal(`<p class="label" style="color:var(--lime)">Verbunden</p><h2>Ihr seid jetzt Freunde</h2><p class="muted">Ein Monat Plus ist für euch beide aktiv. In den Ranglisten seht ihr, wer diese Woche weniger am Handy war.</p><button class="btn" id="invRk">Zu den Ranglisten</button><button class="btn ghost" id="invDone">Fertig</button>`);
+    if(netOn()){modal(`<p class="label" style="color:var(--lime)">Verbunden</p><h2>Ihr seid jetzt Freunde</h2><p class="muted">${LAST_PLUS?"Ein Monat Plus ist für dich aktiv. ":""}In den Ranglisten seht ihr, wer diese Woche weniger am Handy war.</p><button class="btn" id="invRk">Zu den Ranglisten</button><button class="btn ghost" id="invDone">Fertig</button>`);
       $("#invRk").onclick=rankSheet; $("#invDone").onclick=()=>{closeModal();render()}; return}
-    modal(`<p class="label" style="color:var(--lime)">Verbunden</p><h2>Ein Monat Plus ist aktiv</h2>
-      <p class="muted">Damit auch ${esc(c)} das Plus bekommt, schick deinen Code zurück:</p>
+    modal(`<p class="label" style="color:var(--lime)">Verbunden</p><h2>${LAST_PLUS?"Ein Monat Plus ist aktiv":"Ihr seid verbunden"}</h2>
+      <p class="muted">Damit auch ${esc(c)} verbunden ist, schick deinen Code zurück:</p>
       <div style="background:var(--ground);border-radius:16px;padding:14px;text-align:center"><b class="num" style="font-size:30px;letter-spacing:.18em">${myCode()}</b></div>
       <button class="btn" id="invBack">Code zurückschicken</button><button class="btn ghost" id="invDone">Fertig</button>`);
     $("#invBack").onclick=()=>shareText("Ich bin dabei! Mein OffLand-Code: "+myCode()+" (unter Freunde einladen → Code einlösen)",inviteLink());
@@ -2929,8 +2953,8 @@ async function netPullFriends(){
     let b=S.buddies.find(x=>x.pid===f.id||(f.code&&x.code===f.code));
     if(!b){
       const p=await N.get("players/"+f.id).catch(()=>null); if(!p) continue;
-      b={code:p.code||"?",since:today(),done:0,reward:false}; S.buddies.push(b); grantPlus(PLUS_DAYS);
-      log((p.name||"Jemand")+" hat dich als Freund:in hinzugefügt. Gemeinsames Ziel gestartet, "+PLUS_DAYS+" Tage Plus.","good");
+      b={code:p.code||"?",since:today(),done:0,reward:false}; S.buddies.push(b); const got=friendPlus();
+      log((p.name||"Jemand")+" hat dich als Freund:in hinzugefügt. Gemeinsames Ziel gestartet"+(got?", "+PLUS_DAYS+" Tage Plus.":"."),"good");
       toast((p.name||"Jemand")+" ist jetzt mit dir befreundet!"); changed=true;
       b.name=p.name;
     }
@@ -3022,7 +3046,7 @@ function viewFreunde(){
     h+=`<div class="card" style="align-items:center;text-align:center">
       <div style="width:64px;height:64px;border-radius:32px;background:#26233D;color:var(--amber);display:flex;align-items:center;justify-content:center"><span style="width:34px;height:34px;display:block">${TROPHY}</span></div>
       <h2>Freunde und Ranglisten</h2>
-      <p class="muted">Vergleicht euch jede Woche: Wer war am wenigsten am Handy? Ladet euch gegenseitig ein, dann bekommt ihr beide einen Monat Plus und ein gemeinsames Ziel.</p>
+      <p class="muted">Vergleicht euch jede Woche: Wer war am wenigsten am Handy? Ladet euch gegenseitig ein, dann bekommt ihr ${plusOffer(false)}ein gemeinsames Ziel.</p>
       ${netConfigured()?`<button class="btn" id="goOnline" style="align-self:stretch">Mitmachen</button>`:`<p class="small muted">Ranglisten sind in dieser Version noch nicht verfügbar.</p>`}
     </div>`;
   } else {
@@ -3040,14 +3064,14 @@ function viewFreunde(){
   }
   h+=`<div class="card"><div class="row between"><p class="label">Gemeinsame Ziele</p>${plusActive()?`<span class="chip" style="color:var(--amber)">★ Plus bis ${nice(S.plus.until)}</span>`:""}</div>
     ${S.buddies.length?`<p class="small muted">Je ${GOAL_DAYS} Tage im Budget, dann gibt es +150 Punkte. Jede Seite zählt ihre eigenen Tage.</p>${buddyRows(true)}`
-      :`<p class="small muted">Noch keine. Lade jemanden ein: Ihr bekommt beide einen Monat OffLand Plus und ein gemeinsames Ziel von ${GOAL_DAYS} guten Tagen.</p>`}
+      :`<p class="small muted">Noch keine. Lade jemanden ein: Ihr bekommt ${plusOffer(true)}ein gemeinsames Ziel von ${GOAL_DAYS} guten Tagen.</p>`}
     <div class="row"><button class="btn secondary grow" id="shareBtn">Insel teilen</button><button class="btn grow" id="friendsBtn">Einladen</button></div>
   </div>`;
   return h;
 }
 function friendsCardInvite(inv){
   return `<div class="card" style="border:1.5px solid var(--lime)"><p class="label" style="color:var(--lime)">Einladung</p>
-    <p><b>Du wurdest eingeladen!</b> Nimm die Einladung von <b class="num">${esc(inv)}</b> an: Ihr bekommt beide einen Monat Plus und ein gemeinsames Ziel.</p><button class="btn" id="inviteAccept">Einladung annehmen</button></div>`;
+    <p><b>Du wurdest eingeladen!</b> Nimm die Einladung von <b class="num">${esc(inv)}</b> an: Ihr bekommt ${plusOffer(false)}ein gemeinsames Ziel.</p><button class="btn" id="inviteAccept">Einladung annehmen</button></div>`;
 }
 /* Ranglisten laden (kurz zwischengespeichert, damit nicht jedes Neuzeichnen lädt) */
 let RANKC=null;
