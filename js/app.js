@@ -921,20 +921,26 @@ function doActivity(id){
 }
 /* Vorhaben: gewonnene Zeit für etwas Echtes nutzen */
 function planOpts(){return PLANS}   // immer alle Vorhaben zur Auswahl
-function planPick(ev,good){
+function planAskSheet(ev){
+  if(ev.day!==S.lastDay) return showPending();
   const forDay=addDays(ev.day,1), cur=S.plan&&S.plan.day===forDay?S.plan.id:null;
-  return `<div class="card plan-box"><p><b>${good?"Was machst du morgen mit der gewonnenen Zeit?":"Was machst du morgen statt Handy?"}</b></p>
-    <div class="plan-opts">${planOpts().map(p=>`<button type="button" class="plan-opt${p.id===cur?" on":""}" data-plan="${p.id}" aria-pressed="${p.id===cur}">${planIcon(p)}<span>${esc(p.n)}</span></button>`).join("")}</div>
-    <p class="small muted" id="planNote">${cur?"Vorgemerkt für morgen.":"Morgen Abend fragt die Insel nach. Geschafft: +20 Punkte, +2 % Glück, und ein Bewohner macht mit."}</p></div>`;
+  sheet(`<p class="label" style="color:var(--lime)">Vorhaben für morgen · freiwillig</p>
+    <h2>${ev.good?"Was machst du morgen mit der gewonnenen Zeit?":"Was machst du morgen statt Handy?"}</h2>
+    <div class="plan-opts">${planOpts().map(p=>`<button type="button" class="plan-opt${p.id===cur?" on":""}" data-plan="${p.id}" aria-pressed="${p.id===cur}">${planIcon(p)}<span>${esc(p.n)}</span></button>`).join("")}
+      <button type="button" class="plan-opt" data-plan="" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.6L18.5 9l-4.7 1.4L12 15l-1.8-4.6L5.5 9l4.7-1.4z"/><path d="M18 15l.9 2.1L21 18l-2.1.9L18 21l-.9-2.1L15 18l2.1-.9z"/></svg><span>Entscheide ich spontan</span></button></div>
+    <p class="small muted" id="planNote">${cur?"Vorgemerkt für morgen.":"Morgen Abend fragt die Insel nach. Geschafft: +20 Punkte, +2 % Glück, und ein Bewohner macht mit."}</p>
+    <button class="btn" data-ok id="planGo">${cur?"Vormerken":"Weiter"}</button>`);
+  bindPlanPick(ev);
 }
 function bindPlanPick(ev){
   const forDay=addDays(ev.day,1);
   document.querySelectorAll("#modalRoot [data-plan]").forEach(b=>b.onclick=()=>{
-    const off=S.plan&&S.plan.day===forDay&&S.plan.id===b.dataset.plan;
-    S.plan=off?null:{id:b.dataset.plan,day:forDay};
+    const free=!b.dataset.plan, off=!free&&S.plan&&S.plan.day===forDay&&S.plan.id===b.dataset.plan;
+    S.plan=free||off?null:{id:b.dataset.plan,day:forDay};
     document.querySelectorAll("#modalRoot [data-plan]").forEach(x=>{const on=!off&&x===b;x.classList.toggle("on",on);x.setAttribute("aria-pressed",on)});
     const p=PLANS.find(x=>x.id===b.dataset.plan), n=$("#planNote");
-    if(n) n.textContent=off?"Kein Vorhaben gewählt.":"Vorgemerkt: "+p.n+" für morgen. Morgen Abend fragt die Insel nach.";
+    if(n) n.textContent=free?"Kein festes Vorhaben, ganz spontan. Auch gut!":off?"Kein Vorhaben gewählt.":"Vorgemerkt: "+p.n+" für morgen. Morgen Abend fragt die Insel nach.";
+    const g=$("#planGo"); if(g) g.textContent=free||off?"Weiter":"Vormerken";
     save();
   });
 }
@@ -1370,6 +1376,7 @@ function closeDay(min,quests,appMin){
   if(dreamt) log("Gute-Nacht-Ritual: +15 Traumpunkte.","good");
   monsters.forEach(id=>{const a=S.apps.find(x=>x.id===id);const n=monName(a);log(n.charAt(0).toUpperCase()+n.slice(1)+" ist aufgetaucht: "+a.name+" lag über "+hm(a.limit)+".","bad")});
   if(!S.testmode) S.pending.push({type:"day",day,min,before,after:S.glueck,saved,pts,sunny,repaired,dreamt,monsters,joker:0});
+  if(!S.testmode) S.pending.push({type:"planAsk",day,good:diff>=0});
   if(!S.testmode&&parse(day).getDay()===0&&S.days.filter(d=>isoWeek(d.day)===isoWeek(day)).length>=2){S.pending.push({type:"week",wk:isoWeek(day)});S.weekReady={wk:isoWeek(day),until:addDays(day,3)}}
 
   social(diff>=0);
@@ -2796,6 +2803,7 @@ function showPending(){
     return;
   }
   if(ev.type==="week") return weekSheet(ev.wk);
+  if(ev.type==="planAsk") return planAskSheet(ev);
   if(ev.type==="jokerAsk"){
     if(S.jokerWk===ev.wk||S.lastDay!==ev.day) return showPending();
     $("#modalRoot").innerHTML=`<div class="modal"><div class="sheet" role="dialog" aria-modal="true">
@@ -2827,8 +2835,7 @@ function showPending(){
       ${ev.monsters&&ev.monsters.length?`<p style="color:#C8A8FF">${ev.monsters.map(id=>{const a=S.apps.find(x=>x.id===id);return a?monName(a,false):""}).join(", ")} vor der Insel aufgetaucht.</p>`:""}
       ${good&&ev.saved?`<p>Du warst heute <b>${hm(ev.saved)}</b> weniger am Handy als in deinem bisherigen Schnitt (${hm(S.baseline)} am Tag). Das reicht für ${esc(eqText(eq))}.</p>`:""}
       ${!good&&eq.length?`<p>Die Zeit über dem Budget hätte gereicht für ${esc(eqText(eq))}. Morgen ist ein neuer Tag.</p>`:""}
-      ${ev.day===S.lastDay?planPick(ev,good):""}
-      <button class="btn" data-ok>Weiter</button>`,()=>{countUp($("#cu"),ev.before,ev.after);bindPlanPick(ev)});
+      <button class="btn" data-ok>Weiter</button>`,()=>countUp($("#cu"),ev.before,ev.after));
   }
   if(ev.type==="conflict"){
     const c=S.conflict; if(!c||c.state!=="neu") return showPending();
