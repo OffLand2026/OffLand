@@ -340,7 +340,7 @@ function migrate(st){
   if(st.points==null)st.points=0; if(!st.items)st.items=[]; if(!st.sun)st.sun=0;
   if(!st.rel)st.rel={}; if(st.conflict===undefined)st.conflict=null;
   if(!st.arrC)st.arrC=0; if(!st.birthC)st.birthC=0;
-  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null},family:null};
+  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,focusLog:[],activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null},family:null};
   if(st.plusFriend===undefined) st.plusFriend=(st.buddies||[]).length?"alt":null;   // Plus-Monat fürs Einladen gibt es nur einmal
   if(st.allFeatures===undefined) st.allFeatures=(st.dayCount||0)>=1;          // wer schon gespielt hat, behält alles
   for(const k in D){ if(st[k]===undefined) st[k]=D[k]; }
@@ -404,6 +404,10 @@ async function connectStore(){
 
 /* ---------- Abgeleitete Werte ---------- */
 const here=()=>S.residents.filter(r=>r.status==="da");
+/* Haustiere wohnen bei ihren Menschen im Haus und brauchen keinen eigenen Inselplatz (höchstens 1 pro erwachsener Person) */
+const isPet=r=>r.kind==="tier"&&PETS.includes(r.art);
+const occupied=()=>here().filter(r=>!isPet(r)).length;
+const petRoom=()=>here().filter(isPet).length<adults().length;
 function capacity(){
   let c=6+(owns("stall")?3:0);
   for(const b of S.built){const p=projById(b);c+=p&&p.cap!=null?p.cap:({leuchtturm:2,bruecke:4,schiff:2,windmuehle:3,insel3:4,baumhaus:2,strandhaus:3,beachclub:2}[b]||0)}
@@ -419,9 +423,10 @@ function canClose(){return S.testmode||nextDay()<=today()}
 function log(text,kind){S.feed.unshift({day:S.lastDay,text,kind:kind||"info"});S.feed=S.feed.slice(0,80)}
 
 function arrival(){
-  if(here().length>=capacity()) {log("Jemand wollte einziehen, aber es ist kein Platz frei. Ein Großprojekt schafft neuen Platz.","info");return}
+  const full=occupied()>=capacity();
+  if(full&&!petRoom()) {log("Jemand wollte einziehen, aber es ist kein Platz frei. Ein Großprojekt schafft neuen Platz.","info");return}
   const humans=here().filter(r=>r.kind==="mensch").length, animals=here().length-humans;
-  const isHuman=humans<=animals;
+  const isHuman=!full&&humans<=animals;
   const used=S.residents.map(r=>r.name);
   if(isHuman){
     const single=here().find(r=>r.kind==="mensch"&&!r.pair);
@@ -430,16 +435,20 @@ function arrival(){
     else{const pal=adults().filter(x=>x.id!==r.id); if(pal.length) addRel(r.id,pick(pal).id,25)}
     S.residents.push(r); S.pending.push({type:"arrival",id:r.id,partner:single?single.id:null});
   } else {
-    const pool=LAND.concat(worldAnimals()).concat(has("leuchtturm")?SEA:[]).concat(jobOn("waerter")?SEA:[]);
+    let pool=LAND.concat(worldAnimals()).concat(has("leuchtturm")?SEA:[]).concat(jobOn("waerter")?SEA:[]);
+    if(full) pool=pool.filter(a=>PETS.includes(a));                 // Insel voll: nur ein Haustier kann noch bei jemandem einziehen
+    else if(!petRoom()) pool=pool.filter(a=>!PETS.includes(a));
     const present=new Set(here().map(x=>x.art));
     const fresh=pool.filter(a=>!present.has(a));
-    const art=pick(fresh.length?fresh:pool);
+    // Arten, die noch nie auf der Insel waren, kommen zuerst: so wird die Sammlung auch wirklich voll
+    const seenArt=new Set(S.residents.filter(x=>x.kind==="tier").map(x=>x.art)), unseen=pool.filter(a=>!seenArt.has(a));
+    const art=pick(unseen.length?unseen:fresh.length?fresh:pool);
     const mate=here().find(x=>x.kind==="tier"&&x.art===art&&!x.pair);
     const r={id:uid(),name:freeName(ANIMAL_NAMES,used),kind:"tier",art,pair:null,status:"da",ret:0,born:S.dayCount};
     if(!SEA.includes(art)&&adults().length) r.owner=(mate&&mate.owner)||pick(adults()).id;
     S.residents.push(r);
     if(mate){r.pair=mate.id;mate.pair=r.id; S.pending.push({type:"arrival",id:r.id,partner:mate.id})}
-    else if(here().length<capacity()){
+    else if(PETS.includes(art)?petRoom():occupied()<capacity()){
       used.push(r.name);
       const r2={id:uid(),name:freeName(ANIMAL_NAMES,used),kind:"tier",art,pair:r.id,status:"da",ret:0,born:S.dayCount,owner:r.owner};
       r.pair=r2.id; S.residents.push(r2);
@@ -448,8 +457,8 @@ function arrival(){
   }
 }
 function birth(){
-  if(here().length>=capacity()) return false;
-  const pairs=here().filter(r=>r.pair&&S.residents.find(x=>x.id===r.pair&&x.status==="da"));
+  // Tiere bekommen nur Nachwuchs, solange es höchstens 4 ihrer Art gibt: sonst füllen Ziegen und Hühner alle Plätze und neue Arten kommen nie
+  const pairs=here().filter(r=>r.pair&&S.residents.find(x=>x.id===r.pair&&x.status==="da")&&(r.kind==="mensch"||here().filter(x=>x.art===r.art).length<4)&&(isPet(r)?petRoom():occupied()<capacity()));
   if(!pairs.length) return false;
   const a=pick(pairs), b=S.residents.find(x=>x.id===a.pair);
   const used=S.residents.map(r=>r.name);
@@ -567,7 +576,7 @@ function wishTalk(w){
 }
 function wishCard(w,r){
   const type=w.type||"item", left=(w.until||0)-S.dayCount, prog=type==="streak"?w.have/w.need:0;
-  const how={item:"Im Laden kaufen",streak:"Jeden Abend im Budget bleiben",quests:"Beim nächsten Tagesabschluss "+w.need+" Quests abhaken",boot:"Oben bei der Fokus-Bootsfahrt "+w.need+" min wählen und durchhalten",nacht:"Abends auf „Gute Nacht, Insel“ tippen",unter:"Beim nächsten Tag unter "+hm(w.need)+" bleiben"}[type];
+  const how={item:"Im Laden kaufen",streak:"Jeden Abend im Budget bleiben",quests:"Beim nächsten Tagesabschluss "+w.need+" Quests abhaken",boot:"Eine Fokus-Bootsfahrt von mindestens "+w.need+" min schaffen",nacht:"Abends auf „Gute Nacht, Insel“ tippen",unter:"Beim nächsten Tag unter "+hm(w.need)+" bleiben"}[type];
   return `<div class="card" style="border:1.5px solid var(--lilac)"><div class="row" style="align-items:flex-start">
     <div class="badge" style="background:#26233D;color:var(--lilac);width:52px;height:52px">${type==="item"?`<svg width="38" height="32" viewBox="-20 -34 40 38" aria-hidden="true">${itemSvg(w.item)}</svg>`:`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${WISH_IC[type]}</svg>`}</div>
     <div class="grow"><div class="row between"><p class="label" style="color:var(--lilac)">Wunsch von ${esc(r.name)}</p>${type!=="item"&&left>=0?`<span class="small muted">${left===0?"letzter Tag":"noch "+left+(left===1?" Tag":" Tage")}</span>`:""}</div>
@@ -805,9 +814,48 @@ function doActivity(id){
   log("Echte Aktivität: "+a.n+". "+a.fx+".","good"); toast(a.n+" eingetragen");
   save(); render();
 }
-function startBoat(dur){
+/* Fokuszeit: Wochenzeile auf der Karte und Statistik im Tab Zeit */
+function focusWeek(){const wk=isoWeek(today());return (S.focusLog||[]).filter(f=>isoWeek(f.day)===wk)}
+function focusWeekLine(){const w=focusWeek(); if(!w.length) return "";
+  return `<p class="small" style="color:var(--lime);font-weight:700">Diese Woche: ${hm(w.reduce((a,f)=>a+f.min,0))} Fokuszeit${w.some(f=>f.done)?" · "+w.filter(f=>f.done).length+" Vorhaben geschafft":""}</p>`}
+function focusStatsCard(){
+  const log=S.focusLog||[]; if(!log.length) return S.focusMin?`<div class="card"><p class="label">Fokuszeit</p><p class="num" style="font-size:26px;font-weight:800">${hm(S.focusMin)}</p><p class="small muted">Insgesamt mit der Fokus-Bootsfahrt. Wähl beim nächsten Mal, wofür du sie nutzt, dann siehst du hier, wie viel du gelernt und geschafft hast.</p></div>`:"";
+  const w=focusWeek(), sumBy=l=>FOCUS_CATS.map(([id,n])=>[n,l.filter(f=>f.cat===id).reduce((a,f)=>a+f.min,0)]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]);
+  const all=sumBy(log), max=Math.max(1,...all.map(x=>x[1]));
+  return `<div class="card"><div class="row between"><p class="label">Fokuszeit</p><span class="small muted">insgesamt ${hm(S.focusMin)}</span></div>
+    <div class="row between"><span>Diese Woche</span><b class="num" style="color:var(--lime)">${hm(w.reduce((a,f)=>a+f.min,0))}</b></div>
+    ${all.map(([n,m])=>`<div><div class="row between small"><span>${n}</span><b class="num">${hm(m)}</b></div><div class="bar"><i style="width:${m/max*100}%"></i></div></div>`).join("")}
+    ${log.some(f=>f.task)?`<p class="small" style="font-weight:700;margin-top:4px">Zuletzt</p>${log.filter(f=>f.task).slice(0,5).map(f=>`<div class="row between small"><span>${f.done?"✓ ":""}${esc(f.task)}</span><span class="muted">${f.min} min · ${dayLabel(f.day)}</span></div>`).join("")}`:""}
+  </div>`;
+}
+/* Fokuszeit: wofür die Bootsfahrt genutzt wird */
+const FOCUS_CATS=[["lernen","Lernen","lernst"],["aufgaben","Aufgaben erledigen","erledigst Aufgaben"],["lesen","Lesen","liest"],["kreativ","Kreativ sein","bist kreativ"],["sport","Sport","machst Sport"],["haushalt","Haushalt","kümmerst dich um den Haushalt"],["ruhe","Abschalten","schaltest ab"]];
+const focusCat=id=>FOCUS_CATS.find(c=>c[0]===id)||FOCUS_CATS[0];
+const FOCUS_TIPS=["Leg das Handy außer Reichweite, am besten in einen anderen Raum.","Schalte Mitteilungen aus oder stell das Handy auf Nicht stören.","Stell dir vorher Wasser und alles, was du brauchst, bereit.","Nimm dir eine konkrete Sache vor, nicht „alles ein bisschen“.","Nach der Fahrt kurz aufstehen und strecken, dann die nächste."];
+let focusDraft={cat:null,task:"",dur:25};
+function focusSheet(dur){
+  const last=(S.focusLog||[])[0];
+  focusDraft={cat:focusDraft.cat||(last&&last.cat)||"lernen",task:"",dur:dur||focusDraft.dur||25};
+  const tip=FOCUS_TIPS[Math.floor(Math.random()*FOCUS_TIPS.length)];
+  const draw=()=>{
+    const d=focusDraft;
+    modal(`<p class="label" style="color:var(--lime)">Fokus-Bootsfahrt</p><h2>Wofür nutzt du die Zeit?</h2>
+      <div class="sw-row" role="radiogroup" aria-label="Wofür" style="flex-wrap:wrap;gap:8px">${FOCUS_CATS.map(([id,n])=>`<button type="button" class="chip ${d.cat===id?"good":""}" style="padding:10px 14px;font-size:14px;border:1.5px solid ${d.cat===id?"var(--lime)":"var(--line)"};background:${d.cat===id?"#26331F":"transparent"};color:var(--ink)" data-fcat="${id}" aria-pressed="${d.cat===id}">${n}</button>`).join("")}</div>
+      <label class="field" for="fTask">Was genau? <span class="muted" style="font-weight:500">(freiwillig)</span><input id="fTask" type="text" maxlength="60" value="${esc(d.task)}" placeholder="${d.cat==="lernen"?"z. B. Vokabeln Kapitel 3":d.cat==="aufgaben"?"z. B. Bewerbung fertig schreiben":d.cat==="lesen"?"z. B. 30 Seiten im Buch":"z. B. eine Sache, die du schaffen willst"}"></label>
+      <p class="small" style="font-weight:700;margin-bottom:-4px">Wie lange?</p>
+      <div class="row" style="flex-wrap:wrap">${[15,25,45,60,90].map(m=>`<button type="button" class="btn ${d.dur===m?"":"secondary"}" style="flex:1 1 52px;padding:0" data-fdur="${m}">${m} min</button>`).join("")}</div>
+      <p class="small muted">${d.dur<=15?"Kurz und knackig, gut zum Reinkommen.":d.dur===25?"25 Minuten sind ein klassischer Fokus-Block. Danach 5 Minuten Pause.":d.dur===45?"Ein langer Block, gut für Lernstoff oder eine größere Aufgabe.":"Lange Fahrt: Plan eine kurze Pause zur Hälfte ein, aber ohne Handy."} Tipp: ${tip}</p>
+      <button class="btn" id="fGo">Losfahren</button><button class="btn ghost" id="fNo">Abbrechen</button>`);
+    document.querySelectorAll("[data-fcat]").forEach(b=>b.onclick=()=>{focusDraft.task=$("#fTask").value;focusDraft.cat=b.dataset.fcat;draw()});
+    document.querySelectorAll("[data-fdur]").forEach(b=>b.onclick=()=>{focusDraft.task=$("#fTask").value;focusDraft.dur=+b.dataset.fdur;draw()});
+    $("#fNo").onclick=closeModal;
+    $("#fGo").onclick=()=>{const t=$("#fTask").value.trim().slice(0,60);closeModal();startBoat(focusDraft.dur,focusDraft.cat,t)};
+  };
+  draw();
+}
+function startBoat(dur,cat,task){
   const crew=adults().find(r=>r.job==="fischer")||pick(adults())||null;
-  S.boat={start:Date.now(),dur,crew:crew?crew.id:null,left:0}; save();
+  S.boat={start:Date.now(),dur,crew:crew?crew.id:null,left:0,cat:cat||"ruhe",task:task||""}; save();
   const el=document.documentElement;
   if(el.requestFullscreen&&!document.fullscreenElement) el.requestFullscreen().catch(()=>{});
   render();
@@ -816,12 +864,14 @@ function boatLeft(){if(!S.boat)return 0;return Math.max(0,S.boat.start+S.boat.du
 function finishBoat(){
   if(!S.boat) return;
   const b=S.boat; S.boat=null;
-  S.pending.push({type:"boat",dur:b.dur,crew:b.crew,left:b.left||0});
+  S.pending.push({type:"boat",dur:b.dur,crew:b.crew,left:b.left||0,cat:b.cat||null,task:b.task||""});
   save(); render(); showPending();
 }
-function boatHonest(ok,dur,crewId){
-  if(ok){const fish=Math.max(1,Math.round(dur/10))*(has("floss")?2:1)*(has("a_eisfischen")?2:1), pts=Math.round(dur*(owns("angel")?1.2:1)*(has("f_wikinger")?1.2:1));S.fish+=fish;S.points+=pts;S.material+=dur;S.focusMin+=dur;
-    log("Fokus-Bootsfahrt: "+dur+" Minuten ohne Handy. "+fish+" Fische, +"+pts+" Punkte.","good");
+function boatHonest(ok,dur,crewId,cat,task,done){
+  if(ok){
+    S.focusLog=[{day:today(),at:Date.now(),cat:cat||"ruhe",task:task||"",min:dur,done:!!done}].concat(S.focusLog||[]).slice(0,300);
+    if(done){S.points+=Math.round(dur/5);S.glueck=clamp(S.glueck+2,0,100)}const fish=Math.max(1,Math.round(dur/10))*(has("floss")?2:1)*(has("a_eisfischen")?2:1), pts=Math.round(dur*(owns("angel")?1.2:1)*(has("f_wikinger")?1.2:1));S.fish+=fish;S.points+=pts;S.material+=dur;S.focusMin+=dur;
+    log("Fokus-Bootsfahrt: "+dur+" Minuten "+(cat?focusCat(cat)[1]:"ohne Handy")+(task?" ("+task+")":"")+". "+fish+" Fische, +"+(pts+(done?Math.round(dur/5):0))+" Punkte"+(done?", Vorhaben geschafft!":"."),"good");
     if(S.wish&&S.wish.type==="boot"&&dur>=S.wish.need) fulfillWish()}
   else log("Die Bootsfahrt kam leer zurück. Beim nächsten Mal klappt es.","bad");
   save();
@@ -886,9 +936,10 @@ function renderFocus(){
   el.setAttribute("role","dialog"); el.setAttribute("aria-modal","true"); el.setAttribute("aria-label","Fokus-Bootsfahrt");
   el.innerHTML=`<div class="focus-scene">${focusSvg()}</div>
     <div class="focus-top">
-      <p class="label" style="color:#F3F1EA;opacity:.8">Fokus-Bootsfahrt · ${S.boat.dur} min</p>
+      <p class="label" style="color:#F3F1EA;opacity:.8">${S.boat.cat?esc(focusCat(S.boat.cat)[1]):"Fokus-Bootsfahrt"} · ${S.boat.dur} min</p>
       <p class="focus-time num" id="boatTime" aria-live="off">--:--</p>
-      <p class="focus-msg">${crew?esc(crew.name)+" ist draußen beim Fischen.":"Das Boot ist draußen."} Leg das Handy weg, bis es zurück ist.</p>
+      ${S.boat.task?`<p class="focus-msg" style="font-weight:800;font-size:19px">${esc(S.boat.task)}</p>`:""}
+      <p class="focus-msg">${S.boat.cat&&S.boat.cat!=="ruhe"?"Du "+focusCat(S.boat.cat)[2]+", "+(crew?esc(crew.name)+" fischt solange.":"das Boot fischt solange."):(crew?esc(crew.name)+" ist draußen beim Fischen.":"Das Boot ist draußen.")} Leg das Handy weg, bis es zurück ist.</p>
     </div>
     <div class="focus-bottom">
       <div class="row between small" style="font-weight:700"><span id="focusFish">Noch kein Fang</span><span id="focusPct">0 %</span></div>
@@ -1132,7 +1183,7 @@ function closeDay(min,quests,appMin){
     const hint=gone.filter(r=>r.ret===3);
     if(hint.length) S.pending.push({type:"postcard",ids:hint.map(x=>x.id),hint:true});
     const back=gone.filter(r=>r.ret>=5);
-    if(back.length&&here().length+back.length<=capacity()){
+    if(back.length&&occupied()+back.filter(r=>!isPet(r)).length<=capacity()){
       back.forEach(r=>{r.status="da";r.ret=0});
       log(nameList(back.map(r=>r.name))+vb(back," ist zurückgekommen!"," sind zurückgekommen!"),"good");
       chron(back.map(r=>r.id),nameList(back.map(r=>r.name))+vb(back," ist von der Möweninsel zurückgekehrt."," sind von der Möweninsel zurückgekehrt."));
@@ -1745,7 +1796,7 @@ function viewHeute(){
   ${closeFirst?closeCard:""}
   <div class="stats">
     <div class="stat"><span class="label">Glück</span><b class="num" style="color:${mCls==="good"?"var(--lime)":mCls==="ok"?"var(--amber)":"var(--coral)"}">${S.glueck} %</b><span class="small muted">${mText}</span></div>
-    <div class="stat"><span class="label">Bewohner</span><b class="num">${here().length}/${capacity()}</b><span class="small muted">Plätze</span></div>
+    <div class="stat"><span class="label">Bewohner</span><b class="num">${occupied()}/${capacity()}</b><span class="small muted">Plätze${here().some(isPet)?" + "+here().filter(isPet).length+" Haustiere":""}</span></div>
     <div class="stat"><span class="label">Punkte</span><b class="num" style="color:var(--lilac)">${S.points}</b><span class="small muted">${S.sun?S.sun+"× Sonne":"zum Bauen"}</span></div>
   </div>
   ${S.vacation?`<div class="card" style="border:1.5px solid var(--lilac)"><p class="label" style="color:var(--lilac)">Urlaubsmodus</p><p>${guard?`<b>${esc(guard.name)}</b> hütet die Insel, bis du zurück bist.`:"Die Insel schläft, bis du zurück bist."} Das Glück sinkt in der Zeit nicht.</p><button class="btn secondary" id="vacOff">Ich bin zurück</button></div>`:""}
@@ -1756,8 +1807,9 @@ function viewHeute(){
   ${feature("boot")?`<div class="card">
     <div class="row between"><p class="label">Fokus-Bootsfahrt</p></div>
     ${S.boat?`<p>Das Boot ist draußen. Leg das Handy weg, bis es zurück ist.</p>`
-    :`<p class="small muted">Ein Bewohner fährt zum Fischen raus, solange du das Handy weglegst. Hältst du durch, bringt das Boot Punkte und Baumaterial.</p>
-      <div class="row">${[15,30,60].map(m=>`<button class="btn secondary grow" style="padding:0" data-boat="${m}" ${adults().length?"":"disabled"}>${m} min</button>`).join("")}</div>`}
+    :`<p class="small muted">Deine Fokuszeit zum Lernen, für Aufgaben oder zum Lesen: Du nimmst dir etwas vor, legst das Handy weg, und ein Bewohner fährt solange fischen. Hältst du durch, gibt es Punkte und Baumaterial.</p>
+      <div class="row">${[15,25,45,60].map(m=>`<button class="btn secondary grow" style="padding:0" data-boat="${m}" ${adults().length?"":"disabled"}>${m} min</button>`).join("")}</div>
+      ${focusWeekLine()}`}
   </div>`:""}
   ${nextCard()}
   ${closeFirst?"":closeCard}
@@ -1887,7 +1939,7 @@ function viewArten(){
   <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">${all.map(a=>{const ok=seen.has(a);
     return `<div style="background:var(--ground);border-radius:14px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;${ok?"":"opacity:.4"}">
       <svg width="48" height="34" viewBox="${artVB(a,48/34)}" aria-hidden="true">${ok?animalSvg(a):`<g opacity=".5" style="filter:brightness(0) invert(.45)">${animalSvg(a)}</g>`}</svg>
-      <span style="font-size:11px;font-weight:700;text-align:center;line-height:1.2">${ok?a:"?"}</span></div>`}).join("")}</div>
+      <span style="font-size:${ok&&a.length>9?"9.5px":"11px"};letter-spacing:${ok&&a.length>9?"-.2px":"0"};font-weight:700;text-align:center;line-height:1.2;max-width:100%">${ok?(a==="Meerschweinchen"?"Meer&shy;schweinchen":a):"?"}</span></div>`}).join("")}</div>
   <p class="small muted">Delfine und Wale kommen erst, wenn der Leuchtturm steht. Papagei, Elch, Kamel und Eisbär leben nur in fernen Inselwelten.</p></div>`;
 }
 function viewAlbum(){
@@ -1937,6 +1989,7 @@ function viewZeit(){
   </div>
   ${week.length?`<div class="card"><p class="label">Diese 7 Tage</p><div class="row between"><span>Bildschirmzeit</span><b class="num">${hm(sum(week))}</b></div>
   ${prev.length?`<div class="row between"><span>Die 7 Tage davor</span><b class="num">${hm(sum(prev))}</b></div><p class="small" style="color:${sum(week)<=sum(prev)?"var(--lime)":"var(--coral)"}">${sum(week)<=sum(prev)?"−"+hm(sum(prev)-sum(week))+" weniger als davor":"+"+hm(sum(week)-sum(prev))+" mehr als davor"}</p>`:""}</div>`:""}
+  ${focusStatsCard()}
   <div class="card"><p class="label">App-Monster</p>
   ${S.apps.map(a=>{const ds=S.days.filter(d=>d.apps&&d.apps[a.id]!=null);const tot=ds.reduce((x,d)=>x+(d.apps[a.id]||0),0);const over=ds.filter(d=>d.apps[a.id]>a.limit).length;
     return `<div class="row" style="padding:6px 0;border-top:1px solid var(--card2)"><svg width="44" height="36" viewBox="-24 -34 48 40" aria-hidden="true" style="${over?"":"opacity:.35"}">${monsterSvg(a.m)}</svg><div class="grow"><p><b>${esc(a.name)}</b> <span class="small muted">· Limit ${a.limit} min</span></p><p class="small muted">${ds.length?`${hm(tot)} in ${ds.length} Tagen · ${over}× ${esc(monName(a,false))} aufgetaucht`:"Noch nicht eingetragen"}</p></div></div>`}).join("")}
@@ -2281,7 +2334,7 @@ function bind(){
   const g=$("#simGood"); if(g) g.onclick=()=>simDay(false);
   const b=$("#simBad"); if(b) b.onclick=()=>simDay(true);
   const s10=$("#sim10"); if(s10) s10.onclick=()=>{const keep=S.pending.length;for(let i=0;i<10;i++){if($("#modalRoot").innerHTML) break; simDay(Math.random()<.25)}};
-  document.querySelectorAll("[data-boat]").forEach(x=>x.onclick=()=>startBoat(+x.dataset.boat));
+  document.querySelectorAll("[data-boat]").forEach(x=>x.onclick=()=>focusSheet(+x.dataset.boat));
   document.querySelectorAll("[data-act]").forEach(x=>x.onclick=()=>doActivity(x.dataset.act));
   const nb=$("#nightBtn"); if(nb) nb.onclick=goodNight;
   const vo=$("#vacOff"); if(vo) vo.onclick=()=>setVacation(false);
@@ -2578,11 +2631,13 @@ function showPending(){
     const crew=ev.crew?S.residents.find(x=>x.id===ev.crew):null;
     $("#modalRoot").innerHTML=`<div class="modal"><div class="sheet" role="dialog" aria-modal="true">
       <div class="anim">${base(boat(crew?[crew]:[],"sail-in"),false)}</div>
-      <p class="label" style="color:var(--lilac)">Das Boot ist zurück</p><h2>${ev.dur} Minuten Fokus</h2>
+      <p class="label" style="color:var(--lilac)">Das Boot ist zurück</p><h2>${ev.dur} Minuten Fokus${ev.cat?": "+esc(focusCat(ev.cat)[1]):""}</h2>
+      ${ev.task?`<label class="check" for="boatDone" style="background:var(--ground);border-radius:14px;padding:10px 12px;align-items:flex-start"><input type="checkbox" id="boatDone"><span>Geschafft: <b>${esc(ev.task)}</b><br><span class="small muted">+${Math.round(ev.dur/5)} Punkte und +2 % Glück extra</span></span></label>`:""}
       <p class="muted">${ev.left?"Du hast die App zwischendurch verlassen. ":""}Ehrlich gefragt: Hast du in der Zeit andere Apps benutzt?</p>
       <button class="btn" id="boatYes">Nein, Handy lag weg</button>
       <button class="btn ghost" id="boatNo">Doch, kurz</button></div></div>`;
-    $("#boatYes").onclick=()=>{boatHonest(true,ev.dur,ev.crew);closeModal();render();showPending()};
+    const dn=()=>{const c=$("#boatDone");return !!(c&&c.checked)};
+    $("#boatYes").onclick=()=>{boatHonest(true,ev.dur,ev.crew,ev.cat,ev.task,dn());closeModal();render();showPending()};
     $("#boatNo").onclick=()=>{boatHonest(false,ev.dur,ev.crew);closeModal();render();showPending()};
     return;
   }
