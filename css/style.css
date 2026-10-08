@@ -311,3 +311,16 @@ body.focus-on{overflow:hidden}
 .fam-row+.fam-row{border-top:1px solid var(--card2)}
 .fam-row.me{background:#22301F}
 .fam-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Geschichte: Mr. Bay und Lucifer */
+.says{display:flex;gap:10px;align-items:flex-end}
+.says-pic{width:52px;height:52px;border-radius:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.says.bay .says-pic{background:#2A2F45}
+.says.luc .says-pic{background:#2E2A3D}
+.says-bub{background:var(--ground);border-radius:16px 16px 16px 4px;padding:10px 12px;flex:1}
+.says-bub b{display:block;font-size:13px;color:var(--amber)}
+.says.luc .says-bub b{color:var(--lilac)}
+.story-s{gap:14px}
+.story-art{border-radius:18px;overflow:hidden}
+.story-art svg{display:block;width:100%;height:auto}
+.story-art.past{border:6px solid #F3F1EA;border-radius:6px;transform:rotate(-1.2deg);box-shadow:0 8px 24px rgba(0,0,0,.35);filter:sepia(.35) saturate(1.1)}
+.story-art.grey svg{filter:saturate(.6)}
