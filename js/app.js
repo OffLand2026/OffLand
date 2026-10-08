@@ -375,13 +375,13 @@ function newGame(){
     glueck:60, happyStreak:0, unhappyStreak:0, dayCount:0,
     lastDay:null, material:0, projectIdx:0, built:[],
     residents:[
-      {id:p1,name:h1,kind:"mensch",art:"Mensch",pair:p2,status:"da",ret:0,born:0},
-      {id:p2,name:h2,kind:"mensch",art:"Mensch",pair:p1,status:"da",ret:0,born:0},
+      {id:p1,name:h1,kind:"mensch",art:"Mensch",pair:p2,status:"da",ret:0,born:0,phone:true},
+      {id:p2,name:h2,kind:"mensch",art:"Mensch",pair:p1,status:"da",ret:0,born:0,phone:true},
       {id:z1,name:a1,kind:"tier",art:"Ziege",pair:z2,status:"da",ret:0,born:0},
       {id:z2,name:a2,kind:"tier",art:"Ziege",pair:z1,status:"da",ret:0,born:0}
     ],
     warn:null, pending:[], days:[], feed:[], postcards:[], testmode:false,
-    points:0, items:[], sun:0, rel:{}, conflict:null, arrC:0, birthC:0, allFeatures:false
+    points:0, items:[], sun:0, rel:{}, conflict:null, arrC:0, birthC:0, allFeatures:false, chapter:0
   };
 }
 function migrate(st){
@@ -389,7 +389,7 @@ function migrate(st){
   if(st.points==null)st.points=0; if(!st.items)st.items=[]; if(!st.sun)st.sun=0;
   if(!st.rel)st.rel={}; if(st.conflict===undefined)st.conflict=null;
   if(!st.arrC)st.arrC=0; if(!st.birthC)st.birthC=0;
-  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,focusLog:[],alarm:true,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null},family:null,plan:null,planLog:[],weekReady:null,storySeen:false,duelOff:null,jokerWk:null,lastSurprise:0,surprises:[],duel:null,duelLog:[]};
+  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,focusLog:[],alarm:true,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null},family:null,plan:null,planLog:[],weekReady:null,storySeen:false,chapter:null,fests:0,freed:0,duelOff:null,jokerWk:null,lastSurprise:0,surprises:[],duel:null,duelLog:[]};
   if(st.plusFriend===undefined) st.plusFriend=(st.buddies||[]).length?"alt":null;   // Plus-Monat fürs Einladen gibt es nur einmal
   if(st.allFeatures===undefined) st.allFeatures=(st.dayCount||0)>=1;          // wer schon gespielt hat, behält alles
   for(const k in D){ if(st[k]===undefined) st[k]=D[k]; }
@@ -784,7 +784,7 @@ function extras(day,diff,quests,dreamt){
   // Inselfest nach einer guten Woche
   if(S.dayCount%7===0){
     const g=S.days.slice(-7).filter(d=>d.min<=S.budget).length;
-    if(g>=(has("festzelt")?4:5)){const fp=has("festzelt")?50:30;S.glueck=clamp(S.glueck+5,0,100);S.points+=fp;S.pending.push({type:"fest",good:g});log("Inselfest! "+g+" von 7 Tagen im Budget. +5 % Glück, +"+fp+" Punkte.","good");chron([],"Inselfest nach "+g+" guten Tagen.")}
+    if(g>=(has("festzelt")?4:5)){S.fests=(S.fests||0)+1;const fp=has("festzelt")?50:30;S.glueck=clamp(S.glueck+5,0,100);S.points+=fp;S.pending.push({type:"fest",good:g});log("Inselfest! "+g+" von 7 Tagen im Budget. +5 % Glück, +"+fp+" Punkte.","good");chron([],"Inselfest nach "+g+" guten Tagen.")}
   }
   // Monats-Zeitkapsel
   const mon=day.slice(0,7);
@@ -1229,6 +1229,7 @@ function linesFor(r){
     return L;
   }
   if(r.planWith&&S.dayCount-r.planWith.dc<=1){const p=PLANS.find(x=>x.id===r.planWith.id); if(p) return ["Ich hab heute auch "+p.pp+", genau wie du. Das war richtig schön!"]}
+  if(r.phone) return ["Hm? Ja. Gleich. Nur noch ein Video.","Ich scroll nur kurz. Seit drei Stunden.","Hast du was gesagt? Ich hatte Kopfhörer drin. Glaub ich.","Draußen? Ich seh das Meer doch. Auf meinem Hintergrundbild."];
   if(r.sick) return [`Hatschi! Ich hab ${r.sick.kind} und lieg heute flach.`,"Ein Kräutertee wäre jetzt schön …","Wenn die Insel wieder fröhlicher ist, geht's mir bestimmt bald besser."];
   const lost=S.memorials.find(m=>{const d=S.residents.find(x=>x.id===m.rid);return d&&(r.widowOf===m.rid||(r.parents||[]).includes(m.rid)||(d.parents||[]).includes(r.id))});
   if(lost) L.push(`Ich denke oft an ${lost.name}. Am Erinnerungsbaum ist es so schön ruhig.`);
@@ -1375,7 +1376,11 @@ function closeDay(min,quests,appMin){
   if(repaired) log("Reparatur geschafft: "+repaired+" % Glück vom schlechten Tag zurückgeholt.","good");
   if(dreamt) log("Gute-Nacht-Ritual: +15 Traumpunkte.","good");
   monsters.forEach(id=>{const a=S.apps.find(x=>x.id===id);const n=monName(a);log(n.charAt(0).toUpperCase()+n.slice(1)+" ist aufgetaucht: "+a.name+" lag über "+hm(a.limit)+".","bad")});
-  if(!S.testmode) S.pending.push({type:"day",day,min,before,after:S.glueck,saved,pts,sunny,repaired,dreamt,monsters,joker:0});
+  let freed=null, hooked=null;
+  const onPhone=here().filter(r=>r.kind==="mensch"&&r.phone);
+  if(diff>=0&&onPhone.length){freed=pick(onPhone);freed.phone=false;S.freed=(S.freed||0)+1;log(freed.name+" hat das Handy weggelegt und redet wieder mit allen.","good");chron([freed.id],freed.name+" hat das Handy weggelegt.")}
+  else if(diff<0){const c=here().filter(r=>r.kind==="mensch"&&!r.phone&&stage(r)!=="baby");if(c.length&&Math.random()<.5){hooked=pick(c);hooked.phone=true;log(hooked.name+" hängt wieder am Handy.","bad")}}
+  if(!S.testmode) S.pending.push({type:"day",day,min,before,after:S.glueck,saved,pts,sunny,repaired,dreamt,monsters,joker:0,freed:freed&&freed.name,hooked:hooked&&hooked.name});
   if(!S.testmode) S.pending.push({type:"planAsk",day,good:diff>=0});
   if(!S.testmode&&parse(day).getDay()===0&&S.days.filter(d=>isoWeek(d.day)===isoWeek(day)).length>=2){S.pending.push({type:"week",wk:isoWeek(day)});S.weekReady={wk:isoWeek(day),until:addDays(day,3)}}
 
@@ -1445,6 +1450,7 @@ function closeDay(min,quests,appMin){
     S.pending.push({type:"project",id:p.id});
   }
   checkDiscovery();
+  chapterCheck();
   save(); render(); showPending();
 }
 /* Neue Insel entdeckt, sobald alle Großprojekte der aktuellen Welt stehen */
@@ -1604,12 +1610,13 @@ function figure(r,x,y){
       <circle cx="-1.8" cy="-15.6" r=".75" fill="#14151F"/><circle cx="1.8" cy="-15.6" r=".75" fill="#14151F"/>
       <circle cx="-3.2" cy="-13.8" r="1" fill="#FF9C7A" opacity=".35"/><circle cx="3.2" cy="-13.8" r="1" fill="#FF9C7A" opacity=".35"/>${mouth}${acc.head}
       ${r.retired?`<path d="M-3.6 -16.4h2.6M1 -16.4h2.6M-1 -16.4h2" stroke="#3A3D58" stroke-width=".5" fill="none"/><circle cx="-1.8" cy="-16" r="1.5" fill="none" stroke="#3A3D58" stroke-width=".5"/><circle cx="1.8" cy="-16" r="1.5" fill="none" stroke="#3A3D58" stroke-width=".5"/>`:""}${st==="kind"?"</g>":""}
-      ${st==="alt"?`<path d="M7.4 0v-9.4q0-1.8-1.8-1.8" stroke="#8A5A3B" stroke-width="1.1" fill="none" stroke-linecap="round"/>`:""}</g>`;
+      ${st==="alt"?`<path d="M7.4 0v-9.4q0-1.8-1.8-1.8" stroke="#8A5A3B" stroke-width="1.1" fill="none" stroke-linecap="round"/>`:""}${r.phone?PHONE_FIG:""}</g>`;
   }
   const s=(r.parents?0.7:1)*(r.art==="Wal"?1.6:["Elch","Kamel","Eisbär"].includes(r.art)?1.1:1);
   return `<g transform="translate(${x} ${y}) scale(${s})"><title>${esc(r.name)} (${esc(r.art)})</title>${animalSvg(r.art,animalVar(r))}</g>`;
 }
 /* ---------- Geschichte: Mr. Bay (Bürgermeister) und Lucifer (Inselkatze) ---------- */
+const PHONE_FIG=`<circle cx="0" cy="-14.6" r="6.4" fill="#7FB6FF" opacity=".22"/><path d="M-3 -7.6q3 1.6 6 0" stroke="#F0C2A0" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".9"/><rect x="-1.9" y="-11.2" width="3.8" height="5.8" rx=".9" fill="#2B3350"/><rect x="-1.4" y="-10.6" width="2.8" height="4.4" rx=".5" fill="#9CC8EE"/>`;
 function baySvg(){
   // Mr. Bay: weißes Hemd mit offenem Kragen, dunkelblaues Sakko mit goldenem Bürgermeister-Anstecker, Locken, kleiner Schnurrbart, schiefes Grinsen
   return `<path d="M-2.4 -3.4v3.4M2.4 -3.4v3.4" stroke="#2C3550" stroke-width="2.5" stroke-linecap="round"/>
@@ -1689,6 +1696,68 @@ function partyArt(){
     ppl.map((r,i)=>`<g class="bob" style="animation-delay:${i*.25}s;animation-duration:${1.2+i%2*.4}s">${figure(r,[160,196,236,262,288][i],[140,142,141,138,140][i])}</g>`).join("")+
     an.map((r,i)=>figure(r,[118,214,306][i],[142,147,146][i])).join("")+
     confetti()+`<g transform="translate(0 70)">${confetti()}</g>`;
+}
+/* Kapitel: die bisherigen Meilensteine als Geschichte von OffLand */
+const humansHere=()=>here().filter(r=>r.kind==="mensch").length;
+const CHAPTERS=[
+  {n:"Das stille Dorf",goal:"Hol den ersten Bewohner vom Handy weg: bleib einen Tag im Budget.",ok:()=>(S.freed||0)>=1||!here().some(r=>r.phone),
+    prog:()=>"",bay:"Das Handy liegt! Einfach so! Ich hab's gesehen. Ich hab Zeugen.",luc:"Einer weniger. Bleiben noch … ach, mach einfach weiter so."},
+  {n:"Erste Gespräche",goal:"Alle legen das Handy weg.",ok:()=>!here().some(r=>r.kind==="mensch"&&r.phone),
+    prog:()=>{const n=here().filter(r=>r.kind==="mensch"&&r.phone).length;return n?"Noch "+n+(n===1?" Bewohner":" Bewohner")+" am Handy":""},bay:"Sie reden wieder miteinander. Über Wetter, über Fische, über mich. Hauptsache reden!",luc:"Ich hab heute zum ersten Mal seit Jahren jemanden lachen gehört. War nicht ich."},
+  {n:"Licht am Horizont",goal:"Bau das erste Großprojekt.",ok:()=>S.built.length>=1,
+    prog:()=>{const p=curProjects()[S.projectIdx];return p?Math.floor(S.material/60)+" von "+p.hours+" h Baumaterial":""},bay:"Das erste Großprojekt seit Jahren. Ich hab eine Rede vorbereitet. Drei Seiten. Keine Sorge, ich les nur die erste.",luc:"Schön. Sehr schön. Wo ist mein Fisch?"},
+  {n:"Neue Gesichter",goal:"Bring OffLand auf 4 Menschen.",ok:()=>humansHere()>=4,
+    prog:()=>humansHere()+" von 4 Menschen",bay:"Es spricht sich rum: Auf OffLand ist wieder was los. Ich hab's übrigens nicht gepostet. Das war Mund zu Mund.",luc:"Mehr Leute, mehr Schoß zum Draufliegen. Ich bin dafür."},
+  {n:"Das erste Fest",goal:"Feier ein Inselfest: 5 von 7 Tagen im Budget.",ok:()=>(S.fests||0)>=1,
+    prog:()=>{const g=S.days.slice(-7).filter(d=>d.min<=S.budget).length;return g+" von 5 guten Tagen in den letzten 7"},bay:"Lichterketten, Lagerfeuer, alle draußen. Genau so hab ich es in Erinnerung. Nur mit besserer Musik.",luc:"Ich hab getanzt. Niemand hat's gesehen. Niemand wird es je erfahren."},
+  {n:"Die Brücke",goal:"Bau die Brücke zur Nachbarinsel.",ok:()=>S.built.includes(WORLDS[0].isle2)||(S.world||0)>0,
+    prog:()=>{const p=PROJECTS.find(x=>x.id===WORLDS[0].isle2);return p&&!S.built.includes(p.id)?"Großprojekt „"+p.name+"“":""},bay:"Die Brücke steht wieder. Wie damals. Ich geh jetzt jeden Tag einmal drüber. Nur weil ich kann.",luc:"Eine Brücke. Für Leute ohne Pfoten, die nicht springen können. Süß."},
+  {n:"OffLand lebt",goal:"Bau alle Großprojekte der Heimatinseln.",ok:()=>(S.world||0)>0||PROJECTS.every(p=>S.built.includes(p.id)),
+    prog:()=>PROJECTS.filter(p=>S.built.includes(p.id)).length+" von "+PROJECTS.length+" Großprojekten",bay:"OffLand lebt. Ich hab's nicht allein geschafft. Ich hab's mit dir geschafft. Und jetzt ist da draußen noch mehr Meer.",luc:"Du hast das wirklich durchgezogen. Ich bin … stolz. Erzähl's niemandem."}
+];
+function chapterCheck(silent){
+  if(S.chapter==null){S.chapter=0; if(S.dayCount>0) silent=true}            // ältere Spielstände: erledigte Kapitel still nachholen
+  while(S.chapter<CHAPTERS.length&&CHAPTERS[S.chapter].ok()){
+    const n=S.chapter; S.chapter++;
+    chron([],"Kapitel "+(n+1)+" geschafft: "+CHAPTERS[n].n+".");
+    if(!silent) S.pending.push({type:"chapter",n});
+  }
+}
+function damalsArt(n){
+  const a=storyIsle("past","96 70 236 118"), g=(x,y,i)=>figure({id:"d"+n+i,name:"x",kind:"mensch",look:{skin:i%5,hair:(i*3)%7,style:[0,1,7,4,11,8][i%6],shirt:i*2%10,acc:[],accC:0}},x,y);
+  const lt=`<g transform="translate(150 132)"><path d="M-8 0h16l-3-40h-10z" fill="#F3F1EA"/><path d="M-7 -12h14M-6 -24h12" stroke="#FF9C7A" stroke-width="4"/><rect x="-6" y="-48" width="12" height="9" rx="2" fill="#FFD27A"/><path d="M-6 -44L-70 -60v28z" fill="#FFE7A3" opacity=".5"/></g>`;
+  const art=[`<g transform="translate(200 146) scale(.9)">${itemSvg("feuer")}</g>`+g(178,140,0)+g(222,140,1),
+    `<g transform="translate(200 146)">${itemSvg("bank")}</g>`+g(190,140,2)+g(210,140,3)+hearts(200,112),
+    lt+g(180,140,4),
+    boat([{id:"bx",kind:"mensch",name:"x"},{id:"by",kind:"mensch",name:"y"}],"")+g(200,140,5)+g(220,140,0),
+    partyArt(),
+    `<path d="M96 140q24-26 48 0" fill="none" stroke="#8A5A3B" stroke-width="4" stroke-linecap="round"/>`+g(120,124,1)+g(200,140,2),
+    partyArt()][n]||"";
+  return a.open+art+`</svg>`;
+}
+function chapterSheet(n,fresh){
+  const c=CHAPTERS[n], next=CHAPTERS[n+1];
+  sheet(`<p class="label" style="color:var(--amber)">Kapitel ${n+1}${fresh?" geschafft":""}</p><h2>${esc(c.n)}</h2>
+    <div class="dh"><figure><div class="anim story-art past">${damalsArt(n)}</div><figcaption>Damals</figcaption></figure>
+      <figure><div class="anim story-art">${scene()}</div><figcaption>Heute</figcaption></figure></div>
+    ${saysHtml("bay",c.bay)}${saysHtml("luc",c.luc)}
+    ${fresh&&next?`<p class="small muted">Weiter geht's mit Kapitel ${n+2}: <b style="color:var(--ink)">${esc(next.n)}</b>. ${esc(next.goal)}</p>`:""}
+    ${fresh&&!next?`<p class="small muted">Fortsetzung folgt … auf neuen Inseln.</p>`:""}
+    <button class="btn" data-ok>${fresh?"Ins Album kleben":"Schließen"}</button>`);
+}
+function chapterCard(){
+  if(S.chapter==null||!S.setup) return "";
+  const c=CHAPTERS[S.chapter];
+  if(!c) return `<div class="card chap-card"><div class="row"><span class="says-pic" style="background:#2A2F45">${bayPic(44)}</span><div class="grow"><p class="label" style="color:var(--amber)">Geschichte</p><p><b>Alle ${CHAPTERS.length} Kapitel geschafft</b></p><p class="small muted">Fortsetzung folgt auf neuen Inseln.</p></div></div></div>`;
+  const pr=c.prog();
+  return `<div class="card chap-card"><div class="row"><span class="says-pic" style="background:#2A2F45">${bayPic(44)}</span><div class="grow"><p class="label" style="color:var(--amber)">Kapitel ${S.chapter+1} von ${CHAPTERS.length}</p><p><b>${esc(c.n)}</b></p><p class="small muted">${esc(c.goal)}${pr?" · "+esc(pr):""}</p></div></div></div>`;
+}
+function viewBayAlbum(){
+  if(S.chapter==null) return "";
+  const done=Math.min(S.chapter,CHAPTERS.length);
+  return `<div class="card"><div class="row between"><p class="label">Mr. Bays Album</p><span class="small muted num">${done} / ${CHAPTERS.length} Kapitel</span></div>
+    <div class="bay-album">${CHAPTERS.map((c,i)=>i<done?`<button class="bay-page" data-chap="${i}"><div class="story-art past">${damalsArt(i)}</div><span>${i+1}. ${esc(c.n)}</span></button>`
+      :`<div class="bay-page locked"><div class="lock">?</div><span>${i+1}. ${i===done?esc(c.n):"…"}</span></div>`).join("")}</div></div>`;
 }
 function storySlides(existing){
   const kids=here().filter(r=>r.kind==="mensch").slice(0,3);
@@ -2213,6 +2282,7 @@ function viewHeute(){
     <div class="stat"><span class="label">Bewohner</span><b class="num">${occupied()}/${capacity()}</b><span class="small muted">Plätze${here().some(isPet)?" + "+here().filter(isPet).length+" Haustiere":""}</span></div>
     <div class="stat"><span class="label">Punkte</span><b class="num" style="color:var(--lilac)">${S.points}</b><span class="small muted">${S.sun?S.sun+"× Sonne":"zum Bauen"}</span></div>
   </div>
+  ${chapterCard()}
   ${planCard()}
   ${S.weekReady&&today()<=S.weekReady.until?`<div class="card week-ready"><div class="row"><span class="plan-ic" style="background:#26233D;color:var(--lilac)"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h6a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4zM20 5h-6a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h6z"/></svg></span><div class="grow"><p class="label" style="color:var(--lilac)">Neu</p><p><b>Deine Inselwoche KW ${+S.weekReady.wk.split("-W")[1]} ist da</b></p><p class="small muted">Gewonnene Zeit, bester Tag und was auf der Insel los war.</p></div></div><button class="btn secondary" id="weekReadyBtn">Wochenrückblick ansehen</button></div>`:""}
   ${S.vacation?`<div class="card" style="border:1.5px solid var(--lilac)"><p class="label" style="color:var(--lilac)">Urlaubsmodus</p><p>${guard?`<b>${esc(guard.name)}</b> hütet die Insel, bis du zurück bist.`:"Die Insel schläft, bis du zurück bist."} Das Glück sinkt in der Zeit nicht.</p><button class="btn secondary" id="vacOff">Ich bin zurück</button></div>`:""}
@@ -2617,7 +2687,7 @@ function viewKapseln(){
 }
 function viewVerlauf(){
   const col={good:"var(--lime)",bad:"var(--coral)",info:"var(--lilac)"};
-  return `${viewAlbum()}${viewStrandgut()}${viewKapseln()}
+  return `${viewBayAlbum()}${viewAlbum()}${viewStrandgut()}${viewKapseln()}
   <div class="card"><div class="row between"><p class="label">Letzte 14 Tage</p><span class="small muted">${S.days.length} Tage gespielt</span></div>${chart()||`<p class="muted">Noch keine Tage eingetragen.</p>`}</div>
   <div class="card feed"><p class="label">Inseltagebuch</p><ul>${S.feed.slice(0,40).map(f=>`<li><span class="dot" style="background:${col[f.kind]}"></span><div><p>${esc(f.text)}</p>${f.day?`<p class="small muted">${nice(f.day)}</p>`:""}</div></li>`).join("")||`<li><p class="muted">Hier erscheint, was auf deiner Insel passiert.</p></li>`}</ul></div>
 `;
@@ -2781,6 +2851,7 @@ function bind(){
   const nb=$("#nightBtn"); if(nb) nb.onclick=goodNight;
   const pdn=$("#planDone"); if(pdn) pdn.onclick=()=>{const pl=S.plan, p=pl&&PLANS.find(x=>x.id===pl.id); if(!p) return; pl.res=true; const r=planResult(true,pl.id,pl.day); save(); render(); planDoneSheet(p,r)};
   const wrb=$("#weekBtn"); if(wrb) wrb.onclick=()=>weekSheet(wrb.dataset.wk);
+  document.querySelectorAll("[data-chap]").forEach(b=>b.onclick=()=>chapterSheet(+b.dataset.chap,false));
   const wrr=$("#weekReadyBtn"); if(wrr) wrr.onclick=()=>weekSheet(S.weekReady.wk);
   const vo=$("#vacOff"); if(vo) vo.onclick=()=>setVacation(false);
   const dt=$("#deathToggle"); if(dt) dt.onchange=()=>{S.natDeath=dt.checked;save()};
@@ -2924,6 +2995,7 @@ function showPending(){
   }
   if(ev.type==="week") return weekSheet(ev.wk);
   if(ev.type==="planAsk") return planAskSheet(ev);
+  if(ev.type==="chapter") return chapterSheet(ev.n,true);
   if(ev.type==="jokerAsk"){
     if(S.jokerWk===ev.wk||S.lastDay!==ev.day) return showPending();
     $("#modalRoot").innerHTML=`<div class="modal"><div class="sheet" role="dialog" aria-modal="true">
@@ -2949,6 +3021,8 @@ function showPending(){
       <div class="row between"><h2>${good?"Gut gemacht!":"Heute war viel Handy"}</h2><span class="countup num" id="cu" style="font-size:28px;color:${ev.after>=ev.before?"var(--lime)":"var(--coral)"}">${ev.before} %</span></div>
       <p class="muted">${hm(ev.min)} Bildschirmzeit, ${good?hm(diff)+" unter":hm(diff)+" über"} deinem Budget.</p>
       <p><b style="color:var(--lilac)">+${ev.pts||0} Punkte</b> <span class="small muted">für den Laden</span>${ev.sunny?` · <span class="small" style="color:var(--amber)">Sonnenschein hat geholfen</span>`:""}</p>
+      ${ev.freed?`<p class="phone-note good">📵 <b>${esc(ev.freed)}</b> hat das Handy weggelegt und redet wieder mit allen.</p>`:""}
+      ${ev.hooked?`<p class="phone-note bad">📱 <b>${esc(ev.hooked)}</b> hängt wieder am Handy. Ein guter Tag holt ${esc(ev.hooked)} zurück.</p>`:""}
       ${ev.joker?`<div class="joker-note"><span class="joker-card" aria-hidden="true">🃏</span><p><b>Joker eingesetzt!</b> Deine Serie von ${ev.joker} Tagen im Budget bleibt bestehen. Den nächsten Joker gibt es ab Montag.</p></div>`:""}
       ${ev.repaired?`<p style="color:var(--lime)">Reparatur geschafft: +${ev.repaired} % vom schlechten Tag zurückgeholt.</p>`:""}
       ${ev.dreamt?`<p style="color:var(--lilac)">+15 Traumpunkte vom Gute-Nacht-Ritual.</p>`:""}
@@ -4368,6 +4442,7 @@ function login(p){
   const st=lsGet(); S=migrate(st&&st.v===1?st:newGame()); tab="heute"; if(S.setup) checkDiscovery();
   document.body.classList.remove("start"); $("#start").innerHTML="";
   closeModal(); render(); window.scrollTo(0,0);
+  if(S.setup&&S.chapter==null){chapterCheck(true);save()}
   if(!S.storySeen) storySheet(!!S.setup); else showPending();
   if(S.setup&&pendingInvite()&&!$("#modalRoot").innerHTML) inviteSheet();
   if(S.setup&&famInvite()&&!S.family&&!$("#modalRoot").innerHTML) famJoinSheet(famInvite());

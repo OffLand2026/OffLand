@@ -324,3 +324,17 @@ body.focus-on{overflow:hidden}
 .story-art svg{display:block;width:100%;height:auto}
 .story-art.past{border:6px solid #F3F1EA;border-radius:6px;transform:rotate(-1.2deg);box-shadow:0 8px 24px rgba(0,0,0,.35);filter:sepia(.35) saturate(1.1)}
 .story-art.grey svg{filter:saturate(.6)}
+/* Kapitel, Handys, Album */
+.phone-note{border-radius:14px;padding:8px 12px;font-size:14px}
+.phone-note.good{background:#22301F}
+.phone-note.bad{background:#3A2220}
+.dh{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0}
+.dh figure{margin:0;display:flex;flex-direction:column;gap:4px}
+.dh figcaption{font-size:12px;font-weight:700;color:var(--muted);text-align:center}
+.dh .story-art.past{border-width:4px}
+.chap-card .says-pic{width:48px;height:48px}
+.bay-album{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.bay-page{display:flex;flex-direction:column;gap:6px;background:none;border:none;padding:0;color:var(--ink);font:700 12px var(--body);text-align:left;cursor:pointer}
+.bay-page .story-art.past{border-width:4px;transform:rotate(-1deg)}
+.bay-page.locked{color:var(--muted)}
+.bay-page .lock{aspect-ratio:2;border-radius:6px;border:2px dashed var(--line);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--line)}
