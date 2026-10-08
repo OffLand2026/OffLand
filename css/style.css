@@ -333,8 +333,13 @@ body.focus-on{overflow:hidden}
 .dh figcaption{font-size:12px;font-weight:700;color:var(--muted);text-align:center}
 .dh .story-art.past{border-width:4px}
 .chap-card .says-pic{width:48px;height:48px}
-.bay-album{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.bay-page{display:flex;flex-direction:column;gap:6px;background:none;border:none;padding:0;color:var(--ink);font:700 12px var(--body);text-align:left;cursor:pointer}
-.bay-page .story-art.past{border-width:4px;transform:rotate(-1deg)}
-.bay-page.locked{color:var(--muted)}
-.bay-page .lock{aspect-ratio:2;border-radius:6px;border:2px dashed var(--line);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--line)}
+.bay-cover{border:none;display:flex;flex-direction:column;gap:10px;width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer}
+.bay-stack{position:relative;padding:4px 10px}
+.bay-stack::before,.bay-stack::after{content:"";position:absolute;inset:8px 18px;border-radius:6px;background:#E9E1CF;transform:rotate(3deg);z-index:0}
+.bay-stack::after{transform:rotate(-2.5deg);background:#D9CFB8}
+.bay-stack .story-art{position:relative;z-index:1;transform:rotate(-1deg)}
+.bay-stack .lock,.bay-empty{aspect-ratio:2;border-radius:6px;border:2px dashed var(--line);display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--muted);position:relative;z-index:1}
+.bay-open{font-weight:700;font-size:13px;color:var(--amber);white-space:nowrap}
+.bay-photo{margin:0;display:flex;flex-direction:column;gap:6px;align-items:center}
+.bay-photo .story-art{width:100%;transform:rotate(-1deg)}
+.bay-photo figcaption{font-size:12px;color:var(--muted)}

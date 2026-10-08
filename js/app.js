@@ -1789,10 +1789,28 @@ function chapterCard(){
 }
 function viewBayAlbum(){
   if(S.chapter==null) return "";
-  const done=Math.min(S.chapter,CHAPTERS.length);
-  return `<div class="card"><div class="row between"><p class="label">Mr. Bays Album</p><span class="small muted num">${done} / ${CHAPTERS.length} Kapitel</span></div>
-    <div class="bay-album">${CHAPTERS.map((c,i)=>i<done?`<button class="bay-page" data-chap="${i}"><div class="story-art past">${c.world?worldPhoto(c.world,c.k):damalsArt(i)}</div><span>${i+1}. ${esc(c.n)}</span></button>`
-      :`<div class="bay-page locked"><div class="lock">?</div><span>${i+1}. ${i===done?esc(c.n):"…"}</span></div>`).join("")}</div></div>`;
+  const done=Math.min(S.chapter,CHAPTERS.length), last=done-1, c=CHAPTERS[Math.max(0,last)];
+  return `<button class="card bay-cover" id="bayAlbum"><div class="row between"><p class="label">Mr. Bays Album</p><span class="small muted num">${done} / ${CHAPTERS.length} Kapitel</span></div>
+    <div class="bay-stack">${done?`<div class="story-art past">${c.world?worldPhoto(c.world,c.k):damalsArt(last)}</div>`:`<div class="lock">?</div>`}</div>
+    <p class="row between"><span class="small muted">${done?`Zuletzt: <b style="color:var(--ink)">${esc(c.n)}</b>`:"Noch leer. Das erste Foto kommt bald."}</span><span class="bay-open">Durchblättern ›</span></p></button>`;
+}
+function bayAlbumSheet(){
+  const done=Math.min(S.chapter,CHAPTERS.length), next=CHAPTERS[done];
+  const slides=CHAPTERS.slice(0,done).map((c,i)=>`<p class="label" style="color:var(--amber)">Kapitel ${i+1}</p><h2>${esc(c.n)}</h2>
+      <figure class="bay-photo"><div class="story-art past">${c.world?worldPhoto(c.world,c.k):damalsArt(i)}</div><figcaption>${c.world?"Reisefoto":"Damals"}</figcaption></figure>
+      ${saysHtml("bay",c.bay)}${saysHtml("luc",c.luc)}`);
+  slides.push(next?`<p class="label">Als Nächstes</p><h2>Kapitel ${done+1}: ${esc(next.n)}</h2>
+      <figure class="bay-photo"><div class="bay-empty">?</div><figcaption>Hier kommt das nächste Foto rein</figcaption></figure>
+      <p class="muted">${esc(next.goal)}</p>${saysHtml("bay","Ich hab schon den Kleber bereitgelegt. Kein Druck. Ein bisschen Druck.")}`
+    :`<p class="label" style="color:var(--lime)">Album voll</p><h2>Alle ${CHAPTERS.length} Kapitel</h2><p class="muted">Die ganze Geschichte von OffLand ist erzählt. Mr. Bay ist sehr stolz.</p>${saysHtml("luc","Ich hab mich auf jedes Foto draufgesetzt. Das ist ein Kompliment.")}`);
+  sheet(`<div class="wr" id="wr">${slides.map(x=>`<section class="wr-s">${x}</section>`).join("")}</div>
+    <p class="small muted num" style="text-align:center" id="wrPos">1 / ${slides.length}</p>
+    <div class="row"><button class="btn ghost grow" id="wrClose">Schließen</button><button class="btn grow" id="wrNext">Weiter</button></div>`);
+  const box=$("#wr"), idx=()=>Math.round(box.scrollLeft/box.clientWidth);
+  const upd=()=>{const i=idx();$("#wrPos").textContent=`${i+1} / ${slides.length}`;$("#wrNext").textContent=i>=slides.length-1?"Fertig":"Weiter"};
+  box.onscroll=upd; upd();
+  $("#wrNext").onclick=()=>{const i=idx(); if(i>=slides.length-1) return closeModal(); box.scrollTo({left:(i+1)*box.clientWidth,behavior:"smooth"})};
+  $("#wrClose").onclick=closeModal;
 }
 function storySlides(existing){
   const kids=here().filter(r=>r.kind==="mensch").slice(0,3);
@@ -2334,7 +2352,7 @@ function viewHeute(){
   </div>`:""}
   ${nextCard()}
   ${closeFirst?"":closeCard}
-  ${p?`<div class="card"><div class="row between"><p class="label">Großprojekt</p><span class="small muted num">${Math.floor(S.material/60)} / ${p.hours} h</span></div><p><b>${p.name}</b></p><div class="bar"><i style="width:${Math.min(100,S.material/(p.hours*60)*100)}%;background:var(--lilac)"></i></div><p class="small muted">Jede Minute unter deinem bisherigen Schnitt (${hm(S.baseline)}) wird Baumaterial.</p></div>`:""}
+  ${p?`<div class="card"><div class="row between"><p class="label">Groẞprojekt</p><span class="small muted num">${Math.floor(S.material/60)} / ${p.hours} h</span></div><p><b>${p.name}</b></p><div class="bar"><i style="width:${Math.min(100,S.material/(p.hours*60)*100)}%;background:var(--lilac)"></i></div><p class="small muted">Jede Minute unter deinem bisherigen Schnitt (${hm(S.baseline)}) wird Baumaterial.</p></div>`:""}
   ${friendsCard()}
   ${devMode()||S.testmode?`<div class="card">
     <div class="row between"><p class="label">Testmodus</p><label class="check" for="tm" style="min-height:auto"><input type="checkbox" id="tm" ${S.testmode?"checked":""}> an</label></div>
@@ -2674,7 +2692,7 @@ function viewGemeinsam(){
   const GOAL=100*60;
   const jt=JOINT?JOINT.total:0;
   const canSail=has("schiff")||S.testmode;
-  return `<div class="card"><p class="label">Gemeinsames Großprojekt</p><p><b>Brücke der Freundschaft</b></p>
+  return `<div class="card"><p class="label">Gemeinsames Groẞprojekt</p><p><b>Brücke der Freundschaft</b></p>
     <div class="bar"><i style="width:${Math.min(100,jt/GOAL*100)}%;background:var(--amber)"></i></div>
     <p class="small muted">${JOINT?`${hm(jt)} von 100 h, gesammelt von ${JOINT.n} ${JOINT.n===1?"Insel":"Inseln"}. Jede gesparte Minute zählt, ohne Rangliste.`:"Wird geladen …"}</p></div>
   <div class="card"><p class="label">Inseln deiner Freund:innen</p>
@@ -2886,7 +2904,7 @@ function bind(){
   const nb=$("#nightBtn"); if(nb) nb.onclick=goodNight;
   const pdn=$("#planDone"); if(pdn) pdn.onclick=()=>{const pl=S.plan, p=pl&&PLANS.find(x=>x.id===pl.id); if(!p) return; pl.res=true; const r=planResult(true,pl.id,pl.day); save(); render(); planDoneSheet(p,r)};
   const wrb=$("#weekBtn"); if(wrb) wrb.onclick=()=>weekSheet(wrb.dataset.wk);
-  document.querySelectorAll("[data-chap]").forEach(b=>b.onclick=()=>chapterSheet(+b.dataset.chap,false));
+  if($("#bayAlbum")) $("#bayAlbum").onclick=bayAlbumSheet;
   const wrr=$("#weekReadyBtn"); if(wrr) wrr.onclick=()=>weekSheet(S.weekReady.wk);
   const vo=$("#vacOff"); if(vo) vo.onclick=()=>setVacation(false);
   const dt=$("#deathToggle"); if(dt) dt.onchange=()=>{S.natDeath=dt.checked;save()};
@@ -3282,7 +3300,7 @@ function showPending(){
   }
   if(ev.type==="project"){
     const p=projById(ev.id);
-    return sheet(`${scene}<p class="label" style="color:var(--lime)">Großprojekt fertig</p><h2>${esc(p.name)} gebaut!</h2><p class="muted">${esc(p.text)}.</p><button class="btn" data-ok>Zur Insel</button>`);
+    return sheet(`${scene}<p class="label" style="color:var(--lime)">Groẞprojekt fertig</p><h2>${esc(p.name)} gebaut!</h2><p class="muted">${esc(p.text)}.</p><button class="btn" data-ok>Zur Insel</button>`);
   }
   showPending();
 }
