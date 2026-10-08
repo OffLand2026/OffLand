@@ -3383,8 +3383,9 @@ let FAMC=null;
 function famMine(){
   const f=S.family, since=f.joined||"0000", days={};
   S.days.slice(-14).forEach(d=>{days[d.day]=f.share?{g:d.min<=S.budget,m:d.min}:{g:d.min<=S.budget}});
-  const good=S.days.filter(d=>d.day>=since&&d.min<=S.budget).length;
-  const o={name:netName(),avatar:netAv(),joined:since,share:!!f.share,days,good,streak:S.budgetStreak,updated:Date.now()};
+  const mine=S.days.filter(d=>d.day>=since), good=mine.filter(d=>d.min<=S.budget).length;
+  const saved=Math.round(mine.reduce((a,d)=>a+Math.max(0,S.baseline-d.min),0));   // Minuten weniger als der bisherige Schnitt
+  const o={name:netName(),avatar:netAv(),joined:since,share:!!f.share,days,good,saved,streak:S.budgetStreak,updated:Date.now()};
   if(f.look) o.look=f.look;
   return o;
 }
@@ -3398,37 +3399,28 @@ async function famSync(){
   const f=S.family; if(!f||!netConfigured()) return null;
   try{
     const N=await netInit(), path=()=>"families/"+f.id+"/members/"+f.mid, mine=()=>Object.assign({owner:N.uid},famMine());
-    try{await N.set(path(),mine())}catch(e){
+    // Regeln ohne Feld "saved" (noch nicht neu veröffentlicht): ohne speichern
+    const put=async()=>{try{await N.set(path(),mine())}catch(e){const m=mine();if(!("saved" in m))throw e;delete m.saved;await N.set(path(),m)}};
+    try{await put()}catch(e){
       // Gerät hat eine neue Online-Kennung (Backup, anderes Gerät, Browserdaten gelöscht): neu anmelden
       const fam=await N.get("families/"+f.id);
       if(!fam){FAMC={at:Date.now(),gone:true};return "gone"}
       await N.set("families/"+f.id+"/uids/"+N.uid,{at:Date.now()}).catch(()=>{});
-      try{await N.set(path(),mine())}catch(e2){f.mid=rid();save();await N.set(path(),mine())}
+      try{await put()}catch(e2){f.mid=rid();save();await put()}
     }
     const members=famDedupe(await N.list("families/"+f.id+"/members"));
     FAMC={at:Date.now(),members};
-    famGoalCheck(members);
     return members;
   }catch(e){console.warn("Familieninsel:",e);return null}
 }
 function famStats(members){
   const wk=isoWeek(today()), td=today();
-  let week=0,total=0,todayGood=0,todayIn=0;
-  members.forEach(m=>{total+=m.good||0;const d=m.days||{};
+  let week=0,total=0,todayGood=0,todayIn=0,saved=0;
+  members.forEach(m=>{total+=m.good||0;saved+=m.saved||0;const d=m.days||{};
     Object.keys(d).forEach(k=>{if(isoWeek(k)===wk&&d[k].g)week++});
     if(d[td]){todayIn++;if(d[td].g)todayGood++}});
   const target=Math.max(4,members.length*4);
-  return {wk,week,total,todayGood,todayIn,target};
-}
-function famGoalCheck(members){
-  const f=S.family; if(!f) return;
-  const st=famStats(members); f.claimed=f.claimed||{};
-  if(st.week>=st.target&&!f.claimed[st.wk]){
-    f.claimed[st.wk]=true; S.points+=50; S.glueck=clamp(S.glueck+5,0,100);
-    log("Familienziel geschafft: "+st.week+" gute Tage zusammen. +50 Punkte, +5 % Glück.","good");
-    S.pending.push({type:"famgoal",good:st.week,target:st.target,total:st.total,members:members.map(m=>({name:m.name,id:m.id}))});
-    save(); showPending();
-  }
+  return {wk,week,total,todayGood,todayIn,target,saved};
 }
 function famScene(members,total,party){
   const built=FAM_PROJECTS.filter(p=>total>=p.need);
@@ -3462,16 +3454,16 @@ async function fillFamily(){
   if(!members){$("#famBox").innerHTML=`<p class="label">Familieninsel</p><h2>${esc(S.family.name)}</h2><p class="err">Keine Verbindung. Prüf dein Internet und versuch es noch mal.</p><button class="btn secondary" id="famRetry">Noch mal versuchen</button>`;
     $("#famRetry").onclick=()=>{FAMC=null;$("#famBox").innerHTML=`<p class="label">Familieninsel</p><h2>${esc(S.family.name)}</h2><p class="muted">Lade …</p>`;fillFamily()};return}
   const st=famStats(members), next=FAM_PROJECTS.find(p=>st.total<p.need);
-  members.sort((a,b)=>(b.good||0)-(a.good||0));
+  members.sort((a,b)=>(b.saved||0)-(a.saved||0)||(b.good||0)-(a.good||0));
   $("#famBox").innerHTML=`<p class="label" style="color:var(--lime)">Familieninsel</p><h2>${esc(S.family.name)}</h2>
     <div class="anim" style="border-radius:18px;overflow:hidden">${famScene(members,st.total,st.todayIn>0&&st.todayGood===members.length)}</div>
     <p><b>Heute:</b> ${st.todayIn?`${st.todayGood} von ${members.length} im Budget`:"noch niemand eingetragen"}</p>
-    <div><div class="row between"><span class="small"><b>Wochenziel</b> · ${st.week} / ${st.target} gute Tage</span><span class="small muted">${S.family.claimed&&S.family.claimed[st.wk]?"geschafft ✓":"+50 Punkte für alle"}</span></div>
-      <div class="bar"><i style="width:${Math.min(100,st.week/st.target*100)}%"></i></div></div>
+    <div style="background:var(--ground);border-radius:16px;padding:12px 14px"><p class="small muted">Zusammen weniger am Handy, seit ihr dabei seid</p><p class="num" style="font-size:26px;font-weight:800;color:var(--lime)">${hm(st.saved)}</p></div>
     <div><div class="row between"><span class="small"><b>Familienprojekte</b> · ${st.total} gute Tage zusammen</span><span class="small muted">${next?"nächstes: "+esc(next.n)+" bei "+next.need:"alles gebaut!"}</span></div>
       <div class="bar"><i style="width:${next?Math.min(100,st.total/next.need*100):100}%"></i></div></div>
     <div style="display:flex;flex-direction:column;gap:6px">${members.map(m=>{const d=(m.days||{})[today()];
-      return `<div class="row between"><span>${esc(m.name||"?")}${m.id===S.family.mid?" (du)":""}</span><span class="small ${d?(d.g?"":"muted"):"muted"}" style="${d&&d.g?"color:var(--lime);font-weight:700":""}">${d?(d.g?"heute im Budget":"heute drüber"):"noch offen"}${d&&d.m!=null?" · "+hm(d.m):""} · ${m.good||0} gute Tage</span></div>`}).join("")}</div>
+      return `<div class="row between"><span>${esc(m.name||"?")}${m.id===S.family.mid?" (du)":""}</span><span class="small ${d?(d.g?"":"muted"):"muted"}" style="${d&&d.g?"color:var(--lime);font-weight:700":""}">${d?(d.g?"heute im Budget":"heute drüber"):"noch offen"}${d&&d.m!=null?" · "+hm(d.m):""}</span></div>
+        <div class="row between" style="margin-top:-4px"><span class="small muted">${m.good||0} gute ${m.good===1?"Tag":"Tage"}</span><span class="small" style="font-weight:700">${m.saved!=null?hm(m.saved)+" gespart":"–"}</span></div>`}).join("")}</div>
     <p class="small muted" style="text-align:center">Familien-Code: <b class="num" style="color:var(--ink);letter-spacing:.1em">${S.family.code}</b></p>
     <div class="row"><button class="btn secondary grow" id="famLook">Meine Figur anpassen</button><button class="btn secondary grow" id="famInvite">Familie einladen</button></div>`;
   const fl=$("#famLook"); if(fl) fl.onclick=famLookSheet;
@@ -3479,7 +3471,7 @@ async function fillFamily(){
 }
 function famConsent(title,after){
   modal(`<p class="label" style="color:var(--lime)">Familieninsel</p><h2>${esc(title)}</h2>
-    <p class="muted">Deine Familie sieht deinen Namen „${esc(netName())}“, deinen Avatar und an welchen Tagen du im Budget warst.</p>
+    <p class="muted">Deine Familie sieht deinen Namen „${esc(netName())}“, deinen Avatar, wie viel Zeit du insgesamt gespart hast und an welchen Tagen du im Budget warst.</p>
     <label class="check" for="fcShare"><input type="checkbox" id="fcShare"> Auch meine Minuten zeigen</label>
     <p class="small muted">Deine eigene Insel bleibt unverändert. Verlassen kannst du die Familieninsel jederzeit in den Einstellungen.</p>
     <p class="err" id="fcErr" role="alert"></p>
