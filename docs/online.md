@@ -106,7 +106,7 @@ Im Tab **Freunde** → „Familieninsel gründen“ oder mit einem Familien-Code
 
 - Jede Person behält ihre eigene Insel. Die gemeinsame Familieninsel zeigt alle Mitglieder als Figuren.
 - **Familienprojekte** (Lagerfeuer, Familienbank, Gemüsegarten, Baumhaus, Bootssteg, Laternenweg, Festzelt) werden mit den guten Tagen aller freigeschaltet.
-- **Wochenziel:** 4 gute Tage pro Person zusammen. Ist es erreicht, bekommt jede:r +50 Punkte und +5 % Glück.
-- **Geteilt wird** Name, Avatar und pro Tag nur „im Budget ja/nein“ (letzte 14 Tage). Minuten nur, wenn die Person „Auch meine Minuten zeigen“ anhakt.
+- **Gesparte Zeit:** Pro Person und zusammen, wie viel weniger am Handy seit dem Beitritt (gegenüber dem eigenen bisherigen Schnitt).
+- **Geteilt wird** Name, Avatar, die gesparte Zeit insgesamt und pro Tag nur „im Budget ja/nein“ (letzte 14 Tage). Minuten nur, wenn die Person „Auch meine Minuten zeigen“ anhakt.
 - In Firestore: `families/{id}` (Name, Code), `famcodes/{code}`, `families/{id}/uids/{uid}` (Mitgliedschaft pro Gerät) und `families/{id}/members/{id}`. Lesen dürfen nur Mitglieder.
 - Bis zu 12 Personen pro Familieninsel. Verlassen geht in den Einstellungen, beim Löschen des Kontos passiert es automatisch.

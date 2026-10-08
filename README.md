@@ -15,7 +15,7 @@ Ein kleines Handy-Spiel gegen zu viel Bildschirmzeit: Du trägst jeden Abend ein
 - **Freunde und Ranglisten (online, freiwillig):** Freund:innen per Code oder Einladungslink verbinden, Wochen-Rangliste unter Freund:innen und für alle (wer war im Schnitt am wenigsten am Handy). Läuft über Firebase. Einrichtung: [docs/online.md](docs/online.md)
 - **Sanfter Einstieg:** In der ersten Woche werden Funktionen Tag für Tag freigeschaltet (Quests, Laden, Fokus-Boot, App-Monster, Freunde, Album, Weltreise), jeweils mit kurzer Vorstellung
 - **Bildschirmzeit automatisch (iPhone-App):** misst über Apples Bildschirmzeit in 15-Minuten-Schritten mit und füllt den Tag vor (Einrichtung: [docs/testflight.md](docs/testflight.md))
-- **Familieninsel:** gemeinsame Insel für die Familie mit Familienprojekten, Wochenziel und Tagesstatus aller Mitglieder; jede:r behält die eigene Insel
+- **Familieninsel:** gemeinsame Insel für die Familie mit Familienprojekten, gesparter Zeit und Tagesstatus aller Mitglieder; jede:r behält die eigene Insel
 - **Online-Backup (freiwillig):** verschlüsselt, mit Wiederherstellungs-Code für ein neues Handy
 - **Laden pro Inselwelt:** jede Welt hat eigene, passende Gegenstände (Tropen, Fjord, Wüste, Eis); beim Umzug ziehen nur Bewohner und Tiere mit
 - **Weltreise:** Sind alle Projekte gebaut, wird eine neue Insel entdeckt. Die Gemeinschaft zieht weiter – Tropeninsel, Fjordinseln, Wüsteninsel, Eisinseln – mit eigener Landschaft, je sechs neuen Großprojekten, mehr Plätzen, neuen Tierarten (Papagei, Elch, Kamel, Eisbär) und einer Karte mit Reiseroute

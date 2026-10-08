@@ -86,7 +86,8 @@ service cloud.firestore {
         allow read: if isFamMember(fid);
         allow create, update: if isFamMember(fid) && request.resource.data.owner == request.auth.uid
           && (resource == null || resource.data.owner == request.auth.uid)
-          && request.resource.data.keys().hasOnly(["owner", "name", "avatar", "joined", "share", "days", "good", "streak", "updated", "look"])
+          && request.resource.data.keys().hasOnly(["owner", "name", "avatar", "joined", "share", "days", "good", "saved", "streak", "updated", "look"])
+          && (!("saved" in request.resource.data) || (request.resource.data.saved is int && request.resource.data.saved >= 0))
           && (!("look" in request.resource.data) || (request.resource.data.look is map && request.resource.data.look.size() <= 4))
           && shortText(request.resource.data.name, 20) && shortText(request.resource.data.avatar, 20)
           && request.resource.data.days is map && request.resource.data.days.size() <= 21
