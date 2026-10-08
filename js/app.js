@@ -521,6 +521,84 @@ function coupleDay(good){
   }
 }
 
+/* ---------- Wünsche der Bewohner ----------
+   Abwechselnde Arten, viele davon direkt an weniger Handyzeit gekoppelt. Belohnung und
+   Fortschritt sind sichtbar, wer einen erfüllten Wunsch hat, strahlt eine Woche lang. */
+const WISH_IC={item:'<path d="M4 9h16l-1 11H5zM8 9V7a4 4 0 0 1 8 0v2"/>',streak:'<path d="M12 3c2 4 6 5 6 10a6 6 0 0 1-12 0c0-3 2-4 3-6 1 2 2 3 3 3 0-3-1-5 0-7z"/>',
+  quests:'<path d="M5 12l4 4 10-10"/>',boot:'<path d="M3 16h18l-3 4H6zM12 16V4l6 10"/>',nacht:'<path d="M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z"/>',unter:'<circle cx="12" cy="13" r="7"/><path d="M12 13V9M12 3v2"/>'};
+function makeWish(){
+  const cand=here().filter(r=>r.kind==="mensch"&&r.status==="da"&&!r.sick&&!((r.happyUntil||0)>S.dayCount)&&(r.job||S.dayCount-(r.born||0)>=3));
+  if(!cand.length) return;
+  const r=pick(cand), items=SHOP.filter(it=>!it.consumable&&shopHere(it)&&!owns(it.id));
+  const opts=["streak","unter"];
+  if(feature("laden")&&items.length) opts.push("item","item");
+  if(feature("quests")) opts.push("quests");
+  if(feature("boot")) opts.push("boot");
+  if(feature("nacht")) opts.push("nacht");
+  const type=pick(opts), w={rid:r.id,type,start:S.dayCount,until:S.dayCount+5,have:0,need:1};
+  if(type==="item"){const it=pick(items);w.item=it.id;w.pts=30;w.gl=6;w.until=S.dayCount+999}
+  if(type==="streak"){w.need=2+Math.floor(Math.random()*3);w.pts=20*w.need;w.gl=5;w.until=S.dayCount+w.need+3}
+  if(type==="quests"){w.need=2;w.pts=25;w.gl=4}
+  if(type==="boot"){w.need=pick([30,45]);w.pts=w.need;w.gl=4}
+  if(type==="nacht"){w.pts=25;w.gl=3;w.until=S.dayCount+3}
+  if(type==="unter"){w.need=Math.max(30,Math.round((S.budget-30)/15)*15);w.pts=50;w.gl=6}
+  S.wish=w; log(r.name+" hat einen Wunsch: "+wishText(w)+".","info");
+}
+function wishText(w){
+  switch(w.type||"item"){
+    case "streak": return w.need+" Tage am Stück im Budget";
+    case "quests": return "ein Abend mit "+w.need+" Quests";
+    case "boot": return "eine Fokus-Bootsfahrt von mindestens "+w.need+" Minuten";
+    case "nacht": return "das Gute-Nacht-Ritual mit der ganzen Insel";
+    case "unter": return "ein Tag unter "+hm(w.need)+" Bildschirmzeit";
+    default: return itemName(w.item);
+  }
+}
+function wishTalk(w){
+  switch(w.type||"item"){
+    case "streak": return `Schaffst du ${w.need} gute Tage hintereinander? Dann backe ich für alle!`;
+    case "quests": return "Heute Abend mal richtig offline sein, mit Spaziergang und Buch?";
+    case "boot": return `Nimmst du mich mit aufs Boot? ${w.need} Minuten nur Wellen und Fische.`;
+    case "nacht": return "Gehen wir heute alle früh schlafen? Ohne Handy, nur Sterne.";
+    case "unter": return `Ich wette, du schaffst einen Tag unter ${hm(w.need)}!`;
+    default: return `Ich träume von: ${itemName(w.item)}. Vielleicht ja bald?`;
+  }
+}
+function wishCard(w,r){
+  const type=w.type||"item", left=(w.until||0)-S.dayCount, prog=type==="streak"?w.have/w.need:0;
+  const how={item:"Im Laden kaufen",streak:"Jeden Abend im Budget bleiben",quests:"Beim nächsten Tagesabschluss "+w.need+" Quests abhaken",boot:"Oben bei der Fokus-Bootsfahrt "+w.need+" min wählen und durchhalten",nacht:"Abends auf „Gute Nacht, Insel“ tippen",unter:"Beim nächsten Tag unter "+hm(w.need)+" bleiben"}[type];
+  return `<div class="card" style="border:1.5px solid var(--lilac)"><div class="row" style="align-items:flex-start">
+    <div class="badge" style="background:#26233D;color:var(--lilac);width:52px;height:52px">${type==="item"?`<svg width="38" height="32" viewBox="-20 -34 40 38" aria-hidden="true">${itemSvg(w.item)}</svg>`:`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${WISH_IC[type]}</svg>`}</div>
+    <div class="grow"><div class="row between"><p class="label" style="color:var(--lilac)">Wunsch von ${esc(r.name)}</p>${type!=="item"&&left>=0?`<span class="small muted">${left===0?"letzter Tag":"noch "+left+(left===1?" Tag":" Tage")}</span>`:""}</div>
+      <p><b>${esc(wishText(w))}</b></p><p class="small muted">${esc(how)}</p>
+      ${type==="streak"?`<div class="bar" style="margin-top:6px"><i style="width:${prog*100}%;background:var(--lilac)"></i></div><p class="small muted">${w.have} von ${w.need} Tagen</p>`:""}
+      <p class="small" style="margin-top:4px"><span class="chip" style="color:var(--amber)">+${w.pts||30} Punkte</span> <span class="chip good">+${w.gl||6} % Glück</span></p>
+      ${type==="item"?`<button class="btn secondary" id="wishShop" style="margin-top:8px">Zum Laden</button>`:""}</div></div></div>`;
+}
+function fulfillWish(){
+  const w=S.wish; if(!w) return; const r=S.residents.find(x=>x.id===w.rid); S.wish=null; S.lastWishEnd=S.dayCount;
+  if(!r) return;
+  const pts=w.pts||30, gl=w.gl||6;
+  r.happyUntil=S.dayCount+7; S.points+=pts; S.glueck=clamp(S.glueck+gl,0,100);
+  S.wishCount=(S.wishCount||0)+1;
+  log(r.name+"s Wunsch ist erfüllt: "+wishText(w)+". +"+pts+" Punkte, +"+gl+" % Glück.","good");
+  chron([r.id],r.name+"s Wunsch ist erfüllt: "+wishText(w)+".");
+  S.pending.push({type:"wish",rid:r.id,item:w.type==="item"||!w.type?w.item:null,text:(w.type==="item"||!w.type?itemName(w.item)+" steht jetzt auf der Insel.":"Geschafft: "+wishText(w)+"."),pts,gl});
+}
+function wishCheck(){
+  const w=S.wish; if(!w) return;
+  const r=S.residents.find(x=>x.id===w.rid&&x.status==="da");
+  const stale=(!w.type||w.type==="item")&&(!itemDef(w.item)||!shopHere(itemDef(w.item))||owns(w.item));
+  if(!r||stale){S.wish=null;S.lastWishEnd=S.dayCount;return}
+  if(w.type&&w.type!=="item"&&S.dayCount>w.until){log(r.name+"s Wunsch ist diesmal nicht wahr geworden. Bestimmt bald ein neuer!","info");S.wish=null;S.lastWishEnd=S.dayCount}
+}
+function wishProgress(min,quests,diff){
+  const w=S.wish; if(!w||!w.type||w.type==="item"||S.dayCount<=w.start) return;
+  if(w.type==="streak"){w.have=diff>=0?w.have+1:0; if(w.have>=w.need) fulfillWish()}
+  else if(w.type==="quests"){if(quests.length>=w.need) fulfillWish()}
+  else if(w.type==="unter"){if(min<=w.need) fulfillWish()}
+}
+
 /* ---------- Zusammenleben: Beziehungen, Berufe, Streit, Liebe ---------- */
 function social(good){
   if(S.conflict&&S.conflict.state==="neu"&&S.conflict.day!==S.lastDay) resolveConflict("egal");
@@ -615,11 +693,8 @@ function extras(day,diff,quests,dreamt){
     else if(!r.retired&&S.dayCount-(S.lastJobChange||0)>=10&&Math.random()<0.03){S.lastJobChange=S.dayCount;const old=r.job,nj=pickJob();if(nj!==old){r.job=nj;log(r.name+" wechselt den Beruf: "+jobName(old)+" → "+jobName(nj)+".","info");chron([r.id],r.name+" arbeitet jetzt als "+jobName(nj)+" statt als "+jobName(old)+".")}}
   });
   // Wünsche
-  if(!S.wish&&S.dayCount%4===0){
-    const cand=adults().filter(r=>!r.wishDone), items=SHOP.filter(it=>!it.consumable&&shopHere(it)&&!owns(it.id));
-    if(cand.length&&items.length){const r=pick(cand),it=pick(items);S.wish={rid:r.id,item:it.id,day};log(r.name+" wünscht sich: "+it.n+".","info")}
-  }
-  if(S.wish&&!S.residents.find(x=>x.id===S.wish.rid&&x.status==="da")) S.wish=null;
+  wishCheck();
+  if(!S.wish&&S.dayCount-(S.lastWishEnd||0)>=1&&Math.random()<.65) makeWish();
   // Strandgut
   const chance=.3+(quests.includes("abend")?.2:0)+(dreamt?.2:0)+(owns("teleskop")?.15:0);
   if(Math.random()<chance){
@@ -745,7 +820,8 @@ function finishBoat(){
 }
 function boatHonest(ok,dur,crewId){
   if(ok){const fish=Math.max(1,Math.round(dur/10))*(has("floss")?2:1)*(has("a_eisfischen")?2:1), pts=Math.round(dur*(owns("angel")?1.2:1)*(has("f_wikinger")?1.2:1));S.fish+=fish;S.points+=pts;S.material+=dur;S.focusMin+=dur;
-    log("Fokus-Bootsfahrt: "+dur+" Minuten ohne Handy. "+fish+" Fische, +"+pts+" Punkte.","good")}
+    log("Fokus-Bootsfahrt: "+dur+" Minuten ohne Handy. "+fish+" Fische, +"+pts+" Punkte.","good");
+    if(S.wish&&S.wish.type==="boot"&&dur>=S.wish.need) fulfillWish()}
   else log("Die Bootsfahrt kam leer zurück. Beim nächsten Mal klappt es.","bad");
   save();
 }
@@ -843,7 +919,9 @@ function updateFocus(){
   set("fSun",lerp(40,320,p),340-Math.sin(p*Math.PI)*110);
 }
 function sleeping(){const h=new Date().getHours();return !!(S.night&&S.night.after===S.lastDay&&(h>=20||h<9))}
-function goodNight(){S.night={after:S.lastDay,at:Date.now()};log("Gute Nacht, Insel. Das Handy ruht bis morgen.","info");save();render();toast("Gute Nacht! Morgen gibt es Traumpunkte.")}
+function goodNight(){S.night={after:S.lastDay,at:Date.now()};log("Gute Nacht, Insel. Das Handy ruht bis morgen.","info");
+  if(S.wish&&S.wish.type==="nacht"){fulfillWish();save();render();showPending();return}
+  save();render();toast("Gute Nacht! Morgen gibt es Traumpunkte.")}
 function setVacation(on){
   if(on){const g=adults()[0];S.vacation={since:today(),guard:g?g.id:null};log("Urlaubsmodus an"+(g?". "+g.name+" hütet die Insel.":"."),"info")}
   else if(S.vacation){
@@ -870,7 +948,7 @@ function linesFor(r){
   const lost=S.memorials.find(m=>{const d=S.residents.find(x=>x.id===m.rid);return d&&(r.widowOf===m.rid||(r.parents||[]).includes(m.rid)||(d.parents||[]).includes(r.id))});
   if(lost) L.push(`Ich denke oft an ${lost.name}. Am Erinnerungsbaum ist es so schön ruhig.`);
   if(!r.job) {L.push("Spielst du heute mit uns? Aber ohne Handy!","Ich will später "+pick(JOBS).n+" werden!");return L}
-  if(S.wish&&S.wish.rid===r.id) L.push(`Ich träume von: ${itemName(S.wish.item)}. Vielleicht ja bald?`);
+  if(S.wish&&S.wish.rid===r.id) L.push(wishTalk(S.wish));
   if(r.retired) L.push(pick(["Früher, als hier noch keine Hütte stand, saßen wir abends nur am Wasser. Ganz ohne Bildschirme.","Ich erzähl euch vom Winter, in dem der Strom ausfiel und alle zusammen Karten gespielt haben.","In meinem Alter weiß man: Die Zeit am Handy holt keiner zurück."]));
   if(S.monsters.length){const a=S.apps.find(x=>x.id===S.monsters[0]);if(a) L.push(`Hast du ${monName(a)} gesehen? Die hat alle Fische verscheucht!`)}
   if(S.conflict&&(S.conflict.a===r.id||S.conflict.b===r.id)){const o=S.residents.find(x=>x.id===(S.conflict.a===r.id?S.conflict.b:S.conflict.a));if(o) L.push(`Mit ${o.name} rede ich gerade nicht.`)}
@@ -987,7 +1065,7 @@ function closeDay(min,quests,appMin){
   // Punkte: jede Minute unter Budget, Quests, Berufe
   let pts=Math.round(Math.max(0,Math.min(240,diff))/3)+quests.length*(10+(owns("haengematte")?5:0));
   if(diff>=0){ if(jobOn("fischer")&&!monsters.length) pts+=5; if(jobOn("baecker")) pts+=5; if(owns("garten")) pts+=5; if(has("beachclub")) pts+=10; if(has("t_mango")) pts+=10; if(has("a_schlitten")) pts+=5; }
-  pts+=here().filter(r=>r.wishDone).length*3;
+  pts+=here().filter(r=>r.wishDone||(r.happyUntil||0)>S.dayCount).length*3;
   // Gute-Nacht-Ritual vom Vorabend
   const dreamt=!!(S.night&&S.night.after===prevLast&&prevLast);
   if(dreamt) pts+=15;
@@ -999,6 +1077,7 @@ function closeDay(min,quests,appMin){
   unlockCheck();
   S.budgetStreak=diff>=0?S.budgetStreak+1:0;
   if(diff>=0) buddyProgress();
+  wishProgress(min,quests,diff);
   setTimeout(netSync,800); setTimeout(()=>backupNow(true),1500); setTimeout(famSync,1100);
 
   log((diff>=0?"Im Budget: ":"Über dem Budget: ")+hm(min)+" Bildschirmzeit. Inselglück "+before+" → "+S.glueck+" %, +"+pts+" Punkte.", diff>=0?"good":"bad");
@@ -1086,6 +1165,7 @@ function checkDiscovery(){
 function travel(){
   if(!((S.found||0)>(S.world||0))) return;
   const from=curWorld(); S.world=(S.world||0)+1; S.projectIdx=0; islandView=0;
+  if(S.wish&&(!S.wish.type||S.wish.type==="item")){S.wish=null;S.lastWishEnd=S.dayCount}
   const W=curWorld(); S.points+=100;
   log("Die ganze Inselgemeinschaft ist von "+from.name+" nach "+W.name+" gezogen. +100 Punkte Umzugsgeld.","good");
   chron(here().map(r=>r.id),"Umzug: "+from.name+" → "+W.name+".");
@@ -1627,7 +1707,7 @@ function viewHeute(){
   ${S.vacation?`<div class="card" style="border:1.5px solid var(--lilac)"><p class="label" style="color:var(--lilac)">Urlaubsmodus</p><p>${guard?`<b>${esc(guard.name)}</b> hütet die Insel, bis du zurück bist.`:"Die Insel schläft, bis du zurück bist."} Das Glück sinkt in der Zeit nicht.</p><button class="btn secondary" id="vacOff">Ich bin zurück</button></div>`:""}
   ${warn?`<div class="card warn"><p class="label" style="color:var(--amber)">Wegzug droht</p><p><b>${esc(groupName(warn))}</b> ${vb(warn,"packt","packen")} die Koffer. Bring das Inselglück bis ${nice(S.warn.deadline)} über 40 %, dann ${vb(warn,"bleibt "+esc(warn[0].name),"bleiben alle")}.</p></div>`:""}
   ${wh.length?`<div class="card"><p class="label">Inselgeflüster</p>${wh.map(w=>`<div class="row" style="align-items:flex-start"><div class="avatar" style="background:${w.r.kind==="mensch"?"#26233D":"#22301F"}"><svg width="40" height="40" viewBox="-13 -24 26 27" aria-hidden="true">${figure(w.r,0,0)}</svg></div><div class="grow" style="background:var(--ground);border-radius:4px 16px 16px 16px;padding:10px 12px"><p class="small" style="font-weight:700;color:var(--lilac)">${esc(w.r.name)}${w.r.job?" · "+esc(jobName(w.r.job)):""}</p><p>${esc(w.t)}</p></div></div>`).join("")}</div>`:""}
-  ${S.wish&&wisher?`<div class="card"><div class="row"><div class="badge" style="background:#26233D"><svg width="36" height="30" viewBox="-20 -34 40 38" aria-hidden="true">${itemSvg(S.wish.item)}</svg></div><div class="grow"><p class="label">Wunsch</p><p><b>${esc(wisher.name)}</b> wünscht sich: ${esc(itemName(S.wish.item))}</p><p class="small muted">Erfüllst du ihn im Laden, strahlt ${esc(wisher.name)} und bringt dir jeden Tag +3 Punkte.</p></div></div></div>`:""}
+  ${S.wish&&wisher?wishCard(S.wish,wisher):""}
   ${mons.length?`<div class="card" style="border:1.5px solid #9B6BD6"><p class="label" style="color:#C8A8FF">App-Monster vor der Insel</p>${mons.map(a=>`<div class="row"><svg width="48" height="40" viewBox="-24 -34 48 40" aria-hidden="true">${monsterSvg(a.m)}</svg><p class="grow">${esc(monName(a,false))}: ${esc(a.name)} lag gestern über ${hm(a.limit)}. Es verscheucht die Fische und kostet Glück.</p></div>`).join("")}<p class="small muted">Bleib heute bei diesen Apps unter dem Limit, dann tauchen sie wieder ab.</p></div>`:""}
   ${feature("boot")?`<div class="card">
     <div class="row between"><p class="label">Fokus-Bootsfahrt</p></div>
@@ -1728,7 +1808,7 @@ function resRow(r){
   const age=S.dayCount-(r.born||0);
   const owner=r.owner?S.residents.find(x=>x.id===r.owner):null;
   const sub=[r.kind==="mensch"?(r.job?(r.retired?"Rentner:in, früher "+jobName(r.job):jobName(r.job)):(age>=3?"Schulkind":"Baby"))+(r.trait?", "+traitName(r.trait):""):r.art,
-    owner?(r.sad?"vermisst "+owner.name+", wartet am Steg":"gehört zu "+owner.name):"", r.wishDone?"strahlt (Wunsch erfüllt)":"",
+    owner?(r.sad?"vermisst "+owner.name+", wartet am Steg":"gehört zu "+owner.name):"", r.wishDone||(r.happyUntil||0)>S.dayCount?"strahlt (Wunsch erfüllt)":"",
     partner?(r.married?"verheiratet mit ":"Partner:in ")+partner.name:"",
     r.kind==="mensch"&&r.ex&&r.ex.length&&!partner?"getrennt von "+((S.residents.find(x=>x.id===r.ex[r.ex.length-1])||{}).name||""):"",
     r.kind==="mensch"&&partner?(()=>{const st=S.residents.filter(k=>k.status!=="verstorben"&&k.parents&&k.parents.includes(partner.id)&&!k.parents.includes(r.id));return st.length?"Stiefelternteil von "+nameList(st.map(k=>k.name)):""})():"",
@@ -2129,6 +2209,7 @@ function bind(){
   if(sb) sb.onchange=save; if(sa) sa.onchange=save;
   const st=$("#startBtn"); if(st) st.onclick=()=>{S.setup=true;log("Deine Insel ist gegründet. "+nameList(here().map(r=>r.name))+" ziehen ein.","good");save();render();if(famInvite())famJoinSheet(famInvite())};
   const bo=$("#bkOn"); if(bo) bo.onclick=backupEnable;
+  const wsb=$("#wishShop"); if(wsb) wsb.onclick=()=>{tab="projekt";render();window.scrollTo(0,0)};
   const stS=$("#stSetup"); if(stS) stS.onclick=stSetup;
   const stA=$("#stApps"); if(stA) stA.onclick=async()=>{try{await ST.pickApps()}catch(e){} await stStatus(); settingsSheet()};
   const stO=$("#stOff"); if(stO) stO.onclick=async()=>{try{await ST.stop()}catch(e){} S.autoTime=false; save(); await stStatus(); settingsSheet()};
@@ -2190,7 +2271,7 @@ function bind(){
     S.points-=cost;
     if(it.consumable){if(it.id==="tee")S.tea++;else if(it.id==="klee")S.glueck=clamp(S.glueck+5,0,100);else S.sun++} else if(!owns(it.id)){ if(!S.items.includes(it.id)) S.items.push(it.id); if(!it.world&&RARE.includes(it)){S.itemW=S.itemW||{};S.itemW[it.id]=curWorldId()} }
     sfx("buy"); log("Gekauft: "+it.n+" für "+cost+" Punkte.","good"); toast(it.n+(it.consumable?" auf Vorrat":" steht jetzt auf deiner Insel"));
-    if(S.wish&&S.wish.item===it.id){const r=S.residents.find(x=>x.id===S.wish.rid);if(r){r.wishDone=true;S.glueck=clamp(S.glueck+6,0,100);chron([r.id],r.name+"s Wunsch ist erfüllt: "+it.n+".");log(r.name+"s Wunsch ist erfüllt! +6 % Glück.","good");S.pending.push({type:"wish",rid:r.id,item:it.id})}S.wish=null}
+    if(S.wish&&(!S.wish.type||S.wish.type==="item")&&S.wish.item===it.id) fulfillWish();
     save(); render(); showPending();
   });
   document.querySelectorAll("[data-card]").forEach(btn=>btn.onclick=()=>{const c=S.postcards.find(x=>x.id===btn.dataset.card);if(c) sheet(`<p class="label" style="color:var(--lilac)">Aus deinem Album</p>${postcardHtml(c)}<button class="btn" data-ok>Schließen</button>`)});
@@ -2396,8 +2477,11 @@ function showPending(){
       <p class="label" style="color:var(--amber)">Seltener Besuch</p><h2>Ein Händlerschiff legt an</h2><p class="muted">Es hat Dinge dabei, die es sonst nirgends gibt: ${S.trader?S.trader.items.map(itemName).join(" und "):""}. Es bleibt nur 2 Tage.</p><button class="btn" data-ok>Später im Laden ansehen</button>`);
   }
   if(ev.type==="wish"){
-    const r=S.residents.find(x=>x.id===ev.rid);
-    return sheet(`<div class="anim">${base(`<g class="bob">${figure(r,232,134)}</g>`+hearts(232,100)+confetti(),false)}</div><p class="label" style="color:var(--lime)">Wunsch erfüllt</p><h2>${esc(r.name)} strahlt!</h2><p class="muted">${esc(itemName(ev.item))} steht jetzt auf der Insel. ${esc(r.name)} bedankt sich mit +3 Punkten jeden Tag.</p><button class="btn" data-ok>Gern geschehen</button>`);
+    const r=S.residents.find(x=>x.id===ev.rid); if(!r) return showPending();
+    const pets=here().filter(p=>p.kind==="tier"&&p.owner===r.id).slice(0,1);
+    return sheet(`<div class="anim">${base(`<g class="bob">${figure(r,232,134)}</g>`+pets.map(p=>`<g class="bob" style="animation-delay:.3s">${figure(p,250,136)}</g>`).join("")+(ev.item?`<g transform="translate(206 134) scale(.9)" class="pop fb">${itemSvg(ev.item)}</g>`:"")+hearts(232,100)+confetti(),false)}</div>
+      <p class="label" style="color:var(--lime)">Wunsch erfüllt</p><h2>${esc(r.name)} strahlt!</h2>
+      <p class="muted">${esc(ev.text||"")} ${esc(r.name)} bedankt sich: <b style="color:var(--ink)">+${ev.pts||0} Punkte und +${ev.gl||0} % Glück</b>, und eine Woche lang jeden Tag +3 Punkte extra.</p><button class="btn" data-ok>Gern geschehen</button>`);
   }
   if(ev.type==="reunion"){
     const pt=S.residents.find(x=>x.id===ev.pet), o=S.residents.find(x=>x.id===ev.owner);
