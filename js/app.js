@@ -2659,7 +2659,15 @@ function nameSheet(ev){
     <button class="btn" id="nameOk">${ev.type==="rename"?"Speichern":"Willkommen heißen"}</button>`);
   const inp=$("#nameIn");
   $("#dice").onclick=()=>{inp.value=freeName(list,S.residents.map(x=>x.name))};
-  bindLookEditor(r,draft);
+  // Ankunftsbild oben gleich mit dem neuen Aussehen zeigen (ohne die Animation neu zu starten)
+  bindLookEditor(r,draft,()=>{
+    const a=$("#modalRoot .anim"); if(!a) return;
+    const keep={look:r.look,fur:r.fur};
+    if(r.kind==="mensch") r.look=Object.assign({},draft); else r.fur=draft.fur;
+    a.innerHTML=animScene(ev); a.classList.add("skip");
+    if(keep.look===undefined) delete r.look; else r.look=keep.look;
+    if(keep.fur===undefined) delete r.fur; else r.fur=keep.fur;
+  });
   $("#nameOk").onclick=()=>{
     const n=inp.value.trim()||r.name; const old=r.name; r.name=n.slice(0,20);
     if(r.kind==="mensch") r.look=Object.assign({},draft); else if((FUR[r.art]||[]).length>1) r.fur=draft.fur;
@@ -2690,11 +2698,12 @@ function lookEditor(r,d){
   const n=(FUR[r.art]||[]).length; if(n<2) return "";
   return `<div class="field"><span>Fellfarbe</span><div class="sw-row" role="radiogroup" aria-label="Fellfarbe">${Array.from({length:n},(_,i)=>`<button type="button" class="sw sw-ic sw-big${i===d.fur?" on":""}" data-look="fur" data-v="${i}" aria-label="Fellfarbe ${i+1}" aria-pressed="${i===d.fur}"><svg width="38" height="30" viewBox="${artVB(r.art,38/30)}" aria-hidden="true">${animalSvg(r.art,i)}</svg></button>`).join("")}</div></div>`;
 }
-function bindLookEditor(r,draft){
+function bindLookEditor(r,draft,onChange){
   document.querySelectorAll("#modalRoot [data-look]").forEach(b=>b.onclick=()=>{
     const k=b.dataset.look; draft[k]=+b.dataset.v;
     document.querySelectorAll(`#modalRoot [data-look="${k}"]`).forEach(x=>{const on=x===b;x.classList.toggle("on",on);x.setAttribute("aria-pressed",on)});
     const pv=$("#lookPrev"); if(pv) pv.innerHTML=lookPreview(r,draft);
+    if(onChange) onChange();
   });
 }
 function capsuleSheet(c,fresh){
