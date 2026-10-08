@@ -287,7 +287,7 @@ function freeName(list,used){const free=list.filter(n=>!used.includes(n));return
 /* ---------- Spielstand ---------- */
 /* ---------- Erste Woche: Funktionen nach und nach freischalten ---------- */
 const FEATURES=[
-  {id:"quests",day:1,name:"Tages-Quests",text:"Hak abends ab, was du statt Handy gemacht hast. Jede Quest bringt +3 % Glück.",tab:"heute",ic:'<path d="M5 12l4 4 10-10"/>'},
+  {id:"quests",day:1,name:"Tages-Quests",text:"Hake abends ab, was du heute ohne Handy gemacht hast, zum Beispiel ein Frühstück ohne Bildschirm. Jede erledigte Quest bringt +3 % Glück.",tab:"heute",ic:'<path d="M5 12l4 4 10-10"/>'},
   {id:"laden",day:1,name:"Inselladen",text:"Gib deine Punkte im Tab Bauen für Deko und Nützliches aus.",tab:"projekt",ic:'<path d="M4 9h16l-1 11H5zM8 9V7a4 4 0 0 1 8 0v2"/>'},
   {id:"boot",day:2,name:"Fokus-Bootsfahrt",text:"Leg das Handy 15, 30 oder 60 Minuten weg. Ein Bewohner fährt fischen und bringt Punkte mit.",tab:"heute",ic:'<path d="M3 16h18l-3 4H6zM12 16V4l6 10"/>'},
   {id:"nacht",day:2,name:"Gute-Nacht-Ritual",text:"Schick die Insel abends schlafen und leg das Handy weg. Morgen gibt es Traumpunkte.",tab:"heute",ic:'<path d="M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z"/>'},
@@ -1851,7 +1851,8 @@ function nextCard(){
   const f=nextFeature(); if(!f||!S.setup) return "";
   const left=f.day-S.dayCount, same=FEATURES.filter(x=>x.day===f.day&&!feature(x.id));
   return `<div class="card" style="background:transparent;border:1.5px dashed #3A3D58"><div class="row">${featIcon(f,40)}
-    <div class="grow"><p class="label">${left===1?"Nach dem nächsten Tag":"In "+left+" Tagen"} neu</p><p><b>${nameList(same.map(x=>esc(x.name)))}</b></p></div></div></div>`;
+    <div class="grow"><p class="label">Bald freigeschaltet</p><p><b>${nameList(same.map(x=>esc(x.name)))}</b></p>
+      <p class="small muted">${left===1?"Kommt, sobald du deinen nächsten Tag einträgst.":"Kommt nach "+left+" weiteren eingetragenen Tagen."}</p></div></div></div>`;
 }
 /* Tagesziel: Budget, letzter Tag und die letzten 7 Tage auf einen Blick */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
