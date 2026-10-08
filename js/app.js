@@ -389,7 +389,7 @@ function migrate(st){
   if(st.points==null)st.points=0; if(!st.items)st.items=[]; if(!st.sun)st.sun=0;
   if(!st.rel)st.rel={}; if(st.conflict===undefined)st.conflict=null;
   if(!st.arrC)st.arrC=0; if(!st.birthC)st.birthC=0;
-  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,focusLog:[],alarm:true,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null},family:null,plan:null,planLog:[],weekReady:null,storySeen:false,chapter:null,fests:0,freed:0,duelOff:null,jokerWk:null,lastSurprise:0,surprises:[],duel:null,duelLog:[]};
+  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,focusLog:[],alarm:true,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null},family:null,plan:null,planLog:[],weekReady:null,storySeen:false,chapter:null,fests:0,freed:0,duelOff:null,jokerWk:null,lastSurprise:0,surprises:[],duel:null,duelLog:[],lineLog:[]};
   if(st.plusFriend===undefined) st.plusFriend=(st.buddies||[]).length?"alt":null;   // Plus-Monat fürs Einladen gibt es nur einmal
   if(st.allFeatures===undefined) st.allFeatures=(st.dayCount||0)>=1;          // wer schon gespielt hat, behält alles
   for(const k in D){ if(st[k]===undefined) st[k]=D[k]; }
@@ -1650,33 +1650,80 @@ function saysHtml(who,text){
   return `<div class="says ${bay?"bay":"luc"}"><span class="says-pic">${bay?bayPic(46):lucPic(46)}</span><div class="says-bub"><b>${bay?"Mr. Bay":"Lucifer"}</b><p>${esc(text)}</p></div></div>`;
 }
 /* Was Mr. Bay zu großen Momenten sagt (moderner Humor, nie vorwurfsvoll) */
+/* Sprüche ohne Wiederholung: zuletzt benutzte werden übersprungen */
+function freshLine(list){
+  const seen=S.lineLog||(S.lineLog=[]), keys=list.map(t=>hsh(t)%1e6);
+  let pool=list.filter((t,i)=>!seen.includes(keys[i])); if(!pool.length) pool=list;
+  const t=pool[Math.floor(Math.random()*pool.length)];
+  seen.push(hsh(t)%1e6); if(seen.length>60) seen.splice(0,seen.length-60);
+  return t;
+}
 function bayLine(ev){
+  const r=ev.id&&S.residents.find(x=>x.id===ev.id), nm=r?r.name:"";
   const L={
-    project:["Okay. Ich bin ganz ruhig. Das ist nur Staub im Auge. Sehr viel Staub.","Ich hab gewusst, dass wir das schaffen. Also, ich hab's sehr fest gehofft.","Das kommt in meine Story. Mit Filter. Und Feuerwerk-Emoji."],
-    discovery:["Kurzes Update: Wir expandieren. Klingt nach Start-up, ist aber eine Insel.","Neue Insel?! Ich hab nicht mal eine Packliste. Egal, Abenteuer!"],
-    arrival:["Ein neues Gesicht! Ich tu jetzt ganz lässig. Ganz. Lässig.","Siehst du? Es spricht sich rum. Ganz ohne Hashtag."],
-    birth:["Nachwuchs! Ich fühl mich offiziell wie ein Onkel.","Die Insel wächst. Und mein Herz gleich mit."],
-    return:["Sie sind zurück! Ich hab extra den Steg gefegt. Zweimal.","Willkommen zurück! Wir haben euch vermisst. Ich besonders."],
-    warn:["Das ist gerade nicht gut. Aber auch nicht vorbei. Zwei gute Tage, und wir drehen das.","Kein Drama. Okay, ein kleines. Aber wir kriegen das hin."],
-    left:["Das tut weh. Aber jeder Abschied ist auch ein Grund für ein Wiedersehen.","Ich winke so lange, bis das Boot weg ist. Dann winke ich noch ein bisschen."],
-    fest:["Ein Inselfest! Wie früher. Ich hab ein Mikro und keine Angst, es zu benutzen.","Alle draußen, alle zusammen. Genau dafür mach ich diesen Job."],
-    birthday:["Alles Gute! Ich hab gesungen. Lucifer hat den Raum verlassen. Verdient.","Kuchen am Strand. Das ist Kultur."]
-  }[ev.type];
-  if(!L) return null;
-  if(ev.type==="arrival"){const r=S.residents.find(x=>x.id===ev.id); if(!r||r.kind!=="mensch") return null;
-    if(r.phone) return [r.name+" ist neu, nett und hat … ein Handy. Wir arbeiten dran.",r.name+" hat das Handy vom Festland mitgebracht. Ein paar gute Tage, und das liegt in der Schublade."][hsh(r.id)%2]}
-  return L[hsh((ev.id||ev.type)+S.dayCount)%L.length];
+    project:["Okay. Ich bin ganz ruhig. Das ist nur Staub im Auge. Sehr viel Staub.","Ich hab gewusst, dass wir das schaffen. Also, ich hab's sehr fest gehofft.","Das kommt in meine Story. Mit Filter. Und Feuerwerk-Emoji.",
+      "Ich hab extra ein Band zum Durchschneiden besorgt. Die Schere hat Lucifer. Wir verhandeln noch.","Gebaut aus lauter Minuten, die nicht ins Handy geflossen sind. Das ist mehr als Architektur. Das ist Kunst.",
+      "Ich würde ja eine Rede halten, aber ich bin zu gerührt. Und ich hab sie zu Hause vergessen.","Wenn mich jemand fragt, was du die letzten Tage gemacht hast: Das hier. Genau das.",
+      "Ich hab schon ein Foto gemacht. Und noch eins. Okay, siebzehn.","Offiziell eröffnet! Es gibt Kuchen. Inoffiziell hab ich den schon probiert."],
+    discovery:["Kurzes Update: Wir expandieren. Klingt nach Start-up, ist aber eine Insel.","Neue Insel?! Ich hab nicht mal eine Packliste. Egal, Abenteuer!",
+      "Ich hab das auf keiner Karte gefunden. Also ist das jetzt unsere. So funktioniert das doch, oder?","Land in Sicht! Ich wollte das schon immer mal rufen. Land in Sicht! Okay, einmal reicht.",
+      "Neues Terrain. Ich nenne es vorläufig ‚Mr.-Bay-Bucht‘. Abstimmung folgt. Ich bin für ja."],
+    arrival:["Ein neues Gesicht! Ich tu jetzt ganz lässig. Ganz. Lässig.","Siehst du? Es spricht sich rum. Ganz ohne Hashtag.",
+      "Willkommen, "+nm+"! Die Hängematte links ist meine. Die rechte auch. Kleiner Scherz. Halber Scherz.","Ich hab "+nm+" gerade die Insel gezeigt. Hat zwei Minuten gedauert. Wir sind gemütlich hier.",
+      "Neue Leute! Ich hab sofort eine Begrüßungsrede gehalten. "+nm+" war sehr höflich und hat nur einmal gegähnt.","Hab "+nm+" gefragt, warum OffLand. Antwort: ‚Hier redet man noch miteinander.‘ Ich musste kurz weg.",
+      "Noch jemand, der lieber in den Himmel guckt als auf einen Bildschirm. Ich mag "+nm+" jetzt schon.","Einwohnerzahl plus eins. Ich hab's in mein Büchlein geschrieben. Mit Herzchen.",
+      nm+" ist da! Lucifer hat schon gefaucht. Das heißt bei ihr: Herzlich willkommen.","Wir sind wieder ein paar mehr. Ich hab das Gefühl, die Insel atmet auf."],
+    arrivalPhone:[nm+" ist neu, nett und hat … ein Handy. Wir arbeiten dran.",nm+" hat das Handy vom Festland mitgebracht. Ein paar gute Tage, und das liegt in der Schublade.",
+      nm+" hat beim Aussteigen auf den Bildschirm geschaut statt aufs Meer. Das Meer war beleidigt. Ich auch ein bisschen.",nm+" hat gefragt, wie das WLAN-Passwort ist. Ich hab gesagt: ‚Sonnenuntergang‘. Stimmt nicht, aber es hilft.",
+      "Ich hab "+nm+" zur Begrüßung gewunken. "+nm+" hat zurück … gescrollt. Wird schon.",nm+" ist da, mit Handy in der Hand. Das kennen wir. Und wir wissen auch, wie die Geschichte weitergeht."],
+    arrivalAnimal:["Ein neues Tier! Ich hab mich vorgestellt. Es hat mich ignoriert. Wir verstehen uns.","Willkommen, "+nm+"! Bitte nicht in meine Blumen. Oder doch, sind eh nur Unkraut.",
+      nm+" ist da. Lucifer tut, als wär's ihr egal. Sie guckt aber schon seit zehn Minuten.","Noch ein Mitbewohner. Zahlt keine Miete, ist aber trotzdem gern gesehen.",
+      "Tiere kommen nur, wo es ruhig ist. Das ist das schönste Kompliment für OffLand.",nm+" hat sich direkt in die Sonne gelegt. Kluges Tier. Hat das Prinzip verstanden."],
+    birth:["Nachwuchs! Ich fühl mich offiziell wie ein Onkel.","Die Insel wächst. Und mein Herz gleich mit.","Ein Baby! Ich hab schon ein Lätzchen mit Insel-Logo bestellt. Wir haben kein Logo. Jetzt schon.",
+      "Willkommen, "+nm+". Das Erste, was du hier siehst, ist der Himmel. Kein Bildschirm. So soll das sein.","Ich hab vor Freude die Glocke geläutet. Wir haben keine Glocke. Ich hab mit einem Topf geläutet.",
+      "Kleiner Mensch, große Neuigkeit. OffLand hat Zukunft."],
+    return:["Sie sind zurück! Ich hab extra den Steg gefegt. Zweimal.","Willkommen zurück! Wir haben euch vermisst. Ich besonders.",
+      "Ich hab dein Zimmer so gelassen, wie es war. Okay, Lucifer hat drin geschlafen. Aber sonst alles gleich.","Zurück auf OffLand! Ich tu jetzt so, als hätt ich nicht jeden Tag am Steg gewartet.",
+      "Ich wusste, dass du zurückkommst. Ich hab sogar gewettet. Gegen Lucifer. Sie schuldet mir einen Fisch."],
+    warn:["Das ist gerade nicht gut. Aber auch nicht vorbei. Zwei gute Tage, und wir drehen das.","Kein Drama. Okay, ein kleines. Aber wir kriegen das hin.",
+      "Die Stimmung wackelt. Ich hab Tee gekocht. Tee hilft. Gute Tage helfen mehr.","Ich bin nicht enttäuscht. Ich bin … motiviert für uns beide. Morgen packen wir das.",
+      "Ich hab schon schlimmere Wochen gesehen. Damals, als alle am Handy waren. Und schau, wo wir jetzt sind."],
+    left:["Das tut weh. Aber jeder Abschied ist auch ein Grund für ein Wiedersehen.","Ich winke so lange, bis das Boot weg ist. Dann winke ich noch ein bisschen.",
+      "Ich lass das Licht im Haus an. Falls jemand den Weg zurück sucht.","Weg ist nicht für immer. Auf OffLand schon gar nicht. Gute Tage bringen sie zurück."],
+    fest:["Ein Inselfest! Wie früher. Ich hab ein Mikro und keine Angst, es zu benutzen.","Alle draußen, alle zusammen. Genau dafür mach ich diesen Job.",
+      "Ich hab DJ gespielt. Drei Lieder, alle von 1987. Niemand hat sich beschwert. Alle haben getanzt.","Lichterketten an, Handys aus. Das ist mein Lieblingsgeräusch: Leute, die lachen.",
+      "Ich hab eine Polonaise gestartet. Lucifer war vorne. Hat sie nicht freiwillig gemacht."],
+    birthday:["Alles Gute! Ich hab gesungen. Lucifer hat den Raum verlassen. Verdient.","Kuchen am Strand. Das ist Kultur.",
+      "Happy Birthday, "+nm+"! Ein Jahr älter, und keinen Tag davon im Feed verbracht. Okay, ein paar. Aber trotzdem!","Ich hab Kerzen besorgt. Der Wind hat sie ausgepustet. Zählt trotzdem als Wunsch.",
+      "Geburtstag auf OffLand heißt: Alle kommen, keiner guckt aufs Handy, und ich halte eine zu lange Rede."]
+  };
+  let k=ev.type;
+  if(k==="arrival"){if(!r) return null; k=r.kind==="tier"?"arrivalAnimal":r.phone?"arrivalPhone":"arrival"}
+  if(k==="birthday"&&!nm) L.birthday=L.birthday.slice(0,2).concat(L.birthday.slice(3));
+  return L[k]?freshLine(L[k]):null;
 }
 /* Lucifer: ein Spruch pro Tag im Inselgeflüster, frech, aber lieb */
 function lucLine(){
   const last=S.days[S.days.length-1], good=last&&last.min<=S.budget, n=S.budgetStreak, seed=S.dayCount;
-  const pickL=a=>a[seed%a.length];
+  const pickL=a=>a[hsh("luc"+seed+a[0])%a.length];
   if(!last) return "Ich bin Lucifer. Ich war vor dir hier und bleibe auch nach dir. Trag heute Abend einfach deinen Tag ein, dann reden wir.";
-  if(S.jokerWk===isoWeek(today())&&!good) return "Joker eingesetzt? Mutig. Ich hätte ihn aufgehoben. Aber ich bin auch eine Katze.";
-  if(S.glueck<40) return pickL(["Die Stimmung ist im Keller. Ich war da unten, da gibt's nicht mal Fisch. Lass uns hochgehen.","Mr. Bay macht sich Sorgen. Ich nicht. Ich weiß, dass du das kannst. Sag's ihm nicht."]);
-  if(n>=3) return pickL([n+" Tage am Stück. Ich bin fast beeindruckt. Fast.","Mr. Bay hat vor Freude geweint. Schon wieder. Mach weiter, ich brauch die Unterhaltung.","Die Leute reden wieder miteinander. Ich hör zu. Besser als jede Serie."]);
-  if(!good) return pickL(["Wieder im Handy versunken? Ich hab mich vorsorglich auf deinen Bildschirm gelegt.","Gestern war … ein Tag. Heute wird besser. Also bei dir. Ich schlaf.","Ich sag nichts. Ich guck nur. Sehr intensiv.","Ich wusste doch, dass du das nicht schaffst. War ein Witz. Morgen zeigst du's mir."]);
-  return pickL(["Siehst du? Geht doch. Ich wusste es. Ich hab's nur nicht gesagt.","Guter Tag gestern. Ich hab zur Feier nur 14 Stunden geschlafen.","Ich hab schon drei Bürgermeister überlebt. Mr. Bay ist mein Lieblingsbürgermeister. Sag ihm das nicht."]);
+  if(S.jokerWk===isoWeek(today())&&!good) return pickL(["Joker eingesetzt? Mutig. Ich hätte ihn aufgehoben. Aber ich bin auch eine Katze.","Joker weg, Serie da. Ich hab nichts gesehen. Ich seh nie was. Außer alles."]);
+  if(S.glueck<40) return pickL(["Die Stimmung ist im Keller. Ich war da unten, da gibt's nicht mal Fisch. Lass uns hochgehen.","Mr. Bay macht sich Sorgen. Ich nicht. Ich weiß, dass du das kannst. Sag's ihm nicht.",
+    "Die Leute gucken traurig. Ich guck immer so, bei mir ist das Stil. Bei denen nicht. Mach was.","Ein guter Tag, und hier strahlen wieder alle. Ich strahle nicht. Ich schnurre. Ist dasselbe.",
+    "Ich hab mich extra auf den sonnigsten Platz gelegt, um die Stimmung zu heben. Jetzt bist du dran."]);
+  if(n>=3) return pickL([n+" Tage am Stück. Ich bin fast beeindruckt. Fast.","Mr. Bay hat vor Freude geweint. Schon wieder. Mach weiter, ich brauch die Unterhaltung.","Die Leute reden wieder miteinander. Ich hör zu. Besser als jede Serie.",
+    n+" gute Tage. Ich hab dir eine Maus hingelegt. Also, symbolisch. Also, es war eine echte. Gern geschehen.","Du bist auf einer Serie. Ich auch: Ich schlafe seit "+n+" Tagen durch. Wir sind ein gutes Team.",
+    "So viel Ruhe auf der Insel. Ich hab heute einen Schmetterling gefangen. Und wieder losgelassen. Bin entspannt.","Weiter so. Ich sag das nur einmal. Okay, ich sag's morgen wieder.",
+    "Mr. Bay hat ein Plakat mit deinem Namen gemalt. Ich hab draufgeschlafen. Es ist jetzt noch schöner."]);
+  if(!good) return pickL(["Wieder im Handy versunken? Ich hab mich vorsorglich auf deinen Bildschirm gelegt.","Gestern war … ein Tag. Heute wird besser. Also bei dir. Ich schlaf.","Ich sag nichts. Ich guck nur. Sehr intensiv.","Ich wusste doch, dass du das nicht schaffst. War ein Witz. Morgen zeigst du's mir.",
+    "Ich bin eine Katze. Ich fall immer auf die Pfoten. Du auch, du brauchst nur einen Tag mehr dafür.","Zu viel Handy gestern? Passiert. Mir passiert dauernd zu viel Schlaf. Wir urteilen hier nicht.",
+    "Ich hab gestern zehn Stunden aufs Meer geschaut. Empfehlenswert. Heute du?","Das Handy ist wie ein Wollknäuel. Erst spannend, dann hängst du drin fest. Glaub mir, ich weiß das.",
+    "Mr. Bay hat gestern nur dreimal geseufzt. Er glaubt an dich. Ich auch. Leiser."]);
+  return pickL(["Siehst du? Geht doch. Ich wusste es. Ich hab's nur nicht gesagt.","Guter Tag gestern. Ich hab zur Feier nur 14 Stunden geschlafen.","Ich hab schon drei Bürgermeister überlebt. Mr. Bay ist mein Lieblingsbürgermeister. Sag ihm das nicht.",
+    "Gestern im Budget. Ich hab vor Stolz meinen Schwanz geputzt. Zweimal.","Ein guter Tag ist wie ein Sonnenfleck auf dem Boden. Leg dich rein. Genieß es.",
+    "Ich hab mitgezählt, wie oft du gestern aufs Handy geschaut hast. Hab bei drei aufgehört. Zu wenig für mich, gut für dich.",
+    "Mr. Bay hat gestern gepfiffen. Falsch, aber glücklich. Das warst du.","Ich bin nicht verschmust. Aber wenn du so weitermachst, setz ich mich vielleicht neben dich. Vielleicht.",
+    "Du hast gestern was Echtes gemacht. Ich auch: Ich hab einen Vogel angeschaut. Wir sind beide gewachsen."]);
 }
 /* Intro: Mr. Bay erzählt, wie OffLand früher war */
 function storyIsle(mood,vb){
@@ -3357,7 +3404,7 @@ function nameSheet(ev){
     if(ev.type==="rename") toast(old!==r.name?old+" heißt jetzt "+r.name:"Gespeichert");
     save(); closeModal(); render(); showPending();
   };
-  inp.focus(); inp.select();
+  inp.onfocus=()=>inp.select();
 }
 /* Aussehen wählen: kleine Auswahl mit Live-Vorschau */
 function lookPreview(r,draft){
