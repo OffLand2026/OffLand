@@ -2497,7 +2497,7 @@ function showPending(){
       ${ev.repaired?`<p style="color:var(--lime)">Reparatur geschafft: +${ev.repaired} % vom schlechten Tag zurückgeholt.</p>`:""}
       ${ev.dreamt?`<p style="color:var(--lilac)">+15 Traumpunkte vom Gute-Nacht-Ritual.</p>`:""}
       ${ev.monsters&&ev.monsters.length?`<p style="color:#C8A8FF">${ev.monsters.map(id=>{const a=S.apps.find(x=>x.id===id);return a?monName(a,false):""}).join(", ")} vor der Insel aufgetaucht.</p>`:""}
-      ${good&&ev.saved?`<p>Gegenüber früher hast du heute <b>${hm(ev.saved)}</b> gewonnen. Das reicht für ${esc(eqText(eq))}.</p>`:""}
+      ${good&&ev.saved?`<p>Du warst heute <b>${hm(ev.saved)}</b> weniger am Handy als in deinem bisherigen Schnitt (${hm(S.baseline)} am Tag). Das reicht für ${esc(eqText(eq))}.</p>`:""}
       ${!good&&eq.length?`<p>Die Zeit über dem Budget hätte gereicht für ${esc(eqText(eq))}. Morgen ist ein neuer Tag.</p>`:""}
       <button class="btn" data-ok>Weiter</button>`,()=>countUp($("#cu"),ev.before,ev.after));
   }
