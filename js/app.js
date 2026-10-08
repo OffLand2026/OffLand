@@ -2847,17 +2847,18 @@ function nameSheet(ev){
 function lookPreview(r,draft){
   const tmp=Object.assign({},r,{sick:null});
   if(r.kind==="mensch") tmp.look=draft; else tmp.fur=draft.fur;
-  return `<svg width="72" height="78" viewBox="${r.kind==="mensch"?"-12 -25 24 26":SEA.includes(tmp.art)?figVB(tmp):"-16 -22 32 25"}" aria-hidden="true">${figure(tmp,0,0)}</svg>`;
+  return `<svg width="72" height="78" viewBox="${r.kind==="mensch"?(stage(r)==="baby"?"-8.5 -15.5 17 17":"-12 -25 24 26"):SEA.includes(tmp.art)?figVB(tmp):"-16 -22 32 25"}" aria-hidden="true">${figure(tmp,0,0)}</svg>`;
 }
 function lookEditor(r,d){
   const row=(label,key,list,sel)=>`<div class="sw-row" role="radiogroup" aria-label="${label}"><span class="small muted">${label}</span>${list.map((c,i)=>`<button type="button" class="sw${i===sel?" on":""}" data-look="${key}" data-v="${i}" style="background:${c}" aria-label="${label} ${i+1}" aria-pressed="${i===sel}"></button>`).join("")}</div>`;
   if(r.kind==="mensch"){
+    const baby=stage(r)==="baby";   // Babys haben keine Frisur und keine Extras, also nur zeigen, was man bei ihnen sieht
     const styles=`<div class="sw-row" role="radiogroup" aria-label="Frisur"><span class="small muted">Frisur</span>${STYLE_NAMES.map((n,i)=>{const hs=hairSvg(i,i===5?"#B6A4FF":"#4A3222");
       return `<button type="button" class="sw sw-ic${i===d.style?" on":""}" data-look="style" data-v="${i}" aria-label="${n}" aria-pressed="${i===d.style}"><svg width="24" height="24" viewBox="-7.5 -24 15 15" aria-hidden="true">${hs.back}<circle cx="0" cy="-16" r="5" fill="#E8B48F"/>${hs.front}</svg></button>`}).join("")}</div>`;
     const accs=`<div class="sw-row" role="radiogroup" aria-label="Extra"><span class="small muted">Extra</span>${ACC_NAMES.map((n,i)=>{const a=accSvg(i,"#FF9C7A"),hs=hairSvg(0,"#4A3222");
       return `<button type="button" class="sw sw-ic${i===(d.acc||0)?" on":""}" data-look="acc" data-v="${i}" aria-label="${n}" aria-pressed="${i===(d.acc||0)}">${i===0?`<svg width="22" height="22" viewBox="-10 -10 20 20" aria-hidden="true"><circle r="7.5" fill="none" stroke="#9EA3B8" stroke-width="2"/><path d="M-5.3 5.3L5.3 -5.3" stroke="#9EA3B8" stroke-width="2" stroke-linecap="round"/></svg>`:`<svg width="24" height="24" viewBox="-7.5 -25 15 16" aria-hidden="true"><path d="M-6 -6c0-4 2.4-5.2 6-5.2s6 1.2 6 5.2z" fill="#5B8CD6"/>${a.body}${hs.back}<circle cx="0" cy="-16" r="5" fill="#E8B48F"/>${hs.front}${a.head}</svg>`}</button>`}).join("")}</div>`;
     return `<div class="field"><span>Aussehen</span><div class="look"><div class="look-prev" id="lookPrev">${lookPreview(r,d)}</div><div class="look-opts">
-      ${row("Haut","skin",SKIN,d.skin)}${styles}${row("Haare","hair",HAIR,d.hair)}${row("Shirt","shirt",SHIRT,d.shirt)}${accs}${row("Farbe vom Extra","accC",SHIRT,d.accC)}</div></div></div>`;
+      ${baby?`${row("Haut","skin",SKIN,d.skin)}${row("Haare","hair",HAIR,d.hair)}${row("Strampler","shirt",SHIRT,d.shirt)}`:`${row("Haut","skin",SKIN,d.skin)}${styles}${row("Haare","hair",HAIR,d.hair)}${row("Shirt","shirt",SHIRT,d.shirt)}${accs}${row("Farbe vom Extra","accC",SHIRT,d.accC)}`}</div></div></div>`;
   }
   const n=(FUR[r.art]||[]).length; if(n<2) return "";
   return `<div class="field"><span>Fellfarbe</span><div class="sw-row" role="radiogroup" aria-label="Fellfarbe">${Array.from({length:n},(_,i)=>`<button type="button" class="sw sw-ic sw-big${i===d.fur?" on":""}" data-look="fur" data-v="${i}" aria-label="Fellfarbe ${i+1}" aria-pressed="${i===d.fur}"><svg width="38" height="30" viewBox="${artVB(r.art,38/30)}" aria-hidden="true">${animalSvg(r.art,i)}</svg></button>`).join("")}</div></div>`;
