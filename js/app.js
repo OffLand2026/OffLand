@@ -389,7 +389,7 @@ function migrate(st){
   if(st.points==null)st.points=0; if(!st.items)st.items=[]; if(!st.sun)st.sun=0;
   if(!st.rel)st.rel={}; if(st.conflict===undefined)st.conflict=null;
   if(!st.arrC)st.arrC=0; if(!st.birthC)st.birthC=0;
-  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,focusLog:[],alarm:true,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null},family:null,plan:null,planLog:[],weekReady:null,duelOff:null,jokerWk:null,lastSurprise:0,surprises:[],duel:null,duelLog:[]};
+  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,focusLog:[],alarm:true,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null},family:null,plan:null,planLog:[],weekReady:null,storySeen:false,duelOff:null,jokerWk:null,lastSurprise:0,surprises:[],duel:null,duelLog:[]};
   if(st.plusFriend===undefined) st.plusFriend=(st.buddies||[]).length?"alt":null;   // Plus-Monat fürs Einladen gibt es nur einmal
   if(st.allFeatures===undefined) st.allFeatures=(st.dayCount||0)>=1;          // wer schon gespielt hat, behält alles
   for(const k in D){ if(st[k]===undefined) st[k]=D[k]; }
@@ -1609,6 +1609,120 @@ function figure(r,x,y){
   const s=(r.parents?0.7:1)*(r.art==="Wal"?1.6:["Elch","Kamel","Eisbär"].includes(r.art)?1.1:1);
   return `<g transform="translate(${x} ${y}) scale(${s})"><title>${esc(r.name)} (${esc(r.art)})</title>${animalSvg(r.art,animalVar(r))}</g>`;
 }
+/* ---------- Geschichte: Mr. Bay (Bürgermeister) und Lucifer (Inselkatze) ---------- */
+function baySvg(){
+  // Mr. Bay: weißes Hemd mit offenem Kragen, dunkelblaues Sakko mit goldenem Bürgermeister-Anstecker, Locken, kleiner Schnurrbart, schiefes Grinsen
+  return `<path d="M-2.4 -3.4v3.4M2.4 -3.4v3.4" stroke="#2C3550" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M-6.6 -2.4c0-6.8 2.8-9.4 6.6-9.4s6.6 2.6 6.6 9.4z" fill="#2C3550"/>
+    <path d="M-2.7 -11.6L0 -4.2L2.7 -11.6z" fill="#F7F5EF"/><path d="M-1.2 -11.4L0 -9.7L1.2 -11.4" stroke="#D9D4C6" stroke-width=".6" fill="none"/>
+    <path d="M-2.7 -11.5L-4 -5.6M2.7 -11.5L4 -5.6" stroke="#47557A" stroke-width=".8"/>
+    <circle cx="4.1" cy="-8.2" r=".95" fill="#FFD27A" stroke="#E0A93C" stroke-width=".3"/>
+    <circle cx="0" cy="-16" r="5.1" fill="#F0C2A0"/>
+    <g fill="#6B4226"><circle cx="-3.6" cy="-18.6" r="2.3"/><circle cx="-1" cy="-20.3" r="2.4"/><circle cx="2" cy="-20.2" r="2.4"/><circle cx="4.2" cy="-18.3" r="2.1"/><path d="M-5.3 -16.4a5.3 5 0 0 1 10.6 0q-5.3-1.4-10.6 0z"/></g>
+    <circle cx="-1.8" cy="-15.7" r=".75" fill="#14151F"/><circle cx="1.8" cy="-15.7" r=".75" fill="#14151F"/>
+    <circle cx="-3.3" cy="-13.9" r="1" fill="#FF9C7A" opacity=".4"/><circle cx="3.3" cy="-13.9" r="1" fill="#FF9C7A" opacity=".4"/>
+    <path d="M-1.9 -13.6q.95-.7 1.9-.15q.95-.55 1.9.15q-.95.35-1.9 0q-.95.35-1.9 0z" fill="#6B4226"/><path d="M-1.1 -12.3q1.3.8 2.6-.6" stroke="#5A3A2A" stroke-width=".65" fill="none" stroke-linecap="round"/>`;
+}
+function lucSvg(){
+  return `<path d="M5.6 -1.4q6.4-.6 5.2-7.2" stroke="#1E1F2B" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+    <ellipse cx="0" cy="-5.2" rx="6" ry="5.6" fill="#1E1F2B"/>
+    <path d="M-2.7 -9.2q2.7 2 5.4 0q-.5 5.8-2.7 7.8q-2.2-2-2.7-7.8z" fill="#F3F1EA"/>
+    <ellipse cx="-2.5" cy="-.7" rx="1.7" ry="1.05" fill="#F3F1EA"/><ellipse cx="2.5" cy="-.7" rx="1.7" ry="1.05" fill="#F3F1EA"/>
+    <path d="M-4.3 -15.2l-.7-4.8 3.6 2.5zM4.3 -15.2l.7-4.8-3.6 2.5z" fill="#1E1F2B"/><path d="M-3.9 -16.2l-.3-2.4 1.6 1.2zM3.9 -16.2l.3-2.4-1.6 1.2z" fill="#E07AB8" opacity=".7"/>
+    <circle cx="0" cy="-13" r="4.7" fill="#1E1F2B"/>
+    <path d="M-2.3 -11.5q2.3-2.8 4.6 0q-.4 2.1-2.3 2.3q-1.9-.2-2.3-2.3z" fill="#F3F1EA"/>
+    <ellipse cx="-1.8" cy="-13.7" rx="1.05" ry="1.25" fill="#C8F169"/><ellipse cx="1.8" cy="-13.7" rx="1.05" ry="1.25" fill="#C8F169"/>
+    <path d="M-1.8 -14.6v1.8M1.8 -14.6v1.8" stroke="#14151F" stroke-width=".55" stroke-linecap="round"/>
+    <path d="M-.5 -11.9h1l-.5.6z" fill="#E07AB8"/>
+    <path d="M-1.4 -11.2l-3.4-.5M-1.4 -10.7l-3.2.5M1.4 -11.2l3.4-.5M1.4 -10.7l3.2.5" stroke="#F3F1EA" stroke-width=".28" opacity=".8"/>`;
+}
+const bayPic=(s)=>`<svg width="${s}" height="${s}" viewBox="-8.5 -22.5 17 17" aria-hidden="true">${baySvg()}</svg>`;
+const lucPic=(s)=>`<svg width="${s}" height="${s}" viewBox="-8 -20.5 16 16" aria-hidden="true">${lucSvg()}</svg>`;
+function saysHtml(who,text){
+  const bay=who==="bay";
+  return `<div class="says ${bay?"bay":"luc"}"><span class="says-pic">${bay?bayPic(46):lucPic(46)}</span><div class="says-bub"><b>${bay?"Mr. Bay":"Lucifer"}</b><p>${esc(text)}</p></div></div>`;
+}
+/* Was Mr. Bay zu großen Momenten sagt (moderner Humor, nie vorwurfsvoll) */
+function bayLine(ev){
+  const L={
+    project:["Okay. Ich bin ganz ruhig. Das ist nur Staub im Auge. Sehr viel Staub.","Ich hab gewusst, dass wir das schaffen. Also, ich hab's sehr fest gehofft.","Das kommt in meine Story. Mit Filter. Und Feuerwerk-Emoji."],
+    discovery:["Kurzes Update: Wir expandieren. Klingt nach Start-up, ist aber eine Insel.","Neue Insel?! Ich hab nicht mal eine Packliste. Egal, Abenteuer!"],
+    arrival:["Ein neues Gesicht! Ich tu jetzt ganz lässig. Ganz. Lässig.","Siehst du? Es spricht sich rum. Ganz ohne Hashtag."],
+    birth:["Nachwuchs! Ich fühl mich offiziell wie ein Onkel.","Die Insel wächst. Und mein Herz gleich mit."],
+    return:["Sie sind zurück! Ich hab extra den Steg gefegt. Zweimal.","Willkommen zurück! Wir haben euch vermisst. Ich besonders."],
+    warn:["Das ist gerade nicht gut. Aber auch nicht vorbei. Zwei gute Tage, und wir drehen das.","Kein Drama. Okay, ein kleines. Aber wir kriegen das hin."],
+    left:["Das tut weh. Aber jeder Abschied ist auch ein Grund für ein Wiedersehen.","Ich winke so lange, bis das Boot weg ist. Dann winke ich noch ein bisschen."],
+    fest:["Ein Inselfest! Wie früher. Ich hab ein Mikro und keine Angst, es zu benutzen.","Alle draußen, alle zusammen. Genau dafür mach ich diesen Job."],
+    birthday:["Alles Gute! Ich hab gesungen. Lucifer hat den Raum verlassen. Verdient.","Kuchen am Strand. Das ist Kultur."]
+  }[ev.type];
+  if(!L) return null;
+  if(ev.type==="arrival"){const r=S.residents.find(x=>x.id===ev.id); if(!r||r.kind!=="mensch") return null}
+  return L[hsh((ev.id||ev.type)+S.dayCount)%L.length];
+}
+/* Lucifer: ein Spruch pro Tag im Inselgeflüster, frech, aber lieb */
+function lucLine(){
+  const last=S.days[S.days.length-1], good=last&&last.min<=S.budget, n=S.budgetStreak, seed=S.dayCount;
+  const pickL=a=>a[seed%a.length];
+  if(!last) return "Ich bin Lucifer. Ich war vor dir hier und bleibe auch nach dir. Trag heute Abend einfach deinen Tag ein, dann reden wir.";
+  if(S.jokerWk===isoWeek(today())&&!good) return "Joker eingesetzt? Mutig. Ich hätte ihn aufgehoben. Aber ich bin auch eine Katze.";
+  if(S.glueck<40) return pickL(["Die Stimmung ist im Keller. Ich war da unten, da gibt's nicht mal Fisch. Lass uns hochgehen.","Mr. Bay macht sich Sorgen. Ich nicht. Ich weiß, dass du das kannst. Sag's ihm nicht."]);
+  if(n>=3) return pickL([n+" Tage am Stück. Ich bin fast beeindruckt. Fast.","Mr. Bay hat vor Freude geweint. Schon wieder. Mach weiter, ich brauch die Unterhaltung.","Die Leute reden wieder miteinander. Ich hör zu. Besser als jede Serie."]);
+  if(!good) return pickL(["Wieder im Handy versunken? Ich hab mich vorsorglich auf deinen Bildschirm gelegt.","Gestern war … ein Tag. Heute wird besser. Also bei dir. Ich schlaf.","Ich sag nichts. Ich guck nur. Sehr intensiv.","Ich wusste doch, dass du das nicht schaffst. War ein Witz. Morgen zeigst du's mir."]);
+  return pickL(["Siehst du? Geht doch. Ich wusste es. Ich hab's nur nicht gesagt.","Guter Tag gestern. Ich hab zur Feier nur 14 Stunden geschlafen.","Ich hab schon drei Bürgermeister überlebt. Mr. Bay ist mein Lieblingsbürgermeister. Sag ihm das nicht."]);
+}
+/* Intro: Mr. Bay erzählt, wie OffLand früher war */
+function storyIsle(mood,vb){
+  const c={past:["#F2D3A0","#6FA6C8","#E9D7A6","#8CCB7A"],grey:["#8E93A6","#4F5B73","#B9B2A0","#7E9277"],now:["#86BFE6","#3A6FA8","#E9D7A6","#7FC57A"]}[mood];
+  return {c,open:`<svg viewBox="${vb||"0 0 360 200"}" aria-hidden="true"><rect width="360" height="200" fill="${c[0]}"/>${mood==="grey"?`<g fill="#A3A7B8" opacity=".8"><ellipse cx="80" cy="40" rx="40" ry="12"/><ellipse cx="250" cy="30" rx="50" ry="13"/></g>`:`<circle cx="300" cy="44" r="18" fill="#FFE7A3"/>`}
+    <rect y="132" width="360" height="68" fill="${c[1]}"/><ellipse cx="200" cy="140" rx="120" ry="17" fill="${c[2]}"/><path d="M96 138c12-38 58-52 104-52s92 14 104 52z" fill="${c[3]}"/>
+    <path d="M250 128v-22l18-13 18 13v22z" fill="#F3F1EA"/><path d="M246 108l22-17 22 17" fill="none" stroke="#FF9C7A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><rect x="262" y="114" width="12" height="14" rx="2" fill="#B6A4FF"/>`};
+}
+const phoneIn=(x,y)=>`<g transform="translate(${x} ${y})"><circle cx="0" cy="-15" r="7" fill="#7FB6FF" opacity=".28"/><rect x="-1.8" y="-10.6" width="3.6" height="5.6" rx=".9" fill="#2B3350"/><rect x="-1.3" y="-10" width="2.6" height="4.2" rx=".5" fill="#9CC8EE"/></g>`;
+function partyArt(){
+  const col=["#FF9C7A","#FFD27A","#C8F169","#B6A4FF","#5BC0A8"];
+  const garland=(x1,x2,y,sag)=>{const n=9;let h=`<path d="M${x1} ${y}q${(x2-x1)/2} ${sag} ${x2-x1} 0" stroke="#5A3A2A" stroke-width=".6" fill="none"/>`;
+    for(let i=1;i<n;i++){const t=i/n,x=x1+(x2-x1)*t,yy=y+sag*2*t*(1-t);h+=`<circle class="glow" style="animation-delay:${(i*.27)%2}s" cx="${x}" cy="${yy+1.4}" r="1.5" fill="${col[i%5]}"/>`}return h};
+  const ppl=[{id:"p1",kind:"mensch",name:"A",look:{skin:1,hair:3,style:7,shirt:4,acc:[6],accC:0}},{id:"p2",kind:"mensch",name:"B",look:{skin:3,hair:0,style:4,shirt:1,acc:[],accC:2}},{id:"p3",kind:"mensch",name:"C",look:{skin:0,hair:5,style:11,shirt:7,acc:[],accC:0}},{id:"p4",kind:"mensch",name:"D",look:{skin:2,hair:1,style:0,shirt:2,acc:[5],accC:3}},{id:"p5",kind:"mensch",name:"E",look:{skin:4,hair:2,style:8,shirt:9,acc:[],accC:0}}];
+  const an=[{id:"a1",kind:"tier",art:"Ziege",name:"Z"},{id:"a2",kind:"tier",art:"Huhn",name:"H"},{id:"a3",kind:"tier",art:"Hund",name:"D"}];
+  return `<g transform="translate(206 128) scale(.95)">${projectSvg("festzelt")}</g>`+garland(110,200,98,10)+garland(200,300,96,12)+
+    `<g transform="translate(140 148) scale(1.1)">${itemSvg("sandburg")}</g><g transform="translate(180 146) scale(.9)">${itemSvg("feuer")}</g>`+
+    ppl.map((r,i)=>`<g class="bob" style="animation-delay:${i*.25}s;animation-duration:${1.2+i%2*.4}s">${figure(r,[160,196,236,262,288][i],[140,142,141,138,140][i])}</g>`).join("")+
+    an.map((r,i)=>figure(r,[118,214,306][i],[142,147,146][i])).join("")+
+    confetti()+`<g transform="translate(0 70)">${confetti()}</g>`;
+}
+function storySlides(existing){
+  const kids=here().filter(r=>r.kind==="mensch").slice(0,3);
+  const ppl=(xs,y,ph)=>kids.slice(0,xs.length).map((r,i)=>`<g class="bob" style="animation-delay:${i*.3}s">${figure(Object.assign({},r,{sick:null}),xs[i],y)}</g>${ph?phoneIn(xs[i],y):""}`).join("");
+  const Z="96 70 236 118", a=storyIsle("past",Z), a2=storyIsle("past"), b=storyIsle("grey",Z), b2=storyIsle("grey","40 40 300 160"), n=storyIsle("now",Z);
+  return [
+    {who:"bay",mood:"past",art:a.open+partyArt()+`</svg>`,
+      t:existing?"Hi! Ich bin Mr. Bay, Bürgermeister von OffLand. Ich hab mich noch gar nicht richtig vorgestellt, sorry. Kurze Zeitreise: Hier war mal richtig was los. Sandburgen, Lagerfeuer, Feste bis nach Mitternacht.":"Willkommen auf OffLand! Ich bin Mr. Bay, der Bürgermeister. Kurze Zeitreise: Hier war mal richtig was los. Sandburgen, Lagerfeuer, Feste bis nach Mitternacht."},
+    {who:"bay",mood:"past",art:a2.open+`<ellipse cx="38" cy="150" rx="40" ry="10" fill="${a.c[2]}"/><path d="M8 148c6-18 28-24 42-24s22 8 26 24z" fill="${a.c[3]}"/><path d="M70 140q24-26 48 0" fill="none" stroke="#8A5A3B" stroke-width="4" stroke-linecap="round"/><path d="M80 134v8M94 126v14M108 134v8" stroke="#8A5A3B" stroke-width="2"/>`+ppl([94,40,150],127)+hearts(150,100)+`</svg>`,
+      t:"Wir haben sogar eine Brücke zur Nachbarinsel gebaut. Die Möwen kamen extra zum Feiern vorbei. Ehrlich."},
+    {who:"bay",mood:"grey",art:b.open+ppl([170,195,220],136,true)+`</svg>`,
+      t:"Dann kamen die Bildschirme. Erst einer. Dann alle. Plötzlich war es sehr still hier."},
+    {who:"bay",mood:"grey",art:b2.open+boat(kids.slice(0,2),"sail-out")+ppl([205,0,0].slice(0,1),136,true)+`</svg>`,
+      t:"Die meisten sind weggezogen. Wer noch da ist, redet mehr mit dem Handy als mit mir. Und ich bin wirklich unterhaltsam."},
+    {who:"both",mood:"now",art:n.open+`<g transform="translate(170 138) scale(2.1)"><g class="bob">${baySvg()}</g></g><g transform="translate(212 140) scale(1.9)"><g class="pop fb" style="animation-delay:.4s">${lucSvg()}</g></g></svg>`,
+      t:""}
+  ];
+}
+function storySheet(existing){
+  const sl=storySlides(existing);
+  sheet(`<div class="wr" id="wr">${sl.map((x,i)=>`<section class="wr-s story-s">
+      <div class="anim story-art ${x.mood}">${x.art}</div>
+      ${x.who==="both"?saysHtml("luc","Er erzählt das jedem. Aber du siehst aus, als hättest du was drauf.")+saysHtml("bay","Hilfst du mir, OffLand zurückzuholen? Weniger Handy, mehr Leben. Für die Insel und für dich."):saysHtml("bay",x.t)}
+    </section>`).join("")}</div>
+    <div class="wr-dots" aria-hidden="true">${sl.map((_,i)=>`<i${i?"":' class="on"'}></i>`).join("")}</div>
+    <div class="row"><button class="btn ghost grow" id="storySkip" data-ok>Überspringen</button><button class="btn grow" id="storyNext">Weiter</button></div>`);
+  const box=$("#wr"), dots=[...document.querySelectorAll(".wr-dots i")], idx=()=>Math.round(box.scrollLeft/box.clientWidth), last=sl.length-1;
+  const upd=()=>{const i=idx();dots.forEach((d,k)=>d.classList.toggle("on",k===i));$("#storyNext").textContent=i>=last?(existing?"Bin dabei!":"Los geht's!"):"Weiter";$("#storySkip").style.visibility=i>=last?"hidden":"visible"};
+  box.onscroll=upd;
+  const done=()=>{S.storySeen=true;save();closeModal();render();showPending()};
+  $("#storyNext").onclick=()=>{const i=idx(); if(i>=last) return done(); box.scrollTo({left:(i+1)*box.clientWidth,behavior:"smooth"})};
+  $("#storySkip").onclick=done;
+}
+
 /* Bildausschnitt, in dem ein Tier ganz zu sehen ist (Wal und Delfin sind breiter als die anderen) */
 const ART_BOX={Wal:[-16.4,-21.3,21.6,5.6],Delfin:[-17.2,-19.4,23.2,2.6],Ziege:[-12.2,-21,12,1],Huhn:[-11.4,-16,11,1.2],Schaf:[-11.9,-13.9,10.3,1.5],Esel:[-15,-23,12.5,1],
   Katze:[-9,-16.6,11.5,0],Hund:[-12.7,-15.5,11.2,0.4],Meerschweinchen:[-10.1,-10.8,8,0.2],Hase:[-8.7,-20,9.4,0],Robbe:[-10,-13,14,1],Papagei:[-8,-21,11,1],Elch:[-18,-31,12,0],Kamel:[-15.6,-26.2,13,0],Eisbär:[-16.6,-17.6,12,0]};
@@ -2103,7 +2217,7 @@ function viewHeute(){
   ${S.weekReady&&today()<=S.weekReady.until?`<div class="card week-ready"><div class="row"><span class="plan-ic" style="background:#26233D;color:var(--lilac)"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h6a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4zM20 5h-6a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h6z"/></svg></span><div class="grow"><p class="label" style="color:var(--lilac)">Neu</p><p><b>Deine Inselwoche KW ${+S.weekReady.wk.split("-W")[1]} ist da</b></p><p class="small muted">Gewonnene Zeit, bester Tag und was auf der Insel los war.</p></div></div><button class="btn secondary" id="weekReadyBtn">Wochenrückblick ansehen</button></div>`:""}
   ${S.vacation?`<div class="card" style="border:1.5px solid var(--lilac)"><p class="label" style="color:var(--lilac)">Urlaubsmodus</p><p>${guard?`<b>${esc(guard.name)}</b> hütet die Insel, bis du zurück bist.`:"Die Insel schläft, bis du zurück bist."} Das Glück sinkt in der Zeit nicht.</p><button class="btn secondary" id="vacOff">Ich bin zurück</button></div>`:""}
   ${warn?`<div class="card warn"><p class="label" style="color:var(--amber)">Wegzug droht</p><p><b>${esc(groupName(warn))}</b> ${vb(warn,"packt","packen")} die Koffer. Bring das Inselglück bis ${nice(S.warn.deadline)} über 40 %, dann ${vb(warn,"bleibt "+esc(warn[0].name),"bleiben alle")}.</p></div>`:""}
-  ${wh.length?`<div class="card"><p class="label">Inselgeflüster</p>${wh.map(w=>`<div class="row" style="align-items:flex-start"><div class="avatar" style="background:${w.r.kind==="mensch"?"#26233D":SEA.includes(w.r.art)?"#1F2A3A":"#22301F"}"><svg width="40" height="40" viewBox="${figVB(w.r)}" aria-hidden="true">${figure(w.r,0,0)}</svg></div><div class="grow" style="background:var(--ground);border-radius:4px 16px 16px 16px;padding:10px 12px"><p class="small" style="font-weight:700;color:var(--lilac)">${esc(w.r.name)}${w.r.job?" · "+esc(jobName(w.r.job)):""}</p><p>${esc(w.t)}</p></div></div>`).join("")}</div>`:""}
+  ${S.setup?`<div class="card"><p class="label">Inselgeflüster</p><div class="row" style="align-items:flex-start"><div class="avatar" style="background:#26233D">${lucPic(40)}</div><div class="grow" style="background:var(--ground);border-radius:4px 16px 16px 16px;padding:10px 12px"><p class="small" style="font-weight:700;color:var(--lilac)">Lucifer · Inselkatze</p><p>${esc(lucLine())}</p></div></div>${wh.slice(0,1).map(w=>`<div class="row" style="align-items:flex-start"><div class="avatar" style="background:${w.r.kind==="mensch"?"#26233D":SEA.includes(w.r.art)?"#1F2A3A":"#22301F"}"><svg width="40" height="40" viewBox="${figVB(w.r)}" aria-hidden="true">${figure(w.r,0,0)}</svg></div><div class="grow" style="background:var(--ground);border-radius:4px 16px 16px 16px;padding:10px 12px"><p class="small" style="font-weight:700;color:var(--lilac)">${esc(w.r.name)}${w.r.job?" · "+esc(jobName(w.r.job)):""}</p><p>${esc(w.t)}</p></div></div>`).join("")}</div>`:""}
   ${S.wish&&wisher?wishCard(S.wish,wisher):""}
   ${mons.length?`<div class="card" style="border:1.5px solid #9B6BD6"><p class="label" style="color:#C8A8FF">App-Monster vor der Insel</p>${mons.map(a=>`<div class="row"><svg width="48" height="40" viewBox="-24 -34 48 40" aria-hidden="true">${monsterSvg(a.m)}</svg><p class="grow">${esc(monName(a,false))}: ${esc(a.name)} lag gestern über ${hm(a.limit)}. Es verscheucht die Fische und kostet Glück.</p></div>`).join("")}<p class="small muted">Bleib heute bei diesen Apps unter dem Limit, dann tauchen sie wieder ab.</p></div>`:""}
   ${feature("boot")?`<div class="card">
@@ -2792,6 +2906,7 @@ function soundFor(ev){
 function showPending(){
   if($("#modalRoot").innerHTML) return;
   const ev=S.pending.shift(); if(!ev){return}
+  CUR_EV=ev;
   soundFor(ev);
   save();
   if(ev.type==="arrival"||ev.type==="birth"||ev.type==="rename") return nameSheet(ev);
@@ -2979,11 +3094,12 @@ function showPending(){
       <p class="label" style="color:var(--amber)">Inselfest</p><h2>Die Insel feiert dich</h2><p class="muted">${ev.good} von 7 Tagen im Budget. Laternen, Lagerfeuer und Musik: +5 % Glück und +30 Punkte.</p><button class="btn" data-ok>Mitfeiern</button>`);
   }
   if(ev.type==="discovery"){
-    const W=WORLDS[ev.world]; if(!W) return showPending();
+    const W=WORLDS[ev.world]; CUR_EV=null; if(!W) return showPending();
     $("#modalRoot").innerHTML=`<div class="modal"><div class="sheet" role="dialog" aria-modal="true">
       ${worldMapSvg()}
       <p class="label" style="color:var(--lime)">Neue Insel entdeckt</p><h2>${esc(W.name)}</h2>
       <p class="muted">${esc(W.text)} Dort warten neue Großprojekte, mehr Platz für Bewohner${W.animals?" und eine neue Tierart":""}.</p>
+      ${saysHtml("bay",bayLine({type:"discovery",id:W.id}))}
       <button class="btn" id="discGo">Jetzt aufbrechen</button>
       <button class="btn ghost" id="discLater">Später, über Bauen → Weltreise</button></div></div>`;
     $("#discGo").onclick=travel; $("#discLater").onclick=()=>{closeModal();render();showPending()};
@@ -3061,8 +3177,10 @@ function showPending(){
   }
   showPending();
 }
+let CUR_EV=null;
 function sheet(html,after){
   $("#modalRoot").innerHTML=`<div class="modal"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`;
+  if(CUR_EV){const t=bayLine(CUR_EV); CUR_EV=null; const b=$("#modalRoot .sheet > .btn"); if(t&&b) b.insertAdjacentHTML("beforebegin",saysHtml("bay",t))}
   const ok=$("#modalRoot [data-ok]"); if(ok){ok.focus();ok.onclick=()=>{closeModal();render();showPending()}}
   if(after) after();
 }
@@ -4249,7 +4367,8 @@ function login(p){
   updateProfile(p.id,{last:Date.now()});
   const st=lsGet(); S=migrate(st&&st.v===1?st:newGame()); tab="heute"; if(S.setup) checkDiscovery();
   document.body.classList.remove("start"); $("#start").innerHTML="";
-  closeModal(); render(); window.scrollTo(0,0); showPending();
+  closeModal(); render(); window.scrollTo(0,0);
+  if(!S.storySeen) storySheet(!!S.setup); else showPending();
   if(S.setup&&pendingInvite()&&!$("#modalRoot").innerHTML) inviteSheet();
   if(S.setup&&famInvite()&&!S.family&&!$("#modalRoot").innerHTML) famJoinSheet(famInvite());
   if(S.family) setTimeout(famSync,1200);
