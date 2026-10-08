@@ -101,6 +101,19 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/families/$(request.resource.data.fam));
     }
 
+    // Warteliste: Eintragen und prüfen, ob die eigene Adresse schon drauf ist. Auflisten, Ändern und Löschen nur in der Konsole.
+    // Dokument-ID = SHA-256 der E-Mail-Adresse (64 Zeichen), damit jede Adresse nur einmal vorkommt.
+    match /waitlist/{id} {
+      allow get: if signedIn() && id.size() == 64;
+      allow create: if signedIn() && id.size() == 64
+        && request.resource.data.keys().hasOnly(["email", "consent", "src", "at"])
+        && request.resource.data.email is string && request.resource.data.email.size() <= 120
+        && request.resource.data.email.matches('^[^@\\s]+@[^@\\s]+[.][^@\\s]+$')
+        && request.resource.data.consent == true
+        && shortText(request.resource.data.src, 30)
+        && request.resource.data.at == request.time;
+    }
+
     // Rangliste für alle: nur wer zugestimmt hat, steht hier.
     match /weeks/{wk}/public/{pid} {
       allow get: if signedIn();
