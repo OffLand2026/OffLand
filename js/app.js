@@ -389,7 +389,7 @@ function migrate(st){
   if(st.points==null)st.points=0; if(!st.items)st.items=[]; if(!st.sun)st.sun=0;
   if(!st.rel)st.rel={}; if(st.conflict===undefined)st.conflict=null;
   if(!st.arrC)st.arrC=0; if(!st.birthC)st.birthC=0;
-  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,focusLog:[],alarm:true,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null},family:null,plan:null,planLog:[],weekReady:null,jokerWk:null,lastSurprise:0,surprises:[],duel:null,duelLog:[]};
+  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,focusLog:[],alarm:true,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null},family:null,plan:null,planLog:[],weekReady:null,duelOff:null,jokerWk:null,lastSurprise:0,surprises:[],duel:null,duelLog:[]};
   if(st.plusFriend===undefined) st.plusFriend=(st.buddies||[]).length?"alt":null;   // Plus-Monat fürs Einladen gibt es nur einmal
   if(st.allFeatures===undefined) st.allFeatures=(st.dayCount||0)>=1;          // wer schon gespielt hat, behält alles
   for(const k in D){ if(st[k]===undefined) st[k]=D[k]; }
@@ -3382,10 +3382,11 @@ async function netSync(){
   try{
     const N=await netInit(), o=S.online, w=weekStats();
     const row={owner:N.uid,name:netName(),avatar:netAv(),avg:w.avg,days:w.days,good:w.good,streak:S.budgetStreak,world:curWorld().name,updated:Date.now()};
-    if(S.duel&&S.duel.wk===w.wk) row.duel=S.duel.vs;
+    row.duel=S.duel&&S.duel.wk===w.wk?S.duel.vs:null;                              // merge-Schreiben: null löscht ein altes Duell
+    row.duelOff=S.duelOff&&S.duelOff.wk===w.wk?S.duelOff.vs:null;                  // abgebrochen oder abgelehnt
     await N.set("players/"+o.pid,{owner:N.uid,name:row.name,avatar:row.avatar,world:row.world,updated:row.updated});
     await N.set("weeks/"+w.wk+"/ranks/"+o.pid,row);
-    if(o.pub&&w.avg!=null&&w.days>=3){const pub=Object.assign({},row);delete pub.duel;await N.set("weeks/"+w.wk+"/public/"+o.pid,pub)}
+    if(o.pub&&w.avg!=null&&w.days>=3){const pub=Object.assign({},row);delete pub.duel;delete pub.duelOff;await N.set("weeks/"+w.wk+"/public/"+o.pid,pub)}
     else await N.del("weeks/"+w.wk+"/public/"+o.pid).catch(()=>{});
     await netPullFriends();
     await duelCheck();
@@ -3581,9 +3582,13 @@ async function fillRanks(force){
     :mine.avg!=null&&(mine.days||0)<3?`<p class="small muted">Ab 3 eingetragenen Tagen diese Woche bist du in der Rangliste für alle dabei (noch ${3-(mine.days||0)}).</p>`:"";
   const simHint=S.testmode&&S.lastDay&&S.lastDay>today()?`<p class="small muted">Testmodus: Simulierte Tage liegen in der Zukunft und zählen nicht für die Ranglisten. Es zählen nur echte Tage dieser Woche.</p>`:"";
   // Duell: Herausforderung von jemandem annehmen, dann Rennen zeigen
-  const wkNow=isoWeek(today()), ch=R.friends.find(r=>r.id!==me&&r.duel===me);
+  const wkNow=isoWeek(today());
+  if(S.duel&&S.duel.wk===wkNow){const opp=R.friends.find(r=>r.id===S.duel.vs);
+    if(opp&&opp.duelOff===me){const n=S.duel.name;S.duelOff={vs:S.duel.vs,wk:wkNow};S.duel=null;log(n+" hat das Duell abgebrochen.","info");save();toast(n+" hat das Duell abgebrochen");netSync()}}
+  const ch=R.friends.find(r=>r.id!==me&&r.duel===me&&r.duelOff!==me&&!(S.duelOff&&S.duelOff.wk===wkNow&&S.duelOff.vs===r.id));
   if(ch&&!(S.duel&&S.duel.wk===wkNow)){S.duel={vs:ch.id,name:ch.name||"?",avatar:ch.avatar||"Ziege",wk:wkNow,by:"them"};log(S.duel.name+" hat dich zum Duell der Woche herausgefordert.","info");S.pending.push({type:"duelStart",name:S.duel.name,avatar:S.duel.avatar});save();netSync();showPending()}
-  const db=$("#duelBox"); if(db){db.innerHTML=duelHtml(R); db.querySelectorAll("[data-duel]").forEach(b=>b.onclick=()=>{const r=R.friends.find(x=>x.id===b.dataset.duel); if(r){b.disabled=true;duelChallenge(r)}})}
+  const db=$("#duelBox"); if(db){db.innerHTML=duelHtml(R); db.querySelectorAll("[data-duel]").forEach(b=>b.onclick=()=>{const r=R.friends.find(x=>x.id===b.dataset.duel); if(r){b.disabled=true;duelChallenge(r)}});
+    const st=$("#duelStop"); if(st) st.onclick=duelCancelSheet}
   // Vorschau oben
   $("#rankHero").innerHTML=`<p class="label" style="color:var(--lime)">Diese Woche</p>
     ${R.nFriends?`<p class="goal-num num" style="color:${fi===0?"var(--amber)":"var(--ink)"}">Platz ${fi+1} <span class="muted" style="font-size:.5em">von ${R.friends.length}</span></p>
@@ -3621,6 +3626,21 @@ async function duelCheck(){
   chron([],win?"Duell gegen "+d.name+" gewonnen.":draw?"Duell gegen "+d.name+" endete unentschieden.":"Duell gegen "+d.name+" verloren.");
   S.pending.push({type:"duelEnd",name:d.name,avatar:d.avatar,win,draw,my,their,item});
   S.duel=null; save(); render(); showPending();
+}
+function duelCancel(why){
+  const d=S.duel; if(!d) return;
+  S.duelOff={vs:d.vs,wk:d.wk}; S.duel=null;
+  log(why==="ablehnen"?"Du hast die Herausforderung von "+d.name+" abgelehnt.":"Du hast das Duell gegen "+d.name+" abgebrochen.","info");
+  save(); RANKC=null; render(); netSync().then(()=>{if(tab==="freunde") fillRanks(true)});
+  toast(why==="ablehnen"?"Herausforderung abgelehnt":"Duell abgebrochen");
+}
+function duelCancelSheet(){
+  const d=S.duel; if(!d) return;
+  sheet(`<p class="label" style="color:var(--amber)">Duell der Woche</p><h2>Duell gegen ${esc(d.name)} abbrechen?</h2>
+    <p class="muted">Niemand gewinnt eine Deko. ${esc(d.name)} sieht, dass du abgebrochen hast. Diese Woche könnt ihr euch nicht noch einmal herausfordern, ab Montag wieder.</p>
+    <button class="btn" id="dcNo">Weiterspielen</button><button class="btn ghost" id="dcYes">Duell abbrechen</button>`);
+  $("#dcNo").onclick=()=>{closeModal();render()};
+  $("#dcYes").onclick=()=>{closeModal();duelCancel()};
 }
 function duelChallenge(r){
   S.duel={vs:r.id,name:r.name||"?",avatar:r.avatar||"Ziege",wk:isoWeek(today()),by:"me"};
@@ -3670,7 +3690,8 @@ function duelHtml(R){
     const fr=R.friends.filter(r=>r.id!==me);
     return `<div class="card duel-card"><p class="label" style="color:var(--amber)">⚔️ Duell der Woche</p>
       <p>Fordere jemanden heraus: Wer diese Woche im Schnitt weniger am Handy ist, gewinnt eine <b>Deko für die Insel</b>.</p>
-      <div style="display:flex;flex-direction:column;gap:6px">${fr.map(r=>`<div class="row">${avatarSvg(r.avatar||"Ziege",36)}<b class="grow">${esc(r.name||"?")}</b><button class="btn secondary" style="width:auto;padding:0 14px;min-height:44px" data-duel="${esc(r.id)}">Herausfordern</button></div>`).join("")}</div>
+      <div style="display:flex;flex-direction:column;gap:6px">${fr.map(r=>{const off=(S.duelOff&&S.duelOff.wk===wk&&S.duelOff.vs===r.id)||r.duelOff===me;
+        return `<div class="row">${avatarSvg(r.avatar||"Ziege",36)}<b class="grow">${esc(r.name||"?")}</b>${off?`<span class="small muted">ab Montag wieder</span>`:`<button class="btn secondary" style="width:auto;padding:0 14px;min-height:44px" data-duel="${esc(r.id)}">Herausfordern</button>`}</div>`}).join("")}</div>
       <p class="small muted">Das Duell läuft bis Sonntag. Auch wer verliert, bekommt Punkte fürs Mitmachen.</p></div>`;
   }
   const mine=R.friends.find(r=>r.id===me)||{}, opp=R.friends.find(r=>r.id===d.vs)||{name:d.name,avatar:d.avatar,avg:null};
@@ -3681,13 +3702,15 @@ function duelHtml(R){
     :lead<0?`<b style="color:var(--coral)">${esc(B.name)} liegt ${hm(-lead)} vorne.</b> Ein guter Tag, und du holst auf!`:`<b>Gleichstand!</b> Jetzt zählt jeder Tag.`;
   return `<div class="card duel-card"><div class="row between"><p class="label" style="color:var(--amber)">⚔️ Duell gegen ${esc(B.name)}</p><span class="chip ok">${left?"noch "+left+(left===1?" Tag":" Tage"):"letzter Tag"}</span></div>
     ${duelRace(A,B)}<p>${msg}</p>
-    <p class="small muted">Die Handyzeit-Welle jagt euch beide. Wer im Schnitt weniger am Handy ist, segelt vorne. Sieg am Sonntag: eine Deko für die Insel.</p></div>`;
+    <p class="small muted">Die Handyzeit-Welle jagt euch beide. Wer im Schnitt weniger am Handy ist, segelt vorne. Sieg am Sonntag: eine Deko für die Insel.</p>
+    <button class="btn ghost" id="duelStop">Duell abbrechen</button></div>`;
 }
 function duelStartSheet(ev){
   sheet(`<div class="duel-vs"><span>${avatarSvg(ev.avatar||"Ziege",64)}</span><b class="duel-x">⚔️</b><span>${avatarSvg(netAv(),64)}</span></div>
     <p class="label" style="color:var(--amber)">Duell der Woche</p><h2>${esc(ev.name)} fordert dich heraus!</h2>
     <p class="muted">Wer diese Woche im Schnitt weniger am Handy ist, gewinnt eine Deko für die Insel. Den Stand siehst du im Tab Freunde.</p>
-    <button class="btn" data-ok>Herausforderung annehmen</button>`);
+    <button class="btn" data-ok>Herausforderung annehmen</button><button class="btn ghost" id="duelNo">Ablehnen</button>`);
+  $("#duelNo").onclick=()=>{closeModal();duelCancel("ablehnen");showPending()};
 }
 function duelEndSheet(ev){
   const it=ev.item?`<svg width="120" height="110" viewBox="-30 -42 60 50" aria-hidden="true" class="pop fb">${itemSvg(ev.item)}</svg>`:"";
