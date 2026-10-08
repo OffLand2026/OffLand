@@ -1716,6 +1716,40 @@ const CHAPTERS=[
   {n:"OffLand lebt",goal:"Bau alle Großprojekte der Heimatinseln.",ok:()=>(S.world||0)>0||PROJECTS.every(p=>S.built.includes(p.id)),
     prog:()=>PROJECTS.filter(p=>S.built.includes(p.id)).length+" von "+PROJECTS.length+" Großprojekten",bay:"OffLand lebt. Ich hab's nicht allein geschafft. Ich hab's mit dir geschafft. Und jetzt ist da draußen noch mehr Meer.",luc:"Du hast das wirklich durchgezogen. Ich bin … stolz. Erzähl's niemandem."}
 ];
+/* Fortsetzung auf den weiteren Welten: je Welt Ankunft, ein Höhepunkt, Abschluss */
+const WORLD_STORY=[null,
+  {mid:"t_riff",ch:[
+    ["Sonne, Sand und Sonnenbrand","Reise zur Tropeninsel.","Ich hab Sonnencreme vergessen. Und meine Sonnenbrille. Ich bin trotzdem sehr glücklich.","Sand. Überall Sand. Ich hasse es. Ich bleib trotzdem."],
+    ["Das Papageien-Problem","Bau den Korallenriff-Steg.","Die Papageien pfeifen Klingeltöne nach. Alle greifen nach dem Handy. Wir trainieren das um, auf Vogelgezwitscher.","Ein Papagei hat „Neue Nachricht“ gesagt. Ich hab ihn sehr lange angeschaut. Er sagt das jetzt nicht mehr."],
+    ["Surfen statt Scrollen","Bau alle Großprojekte der Tropeninsel.","Ich stand heute zum ersten Mal auf dem Surfbrett. Drei Sekunden. Beste drei Sekunden meines Lebens.","Ich hab zugeschaut. Von ganz weit weg. Im Trockenen."]]},
+  {mid:"f_sauna",ch:[
+    ["Ab in den Norden","Reise zu den Fjordinseln.","Es ist kalt. Sehr kalt. Ich hab drei Pullis an und einen Plan.","Ich hab mich auf den warmen Ofen gelegt. Ich steh frühestens im Frühling wieder auf."],
+    ["Saunaabend","Bau die Sauna am See.","In der Sauna gibt's kein WLAN. Und weißt du was? Keiner hat's vermisst.","Ich war nicht drin. Ich bin eine Katze, kein Brötchen."],
+    ["Unter dem Polarlicht","Bau alle Großprojekte der Fjordinseln.","Alle standen draußen und haben nach oben geschaut. Nicht aufs Handy. Nach oben.","Das grüne Licht da oben ist fast so schön wie meine Augen. Fast."]]},
+  {mid:"o_karawane",ch:[
+    ["Heißer Neustart","Reise zur Wüsteninsel.","Erst Schnee, jetzt Wüste. Mein Kleiderschrank ist komplett überfordert.","Endlich warm. Weckt mich, wenn irgendwas mit Fisch passiert."],
+    ["Die Karawane bringt Post","Bau den Karawanenweg.","Post von Leuten, die früher auf OffLand gewohnt haben. Sie fragen, ob sie zurückkommen dürfen. Ich hab geweint. Auf einem Kamel.","Ein Kamel hat mich angespuckt. Ich hab's verdient. Wir sind jetzt Freunde."],
+    ["Nacht unter Sternen","Bau alle Großprojekte der Wüsteninsel.","Keine Lichter, keine Bildschirme. Nur Sterne. Mehr, als ich zählen kann. Hab's trotzdem versucht.","Er hat bis 412 gezählt. Dann ist er eingeschlafen. Ich hab weitergezählt."]]},
+  {mid:"a_schlitten",ch:[
+    ["Ins ewige Eis","Reise zu den Eisinseln.","Ich hab gelesen, hier gibt's monatelang Nacht. Perfekt. Mehr Zeit für Gespräche am Feuer.","Ich trag jetzt einen Schal. Kein Wort darüber."],
+    ["Hundeschlitten","Bau die Hundeschlitten-Station.","Zwölf Hunde, ein Schlitten, null Handyempfang. Der beste Ausflug der Inselgeschichte.","Zwölf Hunde. Ich hab mit allen geredet. Klar gemacht, wer hier die Chefin ist."],
+    ["Ganz OffLand","Bau alle Großprojekte der Eisinseln.","Weißt du noch, wie still es am Anfang war? Hör mal hin. So klingt OffLand jetzt. Danke.","Ich hab schon vier Bürgermeister überlebt. Aber mit dir war's am schönsten. Sag's niemandem."]]}
+];
+WORLD_STORY.forEach((ws,w)=>{if(!ws) return; const W=WORLDS[w]; if(!W) return; const all=()=>(S.world||0)>w||W.projects.every(p=>S.built.includes(p.id));
+  const mid=W.projects.find(p=>p.id===ws.mid);
+  [[()=>(S.world||0)>=w,()=>""],[()=>S.built.includes(ws.mid)||all(),()=>mid&&!S.built.includes(mid.id)&&(S.world||0)===w?"Großprojekt „"+mid.name+"“":""],
+   [all,()=>(S.world||0)===w?W.projects.filter(p=>S.built.includes(p.id)).length+" von "+W.projects.length+" Großprojekten":""]].forEach(([ok,prog],k)=>{
+    const t=ws.ch[k]; CHAPTERS.push({n:t[0],goal:t[1],ok,prog,bay:t[2],luc:t[3],world:w,k});
+  });
+});
+function worldPhoto(w,k){
+  const th=WORLDS[w].theme, kids=[0,1,2].map(i=>({id:"w"+w+i,name:"x",kind:"mensch",look:{skin:(i+w)%6,hair:(i*2+w)%7,style:[1,4,11][i],shirt:(i*3+w)%10,acc:[],accC:0}}));
+  return `<svg viewBox="40 60 280 140" aria-hidden="true"><rect x="0" y="0" width="360" height="200" fill="${th.sky}"/>${horizonSvg(th.horizon,true)}
+    <rect y="140" width="360" height="60" fill="${th.sea}"/><ellipse cx="180" cy="150" rx="130" ry="18" fill="${th.sand}"/><path d="M70 148c12-36 60-50 110-50s98 14 110 50z" fill="${th.grass}"/>
+    ${treeSvg(th.tree,96,104,th.leaf)}${treeSvg(th.tree,262,104,th.leaf)}
+    ${k===0?boat(kids.slice(0,2),""):kids.map((r,i)=>`<g class="bob" style="animation-delay:${i*.3}s">${figure(r,206+i*16,144)}</g>`).join("")}
+    <g transform="translate(150 146) scale(1.15)">${baySvg()}</g><g transform="translate(178 147)">${lucSvg()}</g>${k===2?confetti():""}</svg>`;
+}
 function chapterCheck(silent){
   if(S.chapter==null){S.chapter=0; if(S.dayCount>0) silent=true}            // ältere Spielstände: erledigte Kapitel still nachholen
   while(S.chapter<CHAPTERS.length&&CHAPTERS[S.chapter].ok()){
@@ -1739,17 +1773,17 @@ function damalsArt(n){
 function chapterSheet(n,fresh){
   const c=CHAPTERS[n], next=CHAPTERS[n+1];
   sheet(`<p class="label" style="color:var(--amber)">Kapitel ${n+1}${fresh?" geschafft":""}</p><h2>${esc(c.n)}</h2>
-    <div class="dh"><figure><div class="anim story-art past">${damalsArt(n)}</div><figcaption>Damals</figcaption></figure>
+    <div class="dh"><figure><div class="anim story-art past">${c.world?worldPhoto(c.world,c.k):damalsArt(n)}</div><figcaption>${c.world?"Reisefoto":"Damals"}</figcaption></figure>
       <figure><div class="anim story-art">${scene()}</div><figcaption>Heute</figcaption></figure></div>
     ${saysHtml("bay",c.bay)}${saysHtml("luc",c.luc)}
     ${fresh&&next?`<p class="small muted">Weiter geht's mit Kapitel ${n+2}: <b style="color:var(--ink)">${esc(next.n)}</b>. ${esc(next.goal)}</p>`:""}
-    ${fresh&&!next?`<p class="small muted">Fortsetzung folgt … auf neuen Inseln.</p>`:""}
+    ${fresh&&!next?`<p class="small muted">Das war die ganze Geschichte von OffLand. Danke, dass du dabei warst.</p>`:""}
     <button class="btn" data-ok>${fresh?"Ins Album kleben":"Schließen"}</button>`);
 }
 function chapterCard(){
   if(S.chapter==null||!S.setup) return "";
   const c=CHAPTERS[S.chapter];
-  if(!c) return `<div class="card chap-card"><div class="row"><span class="says-pic" style="background:#2A2F45">${bayPic(44)}</span><div class="grow"><p class="label" style="color:var(--amber)">Geschichte</p><p><b>Alle ${CHAPTERS.length} Kapitel geschafft</b></p><p class="small muted">Fortsetzung folgt auf neuen Inseln.</p></div></div></div>`;
+  if(!c) return `<div class="card chap-card"><div class="row"><span class="says-pic" style="background:#2A2F45">${bayPic(44)}</span><div class="grow"><p class="label" style="color:var(--amber)">Geschichte</p><p><b>Alle ${CHAPTERS.length} Kapitel geschafft</b></p><p class="small muted">Die ganze Geschichte von OffLand ist erzählt. Mr. Bay ist sehr stolz.</p></div></div></div>`;
   const pr=c.prog();
   return `<div class="card chap-card"><div class="row"><span class="says-pic" style="background:#2A2F45">${bayPic(44)}</span><div class="grow"><p class="label" style="color:var(--amber)">Kapitel ${S.chapter+1} von ${CHAPTERS.length}</p><p><b>${esc(c.n)}</b></p><p class="small muted">${esc(c.goal)}${pr?" · "+esc(pr):""}</p></div></div></div>`;
 }
@@ -1757,7 +1791,7 @@ function viewBayAlbum(){
   if(S.chapter==null) return "";
   const done=Math.min(S.chapter,CHAPTERS.length);
   return `<div class="card"><div class="row between"><p class="label">Mr. Bays Album</p><span class="small muted num">${done} / ${CHAPTERS.length} Kapitel</span></div>
-    <div class="bay-album">${CHAPTERS.map((c,i)=>i<done?`<button class="bay-page" data-chap="${i}"><div class="story-art past">${damalsArt(i)}</div><span>${i+1}. ${esc(c.n)}</span></button>`
+    <div class="bay-album">${CHAPTERS.map((c,i)=>i<done?`<button class="bay-page" data-chap="${i}"><div class="story-art past">${c.world?worldPhoto(c.world,c.k):damalsArt(i)}</div><span>${i+1}. ${esc(c.n)}</span></button>`
       :`<div class="bay-page locked"><div class="lock">?</div><span>${i+1}. ${i===done?esc(c.n):"…"}</span></div>`).join("")}</div></div>`;
 }
 function storySlides(existing){
@@ -4443,7 +4477,7 @@ function login(p){
   const st=lsGet(); S=migrate(st&&st.v===1?st:newGame()); tab="heute"; if(S.setup) checkDiscovery();
   document.body.classList.remove("start"); $("#start").innerHTML="";
   closeModal(); render(); window.scrollTo(0,0);
-  if(S.setup&&S.chapter==null){chapterCheck(true);save()}
+  if(S.setup){chapterCheck(true);save()}
   if(!S.storySeen) storySheet(!!S.setup); else showPending();
   if(S.setup&&pendingInvite()&&!$("#modalRoot").innerHTML) inviteSheet();
   if(S.setup&&famInvite()&&!S.family&&!$("#modalRoot").innerHTML) famJoinSheet(famInvite());
