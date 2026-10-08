@@ -1329,7 +1329,17 @@ function hairSvg(style,c){
 const STYLE_NAMES=["Kurz","Lang","Dutt","Zopf","Locken","Mütze","Stoppeln","Pferdeschwanz","Bob","Iro","Glatze","Zwei Zöpfe","Seitenscheitel"];
 /* Extras: Schal, Brille, Sonnenbrille, Bommelmütze, Kappe, Blume, Stirnband */
 const ACC_NAMES=["Nichts","Schal","Brille","Sonnenbrille","Bommelmütze","Kappe","Blume","Stirnband"];
+/* Mehrere Extras auf einmal: gespeichert als Liste (früher eine einzelne Zahl).
+   Brillen schließen sich gegenseitig aus, ebenso alles, was oben auf dem Kopf sitzt. */
+const ACC_GROUPS=[[2,3],[4,5,7]];
+function accList(a){return (Array.isArray(a)?a:a?[a]:[]).map(Number).filter((v,i,l)=>v>0&&v<ACC_NAMES.length&&l.indexOf(v)===i).sort((x,y)=>x-y).slice(0,ACC_NAMES.length-1)}
+function accToggle(a,v){
+  if(!v) return [];
+  const cur=accList(a); if(cur.includes(v)) return cur.filter(x=>x!==v);
+  const g=ACC_GROUPS.find(g=>g.includes(v)); return accList(cur.filter(x=>!(g&&g.includes(x))).concat(v));
+}
 function accSvg(a,c){
+  if(Array.isArray(a)){const p=accList(a).map(x=>accSvg(x,c)); return {body:p.map(x=>x.body).join(""),head:p.map(x=>x.head).join("")}}
   switch(a){
     case 1: return {body:`<path d="M-4.8 -11.8q4.8 2.4 9.6 0l.5 2.1q-5.3 2.6-10.6 0z" fill="${c}"/><path d="M2.2 -10.2l1.8 5.4h-2.6z" fill="${c}"/>`,head:""};
     case 2: return {body:"",head:`<g fill="none" stroke="${c}" stroke-width=".65"><circle cx="-1.9" cy="-15.6" r="1.55"/><circle cx="1.9" cy="-15.6" r="1.55"/><path d="M-.35 -15.7h.7M-3.45 -15.8l-1.5-.4M3.45 -15.8l1.5-.4"/></g>`};
@@ -1351,7 +1361,7 @@ function lookIdx(r){
 function looks(r){
   const h=hsh(r.id||r.name), i=lookIdx(r);
   return {skin:SKIN[i.skin],hair:r.retired?"#D9D6CE":HAIR[i.hair]||HAIR[0],style:i.style,
-    shirt:SHIRT[i.shirt]||SHIRT[0],pants:PANTS[(h>>>12)%PANTS.length],cap:SHIRT[(h>>>15)%8],acc:i.acc||0,accC:SHIRT[i.accC]||SHIRT[0]};
+    shirt:SHIRT[i.shirt]||SHIRT[0],pants:PANTS[(h>>>12)%PANTS.length],cap:SHIRT[(h>>>15)%8],acc:accList(i.acc),accC:SHIRT[i.accC]||SHIRT[0]};
 }
 /* Lebensphase für die Figur: Baby, Kind, erwachsen, Rente */
 function stage(r){
@@ -2855,18 +2865,22 @@ function lookEditor(r,d){
     const baby=stage(r)==="baby";   // Babys haben keine Frisur und keine Extras, also nur zeigen, was man bei ihnen sieht
     const styles=`<div class="sw-row" role="radiogroup" aria-label="Frisur"><span class="small muted">Frisur</span>${STYLE_NAMES.map((n,i)=>{const hs=hairSvg(i,i===5?"#B6A4FF":"#4A3222");
       return `<button type="button" class="sw sw-ic${i===d.style?" on":""}" data-look="style" data-v="${i}" aria-label="${n}" aria-pressed="${i===d.style}"><svg width="24" height="24" viewBox="-7.5 -24 15 15" aria-hidden="true">${hs.back}<circle cx="0" cy="-16" r="5" fill="#E8B48F"/>${hs.front}</svg></button>`}).join("")}</div>`;
-    const accs=`<div class="sw-row" role="radiogroup" aria-label="Extra"><span class="small muted">Extra</span>${ACC_NAMES.map((n,i)=>{const a=accSvg(i,"#FF9C7A"),hs=hairSvg(0,"#4A3222");
-      return `<button type="button" class="sw sw-ic${i===(d.acc||0)?" on":""}" data-look="acc" data-v="${i}" aria-label="${n}" aria-pressed="${i===(d.acc||0)}">${i===0?`<svg width="22" height="22" viewBox="-10 -10 20 20" aria-hidden="true"><circle r="7.5" fill="none" stroke="#9EA3B8" stroke-width="2"/><path d="M-5.3 5.3L5.3 -5.3" stroke="#9EA3B8" stroke-width="2" stroke-linecap="round"/></svg>`:`<svg width="24" height="24" viewBox="-7.5 -25 15 16" aria-hidden="true"><path d="M-6 -6c0-4 2.4-5.2 6-5.2s6 1.2 6 5.2z" fill="#5B8CD6"/>${a.body}${hs.back}<circle cx="0" cy="-16" r="5" fill="#E8B48F"/>${hs.front}${a.head}</svg>`}</button>`}).join("")}</div>`;
+    const al=accList(d.acc), accOn=i=>i?al.includes(i):!al.length;
+    const accs=`<div class="sw-row" role="group" aria-label="Extras"><span class="small muted">Extras (mehrere möglich)</span>${ACC_NAMES.map((n,i)=>{const a=accSvg(i,"#FF9C7A"),hs=hairSvg(0,"#4A3222");
+      return `<button type="button" class="sw sw-ic${accOn(i)?" on":""}" data-look="acc" data-v="${i}" aria-label="${n}" aria-pressed="${accOn(i)}">${i===0?`<svg width="22" height="22" viewBox="-10 -10 20 20" aria-hidden="true"><circle r="7.5" fill="none" stroke="#9EA3B8" stroke-width="2"/><path d="M-5.3 5.3L5.3 -5.3" stroke="#9EA3B8" stroke-width="2" stroke-linecap="round"/></svg>`:`<svg width="24" height="24" viewBox="-7.5 -25 15 16" aria-hidden="true"><path d="M-6 -6c0-4 2.4-5.2 6-5.2s6 1.2 6 5.2z" fill="#5B8CD6"/>${a.body}${hs.back}<circle cx="0" cy="-16" r="5" fill="#E8B48F"/>${hs.front}${a.head}</svg>`}</button>`}).join("")}</div>`;
     return `<div class="field"><span>Aussehen</span><div class="look"><div class="look-prev" id="lookPrev">${lookPreview(r,d)}</div><div class="look-opts">
-      ${baby?`${row("Haut","skin",SKIN,d.skin)}${row("Haare","hair",HAIR,d.hair)}${row("Strampler","shirt",SHIRT,d.shirt)}`:`${row("Haut","skin",SKIN,d.skin)}${styles}${row("Haare","hair",HAIR,d.hair)}${row("Shirt","shirt",SHIRT,d.shirt)}${accs}${row("Farbe vom Extra","accC",SHIRT,d.accC)}`}</div></div></div>`;
+      ${baby?`${row("Haut","skin",SKIN,d.skin)}${row("Haare","hair",HAIR,d.hair)}${row("Strampler","shirt",SHIRT,d.shirt)}`:`${row("Haut","skin",SKIN,d.skin)}${styles}${row("Haare","hair",HAIR,d.hair)}${row("Shirt","shirt",SHIRT,d.shirt)}${accs}${row("Farbe der Extras","accC",SHIRT,d.accC)}`}</div></div></div>`;
   }
   const n=(FUR[r.art]||[]).length; if(n<2) return "";
   return `<div class="field"><span>Fellfarbe</span><div class="sw-row" role="radiogroup" aria-label="Fellfarbe">${Array.from({length:n},(_,i)=>`<button type="button" class="sw sw-ic sw-big${i===d.fur?" on":""}" data-look="fur" data-v="${i}" aria-label="Fellfarbe ${i+1}" aria-pressed="${i===d.fur}"><svg width="38" height="30" viewBox="${artVB(r.art,38/30)}" aria-hidden="true">${animalSvg(r.art,i)}</svg></button>`).join("")}</div></div>`;
 }
 function bindLookEditor(r,draft,onChange){
   document.querySelectorAll("#modalRoot [data-look]").forEach(b=>b.onclick=()=>{
-    const k=b.dataset.look; draft[k]=+b.dataset.v;
-    document.querySelectorAll(`#modalRoot [data-look="${k}"]`).forEach(x=>{const on=x===b;x.classList.toggle("on",on);x.setAttribute("aria-pressed",on)});
+    const k=b.dataset.look, v=+b.dataset.v;
+    if(k==="acc"){draft.acc=accToggle(draft.acc,v); const al=draft.acc;
+      document.querySelectorAll('#modalRoot [data-look="acc"]').forEach(x=>{const i=+x.dataset.v, on=i?al.includes(i):!al.length;x.classList.toggle("on",on);x.setAttribute("aria-pressed",on)});
+    } else {draft[k]=v;
+      document.querySelectorAll(`#modalRoot [data-look="${k}"]`).forEach(x=>{const on=x===b;x.classList.toggle("on",on);x.setAttribute("aria-pressed",on)});}
     const pv=$("#lookPrev"); if(pv) pv.innerHTML=lookPreview(r,draft);
     if(onChange) onChange();
   });
@@ -3675,7 +3689,7 @@ function famLookSheet(){
     <div class="row"><button class="btn secondary grow" id="flNo">Abbrechen</button><button class="btn grow" id="flOk">Speichern</button></div>`);
   bindLookEditor(me,draft);
   $("#flNo").onclick=()=>{closeModal();render()};
-  $("#flOk").onclick=async()=>{f.look={skin:draft.skin,hair:draft.hair,style:draft.style,shirt:draft.shirt,acc:draft.acc||0,accC:draft.accC||0};save();
+  $("#flOk").onclick=async()=>{f.look={skin:draft.skin,hair:draft.hair,style:draft.style,shirt:draft.shirt,acc:accList(draft.acc),accC:draft.accC||0};save();
     const b=$("#flOk");b.disabled=true;b.textContent="Speichere …";await famSync();closeModal();render();toast("Figur gespeichert")};
 }
 async function famJoinId(fid,name,code,share){
