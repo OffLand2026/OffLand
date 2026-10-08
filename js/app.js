@@ -920,17 +920,11 @@ function doActivity(id){
   save(); render();
 }
 /* Vorhaben: gewonnene Zeit für etwas Echtes nutzen */
-function planOpts(min){
-  const fit=PLANS.filter(p=>p.min<=Math.max(min,30));
-  const opts=shuffle(fit.length>=4?fit:PLANS).slice(0,4);
-  const cur=S.plan&&PLANS.find(p=>p.id===S.plan.id);
-  if(cur&&!opts.includes(cur)) opts[3]=cur;
-  return opts;
-}
+function planOpts(){return PLANS}   // immer alle Vorhaben zur Auswahl
 function planPick(ev,good){
   const forDay=addDays(ev.day,1), cur=S.plan&&S.plan.day===forDay?S.plan.id:null;
   return `<div class="card plan-box"><p><b>${good?"Was machst du morgen mit der gewonnenen Zeit?":"Was machst du morgen statt Handy?"}</b></p>
-    <div class="plan-opts">${planOpts(good?ev.saved:30).map(p=>`<button type="button" class="plan-opt${p.id===cur?" on":""}" data-plan="${p.id}" aria-pressed="${p.id===cur}">${planIcon(p)}<span>${esc(p.n)}</span></button>`).join("")}</div>
+    <div class="plan-opts">${planOpts().map(p=>`<button type="button" class="plan-opt${p.id===cur?" on":""}" data-plan="${p.id}" aria-pressed="${p.id===cur}">${planIcon(p)}<span>${esc(p.n)}</span></button>`).join("")}</div>
     <p class="small muted" id="planNote">${cur?"Vorgemerkt für morgen.":"Morgen Abend fragt die Insel nach. Geschafft: +20 Punkte, +2 % Glück, und ein Bewohner macht mit."}</p></div>`;
 }
 function bindPlanPick(ev){
@@ -1364,7 +1358,7 @@ function closeDay(min,quests,appMin){
   unlockCheck();
   // Joker: einmal pro Woche bricht ein schlechter Tag die Serie nicht
   // Joker möglich? Dann fragt die Insel gleich nach (vor der Tagesbilanz)
-  if(diff<0&&S.budgetStreak>=2&&S.jokerWk!==isoWeek(day)&&!S.testmode) S.pending.push({type:"jokerAsk",streak:S.budgetStreak,wk:isoWeek(day),day});
+  if(diff<0&&S.budgetStreak>=1&&S.jokerWk!==isoWeek(day)) S.pending.push({type:"jokerAsk",streak:S.budgetStreak,wk:isoWeek(day),day});
   S.budgetStreak=diff>=0?S.budgetStreak+1:0;
   if(diff>=0) buddyProgress();
   wishProgress(min,quests,diff);
@@ -2158,7 +2152,7 @@ function goalCard(ok,nd){
   }).join("");
   return `<div class="card goal">
     <div class="row between"><p class="label">Tagesziel</p>${S.budgetStreak>1?`<span class="chip good">${S.budgetStreak} Tage in Folge</span>`:""}</div>
-    ${S.budgetStreak>1?`<div class="joker-line${S.jokerWk===isoWeek(today())?" used":""}"><span class="joker-mini" aria-hidden="true">🃏</span><span class="small">${S.jokerWk===isoWeek(today())?"Joker diese Woche schon eingesetzt. Ab Montag gibt es einen neuen.":"<b>Joker bereit:</b> Einmal pro Woche kannst du einen schlechten Tag wegstecken, ohne dass deine Serie reißt."}</span></div>`:""}
+    ${last?`<div class="joker-line${S.jokerWk===isoWeek(today())?" used":""}"><span class="joker-mini" aria-hidden="true">🃏</span><span class="small">${S.jokerWk===isoWeek(today())?"Joker diese Woche schon eingesetzt. Ab Montag gibt es einen neuen.":S.budgetStreak>=1?"<b>Joker bereit:</b> Einmal pro Woche kannst du einen schlechten Tag wegstecken, ohne dass deine Serie reißt. Die Insel fragt dich dann.":"<b>Joker bereit:</b> Sobald du wieder einen Tag im Budget bist, schützt er deine Serie einmal pro Woche."}</span></div>`:""}
     ${main}
     ${week.length?`<div class="week" role="img" aria-label="${inB} von ${week.length} Tagen im Ziel">${strip}</div>
     <p class="small muted">Letzte ${week.length} ${week.length===1?"Tag":"Tage"}: <b style="color:var(--ink)">${inB} von ${week.length}</b> im Ziel</p>`:""}
