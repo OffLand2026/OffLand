@@ -259,7 +259,10 @@ const ACTS=[
   {n:"Kinofilme",d:"à 90 min",min:90,ic:'<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M8 6l2 4M13 6l2 4"/>'},
   {n:"Treffen mit Freund:innen",d:"à 2 h",min:120,ic:'<circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M2 20c0-4 3-6 6-6s6 2 6 6M12 20c0-4 2-6 4-6s6 2 6 6"/>'},
   {n:"ganze Bücher",d:"à 8 h (250 Seiten)",min:480,ic:'<path d="M5 4h4v16H5zM10 4h4v16h-4zM15 5l4-1 3 15-4 1z"/>'},
-  {n:"Nächte Schlaf",d:"à 8 h",min:480,ic:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>'}
+  {n:"Nächte Schlaf",d:"à 8 h",min:480,ic:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>'},
+  {n:"Marathons",d:"à 4,5 h (42 km)",min:270,ic:'<path d="M8 2l4 7 4-7"/><circle cx="12" cy="15" r="6"/><path d="M12 12v6M10.5 13.2L12 12"/>'},
+  {n:"Flüge nach New York",d:"à 9 h",min:540,ic:'<path d="M3 15l7-2.5V6a2 2 0 0 1 4 0v6.5l7 2.5v2l-7-1.5V19l2 1.5V22l-4-1-4 1v-1.5l2-1.5v-3.5L3 17z"/>'},
+  {n:"Reisen zum Mond",d:"à 76 h, so lange wie Apollo 11",min:4560,ic:'<path d="M12 2c3 2.4 5 6 5 10l-2 4H9l-2-4c0-4 2-7.6 5-10z"/><circle cx="12" cy="9" r="2"/><path d="M9 16l-3 3v-4M15 16l3 3v-4M10.5 20h3"/>'}
 ];
 const actIcon=a=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${a.ic}</svg>`;
 function equivTop(min){
@@ -268,7 +271,7 @@ function equivTop(min){
   const pickd=[fits[0],fits[Math.floor(fits.length/2)],fits[fits.length-1]];
   return [...new Set(pickd)].map(a=>({a,c:Math.floor(min/a.min)}));
 }
-const SING={"Spaziergänge":"Spaziergang","Buchkapitel":"Buchkapitel","Sprachlektionen":"Sprachlektion","5-km-Läufe":"5-km-Lauf","selbst gekochte Abendessen":"selbst gekochtes Abendessen","Yoga-Einheiten":"Yoga-Einheit","Kinofilme":"Kinofilm","Treffen mit Freund:innen":"Treffen mit Freund:innen","ganze Bücher":"ganzes Buch","Nächte Schlaf":"Nacht Schlaf"};
+const SING={"Spaziergänge":"Spaziergang","Buchkapitel":"Buchkapitel","Sprachlektionen":"Sprachlektion","5-km-Läufe":"5-km-Lauf","selbst gekochte Abendessen":"selbst gekochtes Abendessen","Yoga-Einheiten":"Yoga-Einheit","Kinofilme":"Kinofilm","Treffen mit Freund:innen":"Treffen mit Freund:innen","ganze Bücher":"ganzes Buch","Nächte Schlaf":"Nacht Schlaf","Marathons":"Marathon","Flüge nach New York":"Flug nach New York","Reisen zum Mond":"Reise zum Mond"};
 const eqText=list=>list.map(x=>x.c+" "+(x.c===1?SING[x.a.n]:x.a.n)).join(", ");
 
 /* ---------- Hilfen ---------- */
