@@ -71,7 +71,8 @@ input[type=range]{width:100%;accent-color:var(--lime)}
 .proj{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--card2)}
 .proj:first-of-type{border-top:none}
 .badge{width:44px;height:44px;border-radius:14px;background:var(--card2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--display);font-weight:800}
-.toast{position:fixed;left:50%;top:calc(16px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--lilac);color:#14151F;padding:10px 16px;border-radius:14px;font-weight:700;font-size:14px;z-index:50;max-width:90%}
+.toast{position:fixed;left:50%;bottom:calc(104px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--lilac);color:#14151F;padding:8px 14px;border-radius:999px;font-weight:700;font-size:13px;z-index:60;max-width:min(88%,380px);text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.35);pointer-events:none;animation:toastIn .25s ease-out both}
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
 .warn{border:1.5px solid var(--amber)}
 /* Animationen */
 .anim{border-radius:22px;overflow:hidden;background:var(--sky)}
