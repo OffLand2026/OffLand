@@ -2017,6 +2017,16 @@ function viewZeit(){
   <p class="small muted">Trag beim Tagesabschluss die Minuten pro App ein, dann siehst du hier, welche App die meiste Zeit frisst.</p></div>
   <p class="small muted" style="padding:0 4px">Die Umrechnungen sind Faustwerte, zum Beispiel 30 Minuten für einen Spaziergang oder 6 Stunden für ein Buch.</p>`;
 }
+/* Händlerschiff: ganz oben im Tab Bauen, solange es da ist */
+function traderCard(){
+  if(!S.trader) return "";
+  return `<div class="card" style="border:1.5px solid var(--amber)">
+    <p class="label" style="color:var(--amber)">Händlerschiff · nur bis ${nice(S.trader.until)}</p>
+    <p class="small muted">Seltene Dinge, die es sonst nirgends gibt. Danach legt das Schiff wieder ab.</p>
+    ${S.trader.items.map(id=>{const it=RARE.find(x=>x.id===id);const own=owns(id),cost=price(it),can=S.points>=cost;
+      return `<div class="row"><div class="badge" style="background:var(--card2)"><svg width="36" height="30" viewBox="-20 -34 40 38" aria-hidden="true">${itemSvg(id)}</svg></div><div class="grow"><p><b>${esc(it.n)}</b></p><p class="small muted">${esc(it.fx)}</p></div>${own?`<span class="chip good">gekauft</span>`:`<button class="btn ${can?"":"secondary"}" style="height:44px;font-size:14px;padding:0 14px" data-buy="${id}" ${can?"":"disabled"}>${cost}</button>`}</div>`}).join("")}
+  </div>`;
+}
 function viewShop(){
   return `<div class="card"><div class="row between"><h2>Inselladen</h2><span class="chip" style="background:#26233D;color:var(--lilac)">${S.points} Punkte</span></div>
   <p class="small muted">Punkte gibt es für jede Minute unter deinem Budget und für Quests. ${jobOn("tischler")?"Dank Tischler:in ist alles 10 % billiger.":""}</p>
@@ -2031,11 +2041,6 @@ function viewShop(){
       <p class="small muted" style="flex:1">${esc(it.fx)}</p>
       ${own?`<span class="chip good" style="align-self:flex-start">auf der Insel</span>`:`<button class="btn ${can?"":"secondary"}" style="height:44px;font-size:14px" data-buy="${it.id}" ${can?"":"disabled"}>${cost} Punkte</button>`}
     </div>`}).join("")}</div>`}).join("")}
-  ${S.trader?`<div style="margin-top:6px;padding:14px;border-radius:18px;border:1.5px solid var(--amber);display:flex;flex-direction:column;gap:8px">
-    <p class="label" style="color:var(--amber)">Händlerschiff · nur bis ${nice(S.trader.until)}</p>
-    ${S.trader.items.map(id=>{const it=RARE.find(x=>x.id===id);const own=owns(id),cost=price(it),can=S.points>=cost;
-      return `<div class="row"><div class="badge" style="background:var(--card2)"><svg width="36" height="30" viewBox="-20 -34 40 38" aria-hidden="true">${itemSvg(id)}</svg></div><div class="grow"><p><b>${esc(it.n)}</b></p><p class="small muted">${esc(it.fx)}</p></div>${own?`<span class="chip good">gekauft</span>`:`<button class="btn ${can?"":"secondary"}" style="height:44px;font-size:14px;padding:0 14px" data-buy="${id}" ${can?"":"disabled"}>${cost}</button>`}</div>`}).join("")}
-  </div>`:""}
   </div>`;
 }
 function itemSvg(id){
@@ -2144,9 +2149,10 @@ function viewProjekt(){
   const tabs=[["laden","Laden"],["projekte","Projekte"]].concat(feature("reise")?[["reise","Weltreise"]]:[]);
   if(!tabs.some(t=>t[0]===bauTab)) bauTab="laden";
   const seg=`<div class="row" role="tablist" style="position:sticky;top:0;z-index:5;background:var(--ground);padding:8px 0;margin:-8px 0">${tabs.map(([id,n])=>`<button class="btn ${bauTab===id?"":"secondary"} grow" style="padding:0 6px" data-bau="${id}" role="tab" aria-selected="${bauTab===id}">${n}</button>`).join("")}</div>`;
-  if(bauTab==="reise") return seg+viewReise();
-  if(bauTab==="laden") return seg+(feature("laden")?viewShop():`<div class="card"><p class="label">Inselladen</p><p class="muted">Der Laden öffnet nach deinem ersten eingetragenen Tag. Dann kannst du Punkte für Deko und Nützliches ausgeben.</p></div>`);
-  return seg+`<div class="card"><p class="label">${esc(curWorld().name)}</p><h2>Großprojekte</h2><p class="muted small">Ist ein Projekt fertig, startet sofort das nächste.</p>
+  const top=traderCard();
+  if(bauTab==="reise") return top+seg+viewReise();
+  if(bauTab==="laden") return top+seg+(feature("laden")?viewShop():`<div class="card"><p class="label">Inselladen</p><p class="muted">Der Laden öffnet nach deinem ersten eingetragenen Tag. Dann kannst du Punkte für Deko und Nützliches ausgeben.</p></div>`);
+  return top+seg+`<div class="card"><p class="label">${esc(curWorld().name)}</p><h2>Großprojekte</h2><p class="muted small">Ist ein Projekt fertig, startet sofort das nächste.</p>
   ${curProjects().map((p,i)=>{
     const done=S.built.includes(p.id), cur=i===S.projectIdx;
     const prog=cur?Math.min(100,S.material/(p.hours*60)*100):done?100:0;
