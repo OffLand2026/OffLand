@@ -253,12 +253,12 @@ const ACTS=[
   {n:"Spaziergänge",d:"à 30 min",min:30,ic:'<circle cx="13" cy="4" r="2"/><path d="M9 21l2-6 3 3v3M7 12l3-3 4 1 3 3M11 15l-1-6"/>'},
   {n:"Buchkapitel",d:"à 20 min",min:20,ic:'<path d="M4 5h6a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4zM20 5h-6a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h6z"/>'},
   {n:"Sprachlektionen",d:"à 15 min",min:15,ic:'<path d="M4 5h11v8H8l-4 3zM15 9h5v8l-3-2h-5v-2"/>'},
-  {n:"5-km-Läufe",d:"à 35 min",min:35,ic:'<path d="M5 19h4l2-4 3 2 1 4M10 8l3-1 2 3 3 1M13 7l-2 5"/><circle cx="15" cy="4" r="2"/>'},
+  {n:"5-km-Läufe",d:"à 45 min",min:45,ic:'<path d="M5 19h4l2-4 3 2 1 4M10 8l3-1 2 3 3 1M13 7l-2 5"/><circle cx="15" cy="4" r="2"/>'},
   {n:"selbst gekochte Abendessen",d:"à 45 min",min:45,ic:'<path d="M4 11h16v3a6 6 0 0 1-6 6h-4a6 6 0 0 1-6-6zM2 11h2M20 11h2M9 7c0-2 2-2 2-4M14 7c0-2 2-2 2-4"/>'},
   {n:"Yoga-Einheiten",d:"à 30 min",min:30,ic:'<circle cx="12" cy="4" r="2"/><path d="M12 7v6M5 10l7 3 7-3M7 21l5-8 5 8"/>'},
-  {n:"Kinofilme",d:"à 2 h",min:120,ic:'<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M8 6l2 4M13 6l2 4"/>'},
+  {n:"Kinofilme",d:"à 90 min",min:90,ic:'<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M8 6l2 4M13 6l2 4"/>'},
   {n:"Treffen mit Freund:innen",d:"à 2 h",min:120,ic:'<circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M2 20c0-4 3-6 6-6s6 2 6 6M12 20c0-4 2-6 4-6s6 2 6 6"/>'},
-  {n:"ganze Bücher",d:"à 6 h",min:360,ic:'<path d="M5 4h4v16H5zM10 4h4v16h-4zM15 5l4-1 3 15-4 1z"/>'},
+  {n:"ganze Bücher",d:"à 8 h (250 Seiten)",min:480,ic:'<path d="M5 4h4v16H5zM10 4h4v16h-4zM15 5l4-1 3 15-4 1z"/>'},
   {n:"Nächte Schlaf",d:"à 8 h",min:480,ic:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>'}
 ];
 const actIcon=a=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${a.ic}</svg>`;
@@ -2079,7 +2079,7 @@ function viewZeit(){
   ${S.apps.map(a=>{const ds=S.days.filter(d=>d.apps&&d.apps[a.id]!=null);const tot=ds.reduce((x,d)=>x+(d.apps[a.id]||0),0);const over=ds.filter(d=>d.apps[a.id]>a.limit).length;
     return `<div class="row" style="padding:6px 0;border-top:1px solid var(--card2)"><svg width="44" height="36" viewBox="-24 -34 48 40" aria-hidden="true" style="${over?"":"opacity:.35"}">${monsterSvg(a.m)}</svg><div class="grow"><p><b>${esc(a.name)}</b> <span class="small muted">· Limit ${a.limit} min</span></p><p class="small muted">${ds.length?`${hm(tot)} in ${ds.length} Tagen · ${over}× ${esc(monName(a,false))} aufgetaucht`:"Noch nicht eingetragen"}</p></div></div>`}).join("")}
   <p class="small muted">Trag beim Tagesabschluss die Minuten pro App ein, dann siehst du hier, welche App die meiste Zeit frisst.</p></div>
-  <p class="small muted" style="padding:0 4px">Die Umrechnungen sind Faustwerte, zum Beispiel 30 Minuten für einen Spaziergang oder 6 Stunden für ein Buch.</p>`;
+  <p class="small muted" style="padding:0 4px">Die Umrechnungen sind Faustwerte, zum Beispiel 30 Minuten für einen Spaziergang , 90 Minuten für einen Kinofilm oder 8 Stunden für ein Buch mit 250 Seiten.</p>`;
 }
 /* Händlerschiff: ganz oben im Tab Bauen, solange es da ist */
 function traderCard(){
