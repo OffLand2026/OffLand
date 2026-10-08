@@ -47,7 +47,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--lilac);outline-
 .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .stat{background:var(--card);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:2px}
 .stat b{font-family:var(--display);font-size:20px;font-weight:800}
-.tabs{position:fixed;left:0;right:0;bottom:0;padding:8px 16px calc(12px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top,var(--ground) 70%,transparent)}
+.tabs{position:fixed;z-index:20;left:0;right:0;bottom:0;padding:8px 16px calc(12px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top,var(--ground) 70%,transparent)}
 .tabs nav{max-width:428px;margin:0 auto;background:var(--card);border-radius:28px;padding:6px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px}
 .tabs button{height:52px;border:none;border-radius:20px;background:transparent;color:var(--muted);font-size:10.5px;letter-spacing:-.01em;padding:0;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
 .tabs button[aria-current="page"]{background:var(--card2);color:var(--ink)}

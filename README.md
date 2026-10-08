@@ -34,6 +34,18 @@ Es gibt keinen Build-Schritt – reines HTML, CSS und JavaScript.
 
 Auf dem Handy kann die Seite über „Zum Home-Bildschirm“ wie eine App installiert werden und läuft danach auch ohne Internet.
 
+## Tests
+
+Automatische Tests mit [Playwright](https://playwright.dev) liegen in `tests/` und prüfen die wichtigsten Abläufe in einem Handy-großen Chromium-Fenster: Konten, Tagesabschluss, Geschichte und Kapitel, Wünsche, Vorhaben, Tagebuch, Sprüche und einen Rundgang durch alle Tabs in allen Welten. Jeder Test schlägt auch fehl, wenn auf der Seite ein JavaScript-Fehler auftritt.
+
+```bash
+npm install
+npx playwright install chromium   # einmalig
+npm test
+```
+
+Bei jedem Pull Request und jedem Push auf `main` laufen sie automatisch (`.github/workflows/tests.yml`). Schlägt ein Test fehl, hängt am Lauf ein Bericht mit Screenshots und Ablauf.
+
 ## iPhone-App (TestFlight)
 
 Im Ordner `ios/` liegt eine iOS-App, die die Web-App mit [Capacitor](https://capacitorjs.com) einpackt. Gebaut wird sie ohne eigenen Mac über GitHub Actions (`.github/workflows/ios.yml`): Bei jeder Änderung prüft ein Cloud-Mac, ob die App baut; per **Run workflow** mit Haken „Nach TestFlight hochladen“ wird sie signiert und zu TestFlight geschickt. Die einmalige Einrichtung bei Apple steht in [`docs/testflight.md`](docs/testflight.md).
@@ -58,6 +70,7 @@ js/app.js             Spiellogik, Insel-Szene, Ansichten, Dialoge
 sw.js                 Service Worker für den Offline-Betrieb
 ios/                  iOS-App (Capacitor), wird in der Cloud gebaut
 docs/testflight.md    Anleitung für Apple-Konto und TestFlight
+tests/                Automatische Tests (Playwright)
 manifest.webmanifest  Installierbare Web-App
 icons/                App-Icons
 ```

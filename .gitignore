@@ -6,3 +6,5 @@ ios/App/App/config.xml
 ios/DerivedData/
 *.xcuserstate
 xcuserdata/
+test-results/
+playwright-report/

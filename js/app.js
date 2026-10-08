@@ -1863,8 +1863,7 @@ function bayAlbumSheet(){
     <div class="row"><button class="btn ghost grow" id="wrClose">Schließen</button><button class="btn grow" id="wrNext">Weiter</button></div>`);
   const box=$("#wr"), idx=()=>Math.round(box.scrollLeft/box.clientWidth);
   const upd=()=>{const i=idx();$("#wrPos").textContent=`${i+1} / ${slides.length}`;$("#wrNext").textContent=i>=slides.length-1?"Fertig":"Weiter"};
-  let said=-1; const talk=()=>{const i=idx(); if(i===said) return; said=i; const c=CHAPTERS[i]; speak(c?[["bay",c.bay],["luc",c.luc]]:[["bay","Kleber liegt bereit."]])};
-  box.onscroll=()=>{upd(); clearTimeout(box._t); box._t=setTimeout(talk,180)}; upd(); talk();
+  box.onscroll=upd; upd();
   $("#wrNext").onclick=()=>{const i=idx(); if(i>=slides.length-1) return closeModal(); box.scrollTo({left:(i+1)*box.clientWidth,behavior:"smooth"})};
   $("#wrClose").onclick=closeModal;
 }
@@ -3330,10 +3329,9 @@ function showPending(){
       ${worldMapSvg()}
       <p class="label" style="color:var(--lime)">Neue Insel entdeckt</p><h2>${esc(W.name)}</h2>
       <p class="muted">${esc(W.text)} Dort warten neue Großprojekte, mehr Platz für Bewohner${W.animals?" und eine neue Tierart":""}.</p>
-      ${saysHtml("bay",DISC_LINE=bayLine({type:"discovery",id:W.id}))}
+      ${saysHtml("bay",bayLine({type:"discovery",id:W.id}))}
       <button class="btn" id="discGo">Jetzt aufbrechen</button>
       <button class="btn ghost" id="discLater">Später, über Bauen → Weltreise</button></div></div>`;
-    speak([["bay",DISC_LINE]],.9);
     $("#discGo").onclick=travel; $("#discLater").onclick=()=>{closeModal();render();showPending()};
     return;
   }
@@ -3412,7 +3410,7 @@ function showPending(){
 let CUR_EV=null;
 function sheet(html,after){
   $("#modalRoot").innerHTML=`<div class="modal"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`;
-  if(CUR_EV){const t=bayLine(CUR_EV); CUR_EV=null; const b=$("#modalRoot .sheet > .btn"); if(t&&b){b.insertAdjacentHTML("beforebegin",saysHtml("bay",t));speak([["bay",t]],1)}}
+  if(CUR_EV){const t=bayLine(CUR_EV); CUR_EV=null; const b=$("#modalRoot .sheet > .btn"); if(t&&b) b.insertAdjacentHTML("beforebegin",saysHtml("bay",t))}
   const ok=$("#modalRoot [data-ok]"); if(ok){ok.focus();ok.onclick=()=>{closeModal();render();showPending()}}
   if(after) after();
 }
@@ -4632,7 +4630,7 @@ function startHero(){
     <g transform="translate(232 152) scale(2.5)"><g class="bob" style="animation-delay:.6s;animation-duration:3.4s">${lucSvg(true)}</g></g>
   </svg>`;
 }
-let START_TALK=null, DISC_LINE=null;
+let START_TALK=null;
 function startTalk(name){
   clearInterval(START_TALK);
   const lines=name?[["bay","Da bist du ja wieder, "+name+"! Die Insel hat schon gefragt."],["luc","Ich nicht. Ich hab geschlafen. Schön, dass du da bist."],["bay","Weniger Bildschirm, mehr Insel. Du kennst das ja."],["luc","Er sagt das jeden Tag. Ich hab aufgehört zu zählen."]]
