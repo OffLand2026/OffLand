@@ -3458,7 +3458,7 @@ async function fillFamily(){
   $("#famBox").innerHTML=`<p class="label" style="color:var(--lime)">Familieninsel</p><h2>${esc(S.family.name)}</h2>
     <div class="anim" style="border-radius:18px;overflow:hidden">${famScene(members,st.total,st.todayIn>0&&st.todayGood===members.length)}</div>
     <p><b>Heute:</b> ${st.todayIn?`${st.todayGood} von ${members.length} im Budget`:"noch niemand eingetragen"}</p>
-    <div style="background:var(--ground);border-radius:16px;padding:12px 14px"><p class="small muted">Zusammen weniger am Handy, seit ihr dabei seid</p><p class="num" style="font-size:26px;font-weight:800;color:var(--lime)">${hm(st.saved)}</p></div>
+    <div style="background:var(--ground);border-radius:16px;padding:12px 14px"><p class="small muted">Gemeinsame OffLand-Zeit</p><p class="num" style="font-size:26px;font-weight:800;color:var(--lime)">${hm(st.saved)}</p></div>
     <div><div class="row between"><span class="small"><b>Familienprojekte</b> · ${st.total} gute Tage zusammen</span><span class="small muted">${next?"nächstes: "+esc(next.n)+" bei "+next.need:"alles gebaut!"}</span></div>
       <div class="bar"><i style="width:${next?Math.min(100,st.total/next.need*100):100}%"></i></div></div>
     <div style="display:flex;flex-direction:column;gap:6px">${members.map(m=>{const d=(m.days||{})[today()];
