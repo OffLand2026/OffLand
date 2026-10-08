@@ -230,3 +230,24 @@ body.focus-on{overflow:hidden}
 #title{white-space:nowrap}
 @media (max-width:370px){#title{font-size:23px}.head{gap:8px}}
 .scene.paused *{animation-play-state:paused!important}
+/* Vorhaben für die gewonnene Zeit */
+.plan-opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.plan-opt{display:flex;align-items:center;gap:8px;min-height:52px;padding:8px 10px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font:700 14px var(--body);text-align:left;cursor:pointer}
+.plan-opt svg{width:22px;height:22px;flex-shrink:0;color:var(--lime)}
+.plan-opt.on{border-color:var(--lime);background:#22301F}
+.plan-ic{width:44px;height:44px;border-radius:14px;background:#22301F;color:var(--lime);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.plan-ic svg{width:26px;height:26px}
+.plan-big{width:84px;height:84px;border-radius:28px;background:#22301F;color:var(--lime);display:flex;align-items:center;justify-content:center;align-self:center}
+.plan-big svg{width:46px;height:46px}
+/* Wochenrückblick zum Durchwischen */
+.wr{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:0 -20px}
+.wr::-webkit-scrollbar{display:none}
+.wr-s{flex:0 0 100%;scroll-snap-align:start;padding:6px 20px;display:flex;flex-direction:column;gap:10px;min-height:300px}
+.wr-dots{display:flex;justify-content:center;gap:6px}
+.wr-dots i{width:7px;height:7px;border-radius:50%;background:var(--line)}
+.wr-dots i.on{background:var(--lime);width:18px;border-radius:4px}
+.wr-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.wr-facts div{background:var(--ground);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:2px}
+.wr-facts b{font-family:var(--display);font-size:22px;font-weight:800}
+.wr-ev{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.wr-share{background:linear-gradient(160deg,#22301F,#26233D);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:6px}

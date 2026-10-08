@@ -209,6 +209,20 @@ const ACTIVITIES=[
   {id:"kochen",n:"Gekocht",fx:"+15 Punkte",ic:'<path d="M4 11h16v3a6 6 0 0 1-6 6h-4a6 6 0 0 1-6-6zM2 11h2M20 11h2M9 7c0-2 2-2 2-4M14 7c0-2 2-2 2-4"/>'},
   {id:"freunde",n:"Freund:innen getroffen",fx:"Die Bewohner verstehen sich besser, +1 % Glück",ic:'<circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M2 20c0-4 3-6 6-6s6 2 6 6M12 20c0-4 2-6 4-6s6 2 6 6"/>'}
 ];
+/* Vorhaben für die gewonnene Zeit: am Abend für morgen wählen, am nächsten Abend nachfragen */
+const PLANS=[
+  {id:"spaziergang",n:"Spaziergang",pp:"einen Spaziergang gemacht",min:30,ic:'<circle cx="13" cy="4" r="2"/><path d="M9 21l2-6 3 3v3M7 12l3-3 4 1 3 3M11 15l-1-6"/>'},
+  {id:"lesen",n:"Lesen",pp:"gelesen",min:30,ic:'<path d="M4 5h6a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4zM20 5h-6a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h6z"/>'},
+  {id:"sport",n:"Sport",pp:"Sport gemacht",min:45,ic:'<path d="M5 19h4l2-4 3 2 1 4M10 8l3-1 2 3 3 1M13 7l-2 5"/><circle cx="15" cy="4" r="2"/>'},
+  {id:"kochen",n:"Selbst kochen",pp:"selbst gekocht",min:45,ic:'<path d="M4 11h16v3a6 6 0 0 1-6 6h-4a6 6 0 0 1-6-6zM2 11h2M20 11h2M9 7c0-2 2-2 2-4M14 7c0-2 2-2 2-4"/>'},
+  {id:"freunde",n:"Freund:innen treffen",pp:"Freund:innen getroffen",min:90,ic:'<circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M2 20c0-4 3-6 6-6s6 2 6 6M12 20c0-4 2-6 4-6s6 2 6 6"/>'},
+  {id:"rad",n:"Radtour",pp:"eine Radtour gemacht",min:60,ic:'<circle cx="6" cy="16" r="4"/><circle cx="18" cy="16" r="4"/><path d="M6 16l4-7h6l2 7M10 9l2 7h6M14 5h3"/>'},
+  {id:"spiel",n:"Brettspiel",pp:"ein Brettspiel gespielt",min:60,ic:'<rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1.3"/><circle cx="15" cy="15" r="1.3"/><circle cx="15" cy="9" r="1.3"/><circle cx="9" cy="15" r="1.3"/>'},
+  {id:"anruf",n:"Jemanden anrufen",pp:"jemanden angerufen",min:20,ic:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>'},
+  {id:"musik",n:"Musik machen",pp:"Musik gemacht",min:20,ic:'<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>'},
+  {id:"malen",n:"Malen oder basteln",pp:"gemalt oder gebastelt",min:45,ic:'<path d="M12 3a9 9 0 0 0 0 18c1.5 0 2-1 2-2s-1-1.5-1-2.5 1-1.5 2-1.5h2a4 4 0 0 0 4-4c0-4.4-4-8-9-8z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="15" cy="7" r="1.2"/>'}
+];
+const planIcon=p=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p.ic}</svg>`;
 const PETS=["Hund","Katze","Meerschweinchen","Hase"];
 /* Gegenstände gehören zu der Inselwelt, in der sie gekauft wurden. Beim Umzug bleiben sie dort. */
 const itemDef=id=>SHOP.find(x=>x.id===id)||RARE.find(x=>x.id===id);
@@ -346,7 +360,7 @@ function migrate(st){
   if(st.points==null)st.points=0; if(!st.items)st.items=[]; if(!st.sun)st.sun=0;
   if(!st.rel)st.rel={}; if(st.conflict===undefined)st.conflict=null;
   if(!st.arrC)st.arrC=0; if(!st.birthC)st.birthC=0;
-  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,focusLog:[],alarm:true,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null},family:null};
+  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,focusLog:[],alarm:true,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null},family:null,plan:null,planLog:[]};
   if(st.plusFriend===undefined) st.plusFriend=(st.buddies||[]).length?"alt":null;   // Plus-Monat fürs Einladen gibt es nur einmal
   if(st.allFeatures===undefined) st.allFeatures=(st.dayCount||0)>=1;          // wer schon gespielt hat, behält alles
   for(const k in D){ if(st[k]===undefined) st[k]=D[k]; }
@@ -824,6 +838,113 @@ function doActivity(id){
   log("Echte Aktivität: "+a.n+". "+a.fx+".","good"); toast(a.n+" eingetragen");
   save(); render();
 }
+/* Vorhaben: gewonnene Zeit für etwas Echtes nutzen */
+function planOpts(min){
+  const fit=PLANS.filter(p=>p.min<=Math.max(min,30));
+  const opts=shuffle(fit.length>=4?fit:PLANS).slice(0,4);
+  const cur=S.plan&&PLANS.find(p=>p.id===S.plan.id);
+  if(cur&&!opts.includes(cur)) opts[3]=cur;
+  return opts;
+}
+function planPick(ev,good){
+  const forDay=addDays(ev.day,1), cur=S.plan&&S.plan.day===forDay?S.plan.id:null;
+  return `<div class="card plan-box"><p><b>${good?"Was machst du morgen mit der gewonnenen Zeit?":"Was machst du morgen statt Handy?"}</b></p>
+    <div class="plan-opts">${planOpts(good?ev.saved:30).map(p=>`<button type="button" class="plan-opt${p.id===cur?" on":""}" data-plan="${p.id}" aria-pressed="${p.id===cur}">${planIcon(p)}<span>${esc(p.n)}</span></button>`).join("")}</div>
+    <p class="small muted" id="planNote">${cur?"Vorgemerkt für morgen.":"Morgen Abend fragt die Insel nach. Geschafft: +20 Punkte, +2 % Glück, und ein Bewohner macht mit."}</p></div>`;
+}
+function bindPlanPick(ev){
+  const forDay=addDays(ev.day,1);
+  document.querySelectorAll("#modalRoot [data-plan]").forEach(b=>b.onclick=()=>{
+    const off=S.plan&&S.plan.day===forDay&&S.plan.id===b.dataset.plan;
+    S.plan=off?null:{id:b.dataset.plan,day:forDay};
+    document.querySelectorAll("#modalRoot [data-plan]").forEach(x=>{const on=!off&&x===b;x.classList.toggle("on",on);x.setAttribute("aria-pressed",on)});
+    const p=PLANS.find(x=>x.id===b.dataset.plan), n=$("#planNote");
+    if(n) n.textContent=off?"Kein Vorhaben gewählt.":"Vorgemerkt: "+p.n+" für morgen. Morgen Abend fragt die Insel nach.";
+    save();
+  });
+}
+function planResult(ok,id,day){
+  const p=PLANS.find(x=>x.id===id); if(!p) return null;
+  S.planLog.push({day,id,ok}); if(S.planLog.length>300) S.planLog.shift();
+  if(!ok){log("Vorhaben „"+p.n+"“ hat diesmal nicht geklappt. Morgen ist ein neuer Versuch.","info"); return null}
+  S.points+=20; S.glueck=clamp(S.glueck+2,0,100); S.actTotals[id]=(S.actTotals[id]||0)+1;
+  const ad=adults(), r=ad.length?pick(ad):null;
+  if(r){r.planWith={id,dc:S.dayCount}; chron([r.id],r.name+" hat heute auch "+p.pp+", genau wie du.")}
+  log("Echtes Leben: "+p.pp.charAt(0).toUpperCase()+p.pp.slice(1)+". +20 Punkte, +2 % Glück.","good");
+  return r;
+}
+function planDoneSheet(p,r){
+  const bub=`<g class="pop fb" style="animation-delay:.5s"><circle cx="250" cy="84" r="16" fill="#26233D" stroke="#C8F169" stroke-width="2"/><g transform="translate(240 74) scale(.84)" fill="none" stroke="#C8F169" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${p.ic}</g></g>`;
+  sheet(`<div class="anim">${base((r?`<g class="bob">${figure(r,236,134)}</g>`:"")+bub+confetti(),false)}</div>
+    <p class="label" style="color:var(--lime)">Vorhaben geschafft</p><h2>${esc(p.pp.charAt(0).toUpperCase()+p.pp.slice(1))}!</h2>
+    <p class="muted">Genau dafür ist die gewonnene Zeit da.${r?" "+esc(r.name)+" hat es dir gleich nachgemacht.":""}</p>
+    <p><b style="color:var(--lilac)">+20 Punkte</b> · <b style="color:var(--lime)">+2 % Glück</b></p>
+    <button class="btn" data-ok>Schön</button>`);
+}
+function planCard(){
+  const pl=S.plan; if(!pl||pl.res) return "";
+  const p=PLANS.find(x=>x.id===pl.id); if(!p) return "";
+  const now=pl.day<=today();
+  return `<div class="card plan-card"><p class="label" style="color:var(--lime)">Dein Vorhaben</p>
+    <div class="row"><span class="plan-ic">${planIcon(p)}</span><div class="grow"><p><b>${now?"Heute":"Morgen"}: ${esc(p.n)}</b></p><p class="small muted">${now?"Geschafft? Dann gibt es +20 Punkte und +2 % Glück.":"Die gewonnene Zeit von heute wartet schon darauf."}</p></div></div>
+    ${now?`<button class="btn secondary" id="planDone">Geschafft</button>`:""}</div>`;
+}
+/* Wochenrückblick „Deine Inselwoche“ */
+function weekData(wk){
+  const ds=S.days.filter(d=>isoWeek(d.day)===wk); if(!ds.length) return null;
+  const first=ds[0].day, mon=addDays(first,-((parse(first).getDay()+6)%7)), pwk=isoWeek(addDays(mon,-1));
+  const pds=S.days.filter(d=>isoWeek(d.day)===pwk);
+  const sum=a=>a.reduce((x,d)=>x+d.min,0);
+  const best=ds.reduce((a,d)=>d.min<a.min?d:a,ds[0]);
+  const inWk=d=>d&&d>=mon&&d<=addDays(mon,6);
+  return {wk,mon,ds,good:ds.filter(d=>d.min<=S.budget).length,saved:ds.reduce((a,d)=>a+Math.max(0,S.baseline-d.min),0),
+    best,avg:sum(ds)/ds.length,pavg:pds.length?sum(pds)/pds.length:null,pts:ds.reduce((a,d)=>a+(d.pts||0),0),
+    events:S.chronicle.filter(c=>inWk(c.day)).map(c=>c.text).slice(-4),
+    plans:S.planLog.filter(x=>x.ok&&inWk(x.day)).length,
+    focus:(S.focusLog||[]).filter(f=>inWk(f.day)).reduce((a,f)=>a+f.min,0)};
+}
+function weekBars(w){
+  const W=280,H=96, days=Array.from({length:7},(_,i)=>addDays(w.mon,i)), max=Math.max(S.budget*1.4,...w.ds.map(d=>d.min)), bw=28;
+  const y=v=>H-v/max*H;
+  return `<svg viewBox="0 0 ${W} ${H+18}" style="width:100%;height:auto" role="img" aria-label="Bildschirmzeit pro Tag">${days.map((dd,i)=>{const d=w.ds.find(x=>x.day===dd), x=10+i*39;
+    return (d?`<rect x="${x}" y="${y(d.min)}" width="${bw}" height="${H-y(d.min)}" rx="6" fill="${d.min<=S.budget?"#C8F169":"#FF9C7A"}"/>`:`<rect x="${x}" y="${H-4}" width="${bw}" height="4" rx="2" fill="#3A3D58"/>`)
+      +`<text x="${x+bw/2}" y="${H+14}" text-anchor="middle" font-size="11" fill="#9EA3B8" font-family="Manrope, sans-serif">${["Mo","Di","Mi","Do","Fr","Sa","So"][i]}</text>`}).join("")}
+    <path d="M4 ${y(S.budget)}H${W-4}" stroke="#B6A4FF" stroke-width="1.5" stroke-dasharray="5 4"/></svg>`;
+}
+function weekSheet(wk){
+  const w=weekData(wk); if(!w) return showPending();
+  const eq=equivTop(w.saved), kw=+wk.split("-W")[1], end=addDays(w.mon,6);
+  const sameM=parse(w.mon).getMonth()===parse(end).getMonth(), range=(sameM?parse(w.mon).getDate()+".":parse(w.mon).toLocaleDateString("de-DE",{day:"numeric",month:"short"}))+" – "+parse(end).toLocaleDateString("de-DE",{day:"numeric",month:sameM?"long":"short"});
+  const dAvg=w.pavg==null?null:Math.round(w.pavg-w.avg);
+  const wd=parse(w.best.day).toLocaleDateString("de-DE",{weekday:"long"});
+  const shareTxt="Meine OffLand-Woche: "+w.good+" von "+w.ds.length+" Tagen im Budget"+(w.saved?", "+hm(w.saved)+" weniger am Handy":"")+". 🌴";
+  const slides=[
+    `<p class="label" style="color:var(--lime)">Deine Inselwoche · KW ${kw}</p><p class="small muted">${range}</p>
+     <p class="big num" style="color:var(--lime)">${w.saved?"+"+hm(w.saved):"0 min"}</p>
+     <p>${w.saved?"weniger am Handy als in deinem alten Schnitt.":"Diese Woche lag noch über deinem alten Schnitt. Die nächste wird besser!"}</p>
+     ${eq.length?`<p class="muted">Das reicht für ${esc(eqText(eq))}.</p>`:""}`,
+    `<p class="label">Tage im Budget</p><p class="big num">${w.good} <span style="font-size:20px" class="muted">von ${w.ds.length}</span></p>${weekBars(w)}
+     <p class="small muted">Die gestrichelte Linie ist dein Budget von ${hm(S.budget)}.</p>`,
+    `<p class="label">Dein bester Tag</p><p class="big num" style="color:var(--lime);text-transform:capitalize">${esc(wd)}</p><p>Nur <b>${hm(w.best.min)}</b> am Handy.</p>
+     <p class="label" style="margin-top:10px">Im Vergleich zur Vorwoche</p>
+     <p>${dAvg==null?"Das ist deine erste Woche. Ab nächster Woche siehst du hier den Vergleich.":dAvg>0?`Im Schnitt <b style="color:var(--lime)">${hm(dAvg)} weniger</b> pro Tag als letzte Woche.`:dAvg<0?`Im Schnitt <b style="color:var(--coral)">${hm(-dAvg)} mehr</b> pro Tag als letzte Woche. Nächste Woche holst du das wieder rein.`:"Genau so viel wie letzte Woche."}</p>`,
+    `<p class="label">Auf deiner Insel</p>
+     <div class="wr-facts"><div><b class="num" style="color:var(--lilac)">+${w.pts}</b><span class="small muted">Punkte</span></div><div><b class="num" style="color:var(--lime)">${S.glueck} %</b><span class="small muted">Inselglück</span></div>
+     <div><b class="num">${w.plans}</b><span class="small muted">${w.plans===1?"Vorhaben":"Vorhaben"} geschafft</span></div><div><b class="num">${hm(w.focus)}</b><span class="small muted">Fokuszeit</span></div></div>
+     ${w.events.length?`<ul class="wr-ev">${w.events.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>`:`<p class="small muted">Eine ruhige Woche auf der Insel.</p>`}`,
+    `<p class="label" style="color:var(--lime)">Teil deine Woche</p><div class="wr-share"><p class="small muted">KW ${kw}</p><p class="big num" style="color:var(--lime)">${w.good}/${w.ds.length}</p><p>Tage im Budget${w.saved?`, <b>${hm(w.saved)}</b> weniger am Handy`:""}</p></div>
+     <button class="btn secondary" id="wrShare">Teilen</button>`];
+  sheet(`<div class="wr" id="wr">${slides.map(x=>`<section class="wr-s">${x}</section>`).join("")}</div>
+    <div class="wr-dots" aria-hidden="true">${slides.map((_,i)=>`<i${i?"":" class=\"on\""}></i>`).join("")}</div>
+    <div class="row"><button class="btn ghost grow" id="wrClose">Schließen</button><button class="btn grow" id="wrNext">Weiter</button></div>`);
+  const box=$("#wr"), dots=[...document.querySelectorAll(".wr-dots i")], idx=()=>Math.round(box.scrollLeft/box.clientWidth);
+  const upd=()=>{const i=idx();dots.forEach((d,k)=>d.classList.toggle("on",k===i));$("#wrNext").textContent=i>=slides.length-1?"Fertig":"Weiter"};
+  box.onscroll=upd;
+  const done=()=>{closeModal();render();showPending()};
+  $("#wrNext").onclick=()=>{const i=idx(); if(i>=slides.length-1) return done(); box.scrollTo({left:(i+1)*box.clientWidth,behavior:"smooth"})};
+  $("#wrClose").onclick=done;
+  $("#wrShare").onclick=()=>shareText(shareTxt,inviteLink());
+}
 /* Fokuszeit: Wochenzeile auf der Karte und Statistik im Tab Zeit */
 function focusWeek(){const wk=isoWeek(today());return (S.focusLog||[]).filter(f=>isoWeek(f.day)===wk)}
 function focusWeekLine(){const w=focusWeek(); if(!w.length) return "";
@@ -1026,6 +1147,7 @@ function linesFor(r){
     else L.push(`${SOUND[r.art]||""} ${S.glueck>=80?"(sehr zufrieden)":S.glueck<40?"(guckt traurig in den Regen)":"(döst in der Sonne)"}`);
     return L;
   }
+  if(r.planWith&&S.dayCount-r.planWith.dc<=1){const p=PLANS.find(x=>x.id===r.planWith.id); if(p) return ["Ich hab heute auch "+p.pp+", genau wie du. Das war richtig schön!"]}
   if(r.sick) return [`Hatschi! Ich hab ${r.sick.kind} und lieg heute flach.`,"Ein Kräutertee wäre jetzt schön …","Wenn die Insel wieder fröhlicher ist, geht's mir bestimmt bald besser."];
   const lost=S.memorials.find(m=>{const d=S.residents.find(x=>x.id===m.rid);return d&&(r.widowOf===m.rid||(r.parents||[]).includes(m.rid)||(d.parents||[]).includes(r.id))});
   if(lost) L.push(`Ich denke oft an ${lost.name}. Am Erinnerungsbaum ist es so schön ruhig.`);
@@ -1056,7 +1178,7 @@ function whispers(){
   const ppl=here(); if(!ppl.length) return [];
   const seed=S.dayCount*7+new Date().getHours();
   const out=[], used=new Set();
-  const priority=ppl.filter(r=>r.sad||(S.wish&&S.wish.rid===r.id)||(S.conflict&&(S.conflict.a===r.id||S.conflict.b===r.id)));
+  const priority=ppl.filter(r=>(r.planWith&&S.dayCount-r.planWith.dc<=1)||r.sad||(S.wish&&S.wish.rid===r.id)||(S.conflict&&(S.conflict.a===r.id||S.conflict.b===r.id)));
   const order=priority.concat(ppl.filter(r=>!priority.includes(r)).sort((a,b)=>srand(seed+a.name.length)-srand(seed+b.name.length)));
   for(const r of order){if(out.length>=2)break;if(used.has(r.id))continue;used.add(r.id);const L=linesFor(r);out.push({r,t:L[Math.floor(srand(seed+out.length)*L.length)]})}
   return out;
@@ -1118,6 +1240,8 @@ function closeDay(min,quests,appMin){
   const day=nextDay();
   const diff=S.budget-min;
   const prevLast=S.lastDay;
+  // Vorhaben für diesen Tag: abends nachfragen (vor der Tagesbilanz); verpasste verfallen ohne Strafe
+  if(S.plan&&S.plan.day<=day){ if(S.plan.day===day&&!S.plan.res) S.pending.push({type:"plan",id:S.plan.id,day}); S.plan=null; }
   // App-Monster: Apps über ihrem eigenen Limit
   const monsters=S.apps.filter(a=>(appMin[a.id]||0)>a.limit).map(a=>a.id);
   let delta, sunny=false;
@@ -1168,6 +1292,7 @@ function closeDay(min,quests,appMin){
   if(dreamt) log("Gute-Nacht-Ritual: +15 Traumpunkte.","good");
   monsters.forEach(id=>{const a=S.apps.find(x=>x.id===id);const n=monName(a);log(n.charAt(0).toUpperCase()+n.slice(1)+" ist aufgetaucht: "+a.name+" lag über "+hm(a.limit)+".","bad")});
   if(!S.testmode) S.pending.push({type:"day",day,min,before,after:S.glueck,saved,pts,sunny,repaired,dreamt,monsters});
+  if(!S.testmode&&parse(day).getDay()===0&&S.days.filter(d=>isoWeek(d.day)===isoWeek(day)).length>=2) S.pending.push({type:"week",wk:isoWeek(day)});
 
   social(diff>=0);
   extras(day,diff,quests,dreamt);
@@ -1886,6 +2011,7 @@ function viewHeute(){
     <div class="stat"><span class="label">Bewohner</span><b class="num">${occupied()}/${capacity()}</b><span class="small muted">Plätze${here().some(isPet)?" + "+here().filter(isPet).length+" Haustiere":""}</span></div>
     <div class="stat"><span class="label">Punkte</span><b class="num" style="color:var(--lilac)">${S.points}</b><span class="small muted">${S.sun?S.sun+"× Sonne":"zum Bauen"}</span></div>
   </div>
+  ${planCard()}
   ${S.vacation?`<div class="card" style="border:1.5px solid var(--lilac)"><p class="label" style="color:var(--lilac)">Urlaubsmodus</p><p>${guard?`<b>${esc(guard.name)}</b> hütet die Insel, bis du zurück bist.`:"Die Insel schläft, bis du zurück bist."} Das Glück sinkt in der Zeit nicht.</p><button class="btn secondary" id="vacOff">Ich bin zurück</button></div>`:""}
   ${warn?`<div class="card warn"><p class="label" style="color:var(--amber)">Wegzug droht</p><p><b>${esc(groupName(warn))}</b> ${vb(warn,"packt","packen")} die Koffer. Bring das Inselglück bis ${nice(S.warn.deadline)} über 40 %, dann ${vb(warn,"bleibt "+esc(warn[0].name),"bleiben alle")}.</p></div>`:""}
   ${wh.length?`<div class="card"><p class="label">Inselgeflüster</p>${wh.map(w=>`<div class="row" style="align-items:flex-start"><div class="avatar" style="background:${w.r.kind==="mensch"?"#26233D":SEA.includes(w.r.art)?"#1F2A3A":"#22301F"}"><svg width="40" height="40" viewBox="${figVB(w.r)}" aria-hidden="true">${figure(w.r,0,0)}</svg></div><div class="grow" style="background:var(--ground);border-radius:4px 16px 16px 16px;padding:10px 12px"><p class="small" style="font-weight:700;color:var(--lilac)">${esc(w.r.name)}${w.r.job?" · "+esc(jobName(w.r.job)):""}</p><p>${esc(w.t)}</p></div></div>`).join("")}</div>`:""}
@@ -2062,6 +2188,7 @@ function viewZeit(){
     <p style="margin-top:4px"><b>Damit hast du Zeit gewonnen für:</b></p>
     ${eqGrid(saved)}
   </div>
+  ${S.lastDay?`<button class="btn secondary" id="weekBtn" data-wk="${isoWeek(S.lastDay)}">Wochenrückblick ansehen</button>`:""}
   <div class="card">
     <p class="label">Über dem Budget verbracht</p>
     <p class="big num" style="color:var(--coral)">${hm(over)}</p>
@@ -2442,6 +2569,8 @@ function bind(){
   document.querySelectorAll("[data-boat]").forEach(x=>x.onclick=()=>focusSheet(+x.dataset.boat));
   document.querySelectorAll("[data-act]").forEach(x=>x.onclick=()=>doActivity(x.dataset.act));
   const nb=$("#nightBtn"); if(nb) nb.onclick=goodNight;
+  const pdn=$("#planDone"); if(pdn) pdn.onclick=()=>{const pl=S.plan, p=pl&&PLANS.find(x=>x.id===pl.id); if(!p) return; pl.res=true; const r=planResult(true,pl.id,pl.day); save(); render(); planDoneSheet(p,r)};
+  const wrb=$("#weekBtn"); if(wrb) wrb.onclick=()=>weekSheet(wrb.dataset.wk);
   const vo=$("#vacOff"); if(vo) vo.onclick=()=>setVacation(false);
   const dt=$("#deathToggle"); if(dt) dt.onchange=()=>{S.natDeath=dt.checked;save()};
   document.querySelectorAll("[data-tea]").forEach(x=>x.onclick=()=>giveTea(x.dataset.tea));
@@ -2570,6 +2699,18 @@ function showPending(){
   save();
   if(ev.type==="arrival"||ev.type==="birth"||ev.type==="rename") return nameSheet(ev);
   const scene=`<div class="anim">${animScene(ev)}</div>`;
+  if(ev.type==="plan"){
+    const p=PLANS.find(x=>x.id===ev.id); if(!p) return showPending();
+    $("#modalRoot").innerHTML=`<div class="modal"><div class="sheet" role="dialog" aria-modal="true">
+      <div class="plan-big">${planIcon(p)}</div>
+      <p class="label" style="color:var(--lime)">Dein Vorhaben</p><h2>Hast du heute ${esc(p.pp)}?</h2>
+      <p class="muted">Das hattest du dir gestern mit deiner gewonnenen Zeit vorgenommen.</p>
+      <button class="btn" id="plYes">Ja, geschafft!</button><button class="btn ghost" id="plNo">Diesmal nicht</button></div></div>`;
+    $("#plYes").onclick=()=>{const r=planResult(true,ev.id,ev.day);save();planDoneSheet(p,r)};
+    $("#plNo").onclick=()=>{planResult(false,ev.id,ev.day);save();closeModal();render();showPending()};
+    return;
+  }
+  if(ev.type==="week") return weekSheet(ev.wk);
   if(ev.type==="day"){
     const good=ev.min<=S.budget, diff=Math.abs(S.budget-ev.min);
     const eq=equivTop(good?ev.saved:diff);
@@ -2582,7 +2723,8 @@ function showPending(){
       ${ev.monsters&&ev.monsters.length?`<p style="color:#C8A8FF">${ev.monsters.map(id=>{const a=S.apps.find(x=>x.id===id);return a?monName(a,false):""}).join(", ")} vor der Insel aufgetaucht.</p>`:""}
       ${good&&ev.saved?`<p>Du warst heute <b>${hm(ev.saved)}</b> weniger am Handy als in deinem bisherigen Schnitt (${hm(S.baseline)} am Tag). Das reicht für ${esc(eqText(eq))}.</p>`:""}
       ${!good&&eq.length?`<p>Die Zeit über dem Budget hätte gereicht für ${esc(eqText(eq))}. Morgen ist ein neuer Tag.</p>`:""}
-      <button class="btn" data-ok>Weiter</button>`,()=>countUp($("#cu"),ev.before,ev.after));
+      ${ev.day===S.lastDay?planPick(ev,good):""}
+      <button class="btn" data-ok>Weiter</button>`,()=>{countUp($("#cu"),ev.before,ev.after);bindPlanPick(ev)});
   }
   if(ev.type==="conflict"){
     const c=S.conflict; if(!c||c.state!=="neu") return showPending();
