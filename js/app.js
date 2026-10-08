@@ -3536,8 +3536,9 @@ async function fillFamily(){
     <div class="anim" style="border-radius:18px;overflow:hidden">${famScene(members,st.total,st.todayIn>0&&st.todayGood===members.length)}</div>
     <p><b>Heute:</b> ${st.todayIn?`${st.todayGood} von ${members.length} im Budget`:"noch niemand eingetragen"}</p>
     <div style="background:var(--ground);border-radius:16px;padding:12px 14px"><p class="small muted">Gemeinsame OffLand-Zeit</p><p class="num" style="font-size:26px;font-weight:800;color:var(--lime)">${hm(st.saved)}</p></div>
-    <div><div class="row between"><span class="small"><b>Familienprojekte</b> · ${st.total} gute Tage zusammen</span><span class="small muted">${next?"nächstes: "+esc(next.n)+" bei "+next.need:"alles gebaut!"}</span></div>
-      <div class="bar"><i style="width:${next?Math.min(100,st.total/next.need*100):100}%"></i></div></div>
+    <div><div class="row between" style="flex-wrap:nowrap"><b class="small">Familienprojekte</b><span class="small num" style="white-space:nowrap">${st.total} gute Tage zusammen</span></div>
+      <div class="bar"><i style="width:${next?Math.min(100,st.total/next.need*100):100}%"></i></div>
+      <p class="small muted" style="margin-top:4px">${next?"Nächstes Projekt: <b style=\"color:var(--ink)\">"+esc(next.n)+"</b> bei "+next.need+" guten Tagen":"Alle Familienprojekte sind gebaut!"}</p></div>
     <div style="display:flex;flex-direction:column;gap:6px">${members.map(m=>{const d=(m.days||{})[today()];
       return `<div class="row between"><span>${esc(m.name||"?")}${m.id===S.family.mid?" (du)":""}</span><span class="small ${d?(d.g?"":"muted"):"muted"}" style="${d&&d.g?"color:var(--lime);font-weight:700":""}">${d?(d.g?"heute im Budget":"heute drüber"):"noch offen"}${d&&d.m!=null?" · "+hm(d.m):""}</span></div>
         <div class="row between" style="margin-top:-4px"><span class="small muted">${m.good||0} gute ${m.good===1?"Tag":"Tage"}</span><span class="small" style="font-weight:700">${m.saved!=null?hm(m.saved)+" gespart":"–"}</span></div>`}).join("")}</div>
