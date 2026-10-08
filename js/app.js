@@ -1358,7 +1358,7 @@ function closeDay(min,quests,appMin){
   unlockCheck();
   // Joker: einmal pro Woche bricht ein schlechter Tag die Serie nicht
   // Joker möglich? Dann fragt die Insel gleich nach (vor der Tagesbilanz)
-  if(diff<0&&S.budgetStreak>=2&&S.jokerWk!==isoWeek(day)&&!S.testmode) S.pending.push({type:"jokerAsk",streak:S.budgetStreak,wk:isoWeek(day),day});
+  if(diff<0&&S.budgetStreak>=1&&S.jokerWk!==isoWeek(day)) S.pending.push({type:"jokerAsk",streak:S.budgetStreak,wk:isoWeek(day),day});
   S.budgetStreak=diff>=0?S.budgetStreak+1:0;
   if(diff>=0) buddyProgress();
   wishProgress(min,quests,diff);
@@ -2152,7 +2152,7 @@ function goalCard(ok,nd){
   }).join("");
   return `<div class="card goal">
     <div class="row between"><p class="label">Tagesziel</p>${S.budgetStreak>1?`<span class="chip good">${S.budgetStreak} Tage in Folge</span>`:""}</div>
-    ${S.budgetStreak>1?`<div class="joker-line${S.jokerWk===isoWeek(today())?" used":""}"><span class="joker-mini" aria-hidden="true">🃏</span><span class="small">${S.jokerWk===isoWeek(today())?"Joker diese Woche schon eingesetzt. Ab Montag gibt es einen neuen.":"<b>Joker bereit:</b> Einmal pro Woche kannst du einen schlechten Tag wegstecken, ohne dass deine Serie reißt."}</span></div>`:""}
+    ${last?`<div class="joker-line${S.jokerWk===isoWeek(today())?" used":""}"><span class="joker-mini" aria-hidden="true">🃏</span><span class="small">${S.jokerWk===isoWeek(today())?"Joker diese Woche schon eingesetzt. Ab Montag gibt es einen neuen.":S.budgetStreak>=1?"<b>Joker bereit:</b> Einmal pro Woche kannst du einen schlechten Tag wegstecken, ohne dass deine Serie reißt. Die Insel fragt dich dann.":"<b>Joker bereit:</b> Sobald du wieder einen Tag im Budget bist, schützt er deine Serie einmal pro Woche."}</span></div>`:""}
     ${main}
     ${week.length?`<div class="week" role="img" aria-label="${inB} von ${week.length} Tagen im Ziel">${strip}</div>
     <p class="small muted">Letzte ${week.length} ${week.length===1?"Tag":"Tage"}: <b style="color:var(--ink)">${inB} von ${week.length}</b> im Ziel</p>`:""}
