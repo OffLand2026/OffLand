@@ -4011,7 +4011,8 @@ async function fillFamily(){
   if(!$("#famBox")||tab!=="freunde") return;
   if(members==="gone"){$("#famBox").innerHTML=`<p class="label">Familieninsel</p><h2>${esc(S.family.name)}</h2><p class="muted">Diese Familieninsel gibt es nicht mehr. Du kannst eine neue gründen oder einer anderen beitreten.</p><button class="btn secondary" id="famGone">Verlassen</button>`;
     $("#famGone").onclick=async()=>{await famLeave();render()};return}
-  if(!members){$("#famBox").innerHTML=`<p class="label">Familieninsel</p><h2>${esc(S.family.name)}</h2><p class="err">Keine Verbindung. Prüf dein Internet und versuch es noch mal.</p><button class="btn secondary" id="famRetry">Noch mal versuchen</button>`;
+  if(!members){$("#famBox").innerHTML=`<p class="label">Familieninsel</p><h2>${esc(S.family.name)}</h2><p class="err">Keine Verbindung. Prüf dein Internet und versuch es noch mal.</p><button class="btn secondary" id="famRetry">Noch mal versuchen</button><button class="btn ghost" id="famQuit">Familieninsel verlassen</button>`;
+    $("#famQuit").onclick=famLeaveSheet;
     $("#famRetry").onclick=()=>{FAMC=null;$("#famBox").innerHTML=`<p class="label">Familieninsel</p><h2>${esc(S.family.name)}</h2><p class="muted">Lade …</p>`;fillFamily()};return}
   const st=famStats(members), next=FAM_PROJECTS.find(p=>st.total<p.need);
   members.sort((a,b)=>(b.saved||0)-(a.saved||0)||(b.good||0)-(a.good||0));
@@ -4026,15 +4027,17 @@ async function fillFamily(){
       return `<div class="row between"><span>${esc(m.name||"?")}${m.id===S.family.mid?" (du)":""}</span><span class="small ${d?(d.g?"":"muted"):"muted"}" style="${d&&d.g?"color:var(--lime);font-weight:700":""}">${d?(d.g?"heute im Budget":"heute drüber"):"noch offen"}${d&&d.m!=null?" · "+hm(d.m):""}</span></div>
         <div class="row between" style="margin-top:-4px"><span class="small muted">${m.good||0} gute ${m.good===1?"Tag":"Tage"}</span><span class="small" style="font-weight:700">${m.saved!=null?hm(m.saved)+" gespart":"–"}</span></div>`}).join("")}</div>
     <p class="small muted" style="text-align:center">Familien-Code: <b class="num" style="color:var(--ink);letter-spacing:.1em">${S.family.code}</b></p>
-    <div class="row"><button class="btn secondary grow" id="famLook">Meine Figur anpassen</button><button class="btn secondary grow" id="famInvite">Familie einladen</button></div>`;
+    <div class="row"><button class="btn secondary grow" id="famLook">Meine Figur anpassen</button><button class="btn secondary grow" id="famInvite">Familie einladen</button></div>
+    <button class="btn ghost" id="famQuit">Familieninsel verlassen</button>`;
   const fl=$("#famLook"); if(fl) fl.onclick=famLookSheet;
+  const fq=$("#famQuit"); if(fq) fq.onclick=famLeaveSheet;
   const fi=$("#famInvite"); if(fi) fi.onclick=()=>shareText("Komm auf unsere Familieninsel „"+S.family.name+"“ in OffLand! Code: "+S.family.code,APP_URL+"?familie="+S.family.code);
 }
 function famConsent(title,after){
   modal(`<p class="label" style="color:var(--lime)">Familieninsel</p><h2>${esc(title)}</h2>
     <p class="muted">Deine Familie sieht deinen Namen „${esc(netName())}“, deinen Avatar, wie viel Zeit du insgesamt gespart hast und an welchen Tagen du im Budget warst.</p>
     <label class="check" for="fcShare"><input type="checkbox" id="fcShare"> Auch meine Minuten zeigen</label>
-    <p class="small muted">Deine eigene Insel bleibt unverändert. Verlassen kannst du die Familieninsel jederzeit in den Einstellungen.</p>
+    <p class="small muted">Deine eigene Insel bleibt unverändert. Verlassen kannst du die Familieninsel jederzeit, im Tab Freunde oder in den Einstellungen.</p>
     <p class="err" id="fcErr" role="alert"></p>
     <button class="btn" id="fcYes">Los geht's</button><button class="btn ghost" id="fcNo">Abbrechen</button>`);
   $("#fcNo").onclick=()=>{closeModal();render()};
@@ -4089,6 +4092,14 @@ async function famJoinSheet(code){
   const others=await (async()=>{try{const N=await netInit();return (await N.list("families/"+fam+"/members")).length}catch(e){return 0}})();
   if(others>=12) return toast("Diese Familieninsel ist voll (12 Personen).");
   famConsent("„"+name+"“ beitreten",async share=>{try{return await famJoinId(fam,name,code,share)}catch(e){return "Keine Verbindung. Versuch es später noch mal."}});
+}
+function famLeaveSheet(){
+  const f=S.family; if(!f) return;
+  sheet(`<p class="label" style="color:var(--lime)">Familieninsel</p><h2>„${esc(f.name)}“ verlassen?</h2>
+    <p class="muted">Deine eigene Insel bleibt, wie sie ist. Du verschwindest von der Familieninsel, deine Familie sieht deine Tage nicht mehr. Mit dem Familien-Code <b class="num" style="color:var(--ink)">${esc(f.code||"")}</b> kannst du später wieder beitreten.</p>
+    <button class="btn" id="flStay">Bleiben</button><button class="btn ghost" id="flGo">Verlassen</button>`);
+  $("#flStay").onclick=()=>{closeModal();render()};
+  $("#flGo").onclick=async()=>{const b=$("#flGo");b.disabled=true;b.textContent="Verlasse …";await famLeave();closeModal();render();toast("Familieninsel verlassen")};
 }
 async function famLeave(){
   const f=S.family; if(!f) return;
