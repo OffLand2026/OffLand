@@ -1178,8 +1178,10 @@ function closeDay(min,quests,appMin){
   }
 
   // Wegzug
-  if(S.unhappyStreak===3&&!S.warn){
-    const cands=here(); if(cands.length){
+  if(S.unhappyStreak>=3&&!S.warn){
+    // Mindestens eine Person bleibt immer, damit die Insel nie ganz leer wird
+    const humans=here().filter(r=>r.kind==="mensch").length;
+    const cands=here().filter(r=>familyOf(r).filter(x=>x.kind==="mensch").length<humans); if(cands.length){
       const g=familyOf(pick(cands));
       S.warn={ids:g.map(x=>x.id),deadline:addDays(day,2+(jobOn("aerztin")?1:0)+(owns("brunnen")?1:0)+(has("o_brunnen")?1:0))};
       log(groupName(g)+vb(g," packt die Koffer. Noch 2 Tage bis zum Wegzug."," packen die Koffer. Noch 2 Tage bis zum Wegzug."),"bad");
@@ -1195,6 +1197,7 @@ function closeDay(min,quests,appMin){
       S.pending.push({type:"left",ids:g.map(x=>x.id)});
     }
     S.warn=null;
+    S.unhappyStreak=0;   // nach 3 weiteren unglücklichen Tagen packt die nächste Familie (vorher kam nach dem ersten Wegzug keiner mehr)
   }
   // Rückkehr
   const gone=S.residents.filter(r=>r.status==="weg");
@@ -1294,8 +1297,9 @@ function viewReise(){
 /* Aussehen: aus der ID abgeleitet, damit jede:r immer gleich aussieht */
 function hsh(t){let h=2166136261;for(const c of String(t||""))h=Math.imul(h^c.charCodeAt(0),16777619);return h>>>0}
 const SKIN=["#F3D2B8","#E8B48F","#D9A27E","#B07A55","#8A5A3B","#6B4430"];
-const HAIR=["#2B2118","#4A3222","#7A4A2A","#B8743A","#E0B867","#C8442E","#1E1E28"];
-const SHIRT=["#B6A4FF","#C8F169","#FFB86B","#5B8CD6","#FF9C7A","#5BC0A8","#E07AB8","#F3F1EA"];
+// Neue Farben nur hinten anhängen: die Zufallsauswahl nutzt die alten Längen, damit Bewohner ihr Aussehen behalten
+const HAIR=["#2B2118","#4A3222","#7A4A2A","#B8743A","#E0B867","#C8442E","#1E1E28","#9EA3B8","#E07AB8","#5B8CD6","#5BC0A8"];
+const SHIRT=["#B6A4FF","#C8F169","#FFB86B","#5B8CD6","#FF9C7A","#5BC0A8","#E07AB8","#F3F1EA","#E5484D","#3A3D58","#FFD27A","#8A5A3B","#2F7A5A","#9B6BD6","#14151F","#9CC8EE"];
 const PANTS=["#3A3D58","#2F4A6E","#5A4636","#4A5A3A"];
 function hairSvg(style,c){
   switch(style){
@@ -1305,33 +1309,56 @@ function hairSvg(style,c){
     case 3: return {back:`<path d="M4 -18q4.4 1 3.6 6.6q-2.2-1.6-2.4-4.6z" fill="${c}"/>`,front:`<path d="M-5.3 -16.4a5.3 5.5 0 0 1 10.6 0q-5.3-2.6-10.6 0z" fill="${c}"/>`};
     case 4: return {back:"",front:`<g fill="${c}"><circle cx="-4.2" cy="-18.6" r="2.5"/><circle cx="-1.4" cy="-20.6" r="2.6"/><circle cx="1.8" cy="-20.6" r="2.6"/><circle cx="4.4" cy="-18.4" r="2.4"/><circle cx="-5.4" cy="-16.2" r="1.7"/><circle cx="5.5" cy="-16" r="1.7"/></g>`};
     case 5: return {back:"",front:`<path d="M-5.6 -17.2a5.6 4.6 0 0 1 11.2 0z" fill="${c}"/><path d="M-5.6 -17.4h8.8q2.4 0 3.6 1.2h-12.4z" fill="${c}" opacity=".85"/>`};
+    case 6: return {back:"",front:`<path d="M-5 -17.6a5 4 0 0 1 10 0q-5-1.2-10 0z" fill="${c}"/>`};
+    case 7: return {back:`<path d="M3.2 -21q5.4-1.4 5.2 4.6q-.4 3.6-2.2 5.4q.2-4.6-1.6-6.8z" fill="${c}"/>`,front:`<path d="M-5.3 -16.4a5.3 5.5 0 0 1 10.6 0q-5.3-2.6-10.6 0z" fill="${c}"/><circle cx="4.2" cy="-20.4" r="1" fill="#E5484D"/>`};
+    case 8: return {back:`<path d="M-6 -16.6a6 6.2 0 0 1 12 0v4.6q-1.6.6-2.6-.4v-3.6h-6.8v3.6q-1 1-2.6.4z" fill="${c}"/>`,front:`<path d="M-5.6 -16.4a5.6 5.4 0 0 1 11.2 0q-2.8-.4-5.6-2.2q-2.8 1.8-5.6 2.2z" fill="${c}"/>`};
+    case 9: return {back:"",front:`<path d="M-1.6 -20.4q-1.4-3.6 1.6-5.6q3 2 1.6 5.6z" fill="${c}"/><path d="M-5 -17.6a5 4 0 0 1 10 0q-5-1-10 0z" fill="${c}" opacity=".45"/>`};
+    case 10: return {back:"",front:`<path d="M-3 -19.8q1.6-.8 3.2-.4" stroke="#FFFFFF" stroke-width=".7" fill="none" opacity=".35" stroke-linecap="round"/>`};
+    case 11: return {back:`<path d="M-5.6 -15q-3 1.6-2.6 6.4l1.8.2q-.4-3.8 1.4-5z" fill="${c}"/><path d="M5.6 -15q3 1.6 2.6 6.4l-1.8.2q.4-3.8-1.4-5z" fill="${c}"/>`,front:`<path d="M-5.3 -16.4a5.3 5.5 0 0 1 10.6 0q-2.6-1.6-5.3-1.6t-5.3 1.6z" fill="${c}"/><circle cx="-6.4" cy="-14.6" r=".9" fill="#E07AB8"/><circle cx="6.4" cy="-14.6" r=".9" fill="#E07AB8"/>`};
+    case 12: return {back:"",front:`<path d="M-5.4 -16.2a5.4 5.6 0 0 1 10.8 0q-1.6-.6-3.4-2.6q-3 2.2-7.4 2.6z" fill="${c}"/>`};
     default: return {back:"",front:`<path d="M-5 -17.6a5 4 0 0 1 10 0q-5-1.2-10 0z" fill="${c}"/>`};
   }
 }
-const STYLE_NAMES=["Kurz","Lang","Dutt","Zopf","Locken","Mütze","Stoppeln"];
+const STYLE_NAMES=["Kurz","Lang","Dutt","Zopf","Locken","Mütze","Stoppeln","Pferdeschwanz","Bob","Iro","Glatze","Zwei Zöpfe","Seitenscheitel"];
+/* Extras: Schal, Brille, Sonnenbrille, Bommelmütze, Kappe, Blume, Stirnband */
+const ACC_NAMES=["Nichts","Schal","Brille","Sonnenbrille","Bommelmütze","Kappe","Blume","Stirnband"];
+function accSvg(a,c){
+  switch(a){
+    case 1: return {body:`<path d="M-4.8 -11.8q4.8 2.4 9.6 0l.5 2.1q-5.3 2.6-10.6 0z" fill="${c}"/><path d="M2.2 -10.2l1.8 5.4h-2.6z" fill="${c}"/>`,head:""};
+    case 2: return {body:"",head:`<g fill="none" stroke="#14151F" stroke-width=".55"><circle cx="-1.9" cy="-15.6" r="1.55"/><circle cx="1.9" cy="-15.6" r="1.55"/><path d="M-.35 -15.7h.7M-3.45 -15.8l-1.5-.4M3.45 -15.8l1.5-.4"/></g>`};
+    case 3: return {body:"",head:`<g fill="#14151F"><rect x="-3.7" y="-16.8" width="3.1" height="2.2" rx=".9"/><rect x=".6" y="-16.8" width="3.1" height="2.2" rx=".9"/></g><path d="M-.6 -16h1.2M-3.7 -16.2l-1.3-.3M3.7 -16.2l1.3-.3" stroke="#14151F" stroke-width=".5"/>`};
+    case 4: return {body:"",head:`<path d="M-5.4 -17.4a5.4 5.2 0 0 1 10.8 0z" fill="${c}"/><rect x="-5.9" y="-18.6" width="11.8" height="2.6" rx="1.3" fill="#F3F1EA" opacity=".9"/><circle cx="0" cy="-22.9" r="1.9" fill="#F3F1EA"/>`};
+    case 5: return {body:"",head:`<path d="M-5.3 -17.3a5.3 4.8 0 0 1 10.6 0z" fill="${c}"/><path d="M-1.2 -17.6h8.6q.7 1.3-.6 1.5h-8z" fill="${c}"/><circle cx="0" cy="-21.9" r=".6" fill="#14151F" opacity=".4"/>`};
+    case 6: return {body:"",head:`<g transform="translate(3.9 -20)">${[0,72,144,216,288].map(d=>`<circle cx="${(1.3*Math.cos(d*Math.PI/180)).toFixed(2)}" cy="${(1.3*Math.sin(d*Math.PI/180)).toFixed(2)}" r="1.05" fill="${c}"/>`).join("")}<circle r=".75" fill="#FFD27A"/></g>`};
+    case 7: return {body:"",head:`<path d="M-5.2 -18.4q5.2-2.2 10.4 0v1.8q-5.2-2-10.4 0z" fill="${c}"/>`};
+    default: return {body:"",head:""};
+  }
+}
 function lookIdx(r){
   const h=hsh(r.id||r.name), o=r.look||{};
   const pickI=(k,v)=>o[k]!=null?o[k]:v;
-  return {skin:pickI("skin",h%SKIN.length),hair:pickI("hair",(h>>>3)%HAIR.length),style:pickI("style",(h>>>6)%7),shirt:pickI("shirt",(h>>>9)%SHIRT.length)};
+  const a=(h>>>18)%14;     // etwa die Hälfte trägt von sich aus ein Extra
+  return {skin:pickI("skin",h%SKIN.length),hair:pickI("hair",(h>>>3)%7),style:pickI("style",(h>>>6)%7),shirt:pickI("shirt",(h>>>9)%8),
+    acc:pickI("acc",o.skin!=null?0:(a<7?0:a-6)),accC:pickI("accC",(h>>>22)%SHIRT.length)};
 }
 function looks(r){
   const h=hsh(r.id||r.name), i=lookIdx(r);
-  return {skin:SKIN[i.skin],hair:r.retired?"#D9D6CE":HAIR[i.hair],style:i.style,
-    shirt:SHIRT[i.shirt],pants:PANTS[(h>>>12)%PANTS.length],cap:SHIRT[(h>>>15)%SHIRT.length]};
+  return {skin:SKIN[i.skin],hair:r.retired?"#D9D6CE":HAIR[i.hair]||HAIR[0],style:i.style,
+    shirt:SHIRT[i.shirt]||SHIRT[0],pants:PANTS[(h>>>12)%PANTS.length],cap:SHIRT[(h>>>15)%8],acc:i.acc||0,accC:SHIRT[i.accC]||SHIRT[0]};
 }
 function figure(r,x,y){
   if(r.kind==="mensch"){
     const L=looks(r), kid=r.parents&&!r.job?0.72:1;
-    const hair=hairSvg(L.style,L.style===5?L.cap:L.hair);
+    const hair=hairSvg(L.style,L.style===5?L.cap:L.hair), acc=accSvg(L.acc,L.accC);
     if(r.sick) return `<g transform="translate(${x} ${y}) scale(${kid})"><title>${esc(r.name)} (krank: ${esc(r.sick.kind)})</title><rect x="-9" y="-6" width="18" height="6" rx="2" fill="#8A5A3B"/><rect x="-8" y="-9" width="16" height="5" rx="2" fill="#9CC8EE"/><circle cx="-6" cy="-10" r="4" fill="${L.skin}"/><path d="M-9.6 -11a4 4 0 0 1 6.6-2.6" stroke="${L.hair}" stroke-width="2" fill="none"/><path d="M-7.4 -10.4h1.2M-5 -10.4h1.2" stroke="#14151F" stroke-width=".6"/><circle cx="-8" cy="-9" r="1" fill="#E5484D" opacity=".7"/><text x="2" y="-12" font-size="6" fill="#F3F1EA" font-family="Manrope, sans-serif">z</text></g>`;
     const sad=typeof S!=="undefined"&&S.glueck<40;
     const mouth=sad?`<path d="M-1.4 -12.6q1.4-1 2.8 0" stroke="#5A3A2A" stroke-width=".7" fill="none" stroke-linecap="round"/>`:`<path d="M-1.6 -13.3q1.6 1.3 3.2 0" stroke="#5A3A2A" stroke-width=".7" fill="none" stroke-linecap="round"/>`;
     return `<g transform="translate(${x} ${y}) scale(${kid})"><title>${esc(r.name)}</title>
       <path d="M-2.4 -3.4v3.2M2.4 -3.4v3.2" stroke="${L.pants}" stroke-width="2.4" stroke-linecap="round"/>
-      <path d="M-6 -2.6c0-6 2.4-8.6 6-8.6s6 2.6 6 8.6z" fill="${L.shirt}"/>
+      <path d="M-6 -2.6c0-6 2.4-8.6 6-8.6s6 2.6 6 8.6z" fill="${L.shirt}"/>${acc.body}
       ${hair.back}<circle cx="0" cy="-16" r="5" fill="${L.skin}"/>${hair.front}
       <circle cx="-1.8" cy="-15.6" r=".75" fill="#14151F"/><circle cx="1.8" cy="-15.6" r=".75" fill="#14151F"/>
-      <circle cx="-3.2" cy="-13.8" r="1" fill="#FF9C7A" opacity=".35"/><circle cx="3.2" cy="-13.8" r="1" fill="#FF9C7A" opacity=".35"/>${mouth}
+      <circle cx="-3.2" cy="-13.8" r="1" fill="#FF9C7A" opacity=".35"/><circle cx="3.2" cy="-13.8" r="1" fill="#FF9C7A" opacity=".35"/>${mouth}${acc.head}
       ${r.retired?`<path d="M-3.6 -16.4h2.6M1 -16.4h2.6M-1 -16.4h2" stroke="#3A3D58" stroke-width=".5" fill="none"/><circle cx="-1.8" cy="-16" r="1.5" fill="none" stroke="#3A3D58" stroke-width=".5"/><circle cx="1.8" cy="-16" r="1.5" fill="none" stroke="#3A3D58" stroke-width=".5"/>`:""}</g>`;
   }
   const s=(r.parents?0.7:1)*(r.art==="Wal"?1.6:["Elch","Kamel","Eisbär"].includes(r.art)?1.1:1);
@@ -2783,8 +2810,10 @@ function lookEditor(r,d){
   if(r.kind==="mensch"){
     const styles=`<div class="sw-row" role="radiogroup" aria-label="Frisur"><span class="small muted">Frisur</span>${STYLE_NAMES.map((n,i)=>{const hs=hairSvg(i,i===5?"#B6A4FF":"#4A3222");
       return `<button type="button" class="sw sw-ic${i===d.style?" on":""}" data-look="style" data-v="${i}" aria-label="${n}" aria-pressed="${i===d.style}"><svg width="24" height="24" viewBox="-7.5 -24 15 15" aria-hidden="true">${hs.back}<circle cx="0" cy="-16" r="5" fill="#E8B48F"/>${hs.front}</svg></button>`}).join("")}</div>`;
+    const accs=`<div class="sw-row" role="radiogroup" aria-label="Extra"><span class="small muted">Extra</span>${ACC_NAMES.map((n,i)=>{const a=accSvg(i,"#FF9C7A"),hs=hairSvg(0,"#4A3222");
+      return `<button type="button" class="sw sw-ic${i===(d.acc||0)?" on":""}" data-look="acc" data-v="${i}" aria-label="${n}" aria-pressed="${i===(d.acc||0)}"><svg width="24" height="24" viewBox="-7.5 -25 15 16" aria-hidden="true"><path d="M-6 -6c0-4 2.4-5.2 6-5.2s6 1.2 6 5.2z" fill="#5B8CD6"/>${a.body}${hs.back}<circle cx="0" cy="-16" r="5" fill="#E8B48F"/>${hs.front}${a.head}</svg></button>`}).join("")}</div>`;
     return `<div class="field"><span>Aussehen</span><div class="look"><div class="look-prev" id="lookPrev">${lookPreview(r,d)}</div><div class="look-opts">
-      ${row("Haut","skin",SKIN,d.skin)}${styles}${row("Haare","hair",HAIR,d.hair)}${row("Shirt","shirt",SHIRT,d.shirt)}</div></div></div>`;
+      ${row("Haut","skin",SKIN,d.skin)}${styles}${row("Haare","hair",HAIR,d.hair)}${row("Shirt","shirt",SHIRT,d.shirt)}${accs}${row("Farbe vom Extra","accC",SHIRT,d.accC)}</div></div></div>`;
   }
   const n=(FUR[r.art]||[]).length; if(n<2) return "";
   return `<div class="field"><span>Fellfarbe</span><div class="sw-row" role="radiogroup" aria-label="Fellfarbe">${Array.from({length:n},(_,i)=>`<button type="button" class="sw sw-ic sw-big${i===d.fur?" on":""}" data-look="fur" data-v="${i}" aria-label="Fellfarbe ${i+1}" aria-pressed="${i===d.fur}"><svg width="38" height="30" viewBox="${artVB(r.art,38/30)}" aria-hidden="true">${animalSvg(r.art,i)}</svg></button>`).join("")}</div></div>`;
@@ -3491,7 +3520,8 @@ async function famSync(){
   try{
     const N=await netInit(), path=()=>"families/"+f.id+"/members/"+f.mid, mine=()=>Object.assign({owner:N.uid},famMine());
     // Regeln ohne Feld "saved" (noch nicht neu veröffentlicht): ohne speichern
-    const put=async()=>{try{await N.set(path(),mine())}catch(e){const m=mine();if(!("saved" in m))throw e;delete m.saved;await N.set(path(),m)}};
+    const put=async()=>{try{await N.set(path(),mine())}catch(e){const m=mine();if(!("saved" in m)&&!(m.look&&"acc" in m.look))throw e;
+      delete m.saved; if(m.look){m.look=Object.assign({},m.look);delete m.look.acc;delete m.look.accC} await N.set(path(),m)}};
     try{await put()}catch(e){
       // Gerät hat eine neue Online-Kennung (Backup, anderes Gerät, Browserdaten gelöscht): neu anmelden
       const fam=await N.get("families/"+f.id);
@@ -3600,7 +3630,7 @@ function famLookSheet(){
     <div class="row"><button class="btn secondary grow" id="flNo">Abbrechen</button><button class="btn grow" id="flOk">Speichern</button></div>`);
   bindLookEditor(me,draft);
   $("#flNo").onclick=()=>{closeModal();render()};
-  $("#flOk").onclick=async()=>{f.look={skin:draft.skin,hair:draft.hair,style:draft.style,shirt:draft.shirt};save();
+  $("#flOk").onclick=async()=>{f.look={skin:draft.skin,hair:draft.hair,style:draft.style,shirt:draft.shirt,acc:draft.acc||0,accC:draft.accC||0};save();
     const b=$("#flOk");b.disabled=true;b.textContent="Speichere …";await famSync();closeModal();render();toast("Figur gespeichert")};
 }
 async function famJoinId(fid,name,code,share){
@@ -3769,7 +3799,7 @@ function showStart(){
   const lock=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A4A6BD" stroke-width="2" stroke-linecap="round" aria-label="mit PIN"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>`;
   $("#start").innerHTML=`<div class="start-wrap">
     <div class="start-hero">${hero}</div>
-    <div style="display:flex;flex-direction:column;gap:6px"><h1 class="start-title">Off<span>Land</span></h1><p class="tagline">Grow your world beyond the screen.</p><p class="muted">Je weniger Bildschirmzeit, desto glücklicher werden deine Bewohner und desto mehr wächst deine Insel.</p></div>
+    <div style="display:flex;flex-direction:column;gap:6px"><h1 class="start-title">Off<span>Land</span></h1><p class="tagline">Grow your world beyond the screen.</p><p class="muted">Je weniger Bildschirmzeit, desto glücklicher werden deine Bewohner – und gemeinsam bringt ihr die Insel zum Blühen.</p></div>
     ${list.length?`<div class="card"><p class="label">Wer spielt?</p>${list.map(p=>{const st=peek(p.id);const info=st&&st.setup?`${st.dayCount} ${st.dayCount===1?"Tag":"Tage"} · Glück ${st.glueck} %`:"Insel noch nicht gestartet";
         return `<button class="profile" data-login="${p.id}">${avatarSvg(p.avatar,48)}<span class="grow"><b>${esc(p.name)}</b><span class="small muted">${info}</span></span>${p.pin?lock:""}${chev}</button>`}).join("")}</div>
       <button class="btn secondary" id="newAcc">Neues Konto anlegen</button>`
