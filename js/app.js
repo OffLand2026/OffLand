@@ -479,7 +479,7 @@ function arrival(){
   const used=S.residents.map(r=>r.name);
   if(isHuman){
     const single=here().find(r=>r.kind==="mensch"&&!r.pair);
-    const r={id:uid(),name:freeName(HUMAN_NAMES,used),kind:"mensch",art:"Mensch",pair:null,status:"da",ret:0,born:S.dayCount,job:pickJob(),trait:pick(TRAITS).id};
+    const r={id:uid(),name:freeName(HUMAN_NAMES,used),kind:"mensch",art:"Mensch",pair:null,status:"da",ret:0,born:S.dayCount,job:pickJob(),trait:pick(TRAITS).id,phone:Math.random()<1/3};   // jeder Dritte bringt sein Handy vom Festland mit
     if(single&&Math.random()<.5){r.pair=single.id;single.pair=r.id;r.pairSince=single.pairSince=S.dayCount}
     else{const pal=adults().filter(x=>x.id!==r.id); if(pal.length) addRel(r.id,pick(pal).id,25)}
     S.residents.push(r); S.pending.push({type:"arrival",id:r.id,partner:single?single.id:null});
@@ -1663,7 +1663,8 @@ function bayLine(ev){
     birthday:["Alles Gute! Ich hab gesungen. Lucifer hat den Raum verlassen. Verdient.","Kuchen am Strand. Das ist Kultur."]
   }[ev.type];
   if(!L) return null;
-  if(ev.type==="arrival"){const r=S.residents.find(x=>x.id===ev.id); if(!r||r.kind!=="mensch") return null}
+  if(ev.type==="arrival"){const r=S.residents.find(x=>x.id===ev.id); if(!r||r.kind!=="mensch") return null;
+    if(r.phone) return [r.name+" ist neu, nett und hat … ein Handy. Wir arbeiten dran.",r.name+" hat das Handy vom Festland mitgebracht. Ein paar gute Tage, und das liegt in der Schublade."][hsh(r.id)%2]}
   return L[hsh((ev.id||ev.type)+S.dayCount)%L.length];
 }
 /* Lucifer: ein Spruch pro Tag im Inselgeflüster, frech, aber lieb */
@@ -3264,7 +3265,7 @@ function nameSheet(ev){
   if(ev.type==="arrival"){
     const partner=ev.partner?S.residents.find(x=>x.id===ev.partner):null;
     head=r.kind==="mensch"?"Jemand Neues zieht ein":isSea(r)?artikel(r.art,true)+" "+r.art+" ist dem Leuchtturm gefolgt":"Neu auf der Insel: "+artikel(r.art)+" "+r.art;
-    text=(r.owner?"Gehört ab jetzt zu "+((S.residents.find(x=>x.id===r.owner)||{}).name||"")+". ":"")+(r.kind==="mensch"?"Arbeitet als "+jobName(r.job)+", "+traitName(r.trait)+". ":"")+"Deine Insel war mehrere Tage glücklich. Das hat sich herumgesprochen."+(partner?" Und: "+partner.name+" ist nicht mehr allein.":"");
+    text=(r.owner?"Gehört ab jetzt zu "+((S.residents.find(x=>x.id===r.owner)||{}).name||"")+". ":"")+(r.kind==="mensch"?"Arbeitet als "+jobName(r.job)+", "+traitName(r.trait)+". "+(r.phone?"Hat das Handy vom Festland mitgebracht. Ein guter Tag holt "+r.name+" davon weg. ":""):"")+"Deine Insel war mehrere Tage glücklich. Das hat sich herumgesprochen."+(partner?" Und: "+partner.name+" ist nicht mehr allein.":"");
   } else if(ev.type==="birth"){
     const ps=ev.parents.map(id=>S.residents.find(x=>x.id===id)).filter(Boolean);
     head="Nachwuchs bei "+ps.map(p=>p.name).join(" & ")+"!";
