@@ -1,0 +1,407 @@
+{
+ "v": 1,
+ "setup": true,
+ "budget": 180,
+ "baseline": 240,
+ "glueck": 77,
+ "happyStreak": 3,
+ "unhappyStreak": 0,
+ "dayCount": 9,
+ "lastDay": "2026-10-12",
+ "material": 670,
+ "projectIdx": 0,
+ "built": [],
+ "residents": [
+  {
+   "id": "zvd4kmu",
+   "name": "Hannes",
+   "kind": "mensch",
+   "art": "Mensch",
+   "pair": "qg3xizg",
+   "status": "da",
+   "ret": 0,
+   "born": 0,
+   "trait": "stur",
+   "job": "tischler"
+  },
+  {
+   "id": "qg3xizg",
+   "name": "Henrik",
+   "kind": "mensch",
+   "art": "Mensch",
+   "pair": "zvd4kmu",
+   "status": "da",
+   "ret": 0,
+   "born": 0,
+   "trait": "stur",
+   "job": "koch"
+  },
+  {
+   "id": "21onyuv",
+   "name": "Lotte",
+   "kind": "tier",
+   "art": "Ziege",
+   "pair": "07skxkj",
+   "status": "da",
+   "ret": 0,
+   "born": 0
+  },
+  {
+   "id": "07skxkj",
+   "name": "Paula",
+   "kind": "tier",
+   "art": "Ziege",
+   "pair": "21onyuv",
+   "status": "da",
+   "ret": 0,
+   "born": 0
+  },
+  {
+   "id": "b27qk9k",
+   "name": "Greta",
+   "kind": "mensch",
+   "art": "Mensch",
+   "pair": null,
+   "status": "da",
+   "ret": 0,
+   "born": 5,
+   "job": "musiker",
+   "trait": "stur"
+  },
+  {
+   "id": "3ps49ke",
+   "name": "Merle",
+   "kind": "mensch",
+   "art": "Mensch",
+   "pair": null,
+   "parents": [
+    "zvd4kmu",
+    "qg3xizg"
+   ],
+   "status": "da",
+   "ret": 0,
+   "born": 6,
+   "trait": "vertraeumt"
+  }
+ ],
+ "warn": null,
+ "pending": [],
+ "days": [
+  {
+   "day": "2026-10-07",
+   "min": 80,
+   "quests": [
+    "fruehstueck",
+    "abend"
+   ],
+   "glueck": 78,
+   "sunny": false,
+   "pts": 53,
+   "apps": {
+    "insta": 32,
+    "tiktok": 7,
+    "yt": 29,
+    "games": 24
+   },
+   "monsters": [],
+   "by": null
+  },
+  {
+   "day": "2026-10-08",
+   "min": 130,
+   "quests": [
+    "fruehstueck",
+    "abend"
+   ],
+   "glueck": 93,
+   "sunny": false,
+   "pts": 37,
+   "apps": {
+    "insta": 33,
+    "tiktok": 20,
+    "yt": 22,
+    "games": 13
+   },
+   "monsters": [],
+   "by": null
+  },
+  {
+   "day": "2026-10-09",
+   "min": 355,
+   "quests": [],
+   "glueck": 70,
+   "sunny": false,
+   "pts": 0,
+   "apps": {
+    "insta": 66,
+    "tiktok": 36,
+    "yt": 71,
+    "games": 53
+   },
+   "monsters": [
+    "insta",
+    "tiktok",
+    "yt",
+    "games"
+   ],
+   "by": null
+  },
+  {
+   "day": "2026-10-10",
+   "min": 100,
+   "quests": [
+    "fruehstueck",
+    "abend"
+   ],
+   "glueck": 99,
+   "sunny": false,
+   "pts": 47,
+   "apps": {
+    "insta": 14,
+    "tiktok": 19,
+    "yt": 17,
+    "games": 7
+   },
+   "monsters": [],
+   "by": null
+  },
+  {
+   "day": "2026-10-11",
+   "min": 110,
+   "quests": [
+    "mittag",
+    "abend"
+   ],
+   "glueck": 100,
+   "sunny": false,
+   "pts": 43,
+   "apps": {
+    "insta": 28,
+    "tiktok": 14,
+    "yt": 26,
+    "games": 12
+   },
+   "monsters": [],
+   "by": null
+  },
+  {
+   "day": "2026-10-12",
+   "min": 110,
+   "quests": [
+    "abend"
+   ],
+   "glueck": 100,
+   "sunny": false,
+   "pts": 33,
+   "apps": {
+    "insta": 26,
+    "tiktok": 26,
+    "yt": 9,
+    "games": 24
+   },
+   "monsters": [],
+   "by": null
+  }
+ ],
+ "feed": [
+  {
+   "day": "2026-10-12",
+   "text": "Merle ist geboren. Willkommen!",
+   "kind": "good"
+  },
+  {
+   "day": "2026-10-12",
+   "text": "Im Budget: 1 h 50 min Bildschirmzeit. Inselglück 97 → 100 %, +33 Punkte.",
+   "kind": "good"
+  },
+  {
+   "day": "2026-10-11",
+   "text": "Greta ist auf die Insel gezogen.",
+   "kind": "good"
+  },
+  {
+   "day": "2026-10-11",
+   "text": "Der Streit zwischen Henrik und Hannes schwelt weiter.",
+   "kind": "bad"
+  },
+  {
+   "day": "2026-10-11",
+   "text": "Strandgut: Muschel angespült.",
+   "kind": "good"
+  },
+  {
+   "day": "2026-10-11",
+   "text": "Streit: Hannes hat sich Henriks Boot geliehen und es nicht zurückgebracht.",
+   "kind": "bad"
+  },
+  {
+   "day": "2026-10-11",
+   "text": "Im Budget: 1 h 50 min Bildschirmzeit. Inselglück 99 → 100 %, +43 Punkte.",
+   "kind": "good"
+  },
+  {
+   "day": "2026-10-10",
+   "text": "Hannes wünscht sich: Spielplatz.",
+   "kind": "info"
+  },
+  {
+   "day": "2026-10-10",
+   "text": "Reparatur geschafft: 12 % Glück vom schlechten Tag zurückgeholt.",
+   "kind": "good"
+  },
+  {
+   "day": "2026-10-10",
+   "text": "Im Budget: 1 h 40 min Bildschirmzeit. Inselglück 70 → 99 %, +47 Punkte.",
+   "kind": "good"
+  },
+  {
+   "day": "2026-10-09",
+   "text": "Der Spiele-Nebelgeist ist aufgetaucht: Spiele lag über 30 min.",
+   "kind": "bad"
+  },
+  {
+   "day": "2026-10-09",
+   "text": "Die YouTube-Seeschlange ist aufgetaucht: YouTube lag über 45 min.",
+   "kind": "bad"
+  },
+  {
+   "day": "2026-10-09",
+   "text": "Der TikTok-Strudel ist aufgetaucht: TikTok lag über 30 min.",
+   "kind": "bad"
+  },
+  {
+   "day": "2026-10-09",
+   "text": "Die Instagram-Krake ist aufgetaucht: Instagram lag über 45 min.",
+   "kind": "bad"
+  },
+  {
+   "day": "2026-10-09",
+   "text": "Über dem Budget: 5 h 55 min Bildschirmzeit. Inselglück 93 → 70 %, +0 Punkte.",
+   "kind": "bad"
+  },
+  {
+   "day": "2026-10-08",
+   "text": "Strandgut: Flaschenpost angespült.",
+   "kind": "good"
+  },
+  {
+   "day": "2026-10-08",
+   "text": "Im Budget: 2 h 10 min Bildschirmzeit. Inselglück 78 → 93 %, +37 Punkte.",
+   "kind": "good"
+  },
+  {
+   "day": "2026-10-07",
+   "text": "Henrik und Hannes haben sich von selbst wieder eingekriegt.",
+   "kind": "good"
+  },
+  {
+   "day": "2026-10-07",
+   "text": "Streit: Henrik (Koch / Köchin) und Hannes (Tischler:in) streiten, wer morgens zuerst den Steg benutzen darf.",
+   "kind": "bad"
+  },
+  {
+   "day": "2026-10-07",
+   "text": "Im Budget: 1 h 20 min Bildschirmzeit. Inselglück 60 → 78 %, +53 Punkte.",
+   "kind": "good"
+  },
+  {
+   "day": null,
+   "text": "Deine Insel ist gegründet. Hannes, Henrik, Lotte, Paula ziehen ein.",
+   "kind": "good"
+  }
+ ],
+ "postcards": [],
+ "testmode": true,
+ "points": 263,
+ "items": [],
+ "sun": 0,
+ "rel": {
+  "qg3xizg|zvd4kmu": -41,
+  "b27qk9k|zvd4kmu": 25,
+  "b27qk9k|qg3xizg": 2
+ },
+ "conflict": null,
+ "arrC": 1,
+ "birthC": 0,
+ "apps": [
+  {
+   "id": "insta",
+   "name": "Instagram",
+   "limit": 45,
+   "m": "krake"
+  },
+  {
+   "id": "tiktok",
+   "name": "TikTok",
+   "limit": 30,
+   "m": "strudel"
+  },
+  {
+   "id": "yt",
+   "name": "YouTube",
+   "limit": 45,
+   "m": "schlange"
+  },
+  {
+   "id": "games",
+   "name": "Spiele",
+   "limit": 30,
+   "m": "nebel"
+  }
+ ],
+ "monsters": [],
+ "budgetStreak": 3,
+ "aurora": 0,
+ "birds": 0,
+ "trader": null,
+ "wish": {
+  "rid": "zvd4kmu",
+  "item": "spielplatz",
+  "day": "2026-10-10"
+ },
+ "chronicle": [
+  {
+   "day": "2026-10-11",
+   "ids": [
+    "b27qk9k"
+   ],
+   "text": "Greta (Musiker:in) ist eingezogen."
+  },
+  {
+   "day": "2026-10-12",
+   "ids": [
+    "3ps49ke",
+    "zvd4kmu",
+    "qg3xizg"
+   ],
+   "text": "Merle ist geboren."
+  }
+ ],
+ "finds": [
+  {
+   "id": "flaschenpost",
+   "day": "2026-10-08",
+   "msg": "„Ruf heute jemanden an, statt zu schreiben.“"
+  },
+  {
+   "id": "muschel",
+   "day": "2026-10-11",
+   "msg": null
+  }
+ ],
+ "capsules": [],
+ "night": null,
+ "boat": null,
+ "activities": {},
+ "actTotals": {},
+ "path": 0,
+ "repair": null,
+ "vacation": null,
+ "builtLog": [],
+ "lastMonth": "2026-10",
+ "fish": 0,
+ "focusMin": 0,
+ "tea": 0,
+ "memorials": [],
+ "natDeath": true
+}

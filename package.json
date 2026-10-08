@@ -5,13 +5,15 @@
   "description": "OffLand – Grow your world beyond the screen.",
   "scripts": {
     "build": "node scripts/build-www.mjs",
-    "ios:sync": "npm run build && npx cap sync ios"
+    "ios:sync": "npm run build && npx cap sync ios",
+    "test": "playwright test"
   },
   "dependencies": {
     "@capacitor/core": "^8.5.3",
     "@capacitor/ios": "^8.5.3"
   },
   "devDependencies": {
-    "@capacitor/cli": "^8.5.3"
+    "@capacitor/cli": "^8.5.3",
+    "@playwright/test": "1.56.1"
   }
 }
