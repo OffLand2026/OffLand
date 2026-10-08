@@ -214,7 +214,7 @@ body.focus-on{overflow:hidden}
 
 /* Inselansicht wechseln */
 .scene{position:relative;touch-action:pan-y}
-.scene-nav{position:absolute;left:8px;right:8px;bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:8px;pointer-events:none}
+.scene-nav{position:absolute;left:8px;right:8px;top:8px;display:flex;align-items:center;justify-content:space-between;gap:8px;pointer-events:none}
 .snav{pointer-events:auto;width:36px;height:36px;border-radius:18px;border:none;background:rgba(20,21,31,.55);color:#F3F1EA;font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0 0 3px;-webkit-tap-highlight-color:transparent}
 .snav-mid{pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:4px;background:rgba(20,21,31,.55);border-radius:14px;padding:5px 12px}
 .snav-label{font-size:12px;font-weight:700;color:#F3F1EA}
