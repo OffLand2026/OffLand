@@ -2849,7 +2849,8 @@ async function netInit(){
       del:p=>F.deleteDoc(F.doc(db,p)),
       list:async(p,o)=>{o=o||{};const c=F.collection(db,p);
         const q=o.where?F.query(c,F.where(o.where[0],"==",o.where[1]),F.limit(o.limit||50)):o.orderBy?F.query(c,F.orderBy(o.orderBy),F.limit(o.limit||50)):c;
-        const r=await F.getDocs(q);return r.docs.map(d=>Object.assign({id:d.id},d.data()))}};
+        const r=await F.getDocs(q);return r.docs.map(d=>Object.assign({id:d.id},d.data()))},
+      count:async(p,w)=>{const c=F.collection(db,p);return (await F.getCountFromServer(w?F.query(c,F.where(w[0],w[1],w[2])):c)).data().count}};
   })();
   try{return await netBusy}finally{netBusy=null}
 }
@@ -2889,7 +2890,7 @@ async function netSync(){
     const row={owner:N.uid,name:netName(),avatar:netAv(),avg:w.avg,days:w.days,good:w.good,streak:S.budgetStreak,world:curWorld().name,updated:Date.now()};
     await N.set("players/"+o.pid,{owner:N.uid,name:row.name,avatar:row.avatar,world:row.world,updated:row.updated});
     await N.set("weeks/"+w.wk+"/ranks/"+o.pid,row);
-    if(o.pub&&w.avg!=null) await N.set("weeks/"+w.wk+"/public/"+o.pid,row);
+    if(o.pub&&w.avg!=null&&w.days>=3) await N.set("weeks/"+w.wk+"/public/"+o.pid,row);
     else await N.del("weeks/"+w.wk+"/public/"+o.pid).catch(()=>{});
     await netPullFriends();
   }catch(e){}
@@ -2975,6 +2976,8 @@ function onlineConsent(after){
   };
 }
 let rankTab="freunde";
+/* gleicher Schnitt = gleicher Platz (1, 2, 2, 4) */
+function rankPlaces(list){const p=[];list.forEach((r,i)=>p.push(i&&r.avg===list[i-1].avg?p[i-1]:i+1));return p}
 function rankRow(r,i,me){
   const v=r.avg==null?"noch kein Tag":hm(r.avg)+" / Tag";
   return `<div class="row" style="padding:8px 10px;border-radius:14px;${me?"background:#26233D;":""}">
@@ -3033,21 +3036,35 @@ async function loadRanks(force){
     const p=await N.get("players/"+id).catch(()=>null); return p?{id,name:p.name,avatar:p.avatar,world:p.world,avg:null,good:0}:null;
   }))).filter(Boolean).sort(byAvg);
   let all=RANKC&&RANKC.key===key&&!force?RANKC.all:null;
-  if(rankTab==="alle"||S.online.pub) all=(await N.list("weeks/"+wk+"/public",{orderBy:"avg",limit:100})).filter(r=>(r.days||0)>=3||r.id===me);
-  return RANKC={key,at:Date.now(),friends,all,nFriends:fr.length};
+  let place=null,total=null;
+  if(rankTab==="alle"||S.online.pub){
+    all=(await N.list("weeks/"+wk+"/public",{orderBy:"avg",limit:100})).filter(r=>(r.days||0)>=3);
+    // genauer Platz auch jenseits der ersten 100: zählen, wer im Schnitt weniger hatte
+    const mine=friends.find(r=>r.id===me);
+    if(N.count){
+      total=await N.count("weeks/"+wk+"/public").catch(()=>null);
+      if(mine&&all.some(r=>r.id===me)===false&&S.online.pub&&mine.avg!=null&&(mine.days||0)>=3) place=await N.count("weeks/"+wk+"/public",["avg","<",mine.avg]).then(n=>n+1).catch(()=>null);
+    }
+    if(place==null){const i=all.findIndex(r=>r.id===me); if(i>=0) place=rankPlaces(all)[i]}
+    if(total==null) total=all.length;
+  }
+  return RANKC={key,at:Date.now(),friends,all,place,total,nFriends:fr.length};
 }
 async function fillRanks(force){
   const box=$("#rankBox"); if(!box) return;
   let R; try{R=await loadRanks(force)}catch(e){if($("#rankBox")) $("#rankBox").innerHTML=`<p class="err">Keine Verbindung zum Online-Speicher. Versuch es später noch mal.</p>`;return}
   if(!$("#rankBox")||tab!=="freunde") return;                                  // inzwischen woanders
   const me=S.online.pid, fi=R.friends.findIndex(r=>r.id===me), mine=R.friends[fi]||{};
-  const ai=R.all?R.all.findIndex(r=>r.id===me):-1;
+  const ai=R.all?R.all.findIndex(r=>r.id===me):-1, pl=R.all?rankPlaces(R.all):[];
+  const pubHint=!S.online.pub?"":R.place!=null?`<p class="small"><b>Platz ${R.place.toLocaleString("de-DE")}</b> <span class="muted">von ${Math.max(R.total||0,R.place).toLocaleString("de-DE")} in der Rangliste für alle</span></p>`
+    :mine.avg!=null&&(mine.days||0)<3?`<p class="small muted">Ab 3 eingetragenen Tagen diese Woche bist du in der Rangliste für alle dabei (noch ${3-(mine.days||0)}).</p>`:"";
+  const simHint=S.testmode&&S.lastDay&&S.lastDay>today()?`<p class="small muted">Testmodus: Simulierte Tage liegen in der Zukunft und zählen nicht für die Ranglisten. Es zählen nur echte Tage dieser Woche.</p>`:"";
   // Vorschau oben
   $("#rankHero").innerHTML=`<p class="label" style="color:var(--lime)">Diese Woche</p>
     ${R.nFriends?`<p class="goal-num num" style="color:${fi===0?"var(--amber)":"var(--ink)"}">Platz ${fi+1} <span class="muted" style="font-size:.5em">von ${R.friends.length}</span></p>
       <p class="small muted">unter deinen Freund:innen${fi===0?" · du führst!":R.friends[fi-1]&&mine.avg!=null&&R.friends[fi-1].avg!=null?" · noch "+hm(mine.avg-R.friends[fi-1].avg+1)+" pro Tag bis Platz "+fi:""}</p>`
     :`<p class="goal-num num">${mine.avg!=null?hm(mine.avg):"–"}</p><p class="small muted">${mine.avg!=null?"im Schnitt pro Tag. Lade Freund:innen ein, um euch zu vergleichen.":"Trag deinen ersten Tag ein, dann geht's los."}</p>`}
-    ${S.online.pub&&ai>=0?`<p class="small"><b>Platz ${ai+1}</b> <span class="muted">in der Rangliste für alle</span></p>`:""}`;
+    ${pubHint}${simHint}`;
   // Liste
   if(rankTab==="freunde"){
     box.innerHTML=(R.nFriends?"":`<p class="small muted">Noch keine Freund:innen online. Füg jemanden mit dem Code hinzu oder schick eine Einladung.</p>`)+
@@ -3056,8 +3073,8 @@ async function fillRanks(force){
   } else {
     const all=R.all||[];
     box.innerHTML=`<p class="small muted">Wer diese Woche im Schnitt am wenigsten am Handy war (ab 3 eingetragenen Tagen).</p>
-      <div style="display:flex;flex-direction:column;gap:4px">${all.slice(0,50).map((r,i)=>rankRow(r,i,r.id===me)).join("")||`<p class="small muted">Noch niemand diese Woche.</p>`}</div>
-      ${ai>=50?rankRow(all[ai],ai,true):""}
+      <div style="display:flex;flex-direction:column;gap:4px">${all.slice(0,50).map((r,i)=>rankRow(r,pl[i]-1,r.id===me)).join("")||`<p class="small muted">Noch niemand diese Woche.</p>`}</div>
+      ${ai>=50?rankRow(all[ai],pl[ai]-1,true):ai<0&&R.place!=null&&R.place>50&&mine.avg!=null?`<p class="small muted" style="text-align:center">…</p>`+rankRow(mine,R.place-1,true):""}
       ${S.online.pub?"":`<p class="small muted">Du erscheinst hier nicht. Das kannst du in den Einstellungen ändern.</p>`}`;
   }
   document.querySelectorAll("[data-unfriend]").forEach(b=>b.onclick=async()=>{b.disabled=true;await netRemove(b.dataset.unfriend);S.buddies=S.buddies.filter(x=>x.pid!==b.dataset.unfriend);save();RANKC=null;render()});
