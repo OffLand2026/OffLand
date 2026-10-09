@@ -383,7 +383,7 @@ function migrate(st){
   if(st.points==null)st.points=0; if(!st.items)st.items=[]; if(!st.sun)st.sun=0;
   if(!st.rel)st.rel={}; if(st.conflict===undefined)st.conflict=null;
   if(!st.arrC)st.arrC=0; if(!st.birthC)st.birthC=0;
-  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,focusLog:[],alarm:true,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null},family:null,plan:null,planLog:[],weekReady:null,storySeen:false,chapter:null,fests:0,freed:0,duelOff:null,jokerWk:null,lastSurprise:0,surprises:[],duel:null,duelLog:[],lineLog:[]};
+  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,focusLog:[],alarm:true,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null},family:null,plan:null,planLog:[],weekReady:null,storySeen:false,chapter:null,fests:0,freed:0,duelOff:null,jokerWk:null,lastSurprise:0,surprises:[],duel:null,duelLog:[],lineLog:[],seenArts:[]};
   if(st.plusFriend===undefined) st.plusFriend=(st.buddies||[]).length?"alt":null;   // Plus-Monat fürs Einladen gibt es nur einmal
   if(st.allFeatures===undefined) st.allFeatures=(st.dayCount||0)>=1;          // wer schon gespielt hat, behält alles
   for(const k in D){ if(st[k]===undefined) st[k]=D[k]; }
@@ -467,6 +467,16 @@ function log(text,kind){S.feed.unshift({day:S.lastDay,text,kind:kind||"info"});S
 
 function arrival(){
   const full=occupied()>=capacity();
+  // Insel voll und eine noch nie gesehene Art kann nicht einziehen: sie kommt zu Besuch und zählt für die Sammlung,
+  // sonst bliebe die Sammlung für immer unvollständig
+  if(full){
+    const seen=new Set(S.residents.filter(x=>x.kind==="tier").map(x=>x.art).concat(S.seenArts||[]));
+    const blocked=LAND.concat(worldAnimals()).concat(has("leuchtturm")?SEA:[]).filter(a=>!seen.has(a)&&!PETS.includes(a));
+    if(blocked.length){const art=pick(blocked); (S.seenArts=S.seenArts||[]).push(art);
+      log(artikel(art,true)+" "+art+" war zu Besuch. Für ein Zuhause war kein Platz, aber in der Sammlung ist die Art jetzt dabei.","good");
+      chron([],artikel(art,true)+" "+art+" hat die Insel besucht.");
+      S.pending.push({type:"guest",art}); return}
+  }
   if(full&&!petRoom()) {log("Jemand wollte einziehen, aber es ist kein Platz frei. Ein Großprojekt schafft neuen Platz.","info");return}
   const humans=here().filter(r=>r.kind==="mensch").length, animals=here().length-humans;
   const isHuman=!full&&humans<=animals;
@@ -484,7 +494,7 @@ function arrival(){
     const present=new Set(here().map(x=>x.art));
     const fresh=pool.filter(a=>!present.has(a));
     // Arten, die noch nie auf der Insel waren, kommen zuerst: so wird die Sammlung auch wirklich voll
-    const seenArt=new Set(S.residents.filter(x=>x.kind==="tier").map(x=>x.art)), unseen=pool.filter(a=>!seenArt.has(a));
+    const seenArt=new Set(S.residents.filter(x=>x.kind==="tier").map(x=>x.art).concat(S.seenArts||[])), unseen=pool.filter(a=>!seenArt.has(a));
     const art=pick(unseen.length?unseen:fresh.length?fresh:pool);
     const mate=here().find(x=>x.kind==="tier"&&x.art===art&&!x.pair);
     const r={id:uid(),name:freeName(ANIMAL_NAMES,used),kind:"tier",art,pair:null,status:"da",ret:0,born:S.dayCount};
@@ -1892,9 +1902,9 @@ function storySheet(existing){
     <div class="row"><button class="btn ghost grow" id="storySkip" data-ok>Überspringen</button><button class="btn grow" id="storyNext">Weiter</button></div>`);
   const box=$("#wr"), dots=[...document.querySelectorAll(".wr-dots i")], idx=()=>Math.round(box.scrollLeft/box.clientWidth), last=sl.length-1;
   const upd=()=>{const i=idx();dots.forEach((d,k)=>d.classList.toggle("on",k===i));$("#storyNext").textContent=i>=last?(existing?"Bin dabei!":"Los geht's!"):"Weiter";$("#storySkip").style.visibility=i>=last?"hidden":"visible"};
-  let said=-1; const talk=()=>{const i=idx(); if(i===said) return; said=i; const x=sl[i];
+  let said=-1; const talk=()=>{if(!box.isConnected) return; const i=idx(), x=sl[i]; if(i===said||!x) return; said=i;   // Fenster schon zu: kein Ton mehr
     speak(x.who==="both"?[["luc",""],["bay","Hilfst du mir, OffLand zurückzuholen? Weniger Handy, mehr Leben."]]:[["bay",x.t]],i===0?1.2:.1)};
-  box.onscroll=()=>{upd(); clearTimeout(box._t); box._t=setTimeout(talk,180)};
+  box.onscroll=()=>{if(!box.isConnected) return; upd(); clearTimeout(box._t); box._t=setTimeout(talk,180)};
   sfx("story"); talk();
   const done=()=>{S.storySeen=true;save();closeModal();render();showPending()};
   $("#storyNext").onclick=()=>{const i=idx(); if(i>=last){stat("intro_ende");return done()} box.scrollTo({left:(i+1)*box.clientWidth,behavior:"smooth"})};
@@ -2537,7 +2547,8 @@ function viewBewohner(){
   const H=here(), land=H.filter(r=>!isSea(r)), happy=H.filter(r=>!r.sick&&!r.sad&&!r.phone).length;
   const [mText,mCls]=mood(), glC=mCls==="good"?"var(--lime)":mCls==="ok"?"var(--amber)":"var(--coral)";
   // Bild: Dorfplatz am Abend, die Bewohner im Halbkreis ums Lagerfeuer, Tiere am Rand
-  const ppl=land.filter(r=>r.kind==="mensch").slice(0,8), ani=land.filter(r=>r.kind!=="mensch").slice(0,2), n=ppl.length;
+  const ppl=land.filter(r=>r.kind==="mensch").slice(0,10), ani=[], n=ppl.length;
+  land.filter(r=>r.kind!=="mensch").forEach(r=>{if(ani.length<4&&!ani.some(a=>a.art===r.art)) ani.push(r)});   // vier verschiedene Arten
   const fig=(r,x,y,k)=>`<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${k})"><g class="bob" style="animation-delay:${Math.round(x)%7/5}s">${figure(r,0,0)}</g></g>`;
   const pos=ppl.map((r,i)=>{const a=Math.PI*(0.12+0.76*i/Math.max(1,n-1));return [n===1?150:180-Math.cos(a)*130,134-Math.sin(a)*18]});
   const order=pos.map((q,i)=>i).sort((a,b)=>pos[a][1]-pos[b][1]);
@@ -2550,7 +2561,7 @@ function viewBewohner(){
     ${order.filter(i=>pos[i][1]<128).map(i=>fig(ppl[i],pos[i][0],pos[i][1],1.7)).join("")}
     <g transform="translate(180 136) scale(1.4)"><path d="M-12 4l24-6M-12 -2l24 6" stroke="#6B4430" stroke-width="3" stroke-linecap="round"/><g class="fire-fl"><path d="M0 -2c-8 0-10-8-4-16 0 4 3 5 3 5 0-6 3-9 5-11 0 5 4 8 4 13 0 6-3 9-8 9z" fill="#FF9C7A"/><path d="M0 -2c-4 0-5-4-2-8 1 2 2 2 2 2 0-3 2-4 3-5 0 3 2 4 2 6 0 3-2 5-5 5z" fill="#FFD27A"/></g></g>
     ${order.filter(i=>pos[i][1]>=128).map(i=>fig(ppl[i],pos[i][0],pos[i][1],1.8)).join("")}
-    ${ani.map((r,i)=>fig(r,i?334:26,140,1.4)).join("")}</svg>`;
+    ${ani.map((r,i)=>fig(r,[24,336,100,262][i],[140,140,148,148][i],1.25)).join("")}</svg>`;
   const wisher=S.wish?S.residents.find(r=>r.id===S.wish.rid&&r.status==="da"):null;
   const main=S.wish&&wisher?wishCard(S.wish,wisher)
     :`<div class="card"><div class="row" style="gap:14px;align-items:center">${ringSvg(S.glueck/100,S.glueck+" %","Inselglück",S.glueck>=40?"#C8F169":"#FF9C7A")}<div class="grow"><p class="label">Inselglück</p><h3 class="hm-title" style="color:${glC}">${mText}</h3><p class="small muted">Ab 80 % zieht alle 3 Tage jemand ein. Unter 40 % gibt es öfter Streit, nach 3 Tagen droht Wegzug.</p></div></div></div>`;
@@ -2624,7 +2635,7 @@ function feedSheet(key){
   draw();
 }
 function viewArten(){
-  const seen=new Set(S.residents.filter(r=>r.kind==="tier").map(r=>r.art));
+  const seen=new Set(S.residents.filter(r=>r.kind==="tier").map(r=>r.art).concat(S.seenArts||[]));
   const all=LAND.concat(SEA).concat(FAR_ANIMALS);
   return `<div class="card"><div class="row between"><p class="label">Tierarten entdeckt</p><span class="small muted num">${all.filter(a=>seen.has(a)).length} / ${all.length}</span></div>
   <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">${all.map(a=>{const ok=seen.has(a);
@@ -3460,6 +3471,13 @@ function showPending(){
   if(ev.type==="fest"){
     return sheet(`<div class="anim">${base(`<g transform="translate(240 134) scale(1.2)">${itemSvg("feuer")}</g>`+here().filter(r=>r.kind==="mensch").slice(0,5).map((r,i)=>`<g class="bob" style="animation-delay:${i*.2}s">${figure(r,200+i*16+(i>1?24:0),136)}</g>`).join("")+`${[0,1,2,3,4,5].map(i=>`<g class="glow" style="animation-delay:${i*.3}s"><circle cx="${190+i*22}" cy="${80+(i%2)*8}" r="4" fill="#FFD27A"/></g>`).join("")}`+confetti(),false)}</div>
       <p class="label" style="color:var(--amber)">Inselfest</p><h2>Die Insel feiert dich</h2><p class="muted">${ev.good} von 7 Tagen im Budget. Laternen, Lagerfeuer und Musik: +5 % Glück und +30 Punkte.</p><button class="btn" data-ok>Mitfeiern</button>`);
+  }
+  if(ev.type==="guest"){
+    const all=LAND.concat(SEA).concat(FAR_ANIMALS), seen=new Set(S.residents.filter(r=>r.kind==="tier").map(r=>r.art).concat(S.seenArts||[]));
+    return sheet(`<div style="align-self:center;width:150px;height:110px;border-radius:24px;background:var(--card2);display:flex;align-items:center;justify-content:center"><svg width="120" height="90" viewBox="${SEA.includes(ev.art)?artVB(ev.art,4/3):"-16 -22 32 24"}" aria-hidden="true" class="pop fb">${animalSvg(ev.art)}</svg></div>
+      <p class="label" style="color:var(--lime)">Besuch</p><h2>${esc(artikel(ev.art,true))} ${esc(ev.art)} schaut vorbei!</h2>
+      <p class="muted">Die Insel ist gerade voll, deshalb bleibt ${GENUS[ev.art]==="f"?"sie":"er"} nur einen Tag. Für deine Sammlung zählt der Besuch: Tierart ${all.filter(a=>seen.has(a)).length} von ${all.length}.</p>
+      <button class="btn" data-ok>Schön, dass du da warst</button>`);
   }
   if(ev.type==="discovery"){
     const W=WORLDS[ev.world]; CUR_EV=null; if(!W) return showPending();
