@@ -2664,9 +2664,9 @@ function viewZeit(){
   </div>
   <div class="card">
     <p class="label">Hochgerechnet aufs Jahr</p>
-    <div class="row between"><span>Mit deinem alten Schnitt</span><b class="num">${Math.round(yearOld)} Tage</b></div>
+    <div class="row between"><span>Mit deinem alten Schnitt</span><b class="num" style="white-space:nowrap">${Math.round(yearOld)} Tage</b></div>
     <div class="bar"><i style="width:${Math.min(100,yearOld/120*100)}%;background:var(--coral)"></i></div>
-    <div class="row between"><span>Mit deinem jetzigen Schnitt (${hm(avg)})</span><b class="num">${Math.round(yearNow)} Tage</b></div>
+    <div class="row between"><span>Mit deinem jetzigen Schnitt (${hm(avg)})</span><b class="num" style="white-space:nowrap">${Math.round(yearNow)} Tage</b></div>
     <div class="bar"><i style="width:${Math.min(100,yearNow/120*100)}%"></i></div>
     <p class="small muted">${yearOld>yearNow?"Du gewinnst so rund "+Math.round(yearOld-yearNow)+" ganze Tage pro Jahr zurück, rund um die Uhr gerechnet.":"Noch kein Unterschied. Jeder Tag im Budget verschiebt diese Zahl."}</p>
   </div>
@@ -2693,7 +2693,7 @@ function viewShop(){
   ${[["vorrat","Vorräte","Wird beim Kauf verbraucht"],["nutzen","Nützliches","Steht auf der Insel und hilft"],["deko","Deko","Macht die Insel schöner"]].map(([cat,title,sub])=>{
     const list=SHOP.filter(it=>it.cat===cat&&shopHere(it)), have=list.filter(it=>!it.consumable&&owns(it.id)).length;
     return `<div class="shop-head"><p class="label">${title}</p><span class="small muted">${cat==="vorrat"?sub:have+" von "+list.length+" auf der Insel"}</span></div>
-    <div class="shop-grid">${list.map(it=>{
+    <div class="shop-grid">${list.slice().sort((a,b)=>(!a.consumable&&owns(a.id))-(!b.consumable&&owns(b.id))).map(it=>{
     const own=!it.consumable&&owns(it.id), cost=price(it), can=S.points>=cost, stock=it.id==="tee"?S.tea:it.id==="sonne"?S.sun:0;
     return `<div class="shop-item${own?" owned":""}">
       <div class="shop-pic"><svg width="70" height="56" viewBox="-20 -34 40 38" aria-hidden="true">${itemSvg(it.id)}</svg></div>
@@ -2880,8 +2880,9 @@ function chart(){
   const bw=W/14;
   let s=`<svg viewBox="0 0 ${W} ${H+20}" style="width:100%;height:auto" role="img" aria-label="Bildschirmzeit der letzten ${d.length} Tage">`;
   const by=H-S.budget/max*H;
-  s+=`<line x1="0" x2="${W}" y1="${by}" y2="${by}" stroke="#7C7F99" stroke-dasharray="4 4"/><text x="${W}" y="${by-4}" text-anchor="end" font-size="10" fill="#A4A6BD" font-family="Manrope, sans-serif">Budget ${hm(S.budget)}</text>`;
+  s+=`<line x1="0" x2="${W}" y1="${by}" y2="${by}" stroke="#7C7F99" stroke-dasharray="4 4"/>`;
   d.forEach((x,i)=>{const h=Math.max(2,x.min/max*H);s+=`<rect x="${i*bw+3}" y="${H-h}" width="${bw-6}" height="${h}" rx="4" fill="${x.min<=S.budget?"#C8F169":"#FF9C7A"}"><title>${nice(x.day)}: ${hm(x.min)}</title></rect><text x="${i*bw+bw/2}" y="${H+14}" text-anchor="middle" font-size="9" fill="#A4A6BD" font-family="Manrope, sans-serif">${parse(x.day).getDate()}.</text>`});
+  s+=`<text x="4" y="${by-5}" font-size="10" font-weight="700" fill="#A4A6BD" stroke="#1E2030" stroke-width="3" paint-order="stroke" font-family="Manrope, sans-serif">Budget ${hm(S.budget)}</text>`;
   return s+"</svg>";
 }
 function findSvg(id){
@@ -2898,7 +2899,7 @@ function findSvg(id){
 }
 function viewStrandgut(){
   const have=new Set(S.finds.map(f=>f.id));
-  const bottles=S.finds.filter(f=>f.msg).slice(-3).reverse();
+  const bottles=S.finds.filter(f=>f.msg).reverse().filter((f,i,a)=>a.findIndex(x=>x.msg===f.msg)===i).slice(0,3);   // gleiche Botschaft nur einmal
   return `<div class="card"><div class="row between"><p class="label">Sammlung</p><span class="small muted num">${S.finds.length} ${S.finds.length===1?"Fund":"Funde"}</span></div>
   <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">${FINDS.map(f=>{const ok=have.has(f.id);const n=S.finds.filter(x=>x.id===f.id).length;
     return `<div style="background:var(--ground);border-radius:14px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;${ok?"":"opacity:.4"}"><svg width="40" height="30" viewBox="-16 -22 32 24" aria-hidden="true">${ok?findSvg(f.id):`<g style="filter:brightness(0) invert(.45)">${findSvg(f.id)}</g>`}</svg><span style="font-size:11px;font-weight:700;text-align:center;line-height:1.2">${ok?esc(f.n)+(n>1?" ×"+n:""):"?"}</span></div>`}).join("")}</div>
@@ -2929,7 +2930,7 @@ function viewVerlauf(){
   ${cards.length?`<div class="fy-row">${cards.map(c=>{const m=MOTIFS.find(x=>x.id===c.motif)||MOTIFS[0];
     return `<button class="fy" data-card="${c.id}" style="border:none;text-align:left;color:var(--ink);font:inherit"><span style="border-radius:6px;overflow:hidden;border:2px solid #F3F1EA;display:block">${motifSvg(m,true)}</span><b>${esc(m.title)}</b><span class="small muted" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(c.text)}</span></button>`}).join("")}</div>`
     :`<div class="card"><p class="small muted">Noch keine Post. Wer wegzieht, schreibt dir. Jede Karte hat ein Motiv, das du sammeln kannst.</p></div>`}
-  ${viewAlbum()}
+  ${cards.length?viewAlbum():""}
   <div class="sec-h"><span>Strandgut</span></div>
   ${viewStrandgut()}
   <div class="sec-h"><span>Zeitkapseln</span></div>
@@ -4008,11 +4009,11 @@ const TROPHY='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-
 function viewFreunde(){
   const inv=pendingInvite(), on=netConfigured()&&netOn();
   let h=(inv?friendsCardInvite(inv):"")+`<div class="hero-card" id="frHero" style="background:#1B2340">${frHeroSvg(null)}</div>
-  <div class="scene-chips">
+  ${on?`<div class="scene-chips">
     <div class="cp"><i>Platz</i><b id="chPl">–</b></div>
     <div class="cp"><i>Duell</i><b id="chDu">${!on?"–":S.duel&&S.duel.wk===isoWeek(today())?"läuft":"offen"}</b></div>
-    <div class="cp"><i>Freunde</i><b id="chFr">${on?"…":"–"}</b></div>
-  </div>`;
+    <div class="cp"><i>Freunde</i><b id="chFr">…</b></div>
+  </div>`:""}`;
   if(!on){
     h+=`<div class="card" style="align-items:center;text-align:center">
       <div style="width:64px;height:64px;border-radius:32px;background:#26233D;color:var(--amber);display:flex;align-items:center;justify-content:center"><span style="width:34px;height:34px;display:block">${TROPHY}</span></div>

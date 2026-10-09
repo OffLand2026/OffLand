@@ -198,7 +198,9 @@ body.focus-on{overflow:hidden}
 
 /* Laden */
 .shop-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:8px}
-.shop-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.shop-grid{display:grid;grid-auto-flow:column;grid-auto-columns:44%;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:0 -18px;padding:0 18px;scroll-padding:0 18px}
+.shop-grid::-webkit-scrollbar{display:none}
+.shop-grid>*{scroll-snap-align:start}
 .shop-item{background:var(--ground);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:6px}
 .shop-item.owned{opacity:.8}
 .shop-pic{height:64px;border-radius:12px;background:var(--card2);display:flex;align-items:center;justify-content:center;overflow:hidden}
