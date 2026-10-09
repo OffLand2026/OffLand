@@ -2616,16 +2616,10 @@ function viewArten(){
 }
 function viewAlbum(){
   const have=new Set(S.postcards.map(c=>c.motif));
-  const cards=S.postcards.slice().reverse();
-  return `<div class="card"><div class="row between"><p class="label">Postkarten-Album</p><span class="small muted num">${have.size} / ${MOTIFS.length} Motive</span></div>
+  return `<div class="card"><div class="row between"><p class="label">Motive</p><span class="small muted num">${have.size} / ${MOTIFS.length} Motive</span></div>
   <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">${MOTIFS.map(m=>have.has(m.id)
     ?`<div style="border-radius:8px;overflow:hidden;border:2px solid #F3F1EA">${motifSvg(m,true)}</div>`
     :`<div style="border-radius:8px;border:1.5px dashed var(--line);aspect-ratio:350/120;display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7C7F99" stroke-width="2" stroke-linecap="round" aria-label="Noch nicht gesammelt"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>`).join("")}</div>
-  ${cards.length?`<div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">${cards.map(c=>{const m=MOTIFS.find(x=>x.id===c.motif)||MOTIFS[0];
-    return `<button data-card="${c.id}" style="display:flex;align-items:center;gap:10px;min-height:48px;padding:8px 10px;border:none;border-radius:14px;background:var(--ground);color:var(--ink);text-align:left">
-      <span style="width:56px;flex-shrink:0;border-radius:4px;overflow:hidden">${motifSvg(m,true)}</span>
-      <span class="grow" style="display:flex;flex-direction:column"><b style="font-size:14px">${esc(m.title)}</b><span class="small muted" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.text)}</span></span></button>`}).join("")}</div>`
-  :`<p class="small muted">Noch keine Post. Wer wegzieht, schreibt dir. Jede Karte hat ein Motiv, das du sammeln kannst.</p>`}
   </div>`;
 }
 function viewZeit(){
@@ -2905,7 +2899,7 @@ function findSvg(id){
 function viewStrandgut(){
   const have=new Set(S.finds.map(f=>f.id));
   const bottles=S.finds.filter(f=>f.msg).slice(-3).reverse();
-  return `<div class="card"><div class="row between"><p class="label">Strandgut-Sammlung</p><span class="small muted num">${have.size} / ${FINDS.length} · ${S.finds.length} Funde</span></div>
+  return `<div class="card"><div class="row between"><p class="label">Sammlung</p><span class="small muted num">${S.finds.length} ${S.finds.length===1?"Fund":"Funde"}</span></div>
   <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">${FINDS.map(f=>{const ok=have.has(f.id);const n=S.finds.filter(x=>x.id===f.id).length;
     return `<div style="background:var(--ground);border-radius:14px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;${ok?"":"opacity:.4"}"><svg width="40" height="30" viewBox="-16 -22 32 24" aria-hidden="true">${ok?findSvg(f.id):`<g style="filter:brightness(0) invert(.45)">${findSvg(f.id)}</g>`}</svg><span style="font-size:11px;font-weight:700;text-align:center;line-height:1.2">${ok?esc(f.n)+(n>1?" ×"+n:""):"?"}</span></div>`}).join("")}</div>
   ${bottles.length?`<p class="small" style="font-weight:700">Flaschenpost</p>${bottles.map(b=>`<p class="small" style="font-family:'Caveat',cursive;font-size:19px;line-height:1.2">${esc(b.msg)}</p>`).join("")}`:""}
@@ -2913,12 +2907,34 @@ function viewStrandgut(){
 }
 function viewKapseln(){
   const cs=S.capsules.slice().reverse();
-  return `<div class="card"><p class="label">Zeitkapseln</p>${cs.length?cs.map(c=>`<button data-kapsel="${c.id}" style="display:flex;flex-direction:column;gap:2px;text-align:left;border:none;border-radius:14px;background:var(--ground);color:var(--ink);padding:10px 12px;min-height:48px"><b>${esc(c.title)}</b><span class="small muted">${esc(c.lines[0])}</span></button>`).join("")
+  return `<div class="card">${cs.length?cs.map(c=>`<button data-kapsel="${c.id}" style="display:flex;flex-direction:column;gap:2px;text-align:left;border:none;border-radius:14px;background:var(--ground);color:var(--ink);padding:10px 12px;min-height:48px"><b>${esc(c.title)}</b><span class="small muted">${esc(c.lines[0])}</span></button>`).join("")
     :`<p class="small muted">Am Ende jedes Monats bekommst du hier eine Rückblick-Karte, die du teilen kannst.</p>`}</div>`;
 }
 function viewVerlauf(){
-  const col={good:"var(--lime)",bad:"var(--coral)",info:"var(--lilac)"};
-  return `${viewBayAlbum()}${viewAlbum()}${viewStrandgut()}${viewKapseln()}
+  const have=new Set(S.postcards.map(c=>c.motif)), found=new Set(S.finds.map(f=>f.id));
+  const cards=S.postcards.slice().reverse();
+  // Bild: die letzten drei Postkarten als Stapel, leere Plätze gestrichelt
+  const slots=[0,1,2].map(i=>cards[i]?MOTIFS.find(x=>x.id===cards[i].motif)||MOTIFS[0]:null);
+  const pos=[["8%","10%",-7],["44%","6%",5],["24%","30%",-2]];
+  const hero=`<div class="album-hero" role="img" aria-label="${cards.length?"Deine letzten Postkarten":"Noch keine Postkarten"}">${slots.map((m,i)=>`<div class="ah-card${m?"":" empty"}" style="left:${pos[i][0]};top:${pos[i][1]};transform:rotate(${pos[i][2]}deg)">${m?motifSvg(m,true):"<span>?</span>"}</div>`).reverse().join("")}
+    ${[...found].slice(0,2).map((id,i)=>`<svg class="ah-find" style="left:${i?"84%":"6%"};top:${i?"14%":"52%"}" width="46" height="34" viewBox="-16 -22 32 24" aria-hidden="true">${findSvg(id)}</svg>`).join("")}</div>`;
+  return `<div class="hero-card" style="background:#2A2238">${hero}</div>
+  <div class="scene-chips">
+    <div class="cp"><i>Postkarten</i><b>${have.size} / ${MOTIFS.length}</b></div>
+    <div class="cp"><i>Strandgut</i><b>${found.size} / ${FINDS.length}</b></div>
+    <div class="cp"><i>Kapseln</i><b>${S.capsules.length}</b></div>
+  </div>
+  ${viewBayAlbum()}
+  <div class="sec-h"><span>Postkarten</span><span class="num" style="text-transform:none;letter-spacing:0">${cards.length?cards.length+" "+(cards.length===1?"Karte":"Karten"):""}</span></div>
+  ${cards.length?`<div class="fy-row">${cards.map(c=>{const m=MOTIFS.find(x=>x.id===c.motif)||MOTIFS[0];
+    return `<button class="fy" data-card="${c.id}" style="border:none;text-align:left;color:var(--ink);font:inherit"><span style="border-radius:6px;overflow:hidden;border:2px solid #F3F1EA;display:block">${motifSvg(m,true)}</span><b>${esc(m.title)}</b><span class="small muted" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(c.text)}</span></button>`}).join("")}</div>`
+    :`<div class="card"><p class="small muted">Noch keine Post. Wer wegzieht, schreibt dir. Jede Karte hat ein Motiv, das du sammeln kannst.</p></div>`}
+  ${viewAlbum()}
+  <div class="sec-h"><span>Strandgut</span></div>
+  ${viewStrandgut()}
+  <div class="sec-h"><span>Zeitkapseln</span></div>
+  ${viewKapseln()}
+  <div class="sec-h"><span>Tagebuch</span></div>
   <div class="card"><div class="row between"><p class="label">Letzte 14 Tage</p><span class="small muted">${S.days.length} Tage gespielt</span></div>${chart()||`<p class="muted">Noch keine Tage eingetragen.</p>`}</div>
   ${feedCard("feed","Inseltagebuch",S.feed,"Hier erscheint, was auf deiner Insel passiert.")}
 `;
@@ -3018,12 +3034,12 @@ let scenePaused=false;
 /* ---------- Rendern ---------- */
 function render(){
   // Im Tab Freunde steht die Familieninsel, dort die eigene Insel oben ausblenden
-  $("#scene").hidden=tab==="freunde"||tab==="bewohner"||tab==="zeit"||tab==="projekt";
+  $("#scene").hidden=["freunde","bewohner","zeit","projekt","verlauf"].includes(tab);
   renderScene();
   $("#streakChip").textContent=S.happyStreak>0?S.happyStreak+(S.happyStreak===1?" glücklicher Tag":" glückliche Tage"):S.dayCount+(S.dayCount===1?" Tag":" Tage")+" gespielt";
   $("#streakChip").className="chip "+(S.happyStreak>0?"good":"gone");
   $("#accBtn").innerHTML=ACC?avatarSvg(ACC.avatar,40):"";
-  $("#title").textContent=!S.setup?"Deine Insel":tab==="heute"?(ACC?"Hallo "+ACC.name:"Deine Insel"):tab==="bewohner"?"Bewohner":tab==="zeit"?"Deine Zeit":tab==="projekt"?"Bauen":tab==="freunde"?"Freunde":"Deine Insel";
+  $("#title").textContent=!S.setup?"Deine Insel":tab==="heute"?(ACC?"Hallo "+ACC.name:"Deine Insel"):tab==="bewohner"?"Bewohner":tab==="zeit"?"Deine Zeit":tab==="projekt"?"Bauen":tab==="freunde"?"Freunde":tab==="verlauf"?"Album":"Deine Insel";
   $("#dateline").textContent="OffLand · "+new Date().toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"short"});
   if(TAB_FEATURE[tab]&&!feature(TAB_FEATURE[tab])) tab="heute";
   let nTabs=0;
