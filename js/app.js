@@ -2819,7 +2819,7 @@ function viewProjekt(){
   const tabs=[["laden","Laden"],["projekte","Projekte"]].concat(feature("reise")?[["reise","Weltreise"]]:[]);
   if(!tabs.some(t=>t[0]===bauTab)) bauTab="laden";
   const seg=`<div class="row" role="tablist" style="position:sticky;top:0;z-index:5;background:var(--ground);padding:8px 0;margin:-8px 0">${tabs.map(([id,n])=>`<button class="btn ${bauTab===id?"":"secondary"} grow" style="padding:0 6px" data-bau="${id}" role="tab" aria-selected="${bauTab===id}">${n}</button>`).join("")}</div>`;
-  const top=traderCard();
+  const top=bauHero()+traderCard();
   if(bauTab==="reise") return top+seg+viewReise();
   if(bauTab==="laden") return top+seg+(feature("laden")?viewShop():`<div class="card"><p class="label">Inselladen</p><p class="muted">Der Laden öffnet nach deinem ersten eingetragenen Tag. Dann kannst du Punkte für Deko und Nützliches ausgeben.</p></div>`);
   return top+seg+`<div class="card"><p class="label">${esc(curWorld().name)}</p><h2>Großprojekte</h2><p class="muted small">Ist ein Projekt fertig, startet sofort das nächste.</p>
@@ -2831,6 +2831,39 @@ function viewProjekt(){
     ${cur?`<div class="bar" style="margin-top:6px"><i style="width:${prog}%;background:var(--lilac)"></i></div>`:""}</div>
     <span class="chip ${done?"good":cur?"ok":"gone"}">${done?"gebaut":cur?"läuft":"später"}</span></div>`}).join("")}
   </div>${viewGemeinsam()}`;
+}
+/* Bauen: Bild mit dem nächsten Großprojekt als Bauplatz, Chips und Material-Ring */
+// Die Heimatinsel-Projekte malt renderScene direkt in die Szene, hier kleine Einzelbilder dafür
+function bauSvg(id){
+  switch(id){
+  case "leuchtturm": return `<path d="M-8 0l3-34h10l3 34z" fill="#F3F1EA"/><path d="M-7.2 -9h14.4l-.6-7h-13.2zM-5.6 -27h11.2l-.5-6h-10.2z" fill="#FF9C7A"/><rect x="-6" y="-41" width="12" height="7" rx="1.5" fill="#3A3D58"/><g class="glow"><rect x="-4" y="-40" width="8" height="5" rx="1" fill="#FFD27A"/></g><path d="M-7 -41l7-6 7 6z" fill="#FF9C7A"/>`;
+  case "bruecke": return `<path d="M-30 0q30-26 60 0" stroke="#A0703F" stroke-width="4" fill="none"/><path d="M-30 -2h60" stroke="#8A5A3B" stroke-width="3"/>${[-20,-10,0,10,20].map(x=>`<path d="M${x} -2v${-Math.round(13-x*x/60)}" stroke="#C9A26A" stroke-width="1.6"/>`).join("")}`;
+  case "schiff": return `<g class="bob" style="animation-duration:2.8s"><path d="M-24 -6h48l-8 10h-32z" fill="#FF9C7A"/><path d="M0 -6v-34" stroke="#8A5A3B" stroke-width="2"/><path d="M2 -38l18 28h-18z" fill="#F3F1EA"/><path d="M-2 -34l-14 24h14z" fill="#E8E2D2"/><path d="M0 -40l7 3-7 3" fill="#B6A4FF"/></g>`;
+  case "windmuehle": return `<path d="M-7 0l2-28h10l2 28z" fill="#F3F1EA"/><rect x="-3" y="-9" width="6" height="9" rx="2" fill="#8A5A3B"/><g class="spin"><path d="M0 -28l-16-13M0 -28l16-13M0 -28l-13 16M0 -28l13 16" stroke="#FFB86B" stroke-width="3.4" stroke-linecap="round"/></g><circle cx="0" cy="-28" r="2.4" fill="#8A5A3B"/>`;
+  case "insel3": return `<ellipse cx="0" cy="-2" rx="30" ry="6" fill="#F0D9A0"/><path d="M-22 -3c6-12 14-16 22-16s16 4 22 16z" fill="#7FC57A"/><path d="M6 -16q2-12-2-22" stroke="#8A5A3B" stroke-width="2.4" fill="none"/><path d="M4 -38q-10-2-14 6M4 -38q10-3 14 5M4 -38q-2-8-10-10M4 -38q6-7 12-6" stroke="#3FA35A" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+  }
+  return projectSvg(id);
+}
+function bauHero(){
+  const list=curProjects(), p=list[S.projectIdx], last=list[list.length-1];
+  const show=p||last, need=p?p.hours*60:1, pct=p?Math.min(1,S.material/need):1;
+  const mh=Math.floor(S.material/60), built=list.filter(x=>S.built.includes(x.id)).length;
+  // noch nicht gebaut: blass mit Gerüst und Kran, fertig: in Farbe
+  const scaff=p?`<g stroke="#C9A26A" stroke-width="2" opacity=".8"><path d="M116 128v-84M244 128v-84M110 64h140M110 98h140"/><path d="M116 98l30-34M244 98l-30-34" stroke-width="1.4"/></g><path d="M268 128v-100h-10m10 0h40" stroke="#FFD27A" stroke-width="3" fill="none"/><path d="M302 28v20" stroke="#A4A6BD" stroke-width="1.2"/><rect x="296" y="48" width="12" height="9" rx="1.5" fill="#8A5A3B"/>`:"";
+  const hero=`<svg viewBox="0 0 360 200" role="img" aria-label="${p?"Bauplatz: "+esc(p.name):"Alle Großprojekte gebaut"}" style="width:100%;height:auto;display:block"><defs><linearGradient id="bg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2B2F55"/><stop offset="1" stop-color="#6E6A9E"/></linearGradient></defs>
+    <rect width="360" height="200" fill="url(#bg1)"/><circle cx="52" cy="40" r="14" fill="#FFE7A3" opacity=".9"/>
+    <rect y="128" width="360" height="72" fill="#3B5C8C"/><path d="M0 140h360M0 154h360" stroke="#F3F1EA" stroke-width="1" opacity=".15" stroke-dasharray="14 18"/>
+    <path d="M64 134q116-30 232 0z" fill="#E8CF94"/>
+    ${scaff}<g transform="translate(180 128) scale(2.1)"${p?` opacity=".6" style="filter:grayscale(.6)"`:""}>${show?bauSvg(show.id):""}</g></svg>`;
+  return `<div class="hero-card" style="background:#2B2F55">${hero}</div>
+  <div class="scene-chips">
+    <div class="cp"><i>Material</i><b>${p?mh+" / "+p.hours+" h":mh+" h"}</b></div>
+    <div class="cp"><i>Gebaut</i><b style="color:var(--lime)">${built} von ${list.length}</b></div>
+    <div class="cp"><i>Punkte</i><b style="color:var(--lilac)">${S.points}</b></div>
+  </div>
+  <div class="card"><div class="row" style="gap:14px;align-items:center">${ringSvg(pct,Math.round(pct*100)+" %",p?"Material":"fertig","#B6A4FF")}<div class="grow">
+    <p class="label">${esc(curWorld().name)} · ${p?"Projekt "+(S.projectIdx+1):"alles gebaut"}</p><h3 class="hm-title">${esc(show?show.name:"")}</h3>
+    <p class="small muted">${p?"Jede Minute unter deinem Schnitt wird Baumaterial."+(S.material<need?" Noch "+hm(need-S.material)+".":" Fertig mit dem nächsten Eintrag."):"Diese Welt ist fertig gebaut. Mit der Weltreise geht es weiter."}</p></div></div></div>`;
 }
 function viewGemeinsam(){
   if(!db||!MY_ID) return "";
@@ -2985,12 +3018,12 @@ let scenePaused=false;
 /* ---------- Rendern ---------- */
 function render(){
   // Im Tab Freunde steht die Familieninsel, dort die eigene Insel oben ausblenden
-  $("#scene").hidden=tab==="freunde"||tab==="bewohner"||tab==="zeit";
+  $("#scene").hidden=tab==="freunde"||tab==="bewohner"||tab==="zeit"||tab==="projekt";
   renderScene();
   $("#streakChip").textContent=S.happyStreak>0?S.happyStreak+(S.happyStreak===1?" glücklicher Tag":" glückliche Tage"):S.dayCount+(S.dayCount===1?" Tag":" Tage")+" gespielt";
   $("#streakChip").className="chip "+(S.happyStreak>0?"good":"gone");
   $("#accBtn").innerHTML=ACC?avatarSvg(ACC.avatar,40):"";
-  $("#title").textContent=!S.setup?"Deine Insel":tab==="heute"?(ACC?"Hallo "+ACC.name:"Deine Insel"):tab==="bewohner"?"Bewohner":tab==="zeit"?"Deine Zeit":"Deine Insel";
+  $("#title").textContent=!S.setup?"Deine Insel":tab==="heute"?(ACC?"Hallo "+ACC.name:"Deine Insel"):tab==="bewohner"?"Bewohner":tab==="zeit"?"Deine Zeit":tab==="projekt"?"Bauen":"Deine Insel";
   $("#dateline").textContent="OffLand · "+new Date().toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"short"});
   if(TAB_FEATURE[tab]&&!feature(TAB_FEATURE[tab])) tab="heute";
   let nTabs=0;
