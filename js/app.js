@@ -1902,9 +1902,9 @@ function storySheet(existing){
     <div class="row"><button class="btn ghost grow" id="storySkip" data-ok>Überspringen</button><button class="btn grow" id="storyNext">Weiter</button></div>`);
   const box=$("#wr"), dots=[...document.querySelectorAll(".wr-dots i")], idx=()=>Math.round(box.scrollLeft/box.clientWidth), last=sl.length-1;
   const upd=()=>{const i=idx();dots.forEach((d,k)=>d.classList.toggle("on",k===i));$("#storyNext").textContent=i>=last?(existing?"Bin dabei!":"Los geht's!"):"Weiter";$("#storySkip").style.visibility=i>=last?"hidden":"visible"};
-  let said=-1; const talk=()=>{const i=idx(); if(i===said) return; said=i; const x=sl[i];
+  let said=-1; const talk=()=>{if(!box.isConnected) return; const i=idx(), x=sl[i]; if(i===said||!x) return; said=i;   // Fenster schon zu: kein Ton mehr
     speak(x.who==="both"?[["luc",""],["bay","Hilfst du mir, OffLand zurückzuholen? Weniger Handy, mehr Leben."]]:[["bay",x.t]],i===0?1.2:.1)};
-  box.onscroll=()=>{upd(); clearTimeout(box._t); box._t=setTimeout(talk,180)};
+  box.onscroll=()=>{if(!box.isConnected) return; upd(); clearTimeout(box._t); box._t=setTimeout(talk,180)};
   sfx("story"); talk();
   const done=()=>{S.storySeen=true;save();closeModal();render();showPending()};
   $("#storyNext").onclick=()=>{const i=idx(); if(i>=last){stat("intro_ende");return done()} box.scrollTo({left:(i+1)*box.clientWidth,behavior:"smooth"})};
