@@ -1473,7 +1473,8 @@ function closeDay(min,quests,appMin){
   }
   checkDiscovery();
   chapterCheck();
-  if(netConfigured()&&statsDev().consent===undefined&&!S.pending.some(e=>e.type==="statsAsk")) S.pending.push({type:"statsAsk"});
+  if(netConfigured()&&S.dayCount>=3&&statsDev().consent===undefined&&!S.pending.some(e=>e.type==="statsAsk")) S.pending.push({type:"statsAsk"});   // erst ab Tag 3 fragen
+  sortPending(); PEND_BUDGET=3;
   save(); render(); showPending();
 }
 /* Neue Insel entdeckt, sobald alle Großprojekte der aktuellen Welt stehen */
@@ -2646,11 +2647,10 @@ function resRow(r){
     r.kind==="mensch"&&r.ex&&r.ex.length&&!partner?"getrennt von "+((S.residents.find(x=>x.id===r.ex[r.ex.length-1])||{}).name||""):"",
     r.kind==="mensch"&&partner?(()=>{const st=S.residents.filter(k=>k.status!=="verstorben"&&k.parents&&k.parents.includes(partner.id)&&!k.parents.includes(r.id));return st.length?"Stiefelternteil von "+nameList(st.map(k=>k.name)):""})():"",
     r.kind==="mensch"?(()=>{const pets=here().filter(p=>p.kind==="tier"&&p.owner===r.id);return pets.length?"Tiere: "+pets.map(p=>p.name).join(", "):""})():"",
-    friend?"befreundet mit "+friend[0].name:"", foe?"zerstritten mit "+foe[0].name:"", parents.length?"Kind von "+parents.map(p=>p.name).join(" & "):"", r.status==="weg"?"Rückkehr "+r.ret+"/5 gute Tage":""].filter(Boolean).join(" · ");
+    friend?"befreundet mit "+friend[0].name:"", foe?"zerstritten mit "+foe[0].name:"", parents.length?"Kind von "+parents.map(p=>p.name).join(" & "):"", r.status==="weg"?(r.ret>=5?"möchte zurück, wartet auf einen freien Platz":"Rückkehr "+r.ret+"/5 gute Tage"):""].filter(Boolean).join(" · ");
   const bg=r.kind==="mensch"?"#26233D":SEA.includes(r.art)?"#1F2A3A":"#22301F";
   return `<div class="res"><div class="avatar" style="background:${bg}"><svg width="40" height="40" viewBox="${figVB(r)}" aria-hidden="true">${figure(r,0,0)}</svg></div>
-    <div class="grow"><p><b>${esc(r.name)}</b></p><p class="small muted">${esc(sub||"Bewohner:in")}</p></div>
-    <span class="chip ${mCls}">${mText}</span>
+    <div class="grow res-txt"><p class="res-name"><b>${esc(r.name)}</b><span class="chip sm ${mCls}">${mText}</span></p><p class="small muted res-sub">${esc(sub||"Bewohner:in")}</p></div>
     ${r.sick&&S.tea>0?`<button class="iconbtn" style="width:44px;height:44px;background:#22301F" data-tea="${r.id}" aria-label="${esc(r.name)} Kräutertee geben"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C8F169" stroke-width="2" stroke-linecap="round"><path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM17 10h2a2 2 0 0 1 0 4h-2M8 5c0-1 1-1 1-2M12 5c0-1 1-1 1-2"/></svg></button>`:""}
     ${r.status==="da"?`<button class="iconbtn" style="width:44px;height:44px" data-rename="${r.id}" aria-label="${esc(r.name)} bearbeiten"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B6A4FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></button>`:""}
   </div>`;
@@ -2748,13 +2748,13 @@ function feedSheet(key){
   draw();
 }
 function viewArten(){
-  const seen=new Set(S.residents.filter(r=>r.kind==="tier").map(r=>r.art).concat(S.seenArts||[]));
+  const lived=new Set(S.residents.filter(r=>r.kind==="tier").map(r=>r.art)), seen=new Set([...lived].concat(S.seenArts||[]));
   const all=LAND.concat(SEA).concat(FAR_ANIMALS);
   return `<div class="card"><div class="row between"><p class="label">Tierarten entdeckt</p><span class="small muted num">${all.filter(a=>seen.has(a)).length} / ${all.length}</span></div>
   <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">${all.map(a=>{const ok=seen.has(a);
     return `<div style="background:var(--ground);border-radius:14px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;${ok?"":"opacity:.4"}">
       <svg width="48" height="34" viewBox="${artVB(a,48/34)}" aria-hidden="true">${ok?animalSvg(a):`<g opacity=".5" style="filter:brightness(0) invert(.45)">${animalSvg(a)}</g>`}</svg>
-      <span style="font-size:${ok&&a.length>9?"9.5px":"11px"};letter-spacing:${ok&&a.length>9?"-.2px":"0"};font-weight:700;text-align:center;line-height:1.2;max-width:100%">${ok?(a==="Meerschweinchen"?"Meer&shy;schweinchen":a):"?"}</span></div>`}).join("")}</div>
+      <span style="font-size:${ok&&a.length>9?"9.5px":"11px"};letter-spacing:${ok&&a.length>9?"-.2px":"0"};font-weight:700;text-align:center;line-height:1.2;max-width:100%">${ok?(a==="Meerschweinchen"?"Meer&shy;schweinchen":a):"?"}</span>${ok&&!lived.has(a)?`<span style="font-size:10px;color:var(--lime);font-weight:700">zu Besuch</span>`:""}</div>`}).join("")}</div>
   <p class="small muted">Delfine und Wale kommen erst, wenn der Leuchtturm steht. Papagei, Elch, Kamel und Eisbär leben nur in fernen Inselwelten.</p></div>`;
 }
 function viewAlbum(){
@@ -3071,7 +3071,7 @@ function viewVerlauf(){
   ${viewBayAlbum()}
   <div class="sec-h"><span>Postkarten</span><span class="num" style="text-transform:none;letter-spacing:0">${cards.length?cards.length+" "+(cards.length===1?"Karte":"Karten"):""}</span></div>
   ${cards.length?`<div class="fy-row">${cards.map(c=>{const m=MOTIFS.find(x=>x.id===c.motif)||MOTIFS[0];
-    return `<button class="fy" data-card="${c.id}" style="border:none;text-align:left;color:var(--ink);font:inherit"><span style="border-radius:6px;overflow:hidden;border:2px solid #F3F1EA;display:block">${motifSvg(m,true)}</span><b>${esc(m.title)}</b><span class="small muted" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(c.text)}</span></button>`}).join("")}</div>`
+    return `<button class="fy" data-card="${c.id}" style="border:none;text-align:left;color:var(--ink);font:inherit"><span style="border-radius:6px;overflow:hidden;border:2px solid #F3F1EA;display:block">${motifSvg(m,true)}</span>${c.fan?`<p class="k" style="color:var(--lime)">♥ Fanpost</p>`:c.hint||c.animal!=null||c.text?`<p class="k" style="color:var(--muted)">Von unterwegs</p>`:""}<b>${esc(m.title)}</b><span class="small muted" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(c.text)}</span></button>`}).join("")}</div>`
     :`<div class="card"><p class="small muted">Noch keine Post. Nach ein paar guten Tagen schreiben Verwandte und Nachbarinseln, was sie Gutes über deine Insel gehört haben. Jede Karte hat ein Motiv zum Sammeln.</p></div>`}
   ${cards.length?viewAlbum():""}
   <div class="sec-h"><span>Strandgut</span></div>
@@ -3254,6 +3254,7 @@ function bind(){
   const vo=$("#vacOff"); if(vo) vo.onclick=()=>setVacation(false);
   const dt=$("#deathToggle"); if(dt) dt.onchange=()=>{S.natDeath=dt.checked;save()};
   document.querySelectorAll("[data-tea]").forEach(x=>x.onclick=()=>giveTea(x.dataset.tea));
+  document.querySelectorAll(".res-txt").forEach(x=>x.onclick=()=>x.classList.toggle("open"));   // Bewohner-Zeile: alles zeigen
   const vt=$("#vacToggle"); if(vt) vt.onchange=()=>setVacation(vt.checked);
   const al=$("#alarmToggle"); if(al) al.onchange=()=>{S.alarm=al.checked;save();if(al.checked)ringAlarm()};
   const so=$("#soundToggle"); if(so) so.onchange=()=>{S.sound=so.checked;save();if(so.checked)sfx("return")};
@@ -3391,9 +3392,17 @@ function soundFor(ev){
     const m=map[ev.type]; if(m) sfx(m[0],m[1]);
   }catch(e){}
 }
+/* Fenster-Warteschlange: höchstens 3 am Stück, der Rest wartet bis zum nächsten Öffnen oder Eintragen.
+   Vorhaben-Nachfrage, Joker und Tagesbilanz kommen immer und zuerst. */
+let PEND_BUDGET=3;
+const PEND_MUST=new Set(["plan","jokerAsk","day"]);
+const PEND_ORDER={plan:0,jokerAsk:1,day:2,planAsk:3,unlock:7,chapter:6,statsAsk:9};
+function sortPending(){const o=e=>PEND_ORDER[e.type]!=null?PEND_ORDER[e.type]:5; S.pending=S.pending.map((e,i)=>[e,i]).sort((a,b)=>o(a[0])-o(b[0])||a[1]-b[1]).map(x=>x[0])}
 function showPending(){
   if($("#modalRoot").innerHTML) return;
-  const ev=S.pending.shift(); if(!ev){return}
+  if(!S.pending.length){PEND_BUDGET=3;return}
+  if(PEND_BUDGET<=0&&!PEND_MUST.has(S.pending[0].type)) return;   // Rest kommt beim nächsten Mal
+  const ev=S.pending.shift(); PEND_BUDGET--; if(!S.pending.length) PEND_BUDGET=3;
   CUR_EV=ev;
   soundFor(ev);
   save();
@@ -3568,7 +3577,7 @@ function showPending(){
     return sheet(`<p class="label" style="color:var(--lime)">Neu freigeschaltet</p><h2>${fs.length>1?["","","Zwei","Drei","Vier"][fs.length]+" neue Sachen":esc(fs[0].name)}</h2>
       ${fs.map(f=>`<div class="row" style="align-items:flex-start">${featIcon(f,44)}<div class="grow"><p><b>${esc(f.name)}</b></p><p class="small muted">${esc(f.text)}</p></div></div>`).join("")}
       <button class="btn" id="unlGo">Ansehen</button><button class="btn ghost" data-ok>Später</button>`,
-      ()=>{$("#unlGo").onclick=()=>{closeModal();tab=go;if(go==="projekt")bauTab=fs[0].id==="reise"?"reise":"laden";render();window.scrollTo(0,0);showPending()}});
+      ()=>{$("#unlGo").onclick=()=>{closeModal();tab=go;if(go==="projekt")bauTab=fs[0].id==="reise"?"reise":"laden";PEND_BUDGET=0;render();window.scrollTo(0,0)}});   // in Ruhe ansehen, der Rest wartet
   }
   if(ev.type==="reply"){
     const t=(S.tickets||[]).find(x=>x.id===ev.id); if(!t||!t.reply) return showPending();
