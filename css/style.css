@@ -451,3 +451,10 @@ body.focus-on{overflow:hidden}
 @keyframes lampTw{0%,100%{opacity:.45}50%{opacity:1}}
 .lamp-tw{animation:lampTw 1.6s ease-in-out infinite}
 @media (prefers-reduced-motion:reduce){.fire-fl,.lamp-tw{animation:none}}
+/* Besuch bleibt: Tier auswählen, das umzieht */
+.swap-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.swap{display:flex;align-items:center;gap:10px;min-height:56px;padding:8px 10px;border:1.5px solid var(--card2);border-radius:16px;background:var(--ground);color:var(--ink);text-align:left;font:inherit;cursor:pointer}
+.swap span{display:flex;flex-direction:column;min-width:0}
+.swap b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.swap small{font-size:12px;color:var(--muted)}
+.swap:active{border-color:var(--lime)}

@@ -2356,23 +2356,88 @@ function makeCard(g,hint){
   const card={id:uid(),day:S.lastDay,motif:motif.id,text,animal:animals?g[0].art:null,hint:!!hint};
   S.postcards.push(card); return card;
 }
-/* Fanpost: Verwandte und Nachbarinseln schreiben, was sie Gutes über die Insel gehört haben */
+/* Fanpost: Verwandte und Nachbarinseln schreiben, was sie Gutes über die Insel gehört haben.
+   Aus Anrede, Inhalt und Gruß zusammengesetzt; freshLine sorgt dafür, dass sich Inhalte nicht schnell wiederholen */
+/* Besuch bleibt: ein anderes Tier zieht dafür zu Freunden auf die Möweninsel (kommt nicht zurück) */
+function guestSwap(art,id){
+  const old=S.residents.find(r=>r.id===id&&r.status==="da"); if(!old) return;
+  old.status="umgezogen"; old.movedDay=S.lastDay;
+  if(old.pair){const p=S.residents.find(x=>x.id===old.pair); if(p&&p.pair===old.id) p.pair=null; old.pair=null}
+  const r={id:uid(),name:freeName(ANIMAL_NAMES,S.residents.map(x=>x.name)),kind:"tier",art,pair:null,status:"da",ret:0,born:S.dayCount};
+  if(!SEA.includes(art)&&adults().length) r.owner=pick(adults()).id;
+  S.residents.push(r); stat("besuch_bleibt");
+  log(old.name+" ("+old.art+") ist zu Freunden auf die Möweninsel gezogen. Dafür bleibt "+artikel(art)+" "+art+" auf der Insel!","good");
+  chron([old.id,r.id],old.name+" zog auf die Möweninsel, "+artikel(art)+" "+art+" ist geblieben.");
+  S.pending.unshift({type:"arrival",id:r.id,partner:null});
+  save(); closeModal(); render(); showPending();
+}
 function makeFanCard(){
-  const ppl=here().filter(r=>r.kind==="mensch"), r=pick(ppl), used=S.residents.map(x=>x.name);
-  const rel=pick(["Oma","Opa","Tante","Onkel","Patentante"]), der=rel==="Opa"||rel==="Onkel"?"der":"die", who=freeName(HUMAN_NAMES,used);
-  const have=new Set(S.postcards.map(c=>c.motif)), freshM=MOTIFS.filter(m=>!have.has(m.id)), motif=pick(freshM.length?freshM:MOTIFS);
-  const place=motif.title.replace(/^(Grüße vo[nm] |Moin aus |Grüße aus )/,"");
-  const room=occupied()<capacity();
-  const kinds=[
-    {t:`Liebe Insel! Ich bin ${der} ${rel} von ${r.name}. ${r.name} schreibt mir, dass ihr abends zusammensitzt, statt aufs Handy zu schauen. Da wird mir ganz warm ums Herz. Herzlich, ${rel} ${who}`},
-    {t:`Hallo ${r.name}! Hier ist ${der} ${rel}. Alle erzählen mir, wie schön es bei euch auf der Insel geworden ist. Ich bin so stolz auf dich! Bis bald, ${rel} ${who}`},
-    {t:`Moin aus ${place}! Bei uns erzählt man sich von eurer Insel: Dort hören sich die Leute wirklich zu. Macht weiter so! ${who} und Familie`},
-    {t:`Ich habe gehört, ${r.name} ist ${jobName(r.job)} bei euch und richtig gut darin. Sag liebe Grüße! ${who} aus ${place}`},
-    {t:`Liebe Inselleute, wir haben so viel Gutes von euch gehört. ${room?"Wir packen schon die Koffer und kommen bald vorbei!":"Sobald bei euch ein Platz frei wird, kommen wir vorbei!"} ${who} und Familie`,soon:room}
-  ];
-  const k=pick(kinds);
-  if(k.soon) S.arrC=Math.max(S.arrC||0,2);   // der nächste glückliche Tag bringt jemanden Neues
-  const card={id:uid(),day:S.lastDay,motif:motif.id,text:k.t,animal:null,fan:true,soon:!!k.soon};
+  const fresh=(tag,list)=>{const seen=S.fanLog||(S.fanLog=[]); let idx=list.map((_,i)=>i).filter(i=>!seen.includes(tag+i)); if(!idx.length){S.fanLog=seen.filter(k=>!k.startsWith(tag));idx=list.map((_,i)=>i)}
+    const i=pick(idx); S.fanLog.push(tag+i); if(S.fanLog.length>40) S.fanLog.shift(); return list[i]};
+  const ppl=here().filter(r=>r.kind==="mensch"), r=pick(ppl), n=r.name, used=S.residents.map(x=>x.name);
+  const rel=pick(["Oma","Opa","Tante","Onkel","Patentante","Patenonkel","Cousine","Cousin"]), m=["Opa","Onkel","Patenonkel","Cousin"].includes(rel);
+  const der=m?"der":"die", eure=m?"Euer":"Eure", who=freeName(HUMAN_NAMES,used);
+  const have=new Set(S.postcards.map(c=>c.motif)), freshM=MOTIFS.filter(x=>!have.has(x.id)), motif=pick(freshM.length?freshM:MOTIFS);
+  const place={moewen:"von der Möweninsel",sonne:"aus dem Kliffdorf",berg:"aus dem Bergsee-Dorf",hafen:"aus der Hafenstadt",nacht:"aus dem Strandcamp",wal:"aus dem hohen Norden"}[motif.id]||"von der Nachbarinsel";   // mit Präposition
+  const job=jobName(r.job), room=occupied()<capacity();
+  const kind=wpickF([{k:"fam",w:45},{k:"nachbar",w:25},{k:"beruf",w:job?15:0},{k:"kommt",w:15}]).k;
+  let t="", soon=false;
+  if(kind==="fam"){
+    const open=pick(["Liebe Insel!","Hallo zusammen!","Ihr Lieben,","Moin, liebe Inselleute!",`Hallo ${n}!`]);
+    let me=open.includes(n)?`Hier ist ${der} ${rel}.`:`Hier schreibt ${der} ${rel} von ${n}.`; if(open.endsWith(",")) me=me[0].toLowerCase()+me.slice(1);
+    const body=fresh("f",[
+      `${n} schreibt mir, dass ihr abends zusammensitzt, statt aufs Handy zu schauen. Da wird mir ganz warm ums Herz.`,
+      `Am Telefon hat ${n} mir neulich richtig zugehört, ganz ohne nebenbei zu tippen. Was macht ihr da bloß auf eurer Insel?`,
+      `${n} hat mir einen echten Brief geschrieben. Mit der Hand! Er hängt jetzt an meinem Kühlschrank.`,
+      `Ich habe ein Foto bekommen: ${n} am Steg, die Füße im Wasser, kein Handy weit und breit. Das hängt jetzt bei mir im Flur.`,
+      `${n} hat mir vom Lagerfeuer und euren Geschichten erzählt. Darf ich mal mitkommen?`,
+      `Früher hat ${n} beim Essen nur aufs Display geschaut. Jetzt erzählt ${n} mir von Möwen und Sternbildern.`,
+      `Ich stricke gerade einen Schal für ${n}. Abends am Strand soll es bei euch ja frisch werden.`,
+      `${n} hat mir am Telefon erklärt, wie man Steine übers Wasser hüpfen lässt. Ich übe noch.`,
+      `Die ganze Familie redet von ${n}s Insel. Wir sind ehrlich gesagt ein bisschen neidisch.`,
+      `${n} erzählt, dass das Schlafen bei euch endlich wieder klappt. Ihr macht da etwas richtig.`,
+      `Ich habe ${n} ein Glas Marmelade geschickt. Teilt sie bitte mit allen auf der Insel.`,
+      `Seit ${n} bei euch wohnt, ruft ${n} sonntags an und erzählt vom Meer statt von Videos. Das ist der schönste Anruf der Woche.`,
+      `${n} hat mir ein Rezept vom Inselfest geschickt. Ich habe es gleich nachgekocht, die Nachbarn waren begeistert.`,
+      `Neulich hat ${n} gefragt, wie es mir eigentlich geht. Einfach so. Ich musste mich kurz hinsetzen.`
+    ]);
+    const dein=open.includes(n)?(m?"Dein":"Deine"):eure;
+    const close=pick([`Herzlich, ${dein} ${rel}`,`${dein} ${rel}`,`Bis bald! ${dein} ${rel}`,`Drückt alle von mir! ${dein} ${rel}`,`Viele Grüße vom Festland, ${dein} ${rel}`]);
+    t=`${open} ${me} ${body} ${close}`;
+  } else if(kind==="nachbar"){
+    const body=fresh("n",[
+      `Bei uns erzählt man sich von eurer Insel: Dort hören sich die Leute wirklich zu.`,
+      `Unser Leuchtturmwärter sagt, bei euch brennt abends das Lagerfeuer länger als die Bildschirme. Respekt!`,
+      `Wir haben gehört, ihr spielt abends Karten statt zu scrollen. Wir haben es ausprobiert und kommen nicht mehr davon los.`,
+      `Eure Möwen haben uns verraten, dass ihr gerade richtig gute Tage habt. Weiter so!`,
+      `Bei uns hängt jetzt ein Zettel am Hafen: „Macht es wie die Nachbarn.“ Damit seid ihr gemeint.`,
+      `Ein Fischer hat uns von euch erzählt. So entspannte Leute hätte er lange nicht gesehen, meinte er.`,
+      `Bei uns gibt es seit Neuestem einen Korb am Steg, in den alle ihr Handy legen. Die Idee haben wir von euch.`,
+      `Wir feiern bald ein Fest und wollten fragen: Wie schafft ihr es, dass alle mitmachen und keiner aufs Handy schaut?`,
+      `Ein Boot voller Leute von eurer Insel war bei uns. Sie haben die ganze Fahrt über geredet und gelacht. Das hat sich herumgesprochen.`
+    ]);
+    t=`${pick(["Moin "+place+"!","Grüße "+place+"!","Hallo, liebe Nachbarn!"])} ${body} ${pick([who+" und Familie","Eure Nachbarn "+place,who+" "+place])}`;
+  } else if(kind==="beruf"){
+    t=fresh("b",[
+      `Ich habe gehört, ${n} arbeitet bei euch als ${job} und ist richtig gut darin. Sag liebe Grüße! ${who} ${place}`,
+      `Von ${n} als ${job} schwärmen hier alle. Wenn ${n} mal Urlaub macht: Wir hätten ein Gästezimmer frei. ${who} ${place}`,
+      `Unsere Kinder wollen jetzt alle ${job} werden, so wie ${n}. Danke für das Vorbild! ${who} und Familie`,
+      `Man erzählt sich, dass ${n} als ${job} immer Zeit für ein Gespräch hat. Das ist selten geworden. ${who} ${place}`
+    ]);
+  } else {
+    soon=room;
+    t=room?fresh("k",[
+      `Liebe Inselleute, wir haben so viel Gutes von euch gehört. Wir packen schon die Koffer und kommen bald vorbei! ${who} und Familie`,
+      `${n} hat uns so von eurer Insel vorgeschwärmt, dass wir es selbst erleben wollen. Habt ihr noch einen Platz frei? Wir sind bald da! ${who}`,
+      `Hier auf dem Festland ist alles so laut. Bei euch soll man wieder durchatmen können. Wir kommen! ${who} ${place}`
+    ]):fresh("v",[
+      `Liebe Inselleute, wir haben so viel Gutes von euch gehört. Sobald bei euch ein Platz frei wird, kommen wir vorbei! ${who} und Familie`,
+      `Wir haben gehört, bei euch ist gerade alles voll. Kein Wunder bei dem, was man so hört! Wir warten gern auf einen freien Platz. ${who} ${place}`,
+      `Eure Insel ist ausgebucht, sagt man. Wir drücken die Daumen, dass bald ein Platz frei wird. Wir hätten nämlich große Lust! ${who} und Familie`
+    ]);
+  }
+  if(soon) S.arrC=Math.max(S.arrC||0,2);   // der nächste glückliche Tag bringt jemanden Neues
+  const card={id:uid(),day:S.lastDay,motif:motif.id,text:t,animal:null,fan:true,soon};
   S.postcards.push(card); return card;
 }
 function motifSvg(m,small){
@@ -2565,7 +2630,7 @@ function resRow(r){
   </div>`;
 }
 function viewBewohner(){
-  const humans=S.residents.filter(r=>r.kind==="mensch"&&r.status!=="verstorben"), animals=S.residents.filter(r=>r.kind==="tier"&&r.status!=="verstorben");
+  const humans=S.residents.filter(r=>r.kind==="mensch"&&r.status!=="verstorben"), animals=S.residents.filter(r=>r.kind==="tier"&&r.status!=="verstorben"&&r.status!=="umgezogen");
   const H=here(), land=H.filter(r=>!isSea(r)), happy=H.filter(r=>!r.sick&&!r.sad&&!r.phone).length;
   const [mText,mCls]=mood(), glC=mCls==="good"?"var(--lime)":mCls==="ok"?"var(--amber)":"var(--coral)";
   // Bild: Dorfplatz am Abend, die Bewohner im Halbkreis ums Lagerfeuer, Tiere am Rand
@@ -3495,11 +3560,16 @@ function showPending(){
       <p class="label" style="color:var(--amber)">Inselfest</p><h2>Die Insel feiert dich</h2><p class="muted">${ev.good} von 7 Tagen im Budget. Laternen, Lagerfeuer und Musik: +5 % Glück und +30 Punkte.</p><button class="btn" data-ok>Mitfeiern</button>`);
   }
   if(ev.type==="guest"){
+    const cand=here().filter(r=>r.kind==="tier"&&!isPet(r)&&r.art!==ev.art).slice(0,8);   // nur Tiere, die einen Platz belegen
     const all=LAND.concat(SEA).concat(FAR_ANIMALS), seen=new Set(S.residents.filter(r=>r.kind==="tier").map(r=>r.art).concat(S.seenArts||[]));
-    return sheet(`<div style="align-self:center;width:150px;height:110px;border-radius:24px;background:var(--card2);display:flex;align-items:center;justify-content:center"><svg width="120" height="90" viewBox="${SEA.includes(ev.art)?artVB(ev.art,4/3):"-16 -22 32 24"}" aria-hidden="true" class="pop fb">${animalSvg(ev.art)}</svg></div>
+    const er=GENUS[ev.art]==="f"?"sie":GENUS[ev.art]==="n"?"es":"er";
+    return sheet(`<div style="align-self:center" class="pop fb">${avatarSvg(ev.art,120)}</div>
       <p class="label" style="color:var(--lime)">Besuch</p><h2>${esc(artikel(ev.art,true))} ${esc(ev.art)} schaut vorbei!</h2>
-      <p class="muted">Die Insel ist gerade voll, deshalb bleibt ${GENUS[ev.art]==="f"?"sie":"er"} nur einen Tag. Für deine Sammlung zählt der Besuch: Tierart ${all.filter(a=>seen.has(a)).length} von ${all.length}.</p>
-      <button class="btn" data-ok>Schön, dass du da warst</button>`);
+      <p class="muted">Die Insel ist gerade voll. Für deine Sammlung zählt der Besuch schon: Tierart ${all.filter(a=>seen.has(a)).length} von ${all.length}.</p>
+      ${cand.length?`<p style="font-weight:700">Soll ${er} bleiben? Dann zieht dafür ein anderes Tier zu Freunden auf die Möweninsel.</p>
+      <div class="swap-row">${cand.map(r=>`<button type="button" class="swap" data-swap="${r.id}">${avatarSvg(r.art,40)}<span><b>${esc(r.name)}</b><small>${esc(r.art)}</small></span></button>`).join("")}</div>`:""}
+      <button class="btn${cand.length?" secondary":""}" data-ok>Weiterziehen lassen</button>`,
+      ()=>document.querySelectorAll("#modalRoot [data-swap]").forEach(b=>b.onclick=()=>guestSwap(ev.art,b.dataset.swap)));
   }
   if(ev.type==="discovery"){
     const W=WORLDS[ev.world]; CUR_EV=null; if(!W) return showPending();
