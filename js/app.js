@@ -2536,9 +2536,21 @@ function viewBewohner(){
   const humans=S.residents.filter(r=>r.kind==="mensch"&&r.status!=="verstorben"), animals=S.residents.filter(r=>r.kind==="tier"&&r.status!=="verstorben");
   const H=here(), land=H.filter(r=>!isSea(r)), happy=H.filter(r=>!r.sick&&!r.sad&&!r.phone).length;
   const [mText,mCls]=mood(), glC=mCls==="good"?"var(--lime)":mCls==="ok"?"var(--amber)":"var(--coral)";
-  // Bild: alle Bewohner auf einer Wiese
-  const show=land.slice(0,10), gap=Math.min(36,320/Math.max(1,show.length));
-  const strip=`<svg viewBox="0 0 360 200" role="img" aria-label="${H.length} Bewohner" style="width:100%;height:auto;display:block"><rect width="360" height="200" fill="#86BFE6"/><circle cx="312" cy="34" r="14" fill="#FFE7A3"/><path d="M-20 200c20-80 120-120 200-120s180 40 200 120z" fill="#7FC57A"/><path d="M-20 200c40-30 120-44 200-44s160 14 200 44z" fill="#6DB56A"/>${show.map((r,i)=>`<g transform="translate(${180-(show.length-1)*gap/2+i*gap} ${120+(i%2)*10}) scale(1.6)"><g class="bob" style="animation-delay:${(i*.3)%2}s">${figure(r,0,0)}</g></g>`).join("")}</svg>`;
+  // Bild: Dorfplatz am Abend, die Bewohner im Halbkreis ums Lagerfeuer, Tiere am Rand
+  const ppl=land.filter(r=>r.kind==="mensch").slice(0,8), ani=land.filter(r=>r.kind!=="mensch").slice(0,2), n=ppl.length;
+  const fig=(r,x,y,k)=>`<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${k})"><g class="bob" style="animation-delay:${Math.round(x)%7/5}s">${figure(r,0,0)}</g></g>`;
+  const pos=ppl.map((r,i)=>{const a=Math.PI*(0.12+0.76*i/Math.max(1,n-1));return [n===1?150:180-Math.cos(a)*130,134-Math.sin(a)*18]});
+  const order=pos.map((q,i)=>i).sort((a,b)=>pos[a][1]-pos[b][1]);
+  const lights=[...Array(14)].map((_,i)=>`<circle class="lamp-tw" style="animation-delay:${(i*.13).toFixed(2)}s" cx="${40+i*20}" cy="${(42+Math.sin(i/13*Math.PI)*14).toFixed(1)}" r="2.6" fill="${["#FFD27A","#FF9C7A","#C8F169","#B6A4FF"][i%4]}"/>`).join("");
+  const strip=`<svg viewBox="0 0 360 200" role="img" aria-label="${H.length} Bewohner am Lagerfeuer" style="width:100%;height:auto;display:block"><defs><linearGradient id="bwSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3B2F6B"/><stop offset=".7" stop-color="#C46D7A"/><stop offset="1" stop-color="#F2A374"/></linearGradient><radialGradient id="bwGlow"><stop offset="0" stop-color="#FFD27A" stop-opacity=".55"/><stop offset="1" stop-color="#FFD27A" stop-opacity="0"/></radialGradient></defs>
+    <rect width="360" height="200" fill="url(#bwSky)"/><circle cx="300" cy="30" r="1.4" fill="#fff"/><circle cx="60" cy="18" r="1.2" fill="#fff"/><circle cx="210" cy="14" r="1" fill="#fff"/>
+    <rect y="96" width="360" height="104" fill="#3E4F86"/><path d="M-10 200c10-60 90-96 190-96s180 32 190 96z" fill="#5E7F4E"/><path d="M-10 200c30-40 110-62 190-62s160 22 190 62z" fill="#4E6E42"/>
+    <path d="M40 38q140 32 280 0" stroke="#2A2340" stroke-width="1" fill="none"/>${lights}
+    <circle cx="180" cy="128" r="80" fill="url(#bwGlow)"/>
+    ${order.filter(i=>pos[i][1]<128).map(i=>fig(ppl[i],pos[i][0],pos[i][1],1.7)).join("")}
+    <g transform="translate(180 136) scale(1.4)"><path d="M-12 4l24-6M-12 -2l24 6" stroke="#6B4430" stroke-width="3" stroke-linecap="round"/><g class="fire-fl"><path d="M0 -2c-8 0-10-8-4-16 0 4 3 5 3 5 0-6 3-9 5-11 0 5 4 8 4 13 0 6-3 9-8 9z" fill="#FF9C7A"/><path d="M0 -2c-4 0-5-4-2-8 1 2 2 2 2 2 0-3 2-4 3-5 0 3 2 4 2 6 0 3-2 5-5 5z" fill="#FFD27A"/></g></g>
+    ${order.filter(i=>pos[i][1]>=128).map(i=>fig(ppl[i],pos[i][0],pos[i][1],1.8)).join("")}
+    ${ani.map((r,i)=>fig(r,i?334:26,140,1.4)).join("")}</svg>`;
   const wisher=S.wish?S.residents.find(r=>r.id===S.wish.rid&&r.status==="da"):null;
   const main=S.wish&&wisher?wishCard(S.wish,wisher)
     :`<div class="card"><div class="row" style="gap:14px;align-items:center">${ringSvg(S.glueck/100,S.glueck+" %","Inselglück",S.glueck>=40?"#C8F169":"#FF9C7A")}<div class="grow"><p class="label">Inselglück</p><h3 class="hm-title" style="color:${glC}">${mText}</h3><p class="small muted">Ab 80 % zieht alle 3 Tage jemand ein. Unter 40 % gibt es öfter Streit, nach 3 Tagen droht Wegzug.</p></div></div></div>`;
