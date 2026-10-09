@@ -1473,7 +1473,7 @@ function closeDay(min,quests,appMin){
   }
   checkDiscovery();
   chapterCheck();
-  if(netConfigured()&&S.dayCount>=3&&statsDev().consent===undefined&&!S.pending.some(e=>e.type==="statsAsk")) S.pending.push({type:"statsAsk"});   // erst ab Tag 3 fragen
+  if(netConfigured()&&statsDev().consent===undefined&&!S.pending.some(e=>e.type==="statsAsk")) S.pending.push({type:"statsAsk"});   // steht hinten an: kommt beim nächsten Öffnen mit der Freischaltung
   sortPending(); PEND_BUDGET=3;
   save(); render(); showPending();
 }
@@ -5153,7 +5153,7 @@ function deleteSheet(){
 }
 
 $("#accBtn").onclick=accountSheet;
-document.addEventListener("visibilitychange",()=>{if(!document.hidden&&ACC&&S.setup)checkReplies(false); if(document.hidden&&ACC&&S.setup)backupNow(false)});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&ACC&&S.setup){PEND_BUDGET=3;showPending();checkReplies(false)} if(document.hidden&&ACC&&S.setup)backupNow(false)});
 
 function boot(){
   migrateOldSave();
