@@ -2439,6 +2439,9 @@ function viewHeute(){
   </div>`:""}`;
 }
 let ENTRY_OPEN=false;
+function ringSvg(pct,big,small,col){
+  return `<svg class="ring" width="92" height="92" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="15.5" fill="none" stroke="#2C2F45" stroke-width="3.4"/><circle cx="18" cy="18" r="15.5" fill="none" stroke="${col}" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="${Math.max(.02,Math.min(1,pct))*97.4} 97.4" transform="rotate(-90 18 18)"/><text x="18" y="17.6" text-anchor="middle" font-size="${String(big).length>4?6.2:7}" font-weight="800" fill="#F3F1EA" font-family="Manrope, sans-serif">${big}</text><text x="18" y="23.4" text-anchor="middle" font-size="3.6" fill="#A4A6BD" font-family="Manrope, sans-serif">${small}</text></svg>`;
+}
 /* Heute: Hauptkarte mit Ring (letzter eingetragener Tag) und Eintragen */
 function heuteMain(ok,nd,form){
   const last=S.days[S.days.length-1], week=S.days.slice(-7), good=last&&last.min<=S.budget;
@@ -2524,11 +2527,32 @@ function resRow(r){
 }
 function viewBewohner(){
   const humans=S.residents.filter(r=>r.kind==="mensch"&&r.status!=="verstorben"), animals=S.residents.filter(r=>r.kind==="tier"&&r.status!=="verstorben");
+  const H=here(), land=H.filter(r=>!isSea(r)), happy=H.filter(r=>!r.sick&&!r.sad&&!r.phone).length;
+  const [mText,mCls]=mood(), glC=mCls==="good"?"var(--lime)":mCls==="ok"?"var(--amber)":"var(--coral)";
+  // Bild: alle Bewohner auf einer Wiese
+  const show=land.slice(0,10), gap=Math.min(36,320/Math.max(1,show.length));
+  const strip=`<svg viewBox="0 0 360 200" role="img" aria-label="${H.length} Bewohner" style="width:100%;height:auto;display:block"><rect width="360" height="200" fill="#86BFE6"/><circle cx="312" cy="34" r="14" fill="#FFE7A3"/><path d="M-20 200c20-80 120-120 200-120s180 40 200 120z" fill="#7FC57A"/><path d="M-20 200c40-30 120-44 200-44s160 14 200 44z" fill="#6DB56A"/>${show.map((r,i)=>`<g transform="translate(${180-(show.length-1)*gap/2+i*gap} ${120+(i%2)*10}) scale(1.6)"><g class="bob" style="animation-delay:${(i*.3)%2}s">${figure(r,0,0)}</g></g>`).join("")}</svg>`;
+  const wisher=S.wish?S.residents.find(r=>r.id===S.wish.rid&&r.status==="da"):null;
+  const main=S.wish&&wisher?wishCard(S.wish,wisher)
+    :`<div class="card"><div class="row" style="gap:14px;align-items:center">${ringSvg(S.glueck/100,S.glueck+" %","Inselglück",S.glueck>=40?"#C8F169":"#FF9C7A")}<div class="grow"><p class="label">Inselglück</p><h3 class="hm-title" style="color:${glC}">${mText}</h3><p class="small muted">Ab 80 % zieht alle 3 Tage jemand ein. Unter 40 % gibt es öfter Streit, nach 3 Tagen droht Wegzug.</p></div></div></div>`;
+  const news=[];
+  if(S.conflict){const a=S.residents.find(r=>r.id===S.conflict.a), b=S.residents.find(r=>r.id===S.conflict.b); if(a&&b) news.push(`<div class="fy"><p class="k" style="color:var(--coral)">Streit</p><b>${esc(a.name)} und ${esc(b.name)}</b><p class="small muted">Ein guter Tag hilft beim Versöhnen.</p></div>`)}
+  H.filter(r=>r.sick).forEach(r=>news.push(`<div class="fy"><p class="k" style="color:var(--amber)">Krank</p><b>${esc(r.name)}</b><p class="small muted">${esc(r.sick.kind)}${S.tea?" · Kräutertee im Vorrat":""}</p></div>`));
+  H.filter(r=>r.phone).slice(0,2).forEach(r=>news.push(`<div class="fy"><p class="k" style="color:var(--lilac)">Am Handy</p><b>${esc(r.name)}</b><p class="small muted">Ein Tag im Budget holt jemanden zurück.</p></div>`));
+  if(S.warn){const w=S.warn.ids.map(id=>S.residents.find(r=>r.id===id)).filter(Boolean); if(w.length) news.push(`<div class="fy"><p class="k" style="color:var(--amber)">Wegzug droht</p><b>${esc(groupName(w))}</b><p class="small muted">Glück bis ${nice(S.warn.deadline)} über 40 %</p></div>`)}
   return `
-  <div class="card"><div class="row between"><p class="label">Inselglück</p><b class="num">${S.glueck} %</b></div><div class="bar"><i style="width:${S.glueck}%"></i></div>
-  <p class="small muted">Ab 80 %: alle 3 Tage zieht jemand ein, dazwischen kann es Nachwuchs geben. Unter 40 % gibt es öfter Streit, nach 3 Tagen droht Wegzug.</p></div>
-  <div class="card"><p class="label">Menschen</p>${humans.map(resRow).join("")||`<p class="muted">Noch niemand.</p>`}</div>
-  <div class="card"><p class="label">Tiere</p>${animals.map(resRow).join("")||`<p class="muted">Noch keine Tiere.</p>`}</div>
+  <div class="hero-card">${strip}</div>
+  <div class="scene-chips">
+    <div class="cp"><i>Menschen</i><b>${H.filter(r=>r.kind==="mensch").length}</b></div>
+    <div class="cp"><i>Tiere</i><b>${H.filter(r=>r.kind!=="mensch").length}</b></div>
+    <div class="cp"><i>Glück</i><b style="color:${glC}">${S.glueck} %</b></div>
+  </div>
+  ${main}
+  ${news.length?`<div class="sec-h"><span>Gerade los</span></div><div class="fy-row">${news.join("")}</div>`:""}
+  <div class="sec-h"><span>Menschen</span><span class="small muted" style="text-transform:none;letter-spacing:0">${occupied()}/${capacity()} Plätze</span></div>
+  <div class="card">${humans.map(resRow).join("")||`<p class="muted">Noch niemand.</p>`}</div>
+  <div class="sec-h"><span>Tiere</span></div>
+  <div class="card">${animals.map(resRow).join("")||`<p class="muted">Noch keine Tiere.</p>`}</div>
   ${S.tea?`<p class="small muted" style="padding:0 4px">Kräutertee im Vorrat: ${S.tea}. Tippe bei kranken Bewohnern auf die Tasse.</p>`:""}
   ${S.memorials.length?`<div class="card"><p class="label">In Erinnerung</p>${S.memorials.slice().reverse().map(m=>{const r=S.residents.find(x=>x.id===m.rid);const kids=S.residents.filter(k=>k.parents&&k.parents.includes(m.rid));
     return `<div class="row" style="padding:6px 0;border-top:1px solid var(--card2)"><svg width="36" height="36" viewBox="-12 -26 24 28" aria-hidden="true"><rect x="-1.5" y="-14" width="3" height="14" fill="#8A5A3B"/><circle cx="0" cy="-17" r="8" fill="#4E9A58"/><circle cx="-2" cy="-19" r="1.8" fill="#FFD27A"/></svg><div class="grow"><p><b>${esc(m.name)}</b></p><p class="small muted">${m.job?esc(jobName(m.job))+", ":""}verabschiedet am ${nice(m.day)}${kids.length?" · Kinder: "+kids.map(k=>esc(k.name)).join(", "):""}</p></div></div>`}).join("")}
@@ -2947,12 +2971,12 @@ let scenePaused=false;
 /* ---------- Rendern ---------- */
 function render(){
   // Im Tab Freunde steht die Familieninsel, dort die eigene Insel oben ausblenden
-  $("#scene").hidden=tab==="freunde";
+  $("#scene").hidden=tab==="freunde"||tab==="bewohner";
   renderScene();
   $("#streakChip").textContent=S.happyStreak>0?S.happyStreak+(S.happyStreak===1?" glücklicher Tag":" glückliche Tage"):S.dayCount+(S.dayCount===1?" Tag":" Tage")+" gespielt";
   $("#streakChip").className="chip "+(S.happyStreak>0?"good":"gone");
   $("#accBtn").innerHTML=ACC?avatarSvg(ACC.avatar,40):"";
-  $("#title").textContent=tab==="heute"&&ACC&&S.setup?"Hallo "+ACC.name:"Deine Insel";
+  $("#title").textContent=!S.setup?"Deine Insel":tab==="heute"?(ACC?"Hallo "+ACC.name:"Deine Insel"):tab==="bewohner"?"Bewohner":"Deine Insel";
   $("#dateline").textContent="OffLand · "+new Date().toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"short"});
   if(TAB_FEATURE[tab]&&!feature(TAB_FEATURE[tab])) tab="heute";
   let nTabs=0;

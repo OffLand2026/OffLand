@@ -421,3 +421,4 @@ body.focus-on{overflow:hidden}
 .mini{min-height:36px;border-radius:12px;border:none;background:var(--card2);color:var(--ink);font:700 13px var(--body);cursor:pointer}
 .mini.wide{margin-top:6px;background:#2C2F45}
 .mini:disabled{opacity:.5}
+.hero-card{border-radius:26px;overflow:hidden;background:var(--sky)}
