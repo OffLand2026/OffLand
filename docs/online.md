@@ -129,5 +129,6 @@ Nach dem ersten eingetragenen Tag fragt Mr. Bay einmal pro Gerät, ob OffLand an
 - Mit Zustimmung schreibt die App pro Tag nur Zähler nach `stats/JJJJ-MM-TT`, zum Beispiel `aktiv`, `konto_neu`, `tag`, `tag_gut`, `vorhaben_ok`, `kapitel_3`, `aktiv_ios`, `aktiv_t4_7` (aktiv 4–7 Tage nach dem ersten Start). Keine Namen, keine Minuten, keine Geräte- oder Nutzerkennung.
 - Ohne Zustimmung wird nichts gesendet; bis zur Antwort sammelt die App die Zähler nur auf dem Gerät.
 - Die Regeln dafür stehen in `firestore.rules` (Abschnitt `stats`) und müssen nach einer Änderung in der Konsole veröffentlicht werden.
-- Auswerten: `node scripts/statistik.mjs 14` zeigt die letzten 14 Tage (aktive Geräte, neue Konten, eingetragene Tage, Rückkehr nach dem ersten Start, genutzte Funktionen).
+- Übersicht mit Diagrammen: <https://offland2026.github.io/OffLand/statistik/> (Beispieldaten: `?demo`).
+- Auswerten im Terminal: `node scripts/statistik.mjs 14` zeigt die letzten 14 Tage (aktive Geräte, neue Konten, eingetragene Tage, Rückkehr nach dem ersten Start, genutzte Funktionen).
 - Für die Datenschutzerklärung: Firebase (Google Ireland, Speicherort EU) verarbeitet dabei eine anonyme Anmeldung des Geräts; gespeichert werden nur Tagessummen.
