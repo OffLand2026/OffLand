@@ -8,3 +8,4 @@ ios/DerivedData/
 xcuserdata/
 test-results/
 playwright-report/
+.statistik-token

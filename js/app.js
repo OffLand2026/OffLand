@@ -642,7 +642,7 @@ function fulfillWish(){
   if(!r) return;
   const pts=w.pts||30, gl=w.gl||6;
   r.happyUntil=S.dayCount+7; S.points+=pts; S.glueck=clamp(S.glueck+gl,0,100);
-  S.wishCount=(S.wishCount||0)+1;
+  S.wishCount=(S.wishCount||0)+1; stat("wunsch_"+(w.type||"item"));
   log(r.name+"s Wunsch ist erfüllt: "+wishText(w)+". +"+pts+" Punkte, +"+gl+" % Glück.","good");
   chron([r.id],r.name+"s Wunsch ist erfüllt: "+wishText(w)+".");
   S.pending.push({type:"wish",rid:r.id,item:w.type==="item"||!w.type?w.item:null,text:(w.type==="item"||!w.type?itemName(w.item)+" steht jetzt auf der Insel.":"Geschafft: "+wishText(w)+"."),pts,gl});
@@ -797,7 +797,7 @@ function extras(day,diff,quests,dreamt){
 }
 const SURPRISES=[{k:"truhe",w:4},{k:"schildkroete",w:3},{k:"sternschnuppe",w:3},{k:"gluehwuermchen",w:3}];
 function surprise(day){
-  const k=wpickF(SURPRISES).k, ev={type:"surprise",kind:k};
+  const k=wpickF(SURPRISES).k, ev={type:"surprise",kind:k}; stat("ueberraschung");
   S.lastSurprise=S.dayCount;
   if(k==="truhe"){
     const roll=Math.random();
@@ -936,6 +936,7 @@ function planAskSheet(ev){
     <p class="small muted" id="planNote">${cur?"Vorgemerkt für morgen.":"Morgen Abend fragt die Insel nach. Geschafft: +20 Punkte, +2 % Glück, und ein Bewohner macht mit."}</p>
     <button class="btn" data-ok id="planGo">${cur?"Vormerken":"Weiter"}</button>`);
   bindPlanPick(ev);
+  $("#planGo").addEventListener("click",()=>stat(S.plan&&S.plan.day===forDay?"vorhaben_gewaehlt":"vorhaben_ohne"));
 }
 function bindPlanPick(ev){
   const forDay=addDays(ev.day,1);
@@ -951,7 +952,7 @@ function bindPlanPick(ev){
 }
 function planResult(ok,id,day){
   const p=PLANS.find(x=>x.id===id); if(!p) return null;
-  S.planLog.push({day,id,ok}); if(S.planLog.length>300) S.planLog.shift();
+  S.planLog.push({day,id,ok}); if(S.planLog.length>300) S.planLog.shift(); stat(ok?"vorhaben_ok":"vorhaben_nein");
   if(!ok){log("Vorhaben „"+p.n+"“ hat diesmal nicht geklappt. Morgen ist ein neuer Versuch.","info"); return null}
   S.points+=20; S.glueck=clamp(S.glueck+2,0,100); S.actTotals[id]=(S.actTotals[id]||0)+1;
   if(S.wish&&S.wish.type==="plan"&&S.wish.plan===id) fulfillWish();
@@ -999,6 +1000,7 @@ function weekBars(w){
     <path d="M4 ${y(S.budget)}H${W-4}" stroke="#B6A4FF" stroke-width="1.5" stroke-dasharray="5 4"/></svg>`;
 }
 function weekSheet(wk){
+  stat("rueckblick");
   const w=weekData(wk); if(!w) return showPending();
   const eq=equivTop(w.saved), kw=+wk.split("-W")[1], end=addDays(w.mon,6);
   const sameM=parse(w.mon).getMonth()===parse(end).getMonth(), range=(sameM?parse(w.mon).getDate()+".":parse(w.mon).toLocaleDateString("de-DE",{day:"numeric",month:"short"}))+" – "+parse(end).toLocaleDateString("de-DE",{day:"numeric",month:sameM?"long":"short"});
@@ -1088,7 +1090,7 @@ function ringAlarm(){
 }
 function startBoat(dur,cat,task){
   const crew=adults().find(r=>r.job==="fischer")||pick(adults())||null;
-  S.boat={start:Date.now(),dur,crew:crew?crew.id:null,left:0,cat:cat||"ruhe",task:task||""}; save();
+  stat("boot"); S.boat={start:Date.now(),dur,crew:crew?crew.id:null,left:0,cat:cat||"ruhe",task:task||""}; save();
   if(S.alarm!==false){const keep=S.sound;S.sound=true;audio();S.sound=keep}   // Ton jetzt freischalten, solange getippt wurde
   alarmSchedule(S.boat);
   const el=document.documentElement;
@@ -1209,7 +1211,7 @@ function updateFocus(){
   set("fSun",lerp(40,320,p),340-Math.sin(p*Math.PI)*110);
 }
 function sleeping(){const h=new Date().getHours();return !!(S.night&&S.night.after===S.lastDay&&(h>=20||h<9))}
-function goodNight(){S.night={after:S.lastDay,at:Date.now()};log("Gute Nacht, Insel. Das Handy ruht bis morgen.","info");
+function goodNight(){stat("nacht");S.night={after:S.lastDay,at:Date.now()};log("Gute Nacht, Insel. Das Handy ruht bis morgen.","info");
   if(S.wish&&S.wish.type==="nacht"){fulfillWish();save();render();showPending();return}
   save();render();toast("Gute Nacht! Morgen gibt es Traumpunkte.")}
 function setVacation(on){
@@ -1367,6 +1369,7 @@ function closeDay(min,quests,appMin){
   S.points+=pts;
   S.monsters=monsters;
   S.days.push({day,min,quests,glueck:S.glueck,sunny,pts,apps:appMin,monsters,by:MY_ID||null});
+  statsActive(); stat("tag"); stat(diff>=0?"tag_gut":"tag_schlecht"); if([1,3,7,14,30,60,100].includes(S.days.length)) stat("tage_"+S.days.length);
   S.lastDay=day; S.dayCount++;
   unlockCheck();
   // Joker: einmal pro Woche bricht ein schlechter Tag die Serie nicht
@@ -1450,13 +1453,14 @@ function closeDay(min,quests,appMin){
   // Projekt
   const p=curProjects()[S.projectIdx];
   if(p&&S.material>=p.hours*60){
-    S.material-=p.hours*60; S.built.push(p.id); S.projectIdx++; S.builtLog.push({id:p.id,day});
+    S.material-=p.hours*60; S.built.push(p.id); stat("projekt"); S.projectIdx++; S.builtLog.push({id:p.id,day});
     chron([],"Großprojekt fertig: "+p.name+".");
     log("Großprojekt fertig: "+p.name+". "+p.text+".","good");
     S.pending.push({type:"project",id:p.id});
   }
   checkDiscovery();
   chapterCheck();
+  if(netConfigured()&&statsDev().consent===undefined&&!S.pending.some(e=>e.type==="statsAsk")) S.pending.push({type:"statsAsk"});
   save(); render(); showPending();
 }
 /* Neue Insel entdeckt, sobald alle Großprojekte der aktuellen Welt stehen */
@@ -1471,7 +1475,7 @@ function checkDiscovery(){
 }
 function travel(){
   if(!((S.found||0)>(S.world||0))) return;
-  const from=curWorld(); S.world=(S.world||0)+1; S.projectIdx=0; islandView=0;
+  const from=curWorld(); S.world=(S.world||0)+1; S.projectIdx=0; islandView=0; stat("welt_"+S.world);
   if(S.wish&&(!S.wish.type||S.wish.type==="item")){S.wish=null;S.lastWishEnd=S.dayCount}
   const W=curWorld(); S.points+=100;
   log("Die ganze Inselgemeinschaft ist von "+from.name+" nach "+W.name+" gezogen. +100 Punkte Umzugsgeld.","good");
@@ -1807,7 +1811,7 @@ function worldPhoto(w,k){
 function chapterCheck(silent){
   if(S.chapter==null){S.chapter=0; if(S.dayCount>0) silent=true}            // ältere Spielstände: erledigte Kapitel still nachholen
   while(S.chapter<CHAPTERS.length&&CHAPTERS[S.chapter].ok()){
-    const n=S.chapter; S.chapter++;
+    const n=S.chapter; S.chapter++; if(!silent) stat("kapitel_"+(n+1));
     chron([],"Kapitel "+(n+1)+" geschafft: "+CHAPTERS[n].n+".");
     if(!silent) S.pending.push({type:"chapter",n});
   }
@@ -1850,6 +1854,7 @@ function viewBayAlbum(){
     <p class="row between"><span class="small muted">${done?`Zuletzt: <b style="color:var(--ink)">${esc(c.n)}</b>`:"Noch leer. Das erste Foto kommt bald."}</span><span class="bay-open">Durchblättern ›</span></p></button>`;
 }
 function bayAlbumSheet(){
+  stat("album");
   const done=Math.min(S.chapter,CHAPTERS.length), next=CHAPTERS[done];
   const slides=CHAPTERS.slice(0,done).map((c,i)=>`<p class="label" style="color:var(--amber)">Kapitel ${i+1}</p><h2>${esc(c.n)}</h2>
       <figure class="bay-photo"><div class="story-art past">${c.world?worldPhoto(c.world,c.k):damalsArt(i)}</div><figcaption>${c.world?"Reisefoto":"Damals"}</figcaption></figure>
@@ -1899,8 +1904,8 @@ function storySheet(existing){
   box.onscroll=()=>{upd(); clearTimeout(box._t); box._t=setTimeout(talk,180)};
   sfx("story"); talk();
   const done=()=>{S.storySeen=true;save();closeModal();render();showPending()};
-  $("#storyNext").onclick=()=>{const i=idx(); if(i>=last) return done(); box.scrollTo({left:(i+1)*box.clientWidth,behavior:"smooth"})};
-  $("#storySkip").onclick=done;
+  $("#storyNext").onclick=()=>{const i=idx(); if(i>=last){stat("intro_ende");return done()} box.scrollTo({left:(i+1)*box.clientWidth,behavior:"smooth"})};
+  $("#storySkip").onclick=()=>{stat("intro_skip");done()};
 }
 
 /* Bildausschnitt, in dem ein Tier ganz zu sehen ist (Wal und Delfin sind breiter als die anderen) */
@@ -2540,6 +2545,7 @@ function feedCard(key,title,items,empty){
     ${items.length>3?`<button class="btn secondary" data-feed="${key}">Alle anzeigen</button>`:""}</div>`;
 }
 function feedSheet(key){
+  stat(key==="chron"?"chronik_alle":"tagebuch_alle");
   const all=key==="chron"?S.chronicle.slice().reverse().map(c=>({text:c.text,day:c.day,kind:"info"})):S.feed.slice();
   const title=key==="chron"?"Inselchronik":"Inseltagebuch";
   let filt="all", shown=30;
@@ -2851,6 +2857,9 @@ function settingsHtml(){
   </div>`:""}
   ${stCard()}
   ${netConfigured()?backupCard():""}
+  ${netConfigured()?`<div class="card"><p class="label">Anonyme Statistik</p>
+    <label class="check" for="statsToggle"><input type="checkbox" id="statsToggle" ${statsDev().consent===true?"checked":""}> Anonym mitzählen, welche Funktionen genutzt werden</label>
+    <p class="small muted">Nur Zähler wie „heute wurde ein Tag eingetragen“, ohne Namen, Bildschirmzeiten oder Kennung. Gilt für dieses Gerät.</p></div>`:""}
   <div class="card"><p class="label">Sicherung</p>
     <p class="small muted">Dein Spielstand liegt nur in diesem Browser. Lade ab und zu eine Sicherung herunter, um ihn auf ein anderes Gerät mitzunehmen.</p>
     <div class="row"><button class="btn secondary grow" id="exportBtn">Sichern</button><button class="btn secondary grow" id="importBtn">Laden</button></div>
@@ -2943,7 +2952,7 @@ function bind(){
   if(sb) sb.oninput=()=>{S.budget=+sb.value;$("#setBudgetOut").textContent=hm(S.budget)};
   if(sa) sa.oninput=()=>{S.baseline=+sa.value;$("#setBaseOut").textContent=hm(S.baseline)};
   if(sb) sb.onchange=save; if(sa) sa.onchange=save;
-  const st=$("#startBtn"); if(st) st.onclick=()=>{S.setup=true;log("Deine Insel ist gegründet. "+nameList(here().map(r=>r.name))+" ziehen ein.","good");save();render();if(famInvite())famJoinSheet(famInvite())};
+  const st=$("#startBtn"); if(st) st.onclick=()=>{S.setup=true;stat("insel_start");log("Deine Insel ist gegründet. "+nameList(here().map(r=>r.name))+" ziehen ein.","good");save();render();if(famInvite())famJoinSheet(famInvite())};
   const bo=$("#bkOn"); if(bo) bo.onclick=backupEnable;
   const wsb=$("#wishShop"); if(wsb) wsb.onclick=()=>{tab="projekt";bauTab="laden";render();window.scrollTo(0,0)};
   document.querySelectorAll("[data-bau]").forEach(b=>b.onclick=()=>{bauTab=b.dataset.bau;render();const t=$("[data-bau]");if(t&&t.getBoundingClientRect().top<0)t.scrollIntoView({block:"start"})});
@@ -2966,6 +2975,7 @@ function bind(){
     ra.disabled=false;ra.textContent="Hinzufügen";
     if(e) return $("#rkErr").textContent=e; sfx("project"); toast(LAST_PLUS?"Verbunden! Ein Monat Plus ist aktiv.":"Verbunden! Gemeinsames Ziel gestartet."); rankTab="freunde"; RANKC=null; render()};
   const on=$("#netToggle"); if(on) on.onchange=async()=>{if(on.checked){on.checked=false;onlineConsent(()=>{closeModal();render();toast("Du bist online!")})}else{on.disabled=true;await netDeleteAll();toast("Online-Daten gelöscht");render()}};
+  const stt=$("#statsToggle"); if(stt) stt.onchange=()=>{statsSet(stt.checked);toast(stt.checked?"Danke fürs Mithelfen!":"Statistik aus")};
   const pb=$("#netPub"); if(pb) pb.onchange=()=>{S.online.pub=pb.checked;save();netSync()};
   const ia=$("#inviteAccept"); if(ia) ia.onclick=inviteSheet;
   const gg=$("#goalGo"); if(gg) gg.onclick=()=>{const c=$("#closeCard");if(c)c.scrollIntoView({behavior:"smooth",block:"start"});setTimeout(()=>{const h=$("#inH");if(h)h.focus({preventScroll:true})},450)};
@@ -3012,7 +3022,7 @@ function bind(){
     const it=allItems().find(x=>x.id===btn.dataset.buy), cost=price(it); if(S.points<cost) return;
     S.points-=cost;
     if(it.consumable){if(it.id==="tee")S.tea++;else if(it.id==="klee")S.glueck=clamp(S.glueck+5,0,100);else S.sun++} else if(!owns(it.id)){ if(!S.items.includes(it.id)) S.items.push(it.id); if(!it.world&&RARE.includes(it)){S.itemW=S.itemW||{};S.itemW[it.id]=curWorldId()} }
-    sfx("buy"); log("Gekauft: "+it.n+" für "+cost+" Punkte.","good"); toast(it.n+(it.consumable?" auf Vorrat":" steht jetzt auf deiner Insel"));
+    sfx("buy"); stat("kauf"); log("Gekauft: "+it.n+" für "+cost+" Punkte.","good"); toast(it.n+(it.consumable?" auf Vorrat":" steht jetzt auf deiner Insel"));
     if(S.wish&&(!S.wish.type||S.wish.type==="item")&&S.wish.item===it.id) fulfillWish();
     save(); render(); showPending();
   });
@@ -3152,6 +3162,7 @@ function showPending(){
   if(ev.type==="week") return weekSheet(ev.wk);
   if(ev.type==="planAsk") return planAskSheet(ev);
   if(ev.type==="chapter") return chapterSheet(ev.n,true);
+  if(ev.type==="statsAsk"){CUR_EV=null; if(statsDev().consent!==undefined) return showPending(); return statsAskSheet()}
   if(ev.type==="jokerAsk"){
     if(S.jokerWk===ev.wk||S.lastDay!==ev.day) return showPending();
     $("#modalRoot").innerHTML=`<div class="modal"><div class="sheet" role="dialog" aria-modal="true">
@@ -3160,11 +3171,11 @@ function showPending(){
       <p class="muted">Heute warst du über deinem Budget. Damit würde deine Serie von <b style="color:var(--ink)">${ev.streak} Tagen</b> reißen. Mit dem Joker bleibt sie bestehen.</p>
       <p class="small muted">Du hast einen Joker pro Woche. Setzt du ihn jetzt nicht ein, kannst du ihn bis Sonntag für einen anderen Tag aufheben.</p>
       <button class="btn" id="jkYes">Joker einsetzen</button><button class="btn ghost" id="jkNo">Aufheben</button></div></div>`;
-    $("#jkYes").onclick=()=>{S.jokerWk=ev.wk;S.budgetStreak=ev.streak;log("Joker eingesetzt: Deine Serie von "+ev.streak+" Tagen im Budget bleibt bestehen.","info");
+    $("#jkYes").onclick=()=>{stat("joker_ja");S.jokerWk=ev.wk;S.budgetStreak=ev.streak;log("Joker eingesetzt: Deine Serie von "+ev.streak+" Tagen im Budget bleibt bestehen.","info");
       const d=S.pending.find(x=>x.type==="day"&&x.day===ev.day); if(d) d.joker=ev.streak;
       save();render();setTimeout(netSync,300);
       sheet(`<div class="joker-big flip" aria-hidden="true">🃏</div><p class="label" style="color:var(--amber)">Joker eingesetzt</p><h2>Deine Serie lebt!</h2><p class="muted">${ev.streak} Tage im Budget, und es geht weiter. Morgen ist ein neuer guter Tag.</p><button class="btn" data-ok>Weiter</button>`)};
-    $("#jkNo").onclick=()=>{closeModal();render();showPending()};
+    $("#jkNo").onclick=()=>{stat("joker_nein");closeModal();render();showPending()};
     return;
   }
   if(ev.type==="surprise") return surpriseSheet(ev);
@@ -3694,6 +3705,7 @@ async function netInit(){
       get:async p=>{const d=await F.getDoc(F.doc(db,p));return d.exists()?d.data():null},
       set:(p,v)=>F.setDoc(F.doc(db,p),v,{merge:true}),
       del:p=>F.deleteDoc(F.doc(db,p)),
+      inc:(p,o)=>{const v={};for(const k in o)v[k]=F.increment(o[k]);return F.setDoc(F.doc(db,p),v,{merge:true})},
       list:async(p,o)=>{o=o||{};const c=F.collection(db,p);
         const q=o.where?F.query(c,F.where(o.where[0],"==",o.where[1]),F.limit(o.limit||50)):o.orderBy?F.query(c,F.orderBy(o.orderBy),F.limit(o.limit||50)):c;
         const r=await F.getDocs(q);return r.docs.map(d=>Object.assign({id:d.id},d.data()))},
@@ -3714,6 +3726,41 @@ function weekStats(){
   return {wk,days:ds.length,avg,good:ds.filter(d=>d.min<=S.budget).length};
 }
 const netName=()=>(ACC?ACC.name:"Insel").slice(0,20), netAv=()=>ACC?ACC.avatar:"Ziege";
+/* ---------- Anonyme Nutzungsstatistik (nur mit Zustimmung) ----------
+   Gilt pro Gerät, nicht pro Konto. Gesendet werden nur Zähler pro Tag (z. B. „tag_gut +1“) nach stats/JJJJ-MM-TT:
+   keine Namen, keine Minuten, keine Kennungen. Bis zur Zustimmung bleibt die Warteschlange auf dem Gerät. */
+const STATS_KEY="offland-stats";
+function statsDev(){try{return JSON.parse(localStorage.getItem(STATS_KEY))||{}}catch(e){return {}}}
+function statsPut(d){try{localStorage.setItem(STATS_KEY,JSON.stringify(d))}catch(e){}}
+function stat(name,n){
+  const d=statsDev(); if(d.consent===false) return;
+  const q=d.q||(d.q={}); if(!(name in q)&&Object.keys(q).length>=80) return;
+  q[name]=(q[name]||0)+(n||1); statsPut(d); statsFlushSoon();
+}
+const statsPlatform=()=>window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform()?"ios":(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)||navigator.standalone?"pwa":"web";
+function statsActive(){
+  const d=statsDev(), t=today(); if(d.consent===false||d.active===t) return;
+  if(!d.since) d.since=t; d.active=t; statsPut(d);
+  const age=Math.round((parse(t)-parse(d.since))/864e5), b=age===0?"0":age===1?"1":age<4?"2_3":age<8?"4_7":age<15?"8_14":age<31?"15_30":"31";
+  stat("aktiv"); stat("aktiv_"+statsPlatform()); stat("aktiv_t"+b);
+}
+let statsTimer=0;
+function statsFlushSoon(){clearTimeout(statsTimer);statsTimer=setTimeout(statsFlush,4000)}
+async function statsFlush(){
+  const d=statsDev(); if(d.consent!==true||!netConfigured()||!d.q||!Object.keys(d.q).length) return;
+  const q=d.q; d.q={}; statsPut(d);
+  try{const N=await netInit(); if(!N.inc) throw 0; await N.inc("stats/"+today(),q)}
+  catch(e){const d2=statsDev(); if(d2.consent!==true) return; d2.q=d2.q||{}; for(const k in q) d2.q[k]=(d2.q[k]||0)+q[k]; statsPut(d2)}
+}
+function statsSet(on){const d=statsDev(); d.consent=!!on; if(!on) d.q={}; statsPut(d); if(on){statsActive();statsFlushSoon()}}
+function statsAskSheet(){
+  sheet(`<p class="label" style="color:var(--lime)">Kurze Frage</p><h2>Hilfst du mit, OffLand besser zu machen?</h2>
+    ${saysHtml("bay","Ich würde gern anonym mitzählen, was auf OffLand gut läuft und was nicht. Keine Namen, keine Bildschirmzeiten. Versprochen, ich bin nur neugierig.")}
+    <p class="small muted">Gezählt wird nur, wie oft etwas passiert, zum Beispiel „heute wurde ein Tag eingetragen“ oder „ein Vorhaben wurde geschafft“. Nichts davon lässt sich dir zuordnen. Du kannst das jederzeit in den Einstellungen ändern.</p>
+    <div class="row"><button class="btn secondary grow" id="stNo" data-ok>Lieber nicht</button><button class="btn grow" id="stYes" data-ok>Ja, gern</button></div>`);
+  $("#stYes").onclick=()=>{statsSet(true);closeModal();render();showPending();toast("Danke! Mr. Bay freut sich.")};
+  $("#stNo").onclick=()=>{statsSet(false);closeModal();render();showPending()};
+}
 /* Spielerprofil und Code anlegen bzw. zurückholen */
 async function netEnsure(){
   const N=await netInit(); const o=S.online;
@@ -3829,7 +3876,7 @@ function onlineConsent(after){
   $("#ocNo").onclick=()=>{closeModal();render()};
   $("#ocYes").onclick=async()=>{
     const btn=$("#ocYes"); btn.disabled=true; btn.textContent="Verbinde …";
-    S.online.on=true; S.online.pub=$("#ocPub").checked;
+    S.online.on=true; S.online.pub=$("#ocPub").checked; stat("online_an");
     try{
       await netEnsure();
       for(const b of S.buddies.filter(x=>!x.pid)){try{const r=await netConnect(b.code);if(r.pid){b.pid=r.pid;b.name=r.name}}catch(e){}}
@@ -3996,6 +4043,7 @@ function duelCancelSheet(){
   $("#dcYes").onclick=()=>{closeModal();duelCancel()};
 }
 function duelChallenge(r){
+  stat("duell");
   S.duel={vs:r.id,name:r.name||"?",avatar:r.avatar||"Ziege",wk:isoWeek(today()),by:"me"};
   log("Du hast "+S.duel.name+" zum Duell der Woche herausgefordert.","info");
   save(); RANKC=null; toast("Duell gestartet!"); netSync().then(()=>fillRanks(true));
@@ -4447,7 +4495,7 @@ function famLookSheet(){
     const b=$("#flOk");b.disabled=true;b.textContent="Speichere …";await famSync();closeModal();render();toast("Figur gespeichert")};
 }
 async function famJoinId(fid,name,code,share){
-  const N=await netInit(), mid=rid();
+  const N=await netInit(), mid=rid(); stat("familie");
   await N.set("families/"+fid+"/uids/"+N.uid,{at:Date.now()});
   S.family={id:fid,name,code,mid,share:!!share,joined:today(),claimed:{}};
   await N.set("families/"+fid+"/members/"+mid,Object.assign({owner:N.uid},famMine()));
@@ -4599,6 +4647,7 @@ function login(p){
   document.body.classList.remove("start"); $("#start").innerHTML="";
   closeModal(); render(); window.scrollTo(0,0);
   if(S.setup){chapterCheck(true);save()}
+  statsActive(); statsFlushSoon();
   if(!S.storySeen) storySheet(!!S.setup); else showPending();
   if(S.setup&&pendingInvite()&&!$("#modalRoot").innerHTML) inviteSheet();
   if(S.setup&&famInvite()&&!S.family&&!$("#modalRoot").innerHTML) famJoinSheet(famInvite());
@@ -4658,7 +4707,7 @@ function showStart(){
     :`<div class="card"><p class="label">So funktioniert's</p><ul class="steps"><li>Trag abends deine Bildschirmzeit ein.</li><li>Bleibst du im Budget, wird deine Insel glücklicher und wächst.</li><li>Zu viel Handy bringt Wolken, Streit und App-Monster.</li></ul></div>
       <button class="btn" id="newAcc">Konto anlegen</button>`}
     ${netConfigured()?`<button class="btn ghost" id="restoreBtn">Insel aus Backup holen</button>`:""}
-    <p class="small muted" style="text-align:center">Alle Daten bleiben auf diesem Gerät, außer du schaltest Online-Funktionen ein.</p>
+    <p class="small muted" style="text-align:center">Alle Daten bleiben auf diesem Gerät, außer du schaltest Online-Funktionen oder die anonyme Statistik ein.</p>
   </div>`;
   document.querySelectorAll("[data-login]").forEach(b=>b.onclick=()=>{const p=profiles().find(x=>x.id===b.dataset.login);if(p)tryLogin(p)});
   $("#newAcc").onclick=showCreate;
@@ -4692,7 +4741,7 @@ function showCreate(){
     const p={id:uid(),name,avatar,salt:uid(),pin:null,created:Date.now()};
     if(pin) p.pin=await hashPin(pin,p.salt);
     const list=profiles(); list.push(p); storeProfiles(list);
-    login(p); toast("Willkommen, "+name+"!");
+    login(p); toast("Willkommen, "+name+"!"); stat("konto_neu");
   };
 }
 

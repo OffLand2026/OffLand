@@ -114,6 +114,16 @@ service cloud.firestore {
         && request.resource.data.at == request.time;
     }
 
+    // Anonyme Nutzungsstatistik (nur mit Zustimmung in der App): ein Dokument pro Tag, nur Zähler,
+    // keine Namen und keine Kennungen. Lesen einzeln für die Auswertung (scripts/statistik.mjs).
+    match /stats/{day} {
+      allow get: if signedIn();
+      allow create: if signedIn() && day.matches('^20[0-9]{2}-[0-9]{2}-[0-9]{2}$')
+        && request.resource.data.keys().size() <= 200;
+      allow update: if signedIn() && request.resource.data.keys().size() <= 200
+        && request.resource.data.diff(resource.data).affectedKeys().size() <= 80;
+    }
+
     // Rangliste für alle: nur wer zugestimmt hat, steht hier.
     match /weeks/{wk}/public/{pid} {
       allow get: if signedIn();
