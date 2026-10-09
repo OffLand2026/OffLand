@@ -445,3 +445,9 @@ body.focus-on{overflow:hidden}
    Inhalt in eine eigene Stapelebene unter der Leiste, Leiste auf eine eigene Ebene darüber. */
 #view{position:relative;z-index:0;isolation:isolate}
 .tabs{-webkit-transform:translateZ(0);transform:translateZ(0)}
+/* Bewohner: Lagerfeuer flackert, Lichterkette glimmt */
+@keyframes fireFl{0%,100%{transform:scale(1)}50%{transform:scale(1.12,.9)}}
+.fire-fl{animation:fireFl .6s ease-in-out infinite;transform-box:fill-box;transform-origin:bottom}
+@keyframes lampTw{0%,100%{opacity:.45}50%{opacity:1}}
+.lamp-tw{animation:lampTw 1.6s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.fire-fl,.lamp-tw{animation:none}}
