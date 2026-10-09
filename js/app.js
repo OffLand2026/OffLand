@@ -4701,8 +4701,9 @@ function startHero(){
 let START_TALK=null;
 function startTalk(name){
   clearInterval(START_TALK);
-  const lines=name?[["bay","Da bist du ja wieder, "+name+"! Die Insel hat schon gefragt."],["luc","Ich nicht. Ich hab geschlafen. Schön, dass du da bist."],["bay","Weniger Bildschirm, mehr Insel. Du kennst das ja."],["luc","Er sagt das jeden Tag. Ich hab aufgehört zu zählen."]]
-    :[["bay","Willkommen auf OffLand! Ich bin Mr. Bay, der Bürgermeister."],["luc","Und ich bin Lucifer. Ich war zuerst hier."],["bay","Hier zählt nicht die Zeit am Bildschirm, sondern die Zeit dazwischen."],["luc","Er hat das auf ein Kissen sticken lassen. Ich schlaf drauf."],["bay","Komm rein, die Insel wartet schon auf dich."],["luc","Ich warte nicht. Ich bin nur zufällig hier."]];
+  // Die beiden schicken dich eher raus, als dass sie dich festhalten: kurz eintragen, Handy weg
+  const lines=name?[["bay","Hallo "+name+"! Kurz eintragen, dann Handy weg. So mögen wir das."],["luc","Mach's kurz. Draußen passiert mehr als hier."],["bay","Die Insel wächst, wenn du nicht hier bist. Klingt komisch, ist aber so."],["luc","Ich zähl mit, wie lange du bleibst. Je kürzer, desto stolzer bin ich."]]
+    :[["bay","Willkommen auf OffLand! Ich bin Mr. Bay, der Bürgermeister."],["luc","Und ich bin Lucifer. Ich war zuerst hier."],["bay","Hier gewinnst du, wenn du weniger am Handy bist. Auch weniger hier."],["luc","Einmal am Abend vorbeischauen reicht. Den Rest des Tages verschlaf ich eh."],["bay","Den Rest macht das echte Leben. Wir freuen uns nur mit."],["luc","Ich mag Leute, die schnell wieder gehen. Nimm's nicht persönlich."]];
   let i=0;
   const show=()=>{const b=$("#startBub"); if(!b){clearInterval(START_TALK);return}
     const [who,t]=lines[i++%lines.length];
