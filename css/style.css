@@ -436,3 +436,4 @@ body.focus-on{overflow:hidden}
 .ah-card.empty{background:transparent;border:2px dashed #6E5F78;aspect-ratio:350/120;display:flex;align-items:center;justify-content:center;box-shadow:none}
 .ah-card.empty span{color:#8C7C96;font:800 22px var(--display)}
 .ah-find{position:absolute}
+.tiles2 .tile.dashed{background:transparent;border:1.5px dashed #3A3D58}
