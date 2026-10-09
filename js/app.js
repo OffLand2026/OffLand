@@ -2358,6 +2358,32 @@ function makeCard(g,hint){
 }
 /* Fanpost: Verwandte und Nachbarinseln schreiben, was sie Gutes über die Insel gehört haben.
    Aus Anrede, Inhalt und Gruß zusammengesetzt; freshLine sorgt dafür, dass sich Inhalte nicht schnell wiederholen */
+/* Besuch bei voller Insel: anschauen, weiterziehen lassen oder gegen ein anderes Tier tauschen (mit Rückfrage) */
+function guestSheet(ev){
+  const cand=here().filter(r=>r.kind==="tier"&&!isPet(r)&&r.art!==ev.art).slice(0,8);   // nur Tiere, die einen Platz belegen
+  const all=LAND.concat(SEA).concat(FAR_ANIMALS), seen=new Set(S.residents.filter(r=>r.kind==="tier").map(r=>r.art).concat(S.seenArts||[]));
+  const er=GENUS[ev.art]==="f"?"sie":GENUS[ev.art]==="n"?"es":"er";
+  sheet(`<div style="align-self:center" class="pop fb">${avatarSvg(ev.art,120)}</div>
+    <p class="label" style="color:var(--lime)">Besuch</p><h2>${esc(artikel(ev.art,true))} ${esc(ev.art)} schaut vorbei!</h2>
+    <p class="muted">Die Insel ist gerade voll. Für deine Sammlung zählt der Besuch schon: Tierart ${all.filter(a=>seen.has(a)).length} von ${all.length}.</p>
+    ${cand.length?`<p style="font-weight:700">Soll ${er} bleiben? Dann zieht dafür ein anderes Tier zu Freunden auf die Möweninsel.</p>
+    <div class="swap-row">${cand.map(r=>`<button type="button" class="swap" data-swap="${r.id}">${avatarSvg(r.art,40)}<span><b>${esc(r.name)}</b><small>${esc(r.art)}</small></span></button>`).join("")}</div>`:""}
+    <button class="btn${cand.length?" secondary":""}" data-ok>Weiterziehen lassen</button>`,
+    ()=>document.querySelectorAll("#modalRoot [data-swap]").forEach(b=>b.onclick=()=>guestConfirm(ev,b.dataset.swap)));
+}
+function guestConfirm(ev,id){
+  const old=S.residents.find(r=>r.id===id); if(!old) return guestSheet(ev);
+  const neu=artikel(ev.art)+" "+ev.art;
+  $("#modalRoot").innerHTML=`<div class="modal"><div class="sheet" role="dialog" aria-modal="true">
+    <div class="row" style="justify-content:center;gap:18px;align-items:center">${avatarSvg(old.art,84)}<svg width="34" height="20" viewBox="0 0 34 20" aria-hidden="true"><path d="M2 10h26M20 3l8 7-8 7" fill="none" stroke="#A4A6BD" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>${avatarSvg(ev.art,84)}</div>
+    <p class="label" style="color:var(--amber)">Wirklich tauschen?</p>
+    <h2>${esc(old.name)} zieht für ${esc(neu)} um</h2>
+    <p class="muted">${esc(old.name)} (${esc(old.art)}) zieht zu Freunden auf die Möweninsel und kommt nicht zurück. Dafür bleibt ${esc(neu)} auf deiner Insel.</p>
+    <button class="btn" id="swapYes">Ja, ${esc(old.name)} gehen lassen</button>
+    <button class="btn ghost" id="swapNo">Zurück</button></div></div>`;
+  $("#swapYes").onclick=()=>guestSwap(ev.art,id);
+  $("#swapNo").onclick=()=>guestSheet(ev);
+}
 /* Besuch bleibt: ein anderes Tier zieht dafür zu Freunden auf die Möweninsel (kommt nicht zurück) */
 function guestSwap(art,id){
   const old=S.residents.find(r=>r.id===id&&r.status==="da"); if(!old) return;
@@ -3559,18 +3585,7 @@ function showPending(){
     return sheet(`<div class="anim">${base(`<g transform="translate(240 134) scale(1.2)">${itemSvg("feuer")}</g>`+here().filter(r=>r.kind==="mensch").slice(0,5).map((r,i)=>`<g class="bob" style="animation-delay:${i*.2}s">${figure(r,200+i*16+(i>1?24:0),136)}</g>`).join("")+`${[0,1,2,3,4,5].map(i=>`<g class="glow" style="animation-delay:${i*.3}s"><circle cx="${190+i*22}" cy="${80+(i%2)*8}" r="4" fill="#FFD27A"/></g>`).join("")}`+confetti(),false)}</div>
       <p class="label" style="color:var(--amber)">Inselfest</p><h2>Die Insel feiert dich</h2><p class="muted">${ev.good} von 7 Tagen im Budget. Laternen, Lagerfeuer und Musik: +5 % Glück und +30 Punkte.</p><button class="btn" data-ok>Mitfeiern</button>`);
   }
-  if(ev.type==="guest"){
-    const cand=here().filter(r=>r.kind==="tier"&&!isPet(r)&&r.art!==ev.art).slice(0,8);   // nur Tiere, die einen Platz belegen
-    const all=LAND.concat(SEA).concat(FAR_ANIMALS), seen=new Set(S.residents.filter(r=>r.kind==="tier").map(r=>r.art).concat(S.seenArts||[]));
-    const er=GENUS[ev.art]==="f"?"sie":GENUS[ev.art]==="n"?"es":"er";
-    return sheet(`<div style="align-self:center" class="pop fb">${avatarSvg(ev.art,120)}</div>
-      <p class="label" style="color:var(--lime)">Besuch</p><h2>${esc(artikel(ev.art,true))} ${esc(ev.art)} schaut vorbei!</h2>
-      <p class="muted">Die Insel ist gerade voll. Für deine Sammlung zählt der Besuch schon: Tierart ${all.filter(a=>seen.has(a)).length} von ${all.length}.</p>
-      ${cand.length?`<p style="font-weight:700">Soll ${er} bleiben? Dann zieht dafür ein anderes Tier zu Freunden auf die Möweninsel.</p>
-      <div class="swap-row">${cand.map(r=>`<button type="button" class="swap" data-swap="${r.id}">${avatarSvg(r.art,40)}<span><b>${esc(r.name)}</b><small>${esc(r.art)}</small></span></button>`).join("")}</div>`:""}
-      <button class="btn${cand.length?" secondary":""}" data-ok>Weiterziehen lassen</button>`,
-      ()=>document.querySelectorAll("#modalRoot [data-swap]").forEach(b=>b.onclick=()=>guestSwap(ev.art,b.dataset.swap)));
-  }
+  if(ev.type==="guest") return guestSheet(ev);
   if(ev.type==="discovery"){
     const W=WORLDS[ev.world]; CUR_EV=null; if(!W) return showPending();
     $("#modalRoot").innerHTML=`<div class="modal"><div class="sheet" role="dialog" aria-modal="true">
