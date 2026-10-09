@@ -477,3 +477,4 @@ body:has(#modalRoot .modal) .toast{bottom:auto;top:calc(16px + env(safe-area-ins
 .uf-chip input:focus-visible+span{outline:2px solid var(--lime);outline-offset:2px}
 .uf-text{width:100%;margin-top:6px;border-radius:16px;padding:12px 14px;background:var(--ground);color:var(--ink);border:1.5px solid var(--line);font:500 16px var(--body);resize:vertical}
 .uf .field{font-weight:700;font-size:15px}.uf .field .muted{font-weight:500}
+.guest{cursor:pointer}

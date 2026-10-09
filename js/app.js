@@ -383,7 +383,7 @@ function migrate(st){
   if(st.points==null)st.points=0; if(!st.items)st.items=[]; if(!st.sun)st.sun=0;
   if(!st.rel)st.rel={}; if(st.conflict===undefined)st.conflict=null;
   if(!st.arrC)st.arrC=0; if(!st.birthC)st.birthC=0;
-  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,focusLog:[],alarm:true,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null},family:null,plan:null,planLog:[],weekReady:null,storySeen:false,chapter:null,fests:0,freed:0,duelOff:null,jokerWk:null,lastSurprise:0,surprises:[],duel:null,duelLog:[],lineLog:[],seenArts:[],umfrage:{}};
+  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,focusLog:[],alarm:true,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null},family:null,plan:null,planLog:[],weekReady:null,storySeen:false,chapter:null,fests:0,freed:0,duelOff:null,jokerWk:null,lastSurprise:0,surprises:[],duel:null,duelLog:[],lineLog:[],seenArts:[],umfrage:{},guests:[]};
   if(st.plusFriend===undefined) st.plusFriend=(st.buddies||[]).length?"alt":null;   // Plus-Monat fürs Einladen gibt es nur einmal
   if(st.allFeatures===undefined) st.allFeatures=(st.dayCount||0)>=1;          // wer schon gespielt hat, behält alles
   for(const k in D){ if(st[k]===undefined) st[k]=D[k]; }
@@ -475,7 +475,7 @@ function arrival(){
     if(blocked.length){const art=pick(blocked); (S.seenArts=S.seenArts||[]).push(art);
       log(artikel(art,true)+" "+art+" war zu Besuch. Für ein Zuhause war kein Platz, aber in der Sammlung ist die Art jetzt dabei.","good");
       chron([],artikel(art,true)+" "+art+" hat die Insel besucht.");
-      S.pending.push({type:"guest",art}); return}
+      S.guests=(S.guests||[]).concat({id:uid(),art,until:S.dayCount+2}).slice(-2); S.pending.push({type:"guest",art}); return}
   }
   if(full&&!petRoom()) {log("Jemand wollte einziehen, aber es ist kein Platz frei. Ein Großprojekt schafft neuen Platz.","info");return}
   const humans=here().filter(r=>r.kind==="mensch").length, animals=here().length-humans;
@@ -1384,6 +1384,7 @@ function closeDay(min,quests,appMin){
   S.days.push({day,min,quests,glueck:S.glueck,sunny,pts,apps:appMin,monsters,by:MY_ID||null});
   statsActive(); stat("tag"); stat(diff>=0?"tag_gut":"tag_schlecht"); if([1,3,7,14,30,60,100].includes(S.days.length)) stat("tage_"+S.days.length);
   S.lastDay=day; S.dayCount++;
+  S.guests=(S.guests||[]).filter(g=>g.until>S.dayCount);                  // Besuch bleibt zwei Tage
   unlockCheck();
   // Joker: einmal pro Woche bricht ein schlechter Tag die Serie nicht
   // Joker möglich? Dann fragt die Insel gleich nach (vor der Tagesbilanz)
@@ -2246,6 +2247,9 @@ function scene(){
     const wx=4+h%9, dur=7+(h>>>4)%8, del=-((h>>>8)%100)/10;
     s+=`<g transform="translate(${x} ${y})"><g class="${idle?"":"wander"}" style="--wx:${wx}px;animation-duration:${dur}s;animation-delay:${del}s"><g class="${sleep?"":"bob"}" style="animation-duration:${2.2+(h%9)/10}s;animation-delay:${-((h>>>3)%28)/10}s">${figure(r,0,0)}</g></g></g>`;
   });
+  if(home) guestNow().forEach((g,i)=>{const sea=SEA.includes(g.art), x=sea?[cx+136,cx-138][i]:[cx-104,cx+104][i], y=sea?214:192;
+    s+=`<g data-guest="${g.id}" class="guest" transform="translate(${x} ${y})" role="button" aria-label="${esc(artikel(g.art,true)+" "+g.art)} ist zu Besuch"><title>${esc(artikel(g.art,true)+" "+g.art)} ist zu Besuch</title><g class="${sea?"wave":"bob"}">${figure(guestRes(g),0,0)}</g>
+      <g transform="translate(0 -27)"><rect x="-17" y="-6.5" width="34" height="11" rx="5.5" fill="#FFB86B"/><text y="1.6" text-anchor="middle" font-size="7" font-weight="800" fill="#14151F" font-family="Manrope, sans-serif">Besuch</text></g></g>`});
   if(inside>0) s+=`<g transform="translate(${cx+50} 110)"><title>${inside} ${inside===1?"weitere Person ist":"weitere Bewohner sind"} gerade im Haus</title><rect x="-12" y="-8" width="24" height="13" rx="6.5" fill="#14151F" opacity=".78"/><text x="0" y="1.6" text-anchor="middle" font-size="8.5" font-weight="800" fill="#F3F1EA" font-family="Manrope, sans-serif">+${inside}</text></g>`;
   // Leben rund um die Insel, je nach Glück
   if(lvl>=2&&!calm){
@@ -2361,6 +2365,11 @@ function makeCard(g,hint){
 /* Fanpost: Verwandte und Nachbarinseln schreiben, was sie Gutes über die Insel gehört haben.
    Aus Anrede, Inhalt und Gruß zusammengesetzt; freshLine sorgt dafür, dass sich Inhalte nicht schnell wiederholen */
 /* Besuch bei voller Insel: anschauen, weiterziehen lassen oder gegen ein anderes Tier tauschen (mit Rückfrage) */
+/* Besuch: zwei Tage am Strand sichtbar, Antippen öffnet wieder die Frage nach dem Tausch */
+const guestNow=()=>(S.guests||[]).filter(g=>g.until>S.dayCount);
+const guestRes=g=>({id:g.id,name:"Besuch",kind:"tier",art:g.art,status:"da"});
+function guestDays(art){const g=guestNow().find(x=>x.art===art); return !g||g.until-S.dayCount>1?"bis übermorgen":"noch bis morgen"}
+function bindGuests(){document.querySelectorAll("[data-guest]").forEach(b=>b.onclick=()=>{const g=guestNow().find(x=>x.id===b.dataset.guest); if(g&&!$("#modalRoot").innerHTML) guestSheet({type:"guest",art:g.art})})}
 function guestSheet(ev){
   const cand=here().filter(r=>r.kind==="tier"&&!isPet(r)&&r.art!==ev.art).slice(0,8);   // nur Tiere, die einen Platz belegen
   const all=LAND.concat(SEA).concat(FAR_ANIMALS), seen=new Set(S.residents.filter(r=>r.kind==="tier").map(r=>r.art).concat(S.seenArts||[]));
@@ -2370,7 +2379,8 @@ function guestSheet(ev){
     <p class="muted">Die Insel ist gerade voll. Für deine Sammlung zählt der Besuch schon: Tierart ${all.filter(a=>seen.has(a)).length} von ${all.length}.</p>
     ${cand.length?`<p style="font-weight:700">Soll ${er} bleiben? Dann zieht dafür ein anderes Tier zu Freunden auf die Möweninsel.</p>
     <div class="swap-row">${cand.map(r=>`<button type="button" class="swap" data-swap="${r.id}">${avatarSvg(r.art,40)}<span><b>${esc(r.name)}</b><small>${esc(r.art)}</small></span></button>`).join("")}</div>`:""}
-    <button class="btn${cand.length?" secondary":""}" data-ok>Weiterziehen lassen</button>`,
+    <p class="small muted">Sonst bleibt ${er} ${guestDays(ev.art)} zu Besuch am Strand. Antippen auf der Insel, um es dir anders zu überlegen.</p>
+    <button class="btn${cand.length?" secondary":""}" data-ok>Nur zu Besuch</button>`,
     ()=>document.querySelectorAll("#modalRoot [data-swap]").forEach(b=>b.onclick=()=>guestConfirm(ev,b.dataset.swap)));
 }
 function guestConfirm(ev,id){
@@ -2393,7 +2403,7 @@ function guestSwap(art,id){
   if(old.pair){const p=S.residents.find(x=>x.id===old.pair); if(p&&p.pair===old.id) p.pair=null; old.pair=null}
   const r={id:uid(),name:freeName(ANIMAL_NAMES,S.residents.map(x=>x.name)),kind:"tier",art,pair:null,status:"da",ret:0,born:S.dayCount};
   if(!SEA.includes(art)&&adults().length) r.owner=pick(adults()).id;
-  S.residents.push(r); stat("besuch_bleibt");
+  S.residents.push(r); stat("besuch_bleibt"); S.guests=(S.guests||[]).filter(g=>g.art!==art);
   log(old.name+" ("+old.art+") ist zu Freunden auf die Möweninsel gezogen. Dafür bleibt "+artikel(art)+" "+art+" auf der Insel!","good");
   chron([old.id,r.id],old.name+" zog auf die Möweninsel, "+artikel(art)+" "+art+" ist geblieben.");
   S.pending.unshift({type:"arrival",id:r.id,partner:null});
@@ -2663,6 +2673,7 @@ function viewBewohner(){
   // Bild: Dorfplatz am Abend, die Bewohner im Halbkreis ums Lagerfeuer, Tiere am Rand
   const ppl=land.filter(r=>r.kind==="mensch").slice(0,10), ani=[], n=ppl.length;
   land.filter(r=>r.kind!=="mensch").forEach(r=>{if(ani.length<4&&!ani.some(a=>a.art===r.art)) ani.push(r)});   // vier verschiedene Arten
+  const aSlot=[[24,140],[336,140],[100,148],[262,148]], gst=guestNow().filter(g=>!SEA.includes(g.art)).slice(0,2);   // Besuch steht vorne am Rand
   const fig=(r,x,y,k)=>`<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${k})"><g class="bob" style="animation-delay:${Math.round(x)%7/5}s">${figure(r,0,0)}</g></g>`;
   const pos=ppl.map((r,i)=>{const a=Math.PI*(0.12+0.76*i/Math.max(1,n-1));return [n===1?150:180-Math.cos(a)*130,134-Math.sin(a)*18]});
   const order=pos.map((q,i)=>i).sort((a,b)=>pos[a][1]-pos[b][1]);
@@ -2675,12 +2686,14 @@ function viewBewohner(){
     ${order.filter(i=>pos[i][1]<128).map(i=>fig(ppl[i],pos[i][0],pos[i][1],1.7)).join("")}
     <g transform="translate(180 136) scale(1.4)"><path d="M-12 4l24-6M-12 -2l24 6" stroke="#6B4430" stroke-width="3" stroke-linecap="round"/><g class="fire-fl"><path d="M0 -2c-8 0-10-8-4-16 0 4 3 5 3 5 0-6 3-9 5-11 0 5 4 8 4 13 0 6-3 9-8 9z" fill="#FF9C7A"/><path d="M0 -2c-4 0-5-4-2-8 1 2 2 2 2 2 0-3 2-4 3-5 0 3 2 4 2 6 0 3-2 5-5 5z" fill="#FFD27A"/></g></g>
     ${order.filter(i=>pos[i][1]>=128).map(i=>fig(ppl[i],pos[i][0],pos[i][1],1.8)).join("")}
-    ${ani.map((r,i)=>fig(r,[24,336,100,262][i],[140,140,148,148][i],1.25)).join("")}</svg>`;
+    ${ani.slice(0,4-gst.length).map((r,i)=>fig(r,aSlot[i+gst.length][0],aSlot[i+gst.length][1],1.25)).join("")}
+    ${gst.map((g,i)=>`<g data-guest="${g.id}" class="guest">${fig(guestRes(g),aSlot[i][0],aSlot[i][1],1.25)}<g transform="translate(${aSlot[i][0]+(i?-6:6)} ${aSlot[i][1]-36})"><rect x="-20" y="-7" width="40" height="13" rx="6.5" fill="#FFB86B"/><text y="2.4" text-anchor="middle" font-size="8.5" font-weight="800" fill="#14151F" font-family="Manrope, sans-serif">Besuch</text></g></g>`).join("")}</svg>`;
   const wisher=S.wish?S.residents.find(r=>r.id===S.wish.rid&&r.status==="da"):null;
   const main=S.wish&&wisher?wishCard(S.wish,wisher)
     :`<div class="card"><div class="row" style="gap:14px;align-items:center">${ringSvg(S.glueck/100,S.glueck+" %","Inselglück",S.glueck>=40?"#C8F169":"#FF9C7A")}<div class="grow"><p class="label">Inselglück</p><h3 class="hm-title" style="color:${glC}">${mText}</h3><p class="small muted">Ab 80 % zieht alle 3 Tage jemand ein. Unter 40 % gibt es öfter Streit, nach 3 Tagen droht Wegzug.</p></div></div></div>`;
   const news=[];
   if(S.conflict){const a=S.residents.find(r=>r.id===S.conflict.a), b=S.residents.find(r=>r.id===S.conflict.b); if(a&&b) news.push(`<div class="fy"><p class="k" style="color:var(--coral)">Streit</p><b>${esc(a.name)} und ${esc(b.name)}</b><p class="small muted">Ein guter Tag hilft beim Versöhnen.</p></div>`)}
+  guestNow().forEach(g=>news.push(`<button type="button" class="fy" data-guest="${g.id}" style="text-align:left;border:0;color:inherit;font:inherit;cursor:pointer"><p class="k" style="color:var(--amber)">Zu Besuch</p><b>${esc(artikel(g.art,true)+" "+g.art)}</b><p class="small muted">${guestDays(g.art)==="bis übermorgen"?"Noch 2 Tage da.":"Noch bis morgen da."} Antippen zum Tauschen.</p></button>`));
   H.filter(r=>r.sick).forEach(r=>news.push(`<div class="fy"><p class="k" style="color:var(--amber)">Krank</p><b>${esc(r.name)}</b><p class="small muted">${esc(r.sick.kind)}${S.tea?" · Kräutertee im Vorrat":""}</p></div>`));
   H.filter(r=>r.phone).slice(0,2).forEach(r=>news.push(`<div class="fy"><p class="k" style="color:var(--lilac)">Am Handy</p><b>${esc(r.name)}</b><p class="small muted">Ein Tag im Budget holt jemanden zurück.</p></div>`));
   if(S.warn){const w=S.warn.ids.map(id=>S.residents.find(r=>r.id===id)).filter(Boolean); if(w.length) news.push(`<div class="fy"><p class="k" style="color:var(--amber)">Wegzug droht</p><b>${esc(groupName(w))}</b><p class="small muted">Glück bis ${nice(S.warn.deadline)} über 40 %</p></div>`)}
@@ -3145,6 +3158,7 @@ function renderScene(){
   setViewBox(views[islandView].vb);
   if(scenePaused){const sv=$("#scene > svg"); if(sv&&sv.pauseAnimations) sv.pauseAnimations()}
   document.querySelectorAll("[data-snav]").forEach(b=>b.onclick=()=>goView(islandView+ +b.dataset.snav));
+  bindGuests();
   document.querySelectorAll("[data-sview]").forEach(b=>b.onclick=()=>goView(+b.dataset.sview));
 }
 function goView(i){
@@ -3198,6 +3212,7 @@ function render(){
   if(tab==="freunde"&&$("#famBox")) fillFamily();
 }
 function bind(){
+  bindGuests();
   const sb=$("#setBudget"), sa=$("#setBase");
   if(sb) sb.oninput=()=>{S.budget=+sb.value;$("#setBudgetOut").textContent=hm(S.budget)};
   if(sa) sa.oninput=()=>{S.baseline=+sa.value;$("#setBaseOut").textContent=hm(S.baseline)};
