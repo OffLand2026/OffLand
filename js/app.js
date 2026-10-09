@@ -4148,7 +4148,7 @@ async function fillRanks(force){
   // Vorschau oben: Ring-Karte, Chips und Wettsegeln im Bild
   const nF=R.friends.length, ahead=fi>0?R.friends[fi-1]:null;
   const ring=R.nFriends?ringSvg((nF-fi)/nF,"#"+(fi+1),"von "+nF,fi===0?"#FFB86B":"#B6A4FF")
-    :ringSvg(mine.avg!=null?Math.min(1,mine.avg/S.budget):0,mine.avg!=null?hm(mine.avg):"–","im Schnitt",mine.avg!=null&&mine.avg<=S.budget?"#C8F169":"#FF9C7A");
+    :ringSvg(mine.avg!=null?Math.min(1,mine.avg/S.budget):0,mine.avg!=null?Math.floor(Math.round(mine.avg)/60)+":"+String(Math.round(mine.avg)%60).padStart(2,"0"):"–",mine.avg!=null?"pro Tag":"im Schnitt",mine.avg!=null&&mine.avg<=S.budget?"#C8F169":"#FF9C7A");
   $("#rankHero").innerHTML=`<div class="row" style="gap:14px;align-items:center">${ring}<div class="grow">
     <p class="label" style="color:var(--lime)">Diese Woche${R.nFriends?" · Freund:innen":""}</p>
     ${R.nFriends?`<h3 class="hm-title" style="color:${fi===0?"var(--amber)":"var(--ink)"}">${fi===0?"Du führst!":"Platz "+(fi+1)}</h3>
