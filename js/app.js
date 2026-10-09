@@ -2149,12 +2149,27 @@ function scene(){
   // Zugvögel
   if(S.birds>0) s+=`<g class="drift" style="animation-duration:5s">${[0,1,2,3,4].map(i=>`<path d="M${120+i*16} ${50+Math.abs(i-2)*8}q5-5 10 0q5-5 10 0" stroke="${night?"#F3F1EA":"#14151F"}" stroke-width="2" fill="none" stroke-linecap="round"/>`).join("")}</g>`;
   if(!home) s+=horizonSvg(T.horizon,false,night||clouds);
+  // Inselglück in Stufen: 0 karg, 1 normal, 2 blühend, 3 voller Leben
+  const lvl=S.glueck<40?0:S.glueck<60?1:S.glueck<80?2:3, calm=clouds||night;
+  // Tiefe: Nachbarinseln im Dunst hinter dem Meer (Heimat; andere Welten haben ihren eigenen Horizont)
+  if(home) s+=`<g fill="${calm?"#2E4166":lvl?"#6E9FC6":"#8696A6"}" opacity=".55"><path d="M0 172c20-18 50-24 80-12l10 12z"/><path d="M290 172c18-14 44-18 70-8v8z"/></g>`;
   s+=`<rect y="170" width="360" height="70" fill="${clouds?"#26314A":night?"#24375A":home?sk.sea:T.sea}"/>`;
   let sand=clouds?"#BDB08C":"#E9D7A6", grass=clouds?"#5E8A5C":sea==="winter"?"#DDE6EE":sea==="herbst"?"#A9B86A":"#7FC57A";
   let leaf=clouds?"#4A7550":sea==="herbst"?"#E08A3C":sea==="winter"?"#5E8A6C":"#4E9A58";
   if(!home){sand=T.sand;grass=T.grass;leaf=T.leaf;if(clouds){sand="#BDB08C";grass="#7A8A70"}}
+  if(home&&lvl===0&&sea!=="winter"){sand="#D6C9A4";grass="#B3A882";leaf="#9A8E7A"}   // karge Insel
   const cx=two?120:180;
+  // Spiegelung und Glitzern im Wasser
+  s+=`<ellipse cx="${cx}" cy="194" rx="100" ry="10" fill="${calm||!lvl?"#8FA0A8":"#9CD3C4"}" opacity="${calm?.12:lvl?.35:.2}"/>`;
+  if(!clouds) s+=`<g stroke="#F3F1EA" stroke-linecap="round" stroke-width="1.6" opacity="${night?.35:lvl?.75:.3}">${[[40,190,14],[90,206,10],[250,200,16],[310,190,10],[150,222,12],[220,230,9],[60,228,8],[332,216,12]].slice(0,lvl?8:4).map(([x,y,w],i)=>`<path class="glow" style="animation-delay:${i*.3}s" d="M${x} ${y}h${w}"/>`).join("")}</g>`;
   s+=`<ellipse cx="${cx}" cy="176" rx="110" ry="20" fill="${sand}"/><path d="M${cx-96} 172c10-40 52-58 96-58s86 18 96 58z" fill="${grass}"/>`;
+  // Blumenbogen oben auf der Kuppel: wächst mit dem Glück (hinter allem anderen gezeichnet)
+  if(lvl>0&&sea!=="winter"&&(home||W.id==="tropen"||W.id==="fjord")){
+    const fc=["#FF9C7A","#FFD27A","#B6A4FF","#FFB3C7","#F3F1EA"], pts=[];
+    for(let i=0,px=cx-90;px<=cx+90;i++,px+=7){const top=172-58*Math.sqrt(Math.max(0,1-((px-cx)/96)**2)), y=top+(i%2?12:6); if(y<=166) pts.push([px+(i*13)%3-1,y,i])}
+    pts.sort((a,b)=>Math.abs(a[0]-cx)-Math.abs(b[0]-cx)).slice(0,[0,6,14,99][lvl]).forEach(([x,y,i])=>{
+      s+=`<g transform="translate(${x} ${y})"><path d="M0 0v-4" stroke="${leaf}" stroke-width="1"/><circle cy="-5" r="1.9" fill="${fc[i%5]}"/><circle cy="-5" r=".8" fill="#FFD27A"/></g>`});
+  }
   // Weg aus Spaziergängen, Muschelweg
   if(S.path>0||owns("muschelweg")){const len=Math.min(160,20+S.path*14);s+=`<path d="M${cx-80} 168q${len/2} -10 ${len} -2" stroke="${owns("muschelweg")?"#F3F1EA":"#D9C38E"}" stroke-width="4" stroke-dasharray="${owns("muschelweg")?"2 5":"6 4"}" fill="none" stroke-linecap="round"/>`}
   if(home&&has("leuchtturm")){
@@ -2166,6 +2181,7 @@ function scene(){
   ws.filter(q=>q.dome).forEach(q=>{s+=`<g transform="translate(${q.x} ${q.y}) scale(${q.sc})">${projectSvg(q.id)}</g>`});
   for(let i=0;i<nTrees;i++){const tx=cx-40+i*22-(i%2)*6, ty=128+(i%2)*8;s+=treeSvg(home?"":T.tree,tx,ty,leaf);
     if(!home) continue;
+    if(lvl===3&&sea!=="winter"&&!clouds) s+=`<g fill="#FF6B5A">${[[-7,-11],[6,-13],[0,-1],[10,-4],[-10,-2],[-1,-18]].map(([a,b])=>`<circle cx="${tx+a}" cy="${ty+b}" r="2"/>`).join("")}</g>`;
     if(sea==="fruehling"&&!clouds) s+=`<g fill="#FFB3C7"><circle cx="${tx-6}" cy="${ty-10}" r="2"/><circle cx="${tx+5}" cy="${ty-4}" r="2"/><circle cx="${tx+2}" cy="${ty-14}" r="2"/></g>`;
     if(sea==="winter") s+=`<path d="M${tx-14} ${ty-10}q14-14 28 0" stroke="#F3F1EA" stroke-width="4" fill="none" stroke-linecap="round"/>`;}
   const place=layoutItems(cx,two,three,nTrees,ws.map(q=>[q.x-26*q.sc,q.y-36*q.sc,q.x+26*q.sc,q.y]),home);
@@ -2219,6 +2235,20 @@ function scene(){
     s+=`<g transform="translate(${x} ${y})"><g class="${idle?"":"wander"}" style="--wx:${wx}px;animation-duration:${dur}s;animation-delay:${del}s"><g class="${sleep?"":"bob"}" style="animation-duration:${2.2+(h%9)/10}s;animation-delay:${-((h>>>3)%28)/10}s">${figure(r,0,0)}</g></g></g>`;
   });
   if(inside>0) s+=`<g transform="translate(${cx+50} 110)"><title>${inside} ${inside===1?"weitere Person ist":"weitere Bewohner sind"} gerade im Haus</title><rect x="-12" y="-8" width="24" height="13" rx="6.5" fill="#14151F" opacity=".78"/><text x="0" y="1.6" text-anchor="middle" font-size="8.5" font-weight="800" fill="#F3F1EA" font-family="Manrope, sans-serif">+${inside}</text></g>`;
+  // Leben rund um die Insel, je nach Glück
+  if(lvl>=2&&!calm){
+    s+=[[cx-60,120],[cx+50,110],[cx-18,102]].map(([x,y],i)=>`<g class="flutter" style="animation-delay:${i*.7}s"><g transform="translate(${x} ${y})"><path d="M0 0l-4-3v6zM0 0l4-3v6z" fill="${["#B6A4FF","#F3F1EA","#FFB3C7"][i]}"/></g></g>`).join("");
+    s+=`<g stroke="#2B3350" stroke-width="1.6" fill="none" stroke-linecap="round" class="drift" style="animation-duration:9s"><path d="M60 70q5-5 10 0q5-5 10 0"/><path d="M84 58q4-4 8 0q4-4 8 0"/></g>`;
+    const fx=two?56:296;
+    s+=`<g class="fishjump" transform="translate(${fx} 214)"><g class="fj-fish"><ellipse rx="5" ry="2.4" fill="#FF9C7A"/><path d="M4 0l4-3v6z" fill="#FF9C7A"/></g></g><g class="fj-ring" transform="translate(${fx+10} 215)" fill="none" stroke="#F3F1EA" stroke-width="1"><ellipse rx="5" ry="1.4"/><ellipse rx="9" ry="2.4" opacity=".5"/></g>`;
+  }
+  if(lvl===3&&!calm&&!S.trader&&!two) s+=`<g class="drift" style="animation-duration:14s"><g transform="translate(36 186) scale(.7)"><path d="M0 0h30l-5 7h-20z" fill="#B6A4FF"/><path d="M14 0v-24l12 22z" fill="#F3F1EA"/></g></g>`;
+  // Tiefe: Büsche im Vordergrund an den Ecken
+  if(home||W.id==="tropen"||W.id==="fjord"){
+    const bc=night?"#1F3A2A":lvl?"#2F6B3E":"#55634F", gc=night?"#2C4F38":lvl?"#3F8A4E":"#6E7A5E";
+    s+=`<g fill="${bc}">${[[-10,240,28],[30,248,20],[350,242,28],[384,234,24]].map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}"/>`).join("")}</g><g stroke="${gc}" stroke-width="2.2" stroke-linecap="round" fill="none">${[[18,214],[28,210],[42,220],[318,216],[328,210],[340,218]].map(([x,y])=>`<path d="M${x} 240q-2-8 ${x%2?3:-3} -${240-y}"/>`).join("")}</g>`;
+    if(lvl===3&&!night) s+=[[8,216,"#FFB3C7"],[38,226,"#FFD27A"],[330,222,"#F3F1EA"],[352,224,"#FF9C7A"]].map(([x,y,f])=>`<circle cx="${x}" cy="${y}" r="2.6" fill="${f}"/><circle cx="${x}" cy="${y}" r="1" fill="#FFD27A"/>`).join("");
+  }
   // Meerestiere: freie Plätze im Wasser, nicht auf Floß, Schiff oder der dritten Insel
   const blocked=[];
   if((home&&has("floss"))||W.projects.some(p=>p.sea&&has(p.id))) blocked.push([50,98]);
