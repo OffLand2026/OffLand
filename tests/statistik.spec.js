@@ -10,7 +10,10 @@ async function start(page) {
   await page.goto("/");
   await page.click("#newAcc"); await page.fill("#accName", "Stat"); await page.click("#accCreate");
   await page.click("#storySkip"); await page.click("#startBtn"); await dismiss(page);
-  await page.evaluate(() => { T.closeDay(30, [], {}); T.showPending(); });
+  // Nach dem ersten Tag steht die Frage in der Warteschlange und kommt beim nächsten Öffnen
+  const queued = await page.evaluate(() => { T.closeDay(30, [], {}); return T.S.pending.some(e => e.type === "statsAsk"); });
+  expect(queued).toBe(true);
+  await page.evaluate(() => { document.getElementById("modalRoot").innerHTML = ""; T.S.pending = [{ type: "statsAsk" }]; T.showPending(); });
 }
 async function answer(page, id) {
   for (let i = 0; i < 12 && !(await page.$("#" + id)); i++) {
