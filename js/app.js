@@ -383,7 +383,7 @@ function migrate(st){
   if(st.points==null)st.points=0; if(!st.items)st.items=[]; if(!st.sun)st.sun=0;
   if(!st.rel)st.rel={}; if(st.conflict===undefined)st.conflict=null;
   if(!st.arrC)st.arrC=0; if(!st.birthC)st.birthC=0;
-  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,focusLog:[],alarm:true,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null},family:null,plan:null,planLog:[],weekReady:null,storySeen:false,chapter:null,fests:0,freed:0,duelOff:null,jokerWk:null,lastSurprise:0,surprises:[],duel:null,duelLog:[],lineLog:[],seenArts:[]};
+  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,focusLog:[],alarm:true,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null},family:null,plan:null,planLog:[],weekReady:null,storySeen:false,chapter:null,fests:0,freed:0,duelOff:null,jokerWk:null,lastSurprise:0,surprises:[],duel:null,duelLog:[],lineLog:[],seenArts:[],umfrage:{}};
   if(st.plusFriend===undefined) st.plusFriend=(st.buddies||[]).length?"alt":null;   // Plus-Monat fürs Einladen gibt es nur einmal
   if(st.allFeatures===undefined) st.allFeatures=(st.dayCount||0)>=1;          // wer schon gespielt hat, behält alles
   for(const k in D){ if(st[k]===undefined) st[k]=D[k]; }
@@ -1473,6 +1473,7 @@ function closeDay(min,quests,appMin){
   }
   checkDiscovery();
   chapterCheck();
+  umfrageCheck();
   if(netConfigured()&&statsDev().consent===undefined&&!S.pending.some(e=>e.type==="statsAsk")) S.pending.push({type:"statsAsk"});   // steht hinten an: kommt beim nächsten Öffnen mit der Freischaltung
   sortPending(); PEND_BUDGET=3;
   save(); render(); showPending();
@@ -3396,7 +3397,7 @@ function soundFor(ev){
    Vorhaben-Nachfrage, Joker und Tagesbilanz kommen immer und zuerst. */
 let PEND_BUDGET=3;
 const PEND_MUST=new Set(["plan","jokerAsk","day"]);
-const PEND_ORDER={plan:0,jokerAsk:1,day:2,planAsk:3,unlock:7,chapter:6,statsAsk:9};
+const PEND_ORDER={plan:0,jokerAsk:1,day:2,planAsk:3,unlock:7,chapter:6,umfrage:8,statsAsk:9};
 function sortPending(){const o=e=>PEND_ORDER[e.type]!=null?PEND_ORDER[e.type]:5; S.pending=S.pending.map((e,i)=>[e,i]).sort((a,b)=>o(a[0])-o(b[0])||a[1]-b[1]).map(x=>x[0])}
 function showPending(){
   if($("#modalRoot").innerHTML) return;
@@ -3422,6 +3423,7 @@ function showPending(){
   if(ev.type==="week") return weekSheet(ev.wk);
   if(ev.type==="planAsk") return planAskSheet(ev);
   if(ev.type==="chapter") return chapterSheet(ev.n,true);
+  if(ev.type==="umfrage") return umfrageSheet(ev);
   if(ev.type==="statsAsk"){CUR_EV=null; if(statsDev().consent!==undefined) return showPending(); return statsAskSheet()}
   if(ev.type==="jokerAsk"){
     if(S.jokerWk===ev.wk||S.lastDay!==ev.day) return showPending();
@@ -4493,13 +4495,90 @@ async function checkReplies(force){
   let got=0, added=0;
   for(const d of docs){
     let t=S.tickets.find(x=>x.id===d.id);
-    if(!t){ if(d.name!==netName()) continue;                                     // gehört zu einem anderen Konto auf diesem Gerät
+    if(!t){ if(d.name!==netName()||(d.info&&d.info.umfrage)) continue;                                     // gehört zu einem anderen Konto auf diesem Gerät
       t={id:d.id,at:d.at||Date.now(),cat:d.cat,text:String(d.text||"").slice(0,140),reply:null,seen:false}; S.tickets.push(t); added++; }
     const a=typeof d.antwort==="string"&&d.antwort.trim();
     if(a&&!t.reply){t.reply=a.slice(0,3000);t.replyAt=Date.now();S.pending.push({type:"reply",id:t.id});got++}
   }
   if(added&&!got) save();
   if(got){save();log("Das OffLand-Team hat auf deine Anfrage geantwortet.","good");showPending()}
+}
+
+/* ---------- Testphase: drei kurze Umfragen (ab Tag 2, nach 7 und nach 21 eingetragenen Tagen) ----------
+   Antworten gehen als Support-Meldung (Kategorie "sonst", info.umfrage und info.antworten) nach Firestore,
+   dafür braucht es keine neue Regel. Für die Store-Version TESTPHASE auf false setzen. */
+const TESTPHASE=true;
+const UF_HZ=[["u2","unter 2 Std."],["2_4","2 bis 4 Std."],["4_6","4 bis 6 Std."],["6","über 6 Std."]];
+const UMFRAGEN={
+  start:{tag:2,title:"Kurze Frage zum Start",lead:"Damit wir später sehen, ob OffLand dir hilft. Dauert eine Minute.",q:[
+    {id:"hz",t:"Wie lange warst du vor OffLand ungefähr täglich am Handy?",hint:"Steht in den Einstellungen unter Bildschirmzeit.",c:UF_HZ},
+    {id:"lieber",t:"Was möchtest du lieber mit der Zeit machen?",x:1},
+    {id:"apps",t:"Hast du schon andere Apps gegen Handyzeit probiert? Welche, und warum hast du aufgehört?",x:1}]},
+  t7:{tag:7,title:"Eine Woche OffLand",lead:"Drei schnelle Fragen. Ehrliche Antworten helfen am meisten, auch Kritik.",q:[
+    {id:"note",t:"Wie gefällt dir OffLand bisher?",c:[["1","😕"],["2","🙁"],["3","😐"],["4","🙂"],["5","😍"]]},
+    {id:"schoen",t:"Was war bisher am schönsten?",x:1},
+    {id:"nervt",t:"Was hat genervt oder war unklar?",x:1}]},
+  t21:{tag:21,title:"Drei Wochen OffLand",lead:"Die letzte Umfrage, und die wichtigste. Danke, dass du so lange dabei bist!",q:[
+    {id:"weg",t:"Wie enttäuscht wärst du, wenn es OffLand nicht mehr gäbe?",c:[["sehr","Sehr"],["etwas","Etwas"],["gar","Gar nicht"]]},
+    {id:"hz",t:"Wie lange bist du jetzt ungefähr täglich am Handy?",c:UF_HZ},
+    {id:"anders",t:"Hat OffLand dein Verhalten verändert? Wie?",x:1},
+    {id:"motiv",t:"Was hat dich motiviert, wiederzukommen?",m:[["bewohner","Bewohner"],["tiere","Seltene Tiere"],["fanpost","Fanpost"],["bauen","Bauen"],["freunde","Freunde"],["zeit","Gewonnene Zeit"]]},
+    {id:"fast",t:"Gab es einen Moment, an dem du fast aufgehört hättest? Warum?",x:1},
+    {id:"empf",t:"Würdest du OffLand weiterempfehlen?",c:[["ja","Ja"],["vielleicht","Vielleicht"],["nein","Nein"]]},
+    {id:"zahl",t:"Würdest du für OffLand zahlen?",c:[["abo","Als Abo"],["einmal","Einmalig"],["nein","Eher nicht"]]},
+    {id:"betrag",t:"Wie viel ungefähr?",x:1,short:1}]}
+};
+/* nach dem Eintragen: fällige Umfrage anstellen; ältere, nie beantwortete gelten dann als verpasst */
+function umfrageCheck(){
+  if(!TESTPHASE||!netConfigured()) return;
+  const u=S.umfrage||(S.umfrage={}), ks=Object.keys(UMFRAGEN).filter(k=>S.dayCount>=UMFRAGEN[k].tag);
+  if(!ks.length||u.later===today()||S.pending.some(e=>e.type==="umfrage")) return;
+  const k=ks[ks.length-1]; ks.slice(0,-1).forEach(x=>{if(!u[x]) u[x]="verpasst"});
+  if(!u[k]) S.pending.push({type:"umfrage",k});
+}
+function umfrageSheet(ev){
+  CUR_EV=null;
+  const U=UMFRAGEN[ev.k], u=S.umfrage||(S.umfrage={}); if(!U||u[ev.k]) return showPending();
+  const qh=q=>{
+    const n="uf_"+q.id, head=`<span>${esc(q.t)}${q.hint?`<br><span class="small muted">${esc(q.hint)}</span>`:""}</span>`;
+    if(q.c||q.m) return `<div class="field">${head}<div class="uf-chips${q.c&&q.c[0][1].length<3?" emo":""}">${(q.c||q.m).map(([v,l])=>`<label class="uf-chip"><input type="${q.c?"radio":"checkbox"}" name="${n}" value="${v}"><span>${esc(l)}</span></label>`).join("")}</div></div>`;
+    return `<label class="field" for="${n}">${head}<textarea class="uf-text" id="${n}" rows="${q.short?1:3}" maxlength="400"></textarea></label>`;
+  };
+  modal(`<p class="label" style="color:var(--lime)">Testphase · Umfrage</p><h2>${esc(U.title)}</h2>
+    <p class="muted">${esc(U.lead)} Alle Fragen sind freiwillig.</p>
+    <div class="uf">${U.q.map(qh).join("")}</div>
+    <p class="err" id="ufErr" role="alert"></p>
+    <button class="btn" id="ufSend">Absenden</button>
+    <div class="row"><button class="btn ghost grow" id="ufLater" data-ok>Später</button><button class="btn ghost grow" id="ufNo">Nein danke</button></div>`);
+  const done=v=>{u[ev.k]=v; save(); closeModal(); render(); showPending()};
+  $("#ufLater").onclick=()=>{u.later=today(); save(); closeModal(); render(); showPending()};
+  $("#ufNo").onclick=()=>{stat("umfrage_nein"); done("nein")};
+  $("#ufSend").onclick=async()=>{
+    const a={}, lines=[];
+    U.q.forEach(q=>{
+      const n="uf_"+q.id;
+      let v=q.x?$("#"+n).value.trim().slice(0,400):[...document.querySelectorAll(`[name=${n}]:checked`)].map(i=>i.value);
+      if(q.c) v=v[0]||""; if(!v||!v.length) return;
+      a[q.id]=v;
+      const lab=q.x?v:(q.c||q.m).filter(o=>[].concat(v).includes(o[0])).map(o=>o[1]).join(", ");
+      lines.push(q.t+"\n→ "+lab);
+    });
+    if(!lines.length) return $("#ufErr").textContent="Beantworte bitte mindestens eine Frage, oder tippe auf Nein danke.";
+    const btn=$("#ufSend"); btn.disabled=true; btn.textContent="Sende …";
+    try{
+      const N=await netInit();
+      await N.set("support/"+rid(),{owner:N.uid,cat:"sonst",text:("Umfrage: "+U.title+"\n\n"+lines.join("\n\n")).slice(0,2000),contact:"",name:netName(),
+        info:Object.assign(supportInfo(),{umfrage:ev.k,antworten:a}),at:Date.now(),status:"neu"});
+      u[ev.k]="ja"; stat("umfrage_"+ev.k); save(); sfx("postcard");
+      modal(`<p class="label" style="color:var(--lime)">Danke!</p><h2>Antworten sind angekommen</h2>
+        ${saysHtml("bay","Wunderbar, danke dir! Genau so wird OffLand jeden Tag ein bisschen besser.")}
+        <button class="btn" id="ufOk" data-ok>Weiter</button>`);
+      $("#ufOk").onclick=()=>{closeModal();render();showPending()};
+    }catch(e){
+      if(!document.body.contains(btn)) return;
+      btn.disabled=false; btn.textContent="Absenden"; $("#ufErr").textContent="Senden hat nicht geklappt. Bist du online? Versuch es gleich noch mal.";
+    }
+  };
 }
 
 /* ---------- Bildschirmzeit automatisch (nur iPhone-App) ----------

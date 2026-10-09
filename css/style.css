@@ -466,3 +466,14 @@ body.focus-on{overflow:hidden}
 .res-txt.open .res-sub{display:block;-webkit-line-clamp:unset}
 /* Kurzmeldung nicht über Fenster-Knöpfen: bei offenem Fenster oben zeigen */
 body:has(#modalRoot .modal) .toast{bottom:auto;top:calc(16px + env(safe-area-inset-top,0px))}
+/* Testphase-Umfrage */
+.uf{display:flex;flex-direction:column;gap:14px}
+.uf-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.uf-chip{position:relative;display:flex}
+.uf-chip input{position:absolute;opacity:0;inset:0;margin:0;pointer-events:none}
+.uf-chip span{display:flex;align-items:center;min-height:40px;padding:0 14px;border-radius:20px;background:var(--ground);border:1.5px solid var(--line);font-weight:600;font-size:15px}
+.uf-chips.emo .uf-chip span{font-size:24px;padding:0 10px}
+.uf-chip input:checked+span{background:var(--lime);color:#14151F;border-color:var(--lime)}
+.uf-chip input:focus-visible+span{outline:2px solid var(--lime);outline-offset:2px}
+.uf-text{width:100%;margin-top:6px;border-radius:16px;padding:12px 14px;background:var(--ground);color:var(--ink);border:1.5px solid var(--line);font:500 16px var(--body);resize:vertical}
+.uf .field{font-weight:700;font-size:15px}.uf .field .muted{font-weight:500}
