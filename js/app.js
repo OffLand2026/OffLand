@@ -2635,21 +2635,37 @@ function viewZeit(){
   const total=S.days.reduce((a,d)=>a+d.min,0);
   const avg=n?total/n:S.baseline;
   const yearOld=S.baseline*365/60/24, yearNow=avg*365/60/24;
-  const eqGrid=min=>`<div class="eq">${ACTS.map(a=>{const c=Math.floor(min/a.min);return `<div class="eqi ${c?"":"zero"}" style="color:${c?"var(--lime)":"var(--muted)"}">${actIcon(a)}<div><b class="num" style="color:var(--ink)">${c}</b><span class="small muted">${esc(c===1?SING[a.n]:a.n)}</span></div></div>`}).join("")}</div>`;
   const week=S.days.slice(-7), prev=S.days.slice(-14,-7);
   const sum=a=>a.reduce((x,d)=>x+d.min,0);
+  // Bild: gewonnene Zeit groß, daneben die letzten 7 Tage als Balken
+  const max=Math.max(S.budget*1.4,...week.map(d=>d.min)), bh=72, y0=124;
+  const bars=week.map((d,i)=>{const h=Math.max(4,d.min/max*bh), x=216+i*20;return `<rect x="${x}" y="${y0-h}" width="14" height="${h}" rx="4" fill="${d.min<=S.budget?"#C8F169":"#FF9C7A"}"><title>${nice(d.day)}: ${hm(d.min)}</title></rect>`}).join("");
+  const hero=`<svg viewBox="0 0 360 200" role="img" aria-label="Gewonnene Zeit ${hm(saved)}" style="width:100%;height:auto;display:block"><defs><linearGradient id="zg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2B2F55"/><stop offset="1" stop-color="#1A1C2C"/></linearGradient></defs><rect width="360" height="200" fill="url(#zg)"/>
+    <text x="20" y="40" font-family="Manrope, sans-serif" font-size="12" font-weight="700" fill="#A4A6BD" letter-spacing="1.2">GEWONNENE ZEIT</text>
+    <text x="20" y="84" font-family="Bricolage Grotesque, Manrope, sans-serif" font-size="${hm(saved).length>9?32:40}" font-weight="800" fill="#C8F169">${hm(saved)}</text>
+    <text x="20" y="104" font-family="Manrope, sans-serif" font-size="11.5" fill="#A4A6BD">in ${n} ${n===1?"Tag":"Tagen"}</text><text x="20" y="119" font-family="Manrope, sans-serif" font-size="11.5" fill="#A4A6BD">statt ${hm(S.baseline)} am Tag</text>
+    ${bars}${week.length?`<path d="M210 ${y0-S.budget/max*bh}h144" stroke="#F3F1EA" stroke-dasharray="3 4" opacity=".5"/>`:""}</svg>`;
+  const diff=prev.length?sum(prev)-sum(week):null, good=week.filter(d=>d.min<=S.budget).length;
+  const eq=equivTop(saved), top=eq[0];
+  const others=ACTS.filter(a=>saved>=a.min&&(!top||a!==top.a)).sort((a,b)=>b.min-a.min);
+  const done=PLANS.map(p=>({p,c:(S.actTotals||{})[p.id]||0})).filter(x=>x.c).sort((a,b)=>b.c-a.c);
   return `
-  <div class="card">
-    <p class="label">Zurückgewonnene Zeit</p>
-    <p class="big num" style="color:var(--lime)">${hm(saved)}</p>
-    <p class="small muted">gegenüber deinem bisherigen Schnitt von ${hm(S.baseline)} pro Tag, in ${n} ${n===1?"Tag":"Tagen"}.</p>
-    <p style="margin-top:4px"><b>Damit hast du Zeit gewonnen für:</b></p>
-    ${eqGrid(saved)}
+  <div class="hero-card" style="background:#1A1C2C">${hero}</div>
+  <div class="scene-chips">
+    <div class="cp"><i>Diese Woche</i><b style="color:${diff==null?"var(--ink)":diff>=0?"var(--lime)":"var(--coral)"}">${diff==null?hm(sum(week)):(diff>=0?"−":"+")+hm(Math.abs(diff))}</b></div>
+    <div class="cp"><i>Im Ziel</i><b>${good} von ${week.length}</b></div>
+    <div class="cp"><i>Serie</i><b style="color:var(--amber)">${S.budgetStreak} ${S.budgetStreak===1?"Tag":"Tage"}</b></div>
   </div>
-  ${S.lastDay?`<button class="btn secondary" id="weekBtn" data-wk="${isoWeek(S.lastDay)}">Wochenrückblick ansehen</button>`:""}
+  <div class="card"><div class="row" style="gap:14px;align-items:center"><span class="eq-big">${top?actIcon(top.a):actIcon(ACTS[0])}</span><div class="grow">
+    <p class="label">${top?"Das sind schon":"Bald schon"}</p><h3 class="hm-title">${top?top.c+" "+esc(top.c===1?SING[top.a.n]||top.a.n:top.a.n):"Dein erster Spaziergang"}</h3>
+    <p class="small muted">${top?"aus Zeit, die du nicht am Handy warst":"Jeder Tag unter deinem Schnitt zählt hier mit."}</p></div></div>
+    ${top?`<button class="btn secondary" id="zeitShare">Teilen</button>`:""}</div>
+  ${others.length?`<div class="sec-h"><span>Oder auch</span></div><div class="fy-row">${others.map(a=>{const c=Math.floor(saved/a.min);return `<div class="fy eqfy"><span class="eq-ic">${actIcon(a)}</span><b class="num" style="font:800 22px var(--display)">${c}</b><span class="small muted">${esc(c===1?SING[a.n]||a.n:a.n)}</span></div>`}).join("")}</div>`:""}
+  ${done.length?`<div class="sec-h"><span>Was du gemacht hast</span></div><div class="card">${done.map(x=>`<div class="row" style="padding:6px 0"><span class="plan-ic">${planIcon(x.p)}</span><div class="grow"><p><b>${esc(x.p.n)}</b></p><p class="small muted">${x.c}× geschafft</p></div><span class="chip good">+${x.c*20} P</span></div>`).join("")}</div>`:""}
+  ${S.lastDay?`<div class="card"><button class="rowbtn" id="weekBtn" data-wk="${isoWeek(S.lastDay)}"><span class="plan-ic" style="background:#26233D;color:var(--lilac)"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h6a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4zM20 5h-6a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h6z"/></svg></span><span class="grow"><b>Wochenrückblick</b><span class="small muted">KW ${+isoWeek(S.lastDay).split("-W")[1]} ansehen</span></span><span class="muted">›</span></button></div>`:""}
+  <div class="sec-h"><span>Rückblick</span></div>
   <div class="card">
-    <p class="label">Über dem Budget verbracht</p>
-    <p class="big num" style="color:var(--coral)">${hm(over)}</p>
+    <div class="row between"><span>Über dem Budget verbracht</span><b class="num" style="color:var(--coral)">${hm(over)}</b></div>
     <p class="small muted">${over?"Das wären gewesen: "+esc(eqText(equivTop(over)))+".":"Bisher bist du immer im Budget geblieben."}</p>
   </div>
   <div class="card">
@@ -2660,8 +2676,6 @@ function viewZeit(){
     <div class="bar"><i style="width:${Math.min(100,yearNow/120*100)}%"></i></div>
     <p class="small muted">${yearOld>yearNow?"Du gewinnst so rund "+Math.round(yearOld-yearNow)+" ganze Tage pro Jahr zurück, rund um die Uhr gerechnet.":"Noch kein Unterschied. Jeder Tag im Budget verschiebt diese Zahl."}</p>
   </div>
-  ${week.length?`<div class="card"><p class="label">Diese 7 Tage</p><div class="row between"><span>Bildschirmzeit</span><b class="num">${hm(sum(week))}</b></div>
-  ${prev.length?`<div class="row between"><span>Die 7 Tage davor</span><b class="num">${hm(sum(prev))}</b></div><p class="small" style="color:${sum(week)<=sum(prev)?"var(--lime)":"var(--coral)"}">${sum(week)<=sum(prev)?"−"+hm(sum(prev)-sum(week))+" weniger als davor":"+"+hm(sum(week)-sum(prev))+" mehr als davor"}</p>`:""}</div>`:""}
   ${focusStatsCard()}
   <div class="card"><p class="label">App-Monster</p>
   ${S.apps.map(a=>{const ds=S.days.filter(d=>d.apps&&d.apps[a.id]!=null);const tot=ds.reduce((x,d)=>x+(d.apps[a.id]||0),0);const over=ds.filter(d=>d.apps[a.id]>a.limit).length;
@@ -2971,12 +2985,12 @@ let scenePaused=false;
 /* ---------- Rendern ---------- */
 function render(){
   // Im Tab Freunde steht die Familieninsel, dort die eigene Insel oben ausblenden
-  $("#scene").hidden=tab==="freunde"||tab==="bewohner";
+  $("#scene").hidden=tab==="freunde"||tab==="bewohner"||tab==="zeit";
   renderScene();
   $("#streakChip").textContent=S.happyStreak>0?S.happyStreak+(S.happyStreak===1?" glücklicher Tag":" glückliche Tage"):S.dayCount+(S.dayCount===1?" Tag":" Tage")+" gespielt";
   $("#streakChip").className="chip "+(S.happyStreak>0?"good":"gone");
   $("#accBtn").innerHTML=ACC?avatarSvg(ACC.avatar,40):"";
-  $("#title").textContent=!S.setup?"Deine Insel":tab==="heute"?(ACC?"Hallo "+ACC.name:"Deine Insel"):tab==="bewohner"?"Bewohner":"Deine Insel";
+  $("#title").textContent=!S.setup?"Deine Insel":tab==="heute"?(ACC?"Hallo "+ACC.name:"Deine Insel"):tab==="bewohner"?"Bewohner":tab==="zeit"?"Deine Zeit":"Deine Insel";
   $("#dateline").textContent="OffLand · "+new Date().toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"short"});
   if(TAB_FEATURE[tab]&&!feature(TAB_FEATURE[tab])) tab="heute";
   let nTabs=0;
@@ -3040,6 +3054,7 @@ function bind(){
   const nb=$("#nightBtn"); if(nb) nb.onclick=goodNight;
   const pdn=$("#planDone"); if(pdn) pdn.onclick=()=>{const pl=S.plan, p=pl&&PLANS.find(x=>x.id===pl.id); if(!p) return; pl.res=true; const r=planResult(true,pl.id,pl.day); save(); render(); planDoneSheet(p,r)};
   const wrb=$("#weekBtn"); if(wrb) wrb.onclick=()=>weekSheet(wrb.dataset.wk);
+  const zs=$("#zeitShare"); if(zs) zs.onclick=()=>{const e=equivTop(savedTotal())[0]; shareText("Mit OffLand habe ich schon "+hm(savedTotal())+" Handyzeit zurückgewonnen"+(e?", das sind "+e.c+" "+(e.c===1?SING[e.a.n]||e.a.n:e.a.n):"")+".",inviteLink())};
   if($("#bayAlbum")) $("#bayAlbum").onclick=bayAlbumSheet;
   document.querySelectorAll("[data-feed]").forEach(b=>b.onclick=()=>feedSheet(b.dataset.feed));
   const wrr=$("#weekReadyBtn"); if(wrr) wrr.onclick=()=>weekSheet(S.weekReady.wk);
