@@ -2427,7 +2427,10 @@ function viewHeute(){
     ${feature("boot")?`<div class="tile"><span class="tile-ic">⛵</span><b>Fokus-Bootsfahrt</b>${S.boat?`<span class="small muted">Das Boot ist draußen. Leg das Handy weg, bis es zurück ist.</span>`
       :`<span class="small muted">Handy weg, ein Bewohner fährt fischen.</span><div class="boat-row">${[15,25,45,60].map(m=>`<button class="mini" data-boat="${m}" ${adults().length?"":"disabled"}>${m}</button>`).join("")}</div>`}</div>`:""}
     ${feature("nacht")?`<div class="tile${canNight?"":" off"}"><span class="tile-ic">🌙</span><b>Gute Nacht, Insel</b>${canNight?`<span class="small muted">Handy weg, morgen +15 Traumpunkte.</span><button class="mini wide" id="nightBtn">Gute Nacht</button>`
-      :`<span class="small muted">${sleeping()?"Die Insel schläft. Bis morgen!":"Geht nach dem Eintragen."}</span>`}</div>`:""}
+      :`<span class="small muted">${sleeping()?"Die Insel schläft. Bis morgen!":"Geht nach dem Eintragen."}</span>`}</div>`
+    // noch gesperrt: als gestrichelte Kachel zeigen, damit die Reihe von Anfang an vollständig ist
+    :(()=>{const nf=FEATURES.find(x=>x.id==="nacht"), left=nf?nf.day-S.dayCount:0;
+      return `<div class="tile dashed"><span class="tile-ic" style="opacity:.5">🌙</span><b>Gute Nacht, Insel</b><span class="small muted">Bald freigeschaltet · ${left<=1?"nach dem nächsten Tag":"in "+left+" Tagen"}</span></div>`})()}
   </div>`:""}
   ${friendsCard()}
   ${devMode()||S.testmode?`<div class="card">
