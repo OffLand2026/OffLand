@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>OffLand Statistik</title>
+<link rel="icon" href="../icons/icon-192.png">
+<style>
+  /* Farben nach Rolle; hell und dunkel aus denselben Rampen (validierte Standardpalette) */
+  :root{
+    color-scheme:light;
+    --page:#f3f2ee; --surface-1:#fcfcfb; --surface-2:#f0efec; --grid:#e4e3de;
+    --text-primary:#0b0b0b; --text-secondary:#52514e; --text-muted:#7a7974;
+    --series-1:#2a78d6; --series-2:#eb6834; --series-3:#1baf7a;
+    --good:#0ca30c; --critical:#d03b3b; --accent:#2a78d6;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      color-scheme:dark;
+      --page:#111110; --surface-1:#1a1a19; --surface-2:#242422; --grid:#2e2e2b;
+      --text-primary:#ffffff; --text-secondary:#c3c2b7; --text-muted:#8f8e86;
+      --series-1:#3987e5; --series-2:#d95926; --series-3:#199e70; --accent:#3987e5;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --page:#111110; --surface-1:#1a1a19; --surface-2:#242422; --grid:#2e2e2b;
+    --text-primary:#ffffff; --text-secondary:#c3c2b7; --text-muted:#8f8e86;
+    --series-1:#3987e5; --series-2:#d95926; --series-3:#199e70; --accent:#3987e5;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--page);color:var(--text-primary);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+  main{max-width:1080px;margin:0 auto;padding:24px 16px 48px;display:flex;flex-direction:column;gap:16px}
+  h1{margin:0;font-size:26px;letter-spacing:-.4px}
+  h2{margin:0;font-size:16px}
+  .sub{margin:2px 0 0;color:var(--text-secondary);font-size:13.5px}
+  .bar-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+  .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .chip{border:1px solid var(--grid);background:var(--surface-1);color:var(--text-primary);border-radius:999px;padding:6px 12px;font:600 13px system-ui,sans-serif;cursor:pointer;min-height:34px}
+  .chip[aria-pressed="true"]{background:var(--text-primary);color:var(--surface-1);border-color:var(--text-primary)}
+  .note{font-size:12.5px;color:var(--text-muted)}
+  .tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  .tile,.card{background:var(--surface-1);border:1px solid var(--grid);border-radius:16px;padding:16px}
+  .tile .lab{font-size:13px;color:var(--text-secondary)}
+  .tile .val{font-size:30px;font-weight:650;letter-spacing:-.5px;margin-top:4px}
+  .tile .hint{font-size:12px;color:var(--text-muted)}
+  .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .card{display:flex;flex-direction:column;gap:10px;min-width:0}
+  .card p.desc{margin:-6px 0 0;font-size:12.5px;color:var(--text-secondary)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--text-secondary)}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  svg.chart{width:100%;height:auto;display:block;overflow:visible}
+  svg.chart text{font:11px system-ui,sans-serif;fill:var(--text-muted)}
+  svg.chart text.val{fill:var(--text-primary);font-weight:600}
+  svg.chart text.lab{fill:var(--text-secondary);font-size:12px}
+  .hit{fill:transparent;cursor:default}
+  .empty{padding:28px;text-align:center;color:var(--text-muted);font-size:13.5px}
+  #tip{position:fixed;pointer-events:none;background:var(--text-primary);color:var(--surface-1);font-size:12.5px;padding:7px 9px;border-radius:8px;line-height:1.35;max-width:240px;z-index:9;opacity:0;transition:opacity .1s}
+  #tip b{display:block;font-weight:650}
+  details summary{cursor:pointer;font-weight:600;font-size:14px}
+  table{border-collapse:collapse;width:100%;font-size:12.5px;margin-top:10px}
+  th,td{padding:5px 8px;border-bottom:1px solid var(--grid);text-align:right;font-variant-numeric:tabular-nums}
+  th:first-child,td:first-child{text-align:left}
+  .scroll{overflow-x:auto}
+  .status{font-size:13px;color:var(--text-secondary)}
+  .demo{background:#fab219;color:#0b0b0b;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700}
+  @media (max-width:760px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+  <div class="bar-row">
+    <div><h1>OffLand Statistik</h1><p class="sub">Anonyme Tageszähler von Geräten, die zugestimmt haben · keine Namen, keine Bildschirmzeiten</p></div>
+    <div class="chips" role="group" aria-label="Zeitraum">
+      <button class="chip" data-days="7">7 Tage</button><button class="chip" data-days="14">14 Tage</button><button class="chip" data-days="30">30 Tage</button><button class="chip" data-days="90">90 Tage</button>
+    </div>
+  </div>
+  <p class="status" id="status">Lade …</p>
+
+  <section class="tiles" aria-label="Kennzahlen">
+    <div class="tile"><div class="lab">Aktive Gerätetage</div><div class="val" id="kAktiv">–</div><div class="hint" id="kAktivH"></div></div>
+    <div class="tile"><div class="lab">Neue Konten</div><div class="val" id="kNeu">–</div><div class="hint" id="kNeuH"></div></div>
+    <div class="tile"><div class="lab">Eingetragene Tage</div><div class="val" id="kTage">–</div><div class="hint" id="kTageH"></div></div>
+    <div class="tile"><div class="lab">Tage im Budget</div><div class="val" id="kGut">–</div><div class="hint">Anteil der eingetragenen Tage</div></div>
+  </section>
+
+  <section class="grid2">
+    <div class="card"><h2>Aktive Geräte pro Tag</h2><p class="desc">Geräte, die OffLand an dem Tag geöffnet haben, nach Plattform</p>
+      <div class="legend"><span><i style="background:var(--series-1)"></i>iOS-App</span><span><i style="background:var(--series-2)"></i>Vom Home-Bildschirm</span><span><i style="background:var(--series-3)"></i>Browser</span></div>
+      <div id="cAktiv"></div></div>
+    <div class="card"><h2>Eingetragene Tage</h2><p class="desc">Abende, an denen ein Tag eingetragen wurde</p>
+      <div class="legend"><span><i style="background:var(--good)"></i>✓ im Budget</span><span><i style="background:var(--critical)"></i>✕ über dem Budget</span></div>
+      <div id="cTage"></div></div>
+    <div class="card"><h2>Wer bleibt dabei?</h2><p class="desc">Aktive Gerätetage nach Abstand zum ersten Start. Viel bei „Tag 0“ und wenig danach heißt: Leute springen früh ab.</p><div id="cRet"></div></div>
+    <div class="card"><h2>Vom Konto zur Gewohnheit</h2><p class="desc">Wie viele erreichen die Meilensteine, im Verhältnis zu neuen Konten</p><div id="cFunnel"></div></div>
+    <div class="card"><h2>Was genutzt wird</h2><p class="desc">Wie oft eine Funktion im Zeitraum genutzt wurde</p><div id="cFeat"></div></div>
+    <div class="card"><h2>Geschichte</h2><p class="desc">Wie oft jedes Kapitel geschafft wurde, dazu Intro und Joker</p><div id="cKap"></div><div id="cMisc"></div></div>
+  </section>
+
+  <details class="card"><summary>Alle Zahlen als Tabelle</summary><div class="scroll" id="tbl"></div></details>
+  <p class="note">Gezählt wird nur auf Geräten, die in der App zugestimmt haben (Konto → Einstellungen → Anonyme Statistik). Die Zahlen sind Tagessummen ohne Bezug zu einzelnen Personen. <a href="?demo" id="demoLink" style="color:inherit">Mit Beispieldaten ansehen</a></p>
+</main>
+<div id="tip" role="tooltip"></div>
+
+<script src="../js/online-config.js"></script>
+<script type="module">
+const FB = "https://www.gstatic.com/firebasejs/10.14.1/";
+const $ = s => document.querySelector(s);
+const demo = new URLSearchParams(location.search).has("demo");
+const fmt = n => n.toLocaleString("de-DE");
+const pad2 = n => String(n).padStart(2, "0");
+const iso = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+const short = s => { const [y, m, d] = s.split("-"); return `${+d}.${+m}.`; };
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+const NAMES = {
+  vorhaben_gewaehlt: "Vorhaben gewählt", vorhaben_ok: "Vorhaben geschafft", vorhaben_nein: "Vorhaben nicht geschafft", vorhaben_ohne: "Ohne Vorhaben weiter",
+  boot: "Fokus-Bootsfahrt", nacht: "Gute Nacht, Insel", kauf: "Im Laden gekauft", projekt: "Großprojekt fertig", rueckblick: "Wochenrückblick",
+  album: "Mr. Bays Album", tagebuch_alle: "Tagebuch ganz geöffnet", chronik_alle: "Chronik ganz geöffnet", ueberraschung: "Überraschung",
+  online_an: "Online eingeschaltet", familie: "Familieninsel", duell: "Duell gestartet", joker_ja: "Joker eingesetzt", joker_nein: "Joker abgelehnt",
+  wunsch_item: "Wunsch: Gegenstand", wunsch_streak: "Wunsch: Serie", wunsch_unter: "Wunsch: Tag unter X", wunsch_plan: "Wunsch: Vorhaben",
+  wunsch_glueck: "Wunsch: Inselglück", wunsch_frei: "Wunsch: vom Handy holen", wunsch_boot: "Wunsch: Bootsfahrt", wunsch_nacht: "Wunsch: Gute Nacht"
+};
+
+// ---------- Daten holen ----------
+async function load(days) {
+  const list = [];
+  for (let i = days - 1; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); list.push(iso(d)); }
+  if (demo) return list.map((day, i) => ({ day, c: demoDay(i, days) }));
+  const cfg = window.OFFLAND_FIREBASE;
+  if (!cfg || !cfg.apiKey) throw new Error("Firebase ist nicht eingerichtet.");
+  const [A, U, F] = await Promise.all([import(FB + "firebase-app.js"), import(FB + "firebase-auth.js"), import(FB + "firebase-firestore.js")]);
+  const app = A.initializeApp(cfg), auth = U.getAuth(app), db = F.getFirestore(app);
+  await auth.authStateReady(); if (!auth.currentUser) await U.signInAnonymously(auth);
+  const snaps = await Promise.all(list.map(day => F.getDoc(F.doc(db, "stats/" + day)).catch(() => null)));
+  return list.map((day, i) => ({ day, c: snaps[i] && snaps[i].exists() ? snaps[i].data() : {} }));
+}
+function demoDay(i, n) {
+  const r = k => Math.abs(Math.sin(i * 12.9898 + k * 78.233) * 43758.5453) % 1, grow = 0.4 + i / n;
+  const ios = Math.round(18 * grow + r(1) * 6), pwa = Math.round(9 * grow + r(2) * 4), web = Math.round(5 + r(3) * 4), akt = ios + pwa + web;
+  const tag = Math.round(akt * (0.6 + r(4) * 0.2)), gut = Math.round(tag * (0.55 + r(5) * 0.25)), neu = Math.round(3 + r(6) * 5);
+  return { aktiv: akt, aktiv_ios: ios, aktiv_pwa: pwa, aktiv_web: web, konto_neu: neu, insel_start: Math.max(0, neu - 1), tag, tag_gut: gut, tag_schlecht: tag - gut,
+    aktiv_t0: neu, aktiv_t1: Math.round(neu * .7), aktiv_t2_3: Math.round(akt * .14), aktiv_t4_7: Math.round(akt * .2), aktiv_t8_14: Math.round(akt * .22), aktiv_t15_30: Math.round(akt * .2), aktiv_t31: Math.round(akt * .1),
+    tage_1: Math.max(0, neu - 1), tage_3: Math.round(neu * .6), tage_7: Math.round(neu * .4), tage_14: Math.round(neu * .25), tage_30: Math.round(neu * .12),
+    vorhaben_gewaehlt: Math.round(tag * .45), vorhaben_ohne: Math.round(tag * .3), vorhaben_ok: Math.round(tag * .3), vorhaben_nein: Math.round(tag * .1),
+    boot: Math.round(akt * .25), nacht: Math.round(akt * .15), kauf: Math.round(akt * .2), rueckblick: i % 7 === 6 ? Math.round(akt * .4) : 0, album: Math.round(r(7) * 4),
+    joker_ja: Math.round(r(8) * 3), joker_nein: Math.round(r(9) * 2), intro_ende: Math.round(neu * .6), intro_skip: Math.round(neu * .4),
+    kapitel_1: Math.round(neu * .7), kapitel_2: Math.round(neu * .5), kapitel_3: Math.round(neu * .3), kapitel_4: Math.round(r(10) * 2), wunsch_item: Math.round(r(11) * 4), wunsch_plan: Math.round(r(12) * 3) };
+}
+
+// ---------- Tooltip ----------
+const tip = $("#tip");
+function bindTips(root) {
+  root.querySelectorAll("[data-tip]").forEach(el => {
+    const show = e => { tip.innerHTML = el.dataset.tip; tip.style.opacity = 1; const p = e.touches ? e.touches[0] : e;
+      const x = Math.min(innerWidth - tip.offsetWidth - 8, p.clientX + 12), y = p.clientY - tip.offsetHeight - 12;
+      tip.style.left = Math.max(8, x) + "px"; tip.style.top = (y < 8 ? p.clientY + 16 : y) + "px"; };
+    el.addEventListener("pointermove", show); el.addEventListener("pointerdown", show);
+    el.addEventListener("pointerleave", () => tip.style.opacity = 0);
+  });
+}
+const niceMax = v => { if (v <= 4) return 4; const p = Math.pow(10, Math.floor(Math.log10(v))), m = v / p; return (m <= 2 ? 2 : m <= 5 ? 5 : 10) * p; };
+const roundTop = (x, y, w, h, r) => h <= 0 ? "" : (r = Math.min(r, h, w / 2), `M${x} ${y + h}V${y + r}q0-${r} ${r}-${r}h${w - 2 * r}q${r} 0 ${r} ${r}V${y + h}z`);
+const roundRight = (x, y, w, h, r) => w <= 0 ? "" : (r = Math.min(r, w, h / 2), `M${x} ${y}h${w - r}q${r} 0 ${r} ${r}v${h - 2 * r}q0 ${r}-${r} ${r}H${x}z`);
+
+// Gestapelte Säulen pro Tag (eine Achse, 2px Fuge zwischen Segmenten)
+function stacked(el, rows, series) {
+  const W = Math.max(320, Math.min(520, el.clientWidth || 520)), H = W < 420 ? 190 : 210, L = 30, B = 22, T = 8, n = rows.length;
+  const tot = rows.map(r => series.reduce((a, s) => a + (r.c[s.k] || 0), 0)), max = niceMax(Math.max(1, ...tot));
+  if (!tot.some(Boolean)) { el.innerHTML = `<div class="empty">Noch keine Daten in diesem Zeitraum.</div>`; return; }
+  const band = (W - L) / n, bw = Math.min(24, band * 0.7), y = v => T + (H - T - B) * (1 - v / max);
+  let g = "";
+  const k = [5, 4, 2].find(k => Number.isInteger(max / k)) || 4;
+  for (let t = 0; t <= k; t++) { const v = max * t / k, yy = y(v); g += `<line x1="${L}" x2="${W}" y1="${yy}" y2="${yy}" stroke="var(--grid)"/><text x="${L - 6}" y="${yy + 3.5}" text-anchor="end">${fmt(v)}</text>`; }
+  const every = Math.ceil(n / (W < 420 ? 6 : 8));
+  rows.forEach((r, i) => {
+    const x = L + band * i + (band - bw) / 2; let acc = 0; const parts = series.filter(s => r.c[s.k]);
+    parts.forEach((s, j) => { const v = r.c[s.k], y0 = y(acc + v), h = y(acc) - y0 - (j ? 2 : 0); acc += v;
+      g += j === parts.length - 1 ? `<path d="${roundTop(x, y0, bw, h, 4)}" fill="var(${s.c})"/>` : `<rect x="${x}" y="${y0 + 2}" width="${bw}" height="${Math.max(0, h - 2)}" fill="var(${s.c})"/>`; });
+    if ((i % every === 0 && n - 1 - i >= Math.max(2, every)) || i === n - 1) g += `<text x="${x + bw / 2}" y="${H - 6}" text-anchor="middle">${short(r.day)}</text>`;
+    const t = `<b>${short(r.day)} · ${fmt(tot[i])}</b>` + series.map(s => `${esc(s.n)}: ${fmt(r.c[s.k] || 0)}`).join("<br>");
+    g += `<rect class="hit" x="${L + band * i}" y="${T}" width="${band}" height="${H - T - B}" data-tip="${esc(t)}"/>`;
+  });
+  el.innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Säulendiagramm">${g}</svg>`; bindTips(el);
+}
+// Waagrechte Balken (eine Reihe, Wert an der Spitze)
+function hbars(el, items, opt = {}) {
+  items = items.filter(it => opt.keepZero || it.v > 0);
+  if (!items.length) { el.innerHTML = `<div class="empty">${opt.empty || "Noch keine Daten in diesem Zeitraum."}</div>`; return; }
+  const W = Math.max(320, Math.min(520, el.clientWidth || 520)), row = 26, LW = Math.min(opt.labelW || 170, W * .42), H = items.length * row + 4, max = Math.max(1, ...items.map(i => i.v)), span = W - LW - 60;
+  let g = "";
+  items.forEach((it, i) => { const y = i * row + 4, w = Math.max(it.v ? 3 : 0, span * it.v / max);
+    g += `<text class="lab" x="${LW - 8}" y="${y + 13}" text-anchor="end">${esc(it.n)}</text><path d="${roundRight(LW, y + 3, w, 14, 4)}" fill="var(${opt.color || "--series-1"})"/>`;
+    g += `<text class="val" x="${LW + w + 6}" y="${y + 14}">${fmt(it.v)}${it.extra ? ` <tspan style="fill:var(--text-muted);font-weight:400">${esc(it.extra)}</tspan>` : ""}</text>`;
+    g += `<rect class="hit" x="0" y="${y}" width="${W}" height="${row}" data-tip="${esc(`<b>${esc(it.n)}</b>${fmt(it.v)}${it.extra ? " · " + esc(it.extra) : ""}`)}"/>`; });
+  el.innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Balkendiagramm">${g}</svg>`; bindTips(el);
+}
+
+// ---------- Seite füllen ----------
+function render(rows) {
+  const sum = k => rows.reduce((a, r) => a + (r.c[k] || 0), 0);
+  const days = rows.length, aktiv = sum("aktiv"), neu = sum("konto_neu"), tag = sum("tag"), gut = sum("tag_gut");
+  $("#kAktiv").textContent = fmt(aktiv); $("#kAktivH").textContent = `Ø ${fmt(Math.round(aktiv / days * 10) / 10)} pro Tag`;
+  $("#kNeu").textContent = fmt(neu); $("#kNeuH").textContent = `${fmt(sum("insel_start"))} davon Insel gestartet`;
+  $("#kTage").textContent = fmt(tag); $("#kTageH").textContent = aktiv ? `${Math.round(tag / aktiv * 100)} % der aktiven Gerätetage` : "";
+  $("#kGut").textContent = tag ? Math.round(gut / tag * 100) + " %" : "–";
+
+  stacked($("#cAktiv"), rows, [{ k: "aktiv_ios", n: "iOS-App", c: "--series-1" }, { k: "aktiv_pwa", n: "Vom Home-Bildschirm", c: "--series-2" }, { k: "aktiv_web", n: "Browser", c: "--series-3" }]);
+  stacked($("#cTage"), rows, [{ k: "tag_gut", n: "Im Budget", c: "--good" }, { k: "tag_schlecht", n: "Über dem Budget", c: "--critical" }]);
+  hbars($("#cRet"), [["0", "Erster Tag"], ["1", "Tag 1"], ["2_3", "Tag 2–3"], ["4_7", "Tag 4–7"], ["8_14", "Tag 8–14"], ["15_30", "Tag 15–30"], ["31", "Ab Tag 31"]].map(([k, n]) => ({ n, v: sum("aktiv_t" + k) })), { keepZero: true, labelW: 120 });
+  const base = Math.max(1, neu);
+  hbars($("#cFunnel"), [["konto_neu", "Konto angelegt"], ["insel_start", "Insel gestartet"], ["tage_1", "1. Tag eingetragen"], ["tage_3", "3 Tage"], ["tage_7", "7 Tage"], ["tage_14", "14 Tage"], ["tage_30", "30 Tage"]]
+    .map(([k, n]) => ({ n, v: sum(k), extra: neu ? Math.round(sum(k) / base * 100) + " %" : "" })), { keepZero: true, labelW: 150 });
+  hbars($("#cFeat"), Object.keys(NAMES).map(k => ({ n: NAMES[k], v: sum(k) })).sort((a, b) => b.v - a.v).slice(0, 14));
+  hbars($("#cKap"), Array.from({ length: 19 }, (_, i) => ({ n: "Kapitel " + (i + 1), v: sum("kapitel_" + (i + 1)) })), { labelW: 110, empty: "Noch kein Kapitel geschafft." });
+  hbars($("#cMisc"), [{ n: "Intro ganz angesehen", v: sum("intro_ende") }, { n: "Intro übersprungen", v: sum("intro_skip") }], { labelW: 170, empty: "" });
+
+  const keys = [...new Set(rows.flatMap(r => Object.keys(r.c)))].sort();
+  $("#tbl").innerHTML = keys.length ? `<table><thead><tr><th>Zähler</th>${rows.map(r => `<th>${short(r.day)}</th>`).join("")}<th>Summe</th></tr></thead><tbody>` +
+    keys.map(k => `<tr><td>${esc(NAMES[k] || k)}</td>${rows.map(r => `<td>${r.c[k] ? fmt(r.c[k]) : ""}</td>`).join("")}<td><b>${fmt(sum(k))}</b></td></tr>`).join("") + "</tbody></table>" : `<div class="empty">Noch keine Daten.</div>`;
+}
+
+let cur = 14, LAST = null;
+async function go(days) {
+  cur = days;
+  document.querySelectorAll("[data-days]").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.days === days)));
+  $("#status").innerHTML = "Lade …";
+  try {
+    const rows = await load(days);
+    const any = rows.some(r => Object.keys(r.c).length);
+    $("#status").innerHTML = demo ? `<span class="demo">Beispieldaten</span> So sieht die Seite aus, wenn Zahlen da sind. <a href="./" style="color:inherit">Echte Zahlen</a>`
+      : any ? `Stand: ${new Date().toLocaleString("de-DE", { dateStyle: "medium", timeStyle: "short" })}` : "Noch keine Zahlen in diesem Zeitraum. Sie erscheinen, sobald Geräte zugestimmt haben und OffLand nutzen.";
+    LAST = rows; render(rows);
+  } catch (e) { $("#status").textContent = "Konnte die Zahlen nicht laden: " + (e && e.message || e); }
+}
+document.querySelectorAll("[data-days]").forEach(b => b.onclick = () => go(+b.dataset.days));
+let rz = 0; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => LAST && render(LAST), 200); });
+if (demo) $("#demoLink").remove();
+go(cur);
+</script>
+</body>
+</html>
