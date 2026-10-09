@@ -784,6 +784,9 @@ function extras(day,diff,quests,dreamt){
   // Seltene Besucher
   if(S.aurora>0)S.aurora--; if(S.birds>0)S.birds--;
   if(S.trader&&day>=S.trader.until) S.trader=null;
+  // Fanpost: alle 5 bis 7 guten Tage schreibt jemand von außen, was er Gutes über die Insel gehört hat
+  if(good){S.fanC=(S.fanC||0)+1;
+    if(S.dayCount>=4&&S.fanC>=5+Math.floor(Math.random()*3)&&here().some(r=>r.kind==="mensch")&&!S.pending.some(e=>e.type==="postcard"||e.type==="fanpost")){S.fanC=0;S.pending.push({type:"fanpost"})}}
   if(good&&S.budgetStreak>0&&S.budgetStreak%(has("f_nordlicht")?5:7)===0){
     S.aurora=owns("sternwarte")?4:3; S.pending.push({type:"visitor",kind:"aurora"}); log("Polarlicht über der Insel! 7 Tage am Stück im Budget.","good"); chron([],"Polarlicht nach "+S.budgetStreak+" Tagen im Budget.");
   } else if(good&&S.glueck>=60&&!S.birds&&Math.random()<(owns("vogelhaus")?.2:.1)){
@@ -2353,6 +2356,25 @@ function makeCard(g,hint){
   const card={id:uid(),day:S.lastDay,motif:motif.id,text,animal:animals?g[0].art:null,hint:!!hint};
   S.postcards.push(card); return card;
 }
+/* Fanpost: Verwandte und Nachbarinseln schreiben, was sie Gutes über die Insel gehört haben */
+function makeFanCard(){
+  const ppl=here().filter(r=>r.kind==="mensch"), r=pick(ppl), used=S.residents.map(x=>x.name);
+  const rel=pick(["Oma","Opa","Tante","Onkel","Patentante"]), der=rel==="Opa"||rel==="Onkel"?"der":"die", who=freeName(HUMAN_NAMES,used);
+  const have=new Set(S.postcards.map(c=>c.motif)), freshM=MOTIFS.filter(m=>!have.has(m.id)), motif=pick(freshM.length?freshM:MOTIFS);
+  const place=motif.title.replace(/^(Grüße vo[nm] |Moin aus |Grüße aus )/,"");
+  const room=occupied()<capacity();
+  const kinds=[
+    {t:`Liebe Insel! Ich bin ${der} ${rel} von ${r.name}. ${r.name} schreibt mir, dass ihr abends zusammensitzt, statt aufs Handy zu schauen. Da wird mir ganz warm ums Herz. Herzlich, ${rel} ${who}`},
+    {t:`Hallo ${r.name}! Hier ist ${der} ${rel}. Alle erzählen mir, wie schön es bei euch auf der Insel geworden ist. Ich bin so stolz auf dich! Bis bald, ${rel} ${who}`},
+    {t:`Moin aus ${place}! Bei uns erzählt man sich von eurer Insel: Dort hören sich die Leute wirklich zu. Macht weiter so! ${who} und Familie`},
+    {t:`Ich habe gehört, ${r.name} ist ${jobName(r.job)} bei euch und richtig gut darin. Sag liebe Grüße! ${who} aus ${place}`},
+    {t:`Liebe Inselleute, wir haben so viel Gutes von euch gehört. ${room?"Wir packen schon die Koffer und kommen bald vorbei!":"Sobald bei euch ein Platz frei wird, kommen wir vorbei!"} ${who} und Familie`,soon:room}
+  ];
+  const k=pick(kinds);
+  if(k.soon) S.arrC=Math.max(S.arrC||0,2);   // der nächste glückliche Tag bringt jemanden Neues
+  const card={id:uid(),day:S.lastDay,motif:motif.id,text:k.t,animal:null,fan:true,soon:!!k.soon};
+  S.postcards.push(card); return card;
+}
 function motifSvg(m,small){
   let s=`<svg viewBox="0 0 350 120" style="display:block;width:100%;height:auto" aria-hidden="true"><rect width="350" height="120" fill="${m.sky}"/>`;
   if(m.id==="sonne") s+=`<circle cx="175" cy="84" r="30" fill="#FF9C7A"/>`;
@@ -2959,7 +2981,7 @@ function viewVerlauf(){
   <div class="sec-h"><span>Postkarten</span><span class="num" style="text-transform:none;letter-spacing:0">${cards.length?cards.length+" "+(cards.length===1?"Karte":"Karten"):""}</span></div>
   ${cards.length?`<div class="fy-row">${cards.map(c=>{const m=MOTIFS.find(x=>x.id===c.motif)||MOTIFS[0];
     return `<button class="fy" data-card="${c.id}" style="border:none;text-align:left;color:var(--ink);font:inherit"><span style="border-radius:6px;overflow:hidden;border:2px solid #F3F1EA;display:block">${motifSvg(m,true)}</span><b>${esc(m.title)}</b><span class="small muted" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(c.text)}</span></button>`}).join("")}</div>`
-    :`<div class="card"><p class="small muted">Noch keine Post. Wer wegzieht, schreibt dir. Jede Karte hat ein Motiv, das du sammeln kannst.</p></div>`}
+    :`<div class="card"><p class="small muted">Noch keine Post. Nach ein paar guten Tagen schreiben Verwandte und Nachbarinseln, was sie Gutes über deine Insel gehört haben. Jede Karte hat ein Motiv zum Sammeln.</p></div>`}
   ${cards.length?viewAlbum():""}
   <div class="sec-h"><span>Strandgut</span></div>
   ${viewStrandgut()}
@@ -3552,6 +3574,12 @@ function showPending(){
     const card=makeCard(idsTo(ev.ids),ev.hint); save();
     const fresh=S.postcards.filter(c=>c.motif===card.motif).length===1;
     return sheet(`<p class="label" style="color:var(--lilac)">Post ist da${fresh?" · neues Motiv!":""}</p>${postcardHtml(card)}<p class="small muted">Album: ${new Set(S.postcards.map(c=>c.motif)).size} von ${MOTIFS.length} Motiven gesammelt</p><button class="btn" data-ok>Ins Album legen</button>`);
+  }
+  if(ev.type==="fanpost"){
+    const card=makeFanCard(); S.glueck=Math.min(100,S.glueck+2); stat("fanpost");
+    log("Fanpost: Jemand hat Gutes über die Insel gehört. +2 % Glück.","good"); save();
+    const fresh=S.postcards.filter(c=>c.motif===card.motif).length===1;
+    return sheet(`<p class="label" style="color:var(--lime)">Fanpost${fresh?" · neues Motiv!":""}</p>${postcardHtml(card)}<p class="small muted">Gute Tage sprechen sich herum: +2 % Glück${card.soon?". Bald zieht jemand Neues ein.":"."}</p><button class="btn" data-ok>Ins Album legen</button>`);
   }
   if(ev.type==="return"){
     const g=idsTo(ev.ids);
