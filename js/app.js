@@ -3222,6 +3222,7 @@ function render(){
   $("#accBtn").innerHTML=ACC?avatarSvg(ACC.avatar,40):"";
   $("#title").textContent=!S.setup?"Deine Insel":tab==="heute"?(ACC?"Hallo "+ACC.name:"Deine Insel"):tab==="bewohner"?"Bewohner":tab==="zeit"?"Deine Zeit":tab==="projekt"?"Bauen":tab==="freunde"?"Freunde":tab==="verlauf"?"Album":"Deine Insel";
   $("#dateline").textContent="OffLand · "+new Date().toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"short"});
+  const pb=plusBadge(); if(pb){$("#streakChip").textContent=pb;$("#streakChip").className="chip plus"}                // Plus-Woche: Abzeichen statt Tageszähler
   if(TAB_FEATURE[tab]&&!feature(TAB_FEATURE[tab])) tab="heute";
   let nTabs=0;
   document.querySelectorAll("#tabs button").forEach(b=>{const show=!TAB_FEATURE[b.dataset.tab]||feature(TAB_FEATURE[b.dataset.tab]);b.hidden=!show;if(show)nTabs++;b.setAttribute("aria-current",b.dataset.tab===tab?"page":"false")});
@@ -3238,7 +3239,7 @@ function bind(){
   if(sb) sb.oninput=()=>{S.budget=+sb.value;$("#setBudgetOut").textContent=hm(S.budget)};
   if(sa) sa.oninput=()=>{S.baseline=+sa.value;$("#setBaseOut").textContent=hm(S.baseline)};
   if(sb) sb.onchange=save; if(sa) sa.onchange=save;
-  const st=$("#startBtn"); if(st) st.onclick=()=>{S.setup=true;stat("insel_start");log("Deine Insel ist gegründet. "+nameList(here().map(r=>r.name))+" ziehen ein.","good");save();render();if(famInvite())famJoinSheet(famInvite())};
+  const st=$("#startBtn"); if(st) st.onclick=()=>{S.setup=true;stat("insel_start");log("Deine Insel ist gegründet. "+nameList(here().map(r=>r.name))+" ziehen ein.","good");plusTrialStart();save();render();if(famInvite())famJoinSheet(famInvite());else showPending()};
   const bo=$("#bkOn"); if(bo) bo.onclick=backupEnable;
   const wsb=$("#wishShop"); if(wsb) wsb.onclick=()=>{tab="projekt";bauTab="laden";render();window.scrollTo(0,0)};
   document.querySelectorAll("[data-bau]").forEach(b=>b.onclick=()=>{bauTab=b.dataset.bau;render();const t=$("[data-bau]");if(t&&t.getBoundingClientRect().top<0)t.scrollIntoView({block:"start"})});
@@ -3432,8 +3433,8 @@ function soundFor(ev){
 /* Fenster-Warteschlange: höchstens 3 am Stück, der Rest wartet bis zum nächsten Öffnen oder Eintragen.
    Vorhaben-Nachfrage, Joker und Tagesbilanz kommen immer und zuerst. */
 let PEND_BUDGET=3;
-const PEND_MUST=new Set(["plan","jokerAsk","day"]);
-const PEND_ORDER={plan:0,jokerAsk:1,day:2,planAsk:3,bilanz:4,unlock:7,chapter:6,umfrage:8,statsAsk:9};
+const PEND_MUST=new Set(["plan","jokerAsk","day","plusStart"]);
+const PEND_ORDER={plusStart:-1,plan:0,jokerAsk:1,day:2,planAsk:3,bilanz:4,unlock:7,chapter:6,umfrage:8,statsAsk:9};
 function sortPending(){const o=e=>PEND_ORDER[e.type]!=null?PEND_ORDER[e.type]:5; S.pending=S.pending.map((e,i)=>[e,i]).sort((a,b)=>o(a[0])-o(b[0])||a[1]-b[1]).map(x=>x[0])}
 function showPending(){
   if($("#modalRoot").innerHTML) return;
@@ -3458,6 +3459,7 @@ function showPending(){
   }
   if(ev.type==="week") return weekSheet(ev.wk);
   if(ev.type==="bilanz") return bilanzSheet(ev);
+  if(ev.type==="plusStart") return plusStartSheet();
   if(ev.type==="planAsk") return planAskSheet(ev);
   if(ev.type==="chapter") return chapterSheet(ev.n,true);
   if(ev.type==="umfrage") return umfrageSheet(ev);
@@ -3873,6 +3875,31 @@ function myCode(){
 const inviteLink=()=>APP_URL+"?einladung="+myCode();
 const plusActive=()=>!!(S.plus&&S.plus.until>=today());
 function grantPlus(days){S.plus={until:addDays(plusActive()?S.plus.until:today(),days)}}
+/* Plus-Woche zum Start: neue Inseln bekommen 7 Tage Plus geschenkt, ohne Abo und ohne Zahlungsdaten */
+const PLUS_TRIAL=7;
+function plusTrialStart(){
+  if(S.plus||S.plusTrial) return;
+  grantPlus(PLUS_TRIAL-1); S.plusTrial=today();                                    // heute zählt mit: 7 Tage inklusive heute
+  S.pending.unshift({type:"plusStart"});
+}
+function plusBadge(){                                                                  // nur in der geschenkten Plus-Woche
+  if(!plusActive()||!S.plusTrial) return "";
+  const left=Math.round((parse(S.plus.until)-parse(today()))/864e5)+1;
+  if(left>PLUS_TRIAL) return "";                                                     // Plus wurde inzwischen verlängert
+  return "★ Plus · "+(left<=1?"letzter Tag":"noch "+left+" Tage");
+}
+function plusStartSheet(){
+  CUR_EV=null; stat("plus_start");
+  const f=[["🌍","Weltreise","Erkunde neue Inseln"],["🏡","Familieninsel","Gemeinsam mit deinen Liebsten"],["🦭","Seltene Tiere behalten"],["🛍️","Alle Deko im Inselladen"],["🃏","2 Joker pro Woche"],["📈","Langer Rückblick und Jahresbilanz"]];
+  sheet(`<p class="ps-gift" aria-hidden="true">🎁</p><p class="ps-star">★ OffLand Plus</p>
+    <h2 style="text-align:center">Deine erste Woche geht aufs Haus</h2>
+    <p class="muted" style="text-align:center">${PLUS_TRIAL} Tage lang ist alles freigeschaltet. Probier aus, was deine Insel kann.</p>
+    <div class="ps-days" aria-hidden="true">${"<i></i>".repeat(PLUS_TRIAL)}</div>
+    <div class="ps-feat">${f.map(([i,t,sub])=>`<div><span class="ic" aria-hidden="true">${i}</span><p>${t}${sub?`<small>${sub}</small>`:""}</p></div>`).join("")}</div>
+    <div class="ps-safe"><span aria-hidden="true">🔒</span><p class="small muted"><b style="color:var(--ink)">Kein Abo, keine Zahlungsdaten.</b> Nach ${PLUS_TRIAL} Tagen spielst du einfach kostenlos weiter. Deine Insel und alle Bewohner bleiben dir.</p></div>
+    ${saysHtml("bay","Willkommen auf OffLand! Die erste Woche bekommst du von mir das volle Programm. Ich hab sogar extra die Möwen geputzt.")}
+    <button class="btn ps-go" data-ok>Los geht's</button>`);
+}
 /* Gratis-Monat fürs Einladen: einmal pro Konto und einmal pro Gerät */
 const PLUS_DEV_KEY="offland-plus-freund";
 function friendPlusFree(){

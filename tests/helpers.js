@@ -24,6 +24,7 @@ async function dismiss(page, max = 25) {
   for (let i = 0; i < max; i++) {
     const ok = await page.$("#modalRoot [data-ok], #modalRoot #nameOk, #modalRoot [data-c=egal], #modalRoot #boatYes");
     if (!ok) return;
+    await ok.evaluate(e => e.scrollIntoView({ block: "nearest" }));   // lange Fenster: im Fenster scrollen, nicht die Seite
     await ok.click(); await page.waitForTimeout(60);
   }
 }
