@@ -970,7 +970,7 @@ function planDoneSheet(p,r){
     <button class="btn" data-ok>Schön</button>`);
 }
 function planCard(){
-  const pl=S.plan; if(!pl||pl.res) return "";
+  const pl=S.plan; if(!pl||pl.res||pl.day>today()) return "";   // morgen steht nur kurz in der Hauptkarte
   const p=PLANS.find(x=>x.id===pl.id); if(!p) return "";
   const now=pl.day<=today();
   return `<div class="card plan-card"><p class="label" style="color:var(--lime)">Dein Vorhaben</p>
@@ -1326,7 +1326,7 @@ async function leaveFamily(){try{localStorage.removeItem(FAM_KEY)}catch(e){} awa
 
 /* ---------- Tag abschließen ---------- */
 function closeDay(min,quests,appMin){
-  appMin=appMin||{};
+  appMin=appMin||{}; ENTRY_OPEN=false;
   const day=nextDay();
   const diff=S.budget-min;
   const prevLast=S.lastDay;
@@ -1838,13 +1838,6 @@ function chapterSheet(n,fresh){
     ${fresh&&!next?`<p class="small muted">Das war die ganze Geschichte von OffLand. Danke, dass du dabei warst.</p>`:""}
     <button class="btn" data-ok>${fresh?"Ins Album kleben":"Schließen"}</button>`);
   if(fresh) sfx("chapter"); speak([["bay",c.bay],["luc",c.luc]],fresh?1:.1);
-}
-function chapterCard(){
-  if(S.chapter==null||!S.setup) return "";
-  const c=CHAPTERS[S.chapter];
-  if(!c) return `<div class="card chap-card"><div class="row"><span class="says-pic" style="background:#2A2F45">${bayPic(44)}</span><div class="grow"><p class="label" style="color:var(--amber)">Geschichte</p><p><b>Alle ${CHAPTERS.length} Kapitel geschafft</b></p><p class="small muted">Die ganze Geschichte von OffLand ist erzählt. Mr. Bay ist sehr stolz.</p></div></div></div>`;
-  const pr=c.prog();
-  return `<div class="card chap-card"><div class="row"><span class="says-pic" style="background:#2A2F45">${bayPic(44)}</span><div class="grow"><p class="label" style="color:var(--amber)">Kapitel ${S.chapter+1} von ${CHAPTERS.length}</p><p><b>${esc(c.n)}</b></p><p class="small muted">${esc(c.goal)}${pr?" · "+esc(pr):""}</p></div></div></div>`;
 }
 function viewBayAlbum(){
   if(S.chapter==null) return "";
@@ -2400,11 +2393,10 @@ function viewHeute(){
   const mons=(S.monsters||[]).map(id=>S.apps.find(a=>a.id===id)).filter(Boolean);
   const guard=S.vacation&&S.vacation.guard?S.residents.find(r=>r.id===S.vacation.guard):null;
   const closeFirst=ok&&(new Date().getHours()>=17||S.testmode);
-  const closeCard=`<div class="card" id="closeCard">
-    <div class="row between"><h2>${S.vacation?"Urlaub":ok?"Tag eintragen":"Bis morgen!"}</h2><span class="small muted">${nice(nd)}</span></div>
-    ${ok?`
+  const entry=ok&&(closeFirst||ENTRY_OPEN);
+  const form=`<div id="closeCard" class="entry">
     ${S.repair?`<p class="small" style="color:var(--amber)">Reparatur möglich: Bleib heute im Budget, dann holst du ${S.repair.amount} % Glück zurück.</p>`:""}
-    <p class="small muted" id="stNote">Trag die Bildschirmzeit aus deinen Handy-Einstellungen ein. Budget: ${hm(S.budget)}.</p>
+    <p class="small muted" id="stNote">Trag die Bildschirmzeit für ${nd===today()?"heute":nice(nd)} aus deinen Handy-Einstellungen ein. Budget: ${hm(S.budget)}.</p>
     <div class="time">
       <label class="field" for="inH">Stunden<input id="inH" type="number" min="0" max="24" inputmode="numeric" value="${last?Math.floor(last.min/60):2}"></label>
       <label class="field" for="inM">Minuten<input id="inM" type="number" min="0" max="59" step="5" inputmode="numeric" value="${last?last.min%60:30}"></label>
@@ -2414,37 +2406,29 @@ function viewHeute(){
     ${feature("monster")?`<details><summary style="cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center">Pro App eintragen (für die App-Monster)</summary>
       <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:6px">${S.apps.map(a=>`<label class="field" for="app_${a.id}" style="font-size:13px">${esc(a.name)} <span class="muted" style="font-weight:500">Limit ${a.limit} min</span><input id="app_${a.id}" type="number" min="0" max="1440" inputmode="numeric" placeholder="Minuten"></label>`).join("")}</div>
     </details>`:""}
-    <button class="btn" id="closeBtn">Tag abschließen</button>`
-    :S.vacation?`<p class="muted">Im Urlaubsmodus musst du nichts eintragen.</p>`:`<p class="muted">Heute ist schon eingetragen. Komm morgen Abend wieder und trag den Tag ein.</p>`}
-    ${canNight?`<button class="btn secondary" id="nightBtn">Gute Nacht, Insel</button><p class="small muted" style="margin-top:-4px">Leg danach das Handy weg. Morgen gibt es +15 Traumpunkte und mehr Strandgut.</p>`:""}
-    ${sleeping()?`<p class="small" style="color:var(--lilac)">Die Insel schläft. Bis morgen!</p>`:""}
-  </div>`;
+    <button class="btn" id="closeBtn">Tag abschließen</button></div>`;
+  const [gl,glC]=[S.glueck+" %",mCls==="good"?"var(--lime)":mCls==="ok"?"var(--amber)":"var(--coral)"];
   return `
-  ${goalCard(ok,nd)}
-  ${closeFirst?closeCard:""}
-  <div class="stats">
-    <div class="stat"><span class="label">Glück</span><b class="num" style="color:${mCls==="good"?"var(--lime)":mCls==="ok"?"var(--amber)":"var(--coral)"}">${S.glueck} %</b><span class="small muted">${mText}</span></div>
-    <div class="stat"><span class="label">Bewohner</span><b class="num">${occupied()}/${capacity()}</b><span class="small muted">Plätze${here().some(isPet)?" + "+here().filter(isPet).length+" Haustiere":""}</span></div>
-    <div class="stat"><span class="label">Punkte</span><b class="num" style="color:var(--lilac)">${S.points}</b><span class="small muted">${S.sun?S.sun+"× Sonne":"zum Bauen"}</span></div>
+  <div class="scene-chips">
+    <div class="cp"><i>Glück</i><b style="color:${glC}">${gl}</b></div>
+    <div class="cp"><i>Bewohner</i><b>${occupied()}/${capacity()}</b></div>
+    <div class="cp"><i>Punkte</i><b style="color:var(--lilac)">${S.points}</b></div>
   </div>
-  ${chapterCard()}
-  ${planCard()}
-  ${S.weekReady&&today()<=S.weekReady.until?`<div class="card week-ready"><div class="row"><span class="plan-ic" style="background:#26233D;color:var(--lilac)"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h6a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4zM20 5h-6a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h6z"/></svg></span><div class="grow"><p class="label" style="color:var(--lilac)">Neu</p><p><b>Deine Inselwoche KW ${+S.weekReady.wk.split("-W")[1]} ist da</b></p><p class="small muted">Gewonnene Zeit, bester Tag und was auf der Insel los war.</p></div></div><button class="btn secondary" id="weekReadyBtn">Wochenrückblick ansehen</button></div>`:""}
   ${S.vacation?`<div class="card" style="border:1.5px solid var(--lilac)"><p class="label" style="color:var(--lilac)">Urlaubsmodus</p><p>${guard?`<b>${esc(guard.name)}</b> hütet die Insel, bis du zurück bist.`:"Die Insel schläft, bis du zurück bist."} Das Glück sinkt in der Zeit nicht.</p><button class="btn secondary" id="vacOff">Ich bin zurück</button></div>`:""}
+  ${heuteMain(ok,nd,entry?form:"")}
   ${warn?`<div class="card warn"><p class="label" style="color:var(--amber)">Wegzug droht</p><p><b>${esc(groupName(warn))}</b> ${vb(warn,"packt","packen")} die Koffer. Bring das Inselglück bis ${nice(S.warn.deadline)} über 40 %, dann ${vb(warn,"bleibt "+esc(warn[0].name),"bleiben alle")}.</p></div>`:""}
-  ${S.setup?`<div class="card"><p class="label">Inselgeflüster</p><div class="row" style="align-items:flex-start"><div class="avatar" style="background:#26233D">${lucPic(40)}</div><div class="grow" style="background:var(--ground);border-radius:4px 16px 16px 16px;padding:10px 12px"><p class="small" style="font-weight:700;color:var(--lilac)">Lucifer · Inselkatze</p><p>${esc(lucLine())}</p></div></div>${wh.slice(0,1).map(w=>`<div class="row" style="align-items:flex-start"><div class="avatar" style="background:${w.r.kind==="mensch"?"#26233D":SEA.includes(w.r.art)?"#1F2A3A":"#22301F"}"><svg width="40" height="40" viewBox="${figVB(w.r)}" aria-hidden="true">${figure(w.r,0,0)}</svg></div><div class="grow" style="background:var(--ground);border-radius:4px 16px 16px 16px;padding:10px 12px"><p class="small" style="font-weight:700;color:var(--lilac)">${esc(w.r.name)}${w.r.job?" · "+esc(jobName(w.r.job)):""}</p><p>${esc(w.t)}</p></div></div>`).join("")}</div>`:""}
-  ${S.wish&&wisher?wishCard(S.wish,wisher):""}
-  ${mons.length?`<div class="card" style="border:1.5px solid #9B6BD6"><p class="label" style="color:#C8A8FF">App-Monster vor der Insel</p>${mons.map(a=>`<div class="row"><svg width="48" height="40" viewBox="-24 -34 48 40" aria-hidden="true">${monsterSvg(a.m)}</svg><p class="grow">${esc(monName(a,false))}: ${esc(a.name)} lag gestern über ${hm(a.limit)}. Es verscheucht die Fische und kostet Glück.</p></div>`).join("")}<p class="small muted">Bleib heute bei diesen Apps unter dem Limit, dann tauchen sie wieder ab.</p></div>`:""}
-  ${feature("boot")?`<div class="card">
-    <div class="row between"><p class="label">Fokus-Bootsfahrt</p></div>
-    ${S.boat?`<p>Das Boot ist draußen. Leg das Handy weg, bis das Boot zurück ist.</p>`
-    :`<p class="small muted">Deine Fokuszeit zum Lernen, für Aufgaben oder zum Lesen: Du nimmst dir etwas vor, legst das Handy weg, und ein Bewohner fährt solange fischen. Hältst du durch, gibt es Punkte und Baumaterial.</p>
-      <div class="row">${[15,25,45,60].map(m=>`<button class="btn secondary grow" style="padding:0" data-boat="${m}" ${adults().length?"":"disabled"}>${m} min</button>`).join("")}</div>
-      ${focusWeekLine()}`}
+  ${planCard()}
+  ${forYou(wisher)}
+  ${mons.length?`<div class="card" style="border:1.5px solid #9B6BD6"><p class="label" style="color:#C8A8FF">App-Monster vor der Insel</p>${mons.map(a=>`<div class="row"><svg width="48" height="40" viewBox="-24 -34 48 40" aria-hidden="true">${monsterSvg(a.m)}</svg><p class="grow">${esc(monName(a,false))}: ${esc(a.name)} lag gestern über ${hm(a.limit)}.</p></div>`).join("")}<p class="small muted">Bleib heute bei diesen Apps unter dem Limit, dann tauchen sie wieder ab.</p></div>`:""}
+  ${S.setup?`<div class="sec-h"><span>Inselgeflüster</span>${wh.length>1?`<button class="linkbtn" id="whMore">mehr ›</button>`:""}</div>
+  <div class="card whisper">${whisperRow(null,lucLine())}${wh.slice(0,1).map(w=>whisperRow(w.r,w.t)).join("")}</div>`:""}
+  ${feature("boot")||feature("nacht")?`<div class="sec-h"><span>Handy weg</span></div>
+  <div class="tiles2">
+    ${feature("boot")?`<div class="tile"><span class="tile-ic">⛵</span><b>Fokus-Bootsfahrt</b>${S.boat?`<span class="small muted">Das Boot ist draußen. Leg das Handy weg, bis es zurück ist.</span>`
+      :`<span class="small muted">Handy weg, ein Bewohner fährt fischen.</span><div class="boat-row">${[15,25,45,60].map(m=>`<button class="mini" data-boat="${m}" ${adults().length?"":"disabled"}>${m}</button>`).join("")}</div>`}</div>`:""}
+    ${feature("nacht")?`<div class="tile${canNight?"":" off"}"><span class="tile-ic">🌙</span><b>Gute Nacht, Insel</b>${canNight?`<span class="small muted">Handy weg, morgen +15 Traumpunkte.</span><button class="mini wide" id="nightBtn">Gute Nacht</button>`
+      :`<span class="small muted">${sleeping()?"Die Insel schläft. Bis morgen!":"Geht nach dem Eintragen."}</span>`}</div>`:""}
   </div>`:""}
-  ${nextCard()}
-  ${closeFirst?"":closeCard}
-  ${p?`<div class="card"><div class="row between"><p class="label">Groẞprojekt</p><span class="small muted num">${Math.floor(S.material/60)} / ${p.hours} h</span></div><p><b>${p.name}</b></p><div class="bar"><i style="width:${Math.min(100,S.material/(p.hours*60)*100)}%;background:var(--lilac)"></i></div><p class="small muted">Jede Minute unter deinem bisherigen Schnitt (${hm(S.baseline)}) wird Baumaterial.</p></div>`:""}
   ${friendsCard()}
   ${devMode()||S.testmode?`<div class="card">
     <div class="row between"><p class="label">Testmodus</p><label class="check" for="tm" style="min-height:auto"><input type="checkbox" id="tm" ${S.testmode?"checked":""}> an</label></div>
@@ -2454,51 +2438,54 @@ function viewHeute(){
     <button class="btn ghost" id="resetBtn">Spielstand zurücksetzen</button>`:""}
   </div>`:""}`;
 }
+let ENTRY_OPEN=false;
+/* Heute: Hauptkarte mit Ring (letzter eingetragener Tag) und Eintragen */
+function heuteMain(ok,nd,form){
+  const last=S.days[S.days.length-1], week=S.days.slice(-7), good=last&&last.min<=S.budget;
+  const col=!last?"#C8F169":good?"#C8F169":"#FF9C7A", pct=last?Math.min(1,last.min/S.budget):0;
+  const big=last?Math.floor(last.min/60)+":"+String(last.min%60).padStart(2,"0"):String(Math.round(S.budget/60*10)/10).replace(".",",")+" h";
+  const ring=`<svg class="ring" width="92" height="92" viewBox="0 0 36 36" role="img" aria-label="${last?hm(last.min)+" von "+hm(S.budget):"Tagesziel "+hm(S.budget)}"><circle cx="18" cy="18" r="15.5" fill="none" stroke="#2C2F45" stroke-width="3.4"/>${last?`<circle cx="18" cy="18" r="15.5" fill="none" stroke="${col}" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="${Math.max(.02,pct)*97.4} 97.4" transform="rotate(-90 18 18)"/>`:""}<text x="18" y="17.6" text-anchor="middle" font-size="${big.length>4?6.2:7}" font-weight="800" fill="#F3F1EA" font-family="Manrope, sans-serif">${big}</text><text x="18" y="23.4" text-anchor="middle" font-size="3.6" fill="#A4A6BD" font-family="Manrope, sans-serif">${last?"von "+hm(S.budget):"pro Tag"}</text></svg>`;
+  const pl=S.plan&&!S.plan.res&&S.plan.day>today()?PLANS.find(x=>x.id===S.plan.id):null;   // Vorhaben für heute hat eine eigene Karte
+  const joker=last?(S.jokerWk===isoWeek(today())?"🃏 Joker genutzt":"🃏 Joker bereit"):"";
+  const sub=[pl?"Vorhaben morgen: "+esc(pl.n):"",joker].filter(Boolean).join(" · ");
+  const dots=week.length?`<div class="wk-dots" role="img" aria-label="${week.filter(d=>d.min<=S.budget).length} von ${week.length} Tagen im Ziel">${week.map(d=>`<span title="${nice(d.day)}: ${hm(d.min)}"><i style="background:${d.min<=S.budget?"var(--lime)":"var(--coral)"}"></i>${parse(d.day).toLocaleDateString("de-DE",{weekday:"narrow"})}</span>`).join("")}</div>`:"";
+  return `<div class="card hmain">
+    <div class="row" style="gap:14px;align-items:center">${ring}<div class="grow">
+      <p class="label">${last?dayLabel(last.day):"Dein Tagesziel"}</p>
+      <h3 class="hm-title" style="color:${last?col:"var(--ink)"}">${last?(good?hm(S.budget-last.min)+" unter dem Ziel":hm(last.min-S.budget)+" über dem Ziel"):hm(S.budget)+" Bildschirmzeit"}</h3>
+      ${sub?`<p class="small muted">${sub}</p>`:last?"":`<p class="small muted">Trag abends ein, wie lange du am Handy warst.</p>`}
+      ${S.budgetStreak>1?`<p class="small" style="color:var(--lime);font-weight:700">${S.budgetStreak} Tage in Folge im Ziel</p>`:""}
+    </div></div>
+    ${dots}
+    ${form||(ok?`<button class="btn" id="goalGo">${nd===today()?"Tag eintragen":"Tag eintragen · "+nice(nd)}</button>`:S.vacation?"":`<p class="small" style="color:var(--lime);font-weight:700">Heute ist eingetragen. Bis morgen!</p>`)}
+  </div>`;
+}
+/* Für dich: Kapitel, Wunsch, Wochenrückblick, Neues als Wischkarten */
+function forYou(wisher){
+  const it=[];
+  if(S.chapter!=null&&S.setup){const c=CHAPTERS[S.chapter]; if(c){const pr=c.prog();
+    it.push(`<div class="fy"><div class="row" style="gap:10px"><span class="says-pic" style="background:#2A2F45;width:38px;height:38px">${bayPic(34)}</span><div><p class="k" style="color:var(--amber)">Kapitel ${S.chapter+1}</p><b>${esc(c.n)}</b></div></div><p class="small muted">${esc(pr||c.goal)}</p></div>`)}}
+  if(S.wish&&wisher){const w=S.wish, type=w.type||"item";
+    it.push(`<div class="fy"><p class="k" style="color:var(--lilac)">Wunsch von ${esc(wisher.name)}</p><b>${esc(wishText(w))}</b><p class="small muted">+${w.pts||30} Punkte · +${w.gl||6} % Glück${type==="streak"?` · ${w.have}/${w.need} Tage`:""}</p>${type==="item"?`<button class="linkbtn" id="wishShop">Zum Laden ›</button>`:""}</div>`)}
+  if(S.weekReady&&today()<=S.weekReady.until)
+    it.push(`<div class="fy"><p class="k" style="color:var(--lime)">Neu</p><b>Inselwoche KW ${+S.weekReady.wk.split("-W")[1]}</b><button class="linkbtn" id="weekReadyBtn">Ansehen ›</button></div>`);
+  const f=nextFeature(); if(f&&S.setup){const left=f.day-S.dayCount;
+    it.push(`<div class="fy dashed"><p class="k" style="color:var(--muted)">Bald freigeschaltet</p><b>${esc(f.name)}</b><p class="small muted">${left<=1?"Nach dem nächsten Tag":"In "+left+" Tagen"}</p></div>`)}
+  if(!it.length) return "";
+  return `<div class="sec-h"><span>Für dich</span></div><div class="fy-row">${it.join("")}</div>`;
+}
+function whisperRow(r,t){
+  const pic=r?`<div class="avatar" style="background:${r.kind==="mensch"?"#26233D":SEA.includes(r.art)?"#1F2A3A":"#22301F"}"><svg width="40" height="40" viewBox="${figVB(r)}" aria-hidden="true">${figure(r,0,0)}</svg></div>`:`<div class="avatar" style="background:#26233D">${lucPic(40)}</div>`;
+  return `<div class="row" style="align-items:flex-start">${pic}<div class="grow bubble"><p class="small" style="font-weight:700;color:var(--lilac)">${r?esc(r.name)+(r.job?" · "+esc(jobName(r.job)):""):"Lucifer · Inselkatze"}</p><p>${esc(t)}</p></div></div>`;
+}
+function whisperSheet(){
+  sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
+}
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
 const APP_VERSION="1.31";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
-/* Was als Nächstes freigeschaltet wird */
-function nextCard(){
-  const f=nextFeature(); if(!f||!S.setup) return "";
-  const left=f.day-S.dayCount, same=FEATURES.filter(x=>x.day===f.day&&!feature(x.id));
-  return `<div class="card" style="background:transparent;border:1.5px dashed #3A3D58"><div class="row">${featIcon(f,40)}
-    <div class="grow"><p class="label">Bald freigeschaltet</p><p><b>${nameList(same.map(x=>esc(x.name)))}</b></p>
-      <p class="small muted">${left===1?"Kommt, sobald du deinen nächsten Tag einträgst.":"Kommt nach "+left+" weiteren eingetragenen Tagen."}</p></div></div></div>`;
-}
-/* Tagesziel: Budget, letzter Tag und die letzten 7 Tage auf einen Blick */
+/* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
-function goalCard(ok,nd){
-  const last=S.days[S.days.length-1], week=S.days.slice(-7);
-  const inB=week.filter(d=>d.min<=S.budget).length;
-  let main;
-  if(last){
-    const good=last.min<=S.budget, diff=Math.abs(S.budget-last.min), col=good?"var(--lime)":"var(--coral)";
-    const scale=Math.max(S.budget*1.5,last.min), bp=S.budget/scale*100;
-    main=`<div class="row between" style="align-items:flex-end">
-        <div><p class="small muted">${dayLabel(last.day)}</p><p class="goal-num num" style="color:${col}">${hm(last.min)}</p></div>
-        <p class="small" style="text-align:right;font-weight:700;color:${col}">${hm(diff)} ${good?"unter":"über"}<br>deinem Ziel</p></div>
-      <div class="goal-bar" role="img" aria-label="${hm(last.min)} von ${hm(S.budget)} Tagesziel"><i style="width:${Math.min(100,last.min/scale*100)}%;background:${col}"></i><span class="goal-mark" style="left:${bp}%"></span></div>
-      <div class="goal-scale"><span style="left:${clamp(bp,14,86)}%">Ziel ${hm(S.budget)}</span></div>`;
-  } else {
-    main=`<p class="goal-num num">${hm(S.budget)}</p><p class="small muted">So viel Bildschirmzeit gibst du dir pro Tag. Trag abends ein, wie lange du am Handy warst.</p>`;
-  }
-  const wmax=Math.max(S.budget*1.5,...week.map(d=>d.min));
-  const strip=Array.from({length:7},(_,i)=>{
-    const d=week[i-(7-week.length)];
-    if(!d) return `<div class="wk"><div class="wk-bar"></div><span>&nbsp;</span></div>`;
-    const good=d.min<=S.budget;
-    return `<div class="wk${d.day===today()?" now":""}" title="${nice(d.day)}: ${hm(d.min)}"><div class="wk-bar"><i style="height:${Math.max(6,d.min/wmax*100)}%;background:${good?"var(--lime)":"var(--coral)"}"></i><span class="wk-line" style="bottom:${S.budget/wmax*100}%"></span></div><span>${parse(d.day).toLocaleDateString("de-DE",{weekday:"short"}).replace(".","")}</span></div>`;
-  }).join("");
-  return `<div class="card goal">
-    <div class="row between"><p class="label">Tagesziel</p>${S.budgetStreak>1?`<span class="chip good">${S.budgetStreak} Tage in Folge</span>`:""}</div>
-    ${last?`<div class="joker-line${S.jokerWk===isoWeek(today())?" used":""}"><span class="joker-mini" aria-hidden="true">🃏</span><span class="small">${S.jokerWk===isoWeek(today())?"Joker diese Woche schon eingesetzt. Ab Montag gibt es einen neuen.":S.budgetStreak>=1?"<b>Joker bereit:</b> Einmal pro Woche kannst du einen schlechten Tag wegstecken, ohne dass deine Serie reißt. Die Insel fragt dich dann.":"<b>Joker bereit:</b> Sobald du wieder einen Tag im Budget bist, schützt er deine Serie einmal pro Woche."}</span></div>`:""}
-    ${main}
-    ${week.length?`<div class="week" role="img" aria-label="${inB} von ${week.length} Tagen im Ziel">${strip}</div>
-    <p class="small muted">Letzte ${week.length} ${week.length===1?"Tag":"Tage"}: <b style="color:var(--ink)">${inB} von ${week.length}</b> im Ziel</p>`:""}
-    ${ok?`<button class="btn" id="goalGo">${nd===today()?"Heute eintragen":"Tag eintragen · "+nice(nd)}</button>`
-      :S.vacation?"":`<p class="small" style="color:var(--lime);font-weight:700">Heute ist eingetragen. Bis morgen!</p>`}
-  </div>`;
-}
 function liveUpdate(){
   const h=$("#inH"), m=$("#inM"), bar=$("#liveBar"); if(!h||!m||!bar) return;
   const min=clamp((+h.value||0)*60+(+m.value||0),0,1440), good=min<=S.budget;
@@ -2965,6 +2952,7 @@ function render(){
   $("#streakChip").textContent=S.happyStreak>0?S.happyStreak+(S.happyStreak===1?" glücklicher Tag":" glückliche Tage"):S.dayCount+(S.dayCount===1?" Tag":" Tage")+" gespielt";
   $("#streakChip").className="chip "+(S.happyStreak>0?"good":"gone");
   $("#accBtn").innerHTML=ACC?avatarSvg(ACC.avatar,40):"";
+  $("#title").textContent=tab==="heute"&&ACC&&S.setup?"Hallo "+ACC.name:"Deine Insel";
   $("#dateline").textContent="OffLand · "+new Date().toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"short"});
   if(TAB_FEATURE[tab]&&!feature(TAB_FEATURE[tab])) tab="heute";
   let nTabs=0;
@@ -3008,7 +2996,8 @@ function bind(){
   const stt=$("#statsToggle"); if(stt) stt.onchange=()=>{statsSet(stt.checked);toast(stt.checked?"Danke fürs Mithelfen!":"Statistik aus")};
   const pb=$("#netPub"); if(pb) pb.onchange=()=>{S.online.pub=pb.checked;save();netSync()};
   const ia=$("#inviteAccept"); if(ia) ia.onclick=inviteSheet;
-  const gg=$("#goalGo"); if(gg) gg.onclick=()=>{const c=$("#closeCard");if(c)c.scrollIntoView({behavior:"smooth",block:"start"});setTimeout(()=>{const h=$("#inH");if(h)h.focus({preventScroll:true})},450)};
+  const gg=$("#goalGo"); if(gg) gg.onclick=()=>{ENTRY_OPEN=true;render();const c=$("#closeCard");if(c)c.scrollIntoView({behavior:"smooth",block:"center"})};
+  const wm=$("#whMore"); if(wm) wm.onclick=whisperSheet;
   ["#inH","#inM"].forEach(id=>{const el=$(id);if(el)el.oninput=liveUpdate}); liveUpdate();
   const cb=$("#closeBtn"); if(cb) cb.onclick=()=>{
     const h=+($("#inH").value||0), m=+($("#inM").value||0);
