@@ -3023,7 +3023,7 @@ function render(){
   $("#streakChip").textContent=S.happyStreak>0?S.happyStreak+(S.happyStreak===1?" glücklicher Tag":" glückliche Tage"):S.dayCount+(S.dayCount===1?" Tag":" Tage")+" gespielt";
   $("#streakChip").className="chip "+(S.happyStreak>0?"good":"gone");
   $("#accBtn").innerHTML=ACC?avatarSvg(ACC.avatar,40):"";
-  $("#title").textContent=!S.setup?"Deine Insel":tab==="heute"?(ACC?"Hallo "+ACC.name:"Deine Insel"):tab==="bewohner"?"Bewohner":tab==="zeit"?"Deine Zeit":tab==="projekt"?"Bauen":"Deine Insel";
+  $("#title").textContent=!S.setup?"Deine Insel":tab==="heute"?(ACC?"Hallo "+ACC.name:"Deine Insel"):tab==="bewohner"?"Bewohner":tab==="zeit"?"Deine Zeit":tab==="projekt"?"Bauen":tab==="freunde"?"Freunde":"Deine Insel";
   $("#dateline").textContent="OffLand · "+new Date().toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"short"});
   if(TAB_FEATURE[tab]&&!feature(TAB_FEATURE[tab])) tab="heute";
   let nTabs=0;
@@ -3990,9 +3990,14 @@ function rankSheet(){closeModal();tab="freunde";render();window.scrollTo(0,0)}
 const TROPHY='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8M10 17h4v3h-4z"/></svg>';
 /* Tab „Freunde“: Vorschau, Ranglisten, Freunde hinzufügen, gemeinsame Ziele */
 function viewFreunde(){
-  const inv=pendingInvite();
-  let h=(inv?friendsCardInvite(inv):"")+famCard();
-  if(!netConfigured()||!netOn()){
+  const inv=pendingInvite(), on=netConfigured()&&netOn();
+  let h=(inv?friendsCardInvite(inv):"")+`<div class="hero-card" id="frHero" style="background:#1B2340">${frHeroSvg(null)}</div>
+  <div class="scene-chips">
+    <div class="cp"><i>Platz</i><b id="chPl">–</b></div>
+    <div class="cp"><i>Duell</i><b id="chDu">${!on?"–":S.duel&&S.duel.wk===isoWeek(today())?"läuft":"offen"}</b></div>
+    <div class="cp"><i>Freunde</i><b id="chFr">${on?"…":"–"}</b></div>
+  </div>`;
+  if(!on){
     h+=`<div class="card" style="align-items:center;text-align:center">
       <div style="width:64px;height:64px;border-radius:32px;background:#26233D;color:var(--amber);display:flex;align-items:center;justify-content:center"><span style="width:34px;height:34px;display:block">${TROPHY}</span></div>
       <h2>Freunde und Ranglisten</h2>
@@ -4000,25 +4005,49 @@ function viewFreunde(){
       ${netConfigured()?`<button class="btn" id="goOnline" style="align-self:stretch">Mitmachen</button>`:`<p class="small muted">Ranglisten sind in dieser Version noch nicht verfügbar.</p>`}
     </div>`+(netConfigured()?duelTeaser("Dafür musst du oben bei Freunde und Ranglisten mitmachen."):"");
   } else {
-    h+=`<div class="card goal" id="rankHero"><p class="label" style="color:var(--lime)">Diese Woche</p><p class="muted">Lade Rangliste …</p></div>
+    h+=`<div class="card" id="rankHero"><p class="label" style="color:var(--lime)">Diese Woche</p><p class="muted">Lade Rangliste …</p></div>
     <div id="duelBox">${duelTeaser("Lade Freund:innen …")}</div>
+    <div class="sec-h"><span>Rangliste</span></div>
     <div class="card">
       <div class="row" role="tablist"><button class="btn ${rankTab==="freunde"?"":"secondary"} grow" data-rk="freunde" role="tab" aria-selected="${rankTab==="freunde"}">Freunde</button><button class="btn ${rankTab==="alle"?"":"secondary"} grow" data-rk="alle" role="tab" aria-selected="${rankTab==="alle"}">Alle</button></div>
       <div id="rankBox"><p class="small muted">Lade …</p></div>
-    </div>
-    <div class="card"><p class="label">Freund:in hinzufügen</p>
+    </div>`;
+  }
+  const fam=famCard();
+  if(fam) h+=`<div class="sec-h"><span>Familie</span></div>`+fam;
+  h+=`<div class="sec-h"><span>Freund:innen</span></div>
+  <div class="card"><div class="row between"><p class="label">Gemeinsame Ziele</p>${plusActive()?`<span class="chip" style="color:var(--amber)">★ Plus bis ${nice(S.plus.until)}</span>`:""}</div>
+    ${S.buddies.length?`<p class="small muted">Je ${GOAL_DAYS} Tage im Budget, dann gibt es +150 Punkte. Jede Seite zählt ihre eigenen Tage.</p>${buddyRows(true)}`
+      :`<p class="small muted">Noch keine. Lade jemanden ein: Ihr bekommt ${plusOffer(true)}ein gemeinsames Ziel von ${GOAL_DAYS} guten Tagen.</p>`}
+    <div class="row"><button class="btn secondary grow" id="shareBtn">Insel teilen</button><button class="btn grow" id="friendsBtn">Einladen</button></div>
+  </div>`;
+  if(on) h+=`<div class="card"><p class="label">Mit Code hinzufügen</p>
       <label class="field" for="rkCode">Code eingeben<input id="rkCode" type="text" maxlength="7" autocomplete="off" autocapitalize="characters" placeholder="z. B. K7M2QX" style="text-transform:uppercase;letter-spacing:.12em"></label>
       <p class="err" id="rkErr" role="alert"></p>
       <button class="btn secondary" id="rkAdd">Hinzufügen</button>
       <p class="small muted" style="text-align:center">Dein Code: <b class="num" style="color:var(--ink);letter-spacing:.1em">${myCode()}</b></p>
     </div>`;
-  }
-  h+=`<div class="card"><div class="row between"><p class="label">Gemeinsame Ziele</p>${plusActive()?`<span class="chip" style="color:var(--amber)">★ Plus bis ${nice(S.plus.until)}</span>`:""}</div>
-    ${S.buddies.length?`<p class="small muted">Je ${GOAL_DAYS} Tage im Budget, dann gibt es +150 Punkte. Jede Seite zählt ihre eigenen Tage.</p>${buddyRows(true)}`
-      :`<p class="small muted">Noch keine. Lade jemanden ein: Ihr bekommt ${plusOffer(true)}ein gemeinsames Ziel von ${GOAL_DAYS} guten Tagen.</p>`}
-    <div class="row"><button class="btn secondary grow" id="shareBtn">Insel teilen</button><button class="btn grow" id="friendsBtn">Einladen</button></div>
-  </div>`;
   return h;
+}
+/* Freunde: Wettsegeln oben, wer im Schnitt weniger am Handy ist, segelt weiter vorne */
+function frHeroSvg(list){
+  const me={name:"Du",avatar:netAv(),me:true};
+  list=(list&&list.length?list:[me]).slice(0,3);
+  // Bild unten verdecken die Chips: alle Boote zwischen y 84 und 128, vorne liegt oben rechts
+  const n=list.length, lane=n===1?[116]:n===2?[92,124]:[86,108,130];
+  const boat=(r,i)=>{const x=n===1?150:246-i*(140/(n-1||1)), y=lane[i], sail=r.me?"#C8F169":["#B6A4FF","#FF9C7A","#9CC8EE"][i%3];
+    return `<g transform="translate(${x} ${y})"><g class="bob" style="animation-duration:${2+i*.3}s;animation-delay:${i*.2}s">
+      <path d="M-22 -2h44l-7 10h-30z" fill="#8A5A3B"/><path d="M0 -2V-40" stroke="#D9D4C6" stroke-width="1.8"/><path d="M2 -38q15 12 13 34h-13z" fill="${sail}"/><path d="M-2 -35q-12 10-12 31h12z" fill="#F3F1EA" opacity=".9"/>
+      <g transform="translate(-9 -3) scale(.55)">${animalSvg(r.avatar||"Ziege",0)}</g>
+      <path d="M-26 7q-10 2-20 0" stroke="#9CC8EE" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".6"/>
+      <text x="26" y="2" font-size="10" font-weight="800" fill="${sail}" font-family="Manrope, sans-serif">${i===0&&n>1?"★ ":""}${esc(r.me?"Du":r.name||"?")}</text></g></g>`};
+  return `<svg viewBox="0 0 360 200" role="img" aria-label="Wettsegeln mit deinen Freund:innen" style="width:100%;height:auto;display:block">
+    <defs><linearGradient id="frSea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A4A7A"/><stop offset="1" stop-color="#16294A"/></linearGradient></defs>
+    <rect width="360" height="200" fill="#1B2340"/>${[[40,22],[96,40],[210,18],[300,34],[150,30]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.2" fill="#F3F1EA" opacity=".7"/>`).join("")}
+    <rect y="54" width="360" height="146" fill="url(#frSea)"/>
+    <g stroke="#9CC8EE" fill="none" stroke-linecap="round" opacity=".3"><path class="wscroll" style="animation-duration:5s" d="${wavePath(84,2)}" stroke-width="1.4"/><path class="wscroll" style="animation-duration:3.8s" d="${wavePath(126,2.5)}" stroke-width="1.4"/></g>
+    <g transform="translate(334 0)"><path d="M0 134V60" stroke="#F3F1EA" stroke-width="2"/><g class="flagwave">${[0,1,2].map(r=>[0,1,2].map(c=>`<rect x="${1+c*6}" y="${60+r*5}" width="6" height="5" fill="${(r+c)%2?"#14151F":"#F3F1EA"}"/>`).join("")).join("")}</g></g>
+    ${list.map(boat).join("")}</svg>`;
 }
 function friendsCardInvite(inv){
   return `<div class="card" style="border:1.5px solid var(--lime)"><p class="label" style="color:var(--lime)">Einladung</p>
@@ -4080,12 +4109,22 @@ async function fillRanks(force){
   if(ch&&!(S.duel&&S.duel.wk===wkNow)){S.duel={vs:ch.id,name:ch.name||"?",avatar:ch.avatar||"Ziege",wk:wkNow,by:"them"};log(S.duel.name+" hat dich zum Duell der Woche herausgefordert.","info");S.pending.push({type:"duelStart",name:S.duel.name,avatar:S.duel.avatar});save();netSync();showPending()}
   const db=$("#duelBox"); if(db){db.innerHTML=duelHtml(R); db.querySelectorAll("[data-duel]").forEach(b=>b.onclick=()=>{const r=R.friends.find(x=>x.id===b.dataset.duel); if(r){b.disabled=true;duelChallenge(r)}});
     const st=$("#duelStop"); if(st) st.onclick=duelCancelSheet}
-  // Vorschau oben
-  $("#rankHero").innerHTML=`<p class="label" style="color:var(--lime)">Diese Woche</p>
-    ${R.nFriends?`<p class="goal-num num" style="color:${fi===0?"var(--amber)":"var(--ink)"}">Platz ${fi+1} <span class="muted" style="font-size:.5em">von ${R.friends.length}</span></p>
-      <p class="small muted">unter deinen Freund:innen${fi===0?" · du führst!":R.friends[fi-1]&&mine.avg!=null&&R.friends[fi-1].avg!=null?" · noch "+hm(mine.avg-R.friends[fi-1].avg+1)+" pro Tag bis Platz "+fi:""}</p>`
-    :`<p class="goal-num num">${mine.avg!=null?hm(mine.avg):"–"}</p><p class="small muted">${mine.avg!=null?"im Schnitt pro Tag. Lade Freund:innen ein, um euch zu vergleichen.":"Trag deinen ersten Tag ein, dann geht's los."}</p>`}
-    ${pubHint}${simHint}`;
+  // Vorschau oben: Ring-Karte, Chips und Wettsegeln im Bild
+  const nF=R.friends.length, ahead=fi>0?R.friends[fi-1]:null;
+  const ring=R.nFriends?ringSvg((nF-fi)/nF,"#"+(fi+1),"von "+nF,fi===0?"#FFB86B":"#B6A4FF")
+    :ringSvg(mine.avg!=null?Math.min(1,mine.avg/S.budget):0,mine.avg!=null?hm(mine.avg):"–","im Schnitt",mine.avg!=null&&mine.avg<=S.budget?"#C8F169":"#FF9C7A");
+  $("#rankHero").innerHTML=`<div class="row" style="gap:14px;align-items:center">${ring}<div class="grow">
+    <p class="label" style="color:var(--lime)">Diese Woche${R.nFriends?" · Freund:innen":""}</p>
+    ${R.nFriends?`<h3 class="hm-title" style="color:${fi===0?"var(--amber)":"var(--ink)"}">${fi===0?"Du führst!":"Platz "+(fi+1)}</h3>
+      <p class="small muted">${fi===0?"Niemand war diese Woche weniger am Handy.":ahead&&mine.avg!=null&&ahead.avg!=null?"Noch "+hm(mine.avg-ahead.avg+1)+" pro Tag weniger, dann überholst du "+esc(ahead.name||"?")+".":"Jeder Tag im Budget bringt dich nach vorne."}</p>`
+    :`<h3 class="hm-title">${mine.avg!=null?"Dein Schnitt":"Noch kein Tag"}</h3><p class="small muted">${mine.avg!=null?"Lade Freund:innen ein, um euch zu vergleichen.":"Trag deinen ersten Tag ein, dann geht's los."}</p>`}
+    </div></div>${pubHint}${simHint}`;
+  const set=(id,t)=>{const e=$(id); if(e) e.textContent=t};
+  set("#chPl",R.nFriends?(fi+1)+" von "+nF:R.place!=null?R.place.toLocaleString("de-DE"):"–");
+  set("#chFr",String(R.nFriends));
+  const dw=S.duel&&S.duel.wk===isoWeek(today())?S.duel:null, dOpp=dw?R.friends.find(r=>r.id===dw.vs):null;
+  set("#chDu",!dw?"offen":dOpp&&dOpp.avg!=null&&mine.avg!=null?(mine.avg<dOpp.avg?"vorne":mine.avg>dOpp.avg?"hinten":"gleich"):"läuft");
+  const fh=$("#frHero"); if(fh) fh.innerHTML=frHeroSvg(R.friends.map(r=>r.id===me?Object.assign({},r,{me:true,avatar:netAv()}):r));
   // Liste
   if(rankTab==="freunde"){
     box.innerHTML=(R.nFriends?"":`<p class="small muted">Noch keine Freund:innen online. Füg jemanden mit dem Code hinzu oder schick eine Einladung.</p>`)+
