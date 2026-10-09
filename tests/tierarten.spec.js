@@ -33,6 +33,12 @@ test("Besuch darf bleiben, dafür zieht ein anderes Tier um", async ({ page }) =
   await expect(page.locator("#modalRoot [data-swap]").first()).toBeVisible();
   const oldId = await page.getAttribute("#modalRoot [data-swap]", "data-swap");
   await page.click("#modalRoot [data-swap]");
+  // erst Rückfrage: Zurück führt wieder zur Auswahl
+  await expect(page.locator("#modalRoot")).toContainText("Wirklich tauschen?");
+  await page.click("#swapNo");
+  await expect(page.locator("#modalRoot [data-swap]").first()).toBeVisible();
+  await page.click("#modalRoot [data-swap]");
+  await page.click("#swapYes");
   await expect(page.locator("#modalRoot #nameOk")).toBeVisible();
   const r = await page.evaluate(([art, oldId]) => ({
     old: T.S.residents.find(x => x.id === oldId).status,
