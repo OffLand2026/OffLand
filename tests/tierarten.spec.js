@@ -59,3 +59,25 @@ test("Fanpost wiederholt sich nicht ständig", async ({ page }) => {
   expect(new Set(texts).size).toBe(8);
   expect(texts.filter(t => t.includes("warm ums Herz")).length).toBeLessThanOrEqual(1);
 });
+
+test("Besuch ist zwei Tage auf der Insel zu sehen und lässt sich antippen", async ({ page }) => {
+  await newGame(page);
+  const art = await page.evaluate(() => {
+    const S = T.S;
+    for (let i = 0; i < 20; i++) S.residents.push({ id: "f" + i, name: "F" + i, kind: "mensch", art: "Mensch", status: "da", ret: 0, born: 0, job: "fischer", trait: "ruhig" });
+    S.pending = []; T.arrival(); S.pending = []; T.render(); return S.guests[0].art;
+  });
+  await expect(page.locator("#scene [data-guest]")).toHaveCount(1);
+  if (process.env.SHOTS) { await page.evaluate(() => window.scrollTo(0, 0)); await page.waitForTimeout(200); await page.screenshot({ path: process.env.SHOTS + "/gast-insel.png" }); }
+  // Antippen öffnet wieder die Frage nach dem Tausch
+  await page.locator("#scene [data-guest]").dispatchEvent("click");
+  await expect(page.locator("#modalRoot h2")).toContainText(art);
+  await page.click("#modalRoot [data-ok]");
+  // im Bewohner-Tab am Lagerfeuer und als Karte
+  await page.click("[data-tab=bewohner]");
+  await expect(page.locator("#view .fy[data-guest]")).toContainText("Zu Besuch");
+  if (process.env.SHOTS) { await page.evaluate(() => window.scrollTo(0, 0)); await page.waitForTimeout(200); await page.screenshot({ path: process.env.SHOTS + "/gast-bewohner.png" }); }
+  // nach zwei eingetragenen Tagen ist der Besuch weitergezogen
+  await page.evaluate(() => { for (let i = 0; i < 2; i++) { T.closeDay(60, [], {}); T.S.pending = []; } document.getElementById("modalRoot").innerHTML = ""; T.render(); });
+  await expect(page.locator("[data-guest]")).toHaveCount(0);
+});
