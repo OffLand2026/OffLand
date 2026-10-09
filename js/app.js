@@ -383,7 +383,7 @@ function migrate(st){
   if(st.points==null)st.points=0; if(!st.items)st.items=[]; if(!st.sun)st.sun=0;
   if(!st.rel)st.rel={}; if(st.conflict===undefined)st.conflict=null;
   if(!st.arrC)st.arrC=0; if(!st.birthC)st.birthC=0;
-  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,focusLog:[],alarm:true,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null},family:null,plan:null,planLog:[],weekReady:null,storySeen:false,chapter:null,fests:0,freed:0,duelOff:null,jokerWk:null,lastSurprise:0,surprises:[],duel:null,duelLog:[],lineLog:[],seenArts:[],umfrage:{}};
+  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,focusLog:[],alarm:true,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null},family:null,plan:null,planLog:[],weekReady:null,storySeen:false,chapter:null,fests:0,freed:0,duelOff:null,jokerWk:null,lastSurprise:0,surprises:[],duel:null,duelLog:[],lineLog:[],seenArts:[],umfrage:{},bilanz:{}};
   if(st.plusFriend===undefined) st.plusFriend=(st.buddies||[]).length?"alt":null;   // Plus-Monat fürs Einladen gibt es nur einmal
   if(st.allFeatures===undefined) st.allFeatures=(st.dayCount||0)>=1;          // wer schon gespielt hat, behält alles
   for(const k in D){ if(st[k]===undefined) st[k]=D[k]; }
@@ -1012,6 +1012,41 @@ function weekBars(w){
       +`<text x="${x+bw/2}" y="${H+14}" text-anchor="middle" font-size="11" fill="#9EA3B8" font-family="Manrope, sans-serif">${["Mo","Di","Mi","Do","Fr","Sa","So"][i]}</text>`}).join("")}
     <path d="M4 ${y(S.budget)}H${W-4}" stroke="#B6A4FF" stroke-width="1.5" stroke-dasharray="5 4"/></svg>`;
 }
+/* ---------- Erste Tage: Zeit-Bilanz nach 5 Tagen, Rückblick nach der ersten Woche ----------
+   Kommen je einmal, genau wenn der 5. bzw. 7. Tag eingetragen ist. Zeigen, was die gewonnene Zeit wert ist. */
+function bilanzCheck(){
+  const b=S.bilanz||(S.bilanz={});
+  for(const n of [5,7]) if(S.dayCount===n&&!b[n]){b[n]=today(); S.pending.push({type:"bilanz",n,day:S.lastDay})}
+}
+function bilanzSheet(ev){
+  CUR_EV=null;
+  const ds=S.days.filter(d=>!ev.day||d.day<=ev.day).slice(-ev.n), n=ds.length; if(!n) return showPending();
+  stat("bilanz_"+ev.n);
+  const sv=d=>Math.max(0,S.baseline-d.min), saved=ds.reduce((a,d)=>a+sv(d),0), avg=Math.round(ds.reduce((a,d)=>a+d.min,0)/n);
+  const good=ds.filter(d=>d.min<=S.budget).length, year=Math.round(saved/n*365/1440);
+  const hero=`<div><p class="small muted">In ${n} Tagen gewonnen</p><p class="bz-hero num">${saved?hm(saved):"0 min"}</p></div>`;
+  if(ev.n===5){
+    const pref=["Spaziergänge","Buchkapitel","Kinofilme","selbst gekochte Abendessen","Treffen mit Freund:innen","Nächte Schlaf","5-km-Läufe","ganze Bücher"];   // alltagsnah zuerst
+    const four=ACTS.filter(a=>saved>=a.min).sort((a,b)=>(pref.indexOf(a.n)+1||99)-(pref.indexOf(b.n)+1||99)).slice(0,4);
+    return sheet(`<p class="label" style="color:var(--lime)">Deine ersten 5 Tage</p><h2>${saved?"Schau mal, was du dir zurückgeholt hast":"Deine ersten 5 Tage auf OffLand"}</h2>
+      ${hero}
+      ${avg<S.baseline?`<div class="bz-delta"><span class="small muted">Pro Tag am Handy</span><span class="num"><s>${hm(S.baseline)}</s> → <b>${hm(avg)}</b></span></div>`:""}
+      ${four.length?`<p class="small muted">Das hättest du damit machen können:</p>
+      <div class="bz-cmp">${four.map(a=>`<div><span class="bz-ic">${actIcon(a)}</span><p><b class="num">${Math.floor(saved/a.min)}</b><span>${esc(Math.floor(saved/a.min)===1?SING[a.n]||a.n:a.n)}</span></p></div>`).join("")}</div>`:""}
+      ${year>=1?`<div class="bz-year"><p class="small">Wenn du so weitermachst, holst du dir aufs Jahr</p><p><b>${year} ${year===1?"ganzen Tag":"ganze Tage"}</b> zurück.</p></div>`
+        :`<p class="muted">${good} von ${n} Tagen warst du im Budget. Jeder Tag zählt, die Insel merkt sich alles.</p>`}
+      ${saysHtml("bay",saved?"Ich hab das zweimal nachgerechnet. Das hast du ganz allein geschafft.":"Aller Anfang ist schwer. Morgen holen wir uns die erste Stunde zurück!")}
+      <button class="btn" data-ok>Weiter so</button>`);
+  }
+  const mx=Math.max(1,...ds.map(sv)), best=ds.slice().sort((a,b)=>a.min-b.min)[0], from=ds[0].day;
+  const moved=S.chronicle.filter(c=>c.day&&c.day>=from&&/eingezogen|geboren/.test(c.text)).length;
+  sheet(`<p class="label" style="color:var(--lime)">Deine erste Woche</p><h2>${good>=4?"Was für eine Woche!":"Deine erste Woche ist geschafft"}</h2>
+    ${hero}
+    <div class="bz-bars" aria-hidden="true">${ds.map(d=>`<div><i class="${d.min>S.budget?"over":""}" style="height:${Math.max(8,Math.round(sv(d)/mx*100))}%"></i><span>${parse(d.day).toLocaleDateString("de-DE",{weekday:"short"}).slice(0,2)}</span></div>`).join("")}</div>
+    <div class="bz-tiles"><div><b class="num">${good}/${n}</b><span>Tage im Budget</span></div><div><b class="num">${moved}</b><span>${moved===1?"neuer Bewohner":"neue Bewohner"}</span></div><div><b class="num">${hm(best.min)}</b><span>bester Tag</span></div></div>
+    ${saysHtml("bay",good>=4?"Ich bin ehrlich beeindruckt. Und das ist erst der Anfang!":"Eine Woche durchgehalten, das schaffen die wenigsten. Die nächste wird noch besser.")}
+    <button class="btn" data-ok>Weiter</button>`);
+}
 function weekSheet(wk){
   stat("rueckblick");
   const w=weekData(wk); if(!w) return showPending();
@@ -1473,6 +1508,7 @@ function closeDay(min,quests,appMin){
   }
   checkDiscovery();
   chapterCheck();
+  bilanzCheck();
   umfrageCheck();
   if(netConfigured()&&statsDev().consent===undefined&&!S.pending.some(e=>e.type==="statsAsk")) S.pending.push({type:"statsAsk"});   // steht hinten an: kommt beim nächsten Öffnen mit der Freischaltung
   sortPending(); PEND_BUDGET=3;
@@ -3397,7 +3433,7 @@ function soundFor(ev){
    Vorhaben-Nachfrage, Joker und Tagesbilanz kommen immer und zuerst. */
 let PEND_BUDGET=3;
 const PEND_MUST=new Set(["plan","jokerAsk","day"]);
-const PEND_ORDER={plan:0,jokerAsk:1,day:2,planAsk:3,unlock:7,chapter:6,umfrage:8,statsAsk:9};
+const PEND_ORDER={plan:0,jokerAsk:1,day:2,planAsk:3,bilanz:4,unlock:7,chapter:6,umfrage:8,statsAsk:9};
 function sortPending(){const o=e=>PEND_ORDER[e.type]!=null?PEND_ORDER[e.type]:5; S.pending=S.pending.map((e,i)=>[e,i]).sort((a,b)=>o(a[0])-o(b[0])||a[1]-b[1]).map(x=>x[0])}
 function showPending(){
   if($("#modalRoot").innerHTML) return;
@@ -3421,6 +3457,7 @@ function showPending(){
     return;
   }
   if(ev.type==="week") return weekSheet(ev.wk);
+  if(ev.type==="bilanz") return bilanzSheet(ev);
   if(ev.type==="planAsk") return planAskSheet(ev);
   if(ev.type==="chapter") return chapterSheet(ev.n,true);
   if(ev.type==="umfrage") return umfrageSheet(ev);

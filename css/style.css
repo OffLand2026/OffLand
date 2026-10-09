@@ -477,3 +477,21 @@ body:has(#modalRoot .modal) .toast{bottom:auto;top:calc(16px + env(safe-area-ins
 .uf-chip input:focus-visible+span{outline:2px solid var(--lime);outline-offset:2px}
 .uf-text{width:100%;margin-top:6px;border-radius:16px;padding:12px 14px;background:var(--ground);color:var(--ink);border:1.5px solid var(--line);font:500 16px var(--body);resize:vertical}
 .uf .field{font-weight:700;font-size:15px}.uf .field .muted{font-weight:500}
+/* Erste Tage: Zeit-Bilanz und Rückblick */
+.bz-hero{font-family:var(--display);font-size:44px;font-weight:800;color:var(--lime);line-height:1.05}
+.bz-delta{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--ground);border-radius:16px;padding:10px 14px}
+.bz-delta s{color:var(--muted)}.bz-delta b{color:var(--lime);font-family:var(--display);font-size:18px}
+.bz-cmp{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.bz-cmp>div{background:var(--ground);border-radius:16px;padding:12px;display:flex;gap:10px;align-items:center}
+.bz-ic{width:30px;height:30px;color:var(--lime);flex:none}.bz-ic svg{width:100%;height:100%}
+.bz-cmp b{font-family:var(--display);font-size:20px;display:block;line-height:1.1}
+.bz-cmp span:not(.bz-ic){font-size:12px;color:var(--muted);line-height:1.25;display:block}
+.bz-year{border:1.5px solid var(--lime);border-radius:18px;padding:14px 16px;background:linear-gradient(135deg,#2a2440,#1d2418)}
+.bz-year b{font-family:var(--display);font-size:24px;color:var(--lime)}
+.bz-bars{display:flex;gap:6px;height:96px}
+.bz-bars>div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px}
+.bz-bars i{width:100%;border-radius:6px 6px 3px 3px;background:var(--lime)}.bz-bars i.over{background:var(--coral)}
+.bz-bars span{font-size:11px;color:var(--muted)}
+.bz-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.bz-tiles>div{background:var(--ground);border-radius:16px;padding:12px 8px;text-align:center;display:flex;flex-direction:column;gap:2px}
+.bz-tiles b{font-family:var(--display);font-size:20px}.bz-tiles span{font-size:12px;color:var(--muted)}
