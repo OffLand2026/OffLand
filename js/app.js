@@ -2134,10 +2134,14 @@ function scene(){
   const night=sk.k==="nacht"||sleep;
   let s=`<svg viewBox="0 0 360 240" role="img" aria-label="Deine Insel mit ${here().length} Bewohnern, Inselglück ${S.glueck} Prozent">`;
   s+=`<rect width="360" height="240" fill="${clouds?"#2A2E40":night?"#1B2340":(!home&&sk.k==="tag")?T.sky:sk.sky}"/>`;
+  // Himmel sitzt tiefer, weil die Gesamtansicht oben 44 abschneidet
+  s+=`<g transform="translate(0 38)">`;
   // Polarlicht
   if(S.aurora>0&&night&&!clouds) s+=`<g class="glow" style="animation-duration:5s"><path d="M0 60q60-40 120-10t120-20 120 10v-30q-60-20-120 0t-120 10-120-10z" fill="#5BF0A4" opacity=".5"/><path d="M0 80q80-30 160 0t200-20v-14q-80 10-180-12t-180 20z" fill="#B6A4FF" opacity=".4"/></g>`;
-  if(night&&!clouds){s+=`<g fill="#F3F1EA"><circle cx="30" cy="24" r="1.6"/><circle cx="110" cy="40" r="1.2"/><circle cx="200" cy="18" r="1.8"/><circle cx="300" cy="44" r="1.3"/><circle cx="250" cy="70" r="1"/></g><circle cx="320" cy="34" r="14" fill="#F3F1EA"/><circle cx="327" cy="29" r="13" fill="#1B2340"/>`}
-  else if(sk.sun&&!clouds) s+=`<circle cx="${sk.sun[0]}" cy="${sk.sun[1]}" r="16" fill="${sk.sun[2]}"/>`;
+  if(night&&!clouds){s+=`<g fill="#F3F1EA"><circle cx="30" cy="24" r="1.6"/><circle cx="110" cy="40" r="1.2"/><circle cx="200" cy="18" r="1.8"/><circle cx="300" cy="44" r="1.3"/><circle cx="250" cy="70" r="1"/></g><circle cx="286" cy="34" r="14" fill="#F3F1EA"/><circle cx="293" cy="29" r="13" fill="#1B2340"/>`}
+  s+=`</g>`;
+  // Sonne unter die abgeschnittene Kante und weg vom Pfeil rechts oben
+  if(!(night&&!clouds)&&sk.sun&&!clouds) s+=`<circle cx="${sk.sun[0]>180?sk.sun[0]-34:sk.sun[0]+52}" cy="${Math.max(sk.sun[1],72)}" r="16" fill="${sk.sun[2]}"/>`;
   if(owns("regenbogen")&&!night) s+=`<g fill="none" stroke-width="5" opacity=".75"><path d="M40 170a140 120 0 0 1 280 0" stroke="#FF9C7A"/><path d="M46 170a134 114 0 0 1 268 0" stroke="#FFD27A"/><path d="M52 170a128 108 0 0 1 256 0" stroke="#C8F169"/><path d="M58 170a122 102 0 0 1 244 0" stroke="#7CB8E8"/><path d="M64 170a116 96 0 0 1 232 0" stroke="#B6A4FF"/></g>`;
   // Zugvögel
   if(S.birds>0) s+=`<g class="drift" style="animation-duration:5s">${[0,1,2,3,4].map(i=>`<path d="M${120+i*16} ${50+Math.abs(i-2)*8}q5-5 10 0q5-5 10 0" stroke="${night?"#F3F1EA":"#14151F"}" stroke-width="2" fill="none" stroke-linecap="round"/>`).join("")}</g>`;
@@ -2146,7 +2150,7 @@ function scene(){
   const lvl=S.glueck<40?0:S.glueck<60?1:S.glueck<80?2:3, calm=clouds||night;
   // Tiefe: Nachbarinseln im Dunst hinter dem Meer (Heimat; andere Welten haben ihren eigenen Horizont)
   if(home) s+=`<g fill="${calm?"#2E4166":lvl?"#6E9FC6":"#8696A6"}" opacity=".55"><path d="M0 172c20-18 50-24 80-12l10 12z"/><path d="M290 172c18-14 44-18 70-8v8z"/></g>`;
-  s+=`<rect y="170" width="360" height="70" fill="${clouds?"#26314A":night?"#24375A":home?sk.sea:T.sea}"/>`;
+  s+=`<rect y="170" width="360" height="120" fill="${clouds?"#26314A":night?"#24375A":home?sk.sea:T.sea}"/>`;
   let sand=clouds?"#BDB08C":"#E9D7A6", grass=clouds?"#5E8A5C":sea==="winter"?"#DDE6EE":sea==="herbst"?"#A9B86A":"#7FC57A";
   let leaf=clouds?"#4A7550":sea==="herbst"?"#E08A3C":sea==="winter"?"#5E8A6C":"#4E9A58";
   if(!home){sand=T.sand;grass=T.grass;leaf=T.leaf;if(clouds){sand="#BDB08C";grass="#7A8A70"}}
@@ -2259,7 +2263,7 @@ function scene(){
   (S.monsters||[]).forEach((id,i)=>{const a=S.apps.find(x=>x.id===id);if(!a)return;const p=mPos[i%4];s+=`<g transform="translate(${p[0]} ${p[1]})"><g class="wave"><title>${esc(monName(a,false))}</title>${monsterSvg(a.m)}</g></g>`});
   if(sleep) s+=`<g font-family="Bricolage Grotesque, sans-serif" font-weight="800" fill="#F3F1EA"><text x="${cx+64}" y="128" font-size="10" class="heart">z</text><text x="${cx+70}" y="118" font-size="13" class="heart" style="animation-delay:.8s">z</text><text x="${cx+78}" y="106" font-size="16" class="heart" style="animation-delay:1.6s">Z</text></g>`;
   if(sea==="winter"&&!clouds) s+=`<g fill="#F3F1EA">${Array.from({length:14},(_,i)=>`<g class="rain" style="animation-duration:3s;animation-delay:${(i*.23)%3}s"><circle cx="${12+i*25}" cy="${30+(i*37)%110}" r="1.6"/></g>`).join("")}</g>`;
-  if(clouds) s+=cloudsSvg();
+  if(clouds) s+=`<g transform="translate(0 30)">${cloudsSvg()}</g>`;
   return s+"</svg>";
 }
 
@@ -2409,7 +2413,7 @@ function viewHeute(){
     <button class="btn" id="closeBtn">Tag abschließen</button></div>`;
   const [gl,glC]=[S.glueck+" %",mCls==="good"?"var(--lime)":mCls==="ok"?"var(--amber)":"var(--coral)"];
   return `
-  <div class="scene-chips">
+  <div class="scene-chips glass">
     <div class="cp"><i>Glück</i><b style="color:${glC}">${gl}</b></div>
     <div class="cp"><i>Bewohner</i><b>${occupied()}/${capacity()}</b></div>
     <div class="cp"><i>Punkte</i><b style="color:var(--lilac)">${S.points}</b></div>
@@ -2545,7 +2549,7 @@ function viewBewohner(){
   if(S.warn){const w=S.warn.ids.map(id=>S.residents.find(r=>r.id===id)).filter(Boolean); if(w.length) news.push(`<div class="fy"><p class="k" style="color:var(--amber)">Wegzug droht</p><b>${esc(groupName(w))}</b><p class="small muted">Glück bis ${nice(S.warn.deadline)} über 40 %</p></div>`)}
   return `
   <div class="hero-card">${strip}</div>
-  <div class="scene-chips">
+  <div class="scene-chips glass">
     <div class="cp"><i>Menschen</i><b>${H.filter(r=>r.kind==="mensch").length}</b></div>
     <div class="cp"><i>Tiere</i><b>${H.filter(r=>r.kind!=="mensch").length}</b></div>
     <div class="cp"><i>Glück</i><b style="color:${glC}">${S.glueck} %</b></div>
@@ -2985,7 +2989,7 @@ function settingsHtml(){
 /* ---------- Inselansicht: Gesamtbild oder einzelne Insel, per Wischen ---------- */
 let islandView=0, vbAnim=null;
 function islandViews(){
-  const v=[{n:"Alle Inseln",vb:[0,0,360,240]}];
+  const v=[{n:"Alle Inseln",vb:[0,44,360,240]}];   // etwas Himmel weg, mehr Meer: die Chips liegen dann auf dem Wasser statt auf der Insel
   const W=curWorld();
   if(!has(W.isle2)) return v;
   v.push({n:"Hauptinsel",vb:[0,62,246,164]});
