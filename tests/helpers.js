@@ -3,7 +3,7 @@ const { test: base, expect } = require("@playwright/test");
 
 // Wird vor das letzte "})();" von app.js gesetzt, also noch innerhalb der App
 const EXPOSE = `window.T={get S(){return S},render,save,showPending,closeDay,makeWish,wishCheck,planAskSheet,planResult,
-  chapterSheet,chapterCheck,CHAPTERS,feedSheet,bayLine,lucLine,arrival,weekSheet,bayAlbumSheet,isoWeek,today,addDays,umfrageCheck};\n`;
+  chapterSheet,chapterCheck,CHAPTERS,feedSheet,bayLine,lucLine,arrival,weekSheet,bayAlbumSheet,isoWeek,today,addDays,umfrageCheck,travel,travelSheet,SHOP,price,hereItems,nightAsk};\n`;
 
 const test = base.extend({
   errors: async ({}, use) => { await use([]); },

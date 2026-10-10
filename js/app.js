@@ -161,7 +161,33 @@ const SHOP=[
   {id:"a_huskys",world:"alaska",like:"stall",n:"Huskyhütte",cost:720,cat:"nutzen",fx:"+3 Plätze für neue Bewohner."},
   {id:"a_schneemann",world:"alaska",n:"Schneemann",cost:160,cat:"deko",fx:"Trägt einen roten Schal."},
   {id:"a_laternen",world:"alaska",n:"Schneelaternen",cost:220,cat:"deko",fx:"Leuchten warm im Schnee."},
-  {id:"a_eisskulptur",world:"alaska",n:"Eisskulptur",cost:260,cat:"deko",fx:"Ein Eisbär aus Eis."}
+  {id:"a_eisskulptur",world:"alaska",n:"Eisskulptur",cost:260,cat:"deko",fx:"Ein Eisbär aus Eis."},
+  /* mehr Auswahl auf den neuen Inseln */
+  {id:"t_bar",world:"tropen",like:"bank",n:"Strandbar",cost:180,cat:"nutzen",fx:"Bewohner verstehen sich jeden Tag ein bisschen besser."},
+  {id:"t_papagei",world:"tropen",like:"vogelhaus",n:"Papageienstange",cost:200,cat:"nutzen",fx:"Zugvögel kommen doppelt so oft vorbei."},
+  {id:"t_muschelweg",world:"tropen",n:"Muschelpfad",cost:140,cat:"deko",fx:"Knirscht leise unter den Füßen."},
+  {id:"t_steg",world:"tropen",n:"Bambussteg",cost:240,cat:"deko",fx:"Bis ganz vorne ans türkise Wasser."},
+  {id:"t_nest",world:"tropen",n:"Schildkrötennest",cost:220,cat:"deko",fx:"Bald schlüpfen hier die Kleinen."},
+  {id:"t_lagune",world:"tropen",n:"Lagunenbecken",cost:340,cat:"deko",fx:"Warmes Wasser zum Füßebaumeln."},
+  {id:"f_bank",world:"fjord",like:"bank",n:"Holzbank am Fjord",cost:220,cat:"nutzen",fx:"Bewohner verstehen sich jeden Tag ein bisschen besser."},
+  {id:"f_sauna",world:"fjord",like:"picknick",n:"Sauna",cost:300,cat:"nutzen",fx:"Freundschaften wachsen noch schneller."},
+  {id:"f_nistkasten",world:"fjord",like:"vogelhaus",n:"Nistkasten",cost:200,cat:"nutzen",fx:"Zugvögel kommen doppelt so oft vorbei."},
+  {id:"f_heide",world:"fjord",like:"blumen",n:"Heidekraut",cost:300,cat:"nutzen",fx:"+1 % Glück an jedem guten Tag."},
+  {id:"f_troll",world:"fjord",n:"Kleiner Troll",cost:140,cat:"deko",fx:"Guckt freundlich, meistens."},
+  {id:"f_boot",world:"fjord",n:"Wikingerboot",cost:280,cat:"deko",fx:"Ein kleines Modell mit rot-weißem Segel."},
+  {id:"o_kissen",world:"oase",like:"bank",n:"Kissenrunde",cost:240,cat:"nutzen",fx:"Bewohner verstehen sich jeden Tag ein bisschen besser."},
+  {id:"o_taube",world:"oase",like:"vogelhaus",n:"Taubenturm",cost:260,cat:"nutzen",fx:"Zugvögel kommen doppelt so oft vorbei."},
+  {id:"o_blumen",world:"oase",like:"blumen",n:"Wüstenblumen",cost:340,cat:"nutzen",fx:"+1 % Glück an jedem guten Tag."},
+  {id:"o_spiel",world:"oase",like:"spielplatz",n:"Sandspielplatz",cost:560,cat:"nutzen",fx:"Familien bekommen öfter Nachwuchs."},
+  {id:"o_sterne",world:"oase",like:"sternwarte",n:"Sternenzelt",cost:600,cat:"nutzen",fx:"Polarlichter bleiben einen Tag länger."},
+  {id:"o_mosaik",world:"oase",n:"Mosaikbrunnen",cost:300,cat:"deko",fx:"Blaue Kacheln, plätscherndes Wasser."},
+  {id:"o_sanduhr",world:"oase",n:"Große Sanduhr",cost:180,cat:"deko",fx:"Erinnert daran, wie schnell Zeit vergeht."},
+  {id:"a_fellbank",world:"alaska",like:"bank",n:"Fellbank",cost:280,cat:"nutzen",fx:"Bewohner verstehen sich jeden Tag ein bisschen besser."},
+  {id:"a_futterhaus",world:"alaska",like:"vogelhaus",n:"Futterhaus",cost:280,cat:"nutzen",fx:"Zugvögel kommen doppelt so oft vorbei."},
+  {id:"a_rodel",world:"alaska",like:"schaukel",n:"Rodelhang",cost:380,cat:"nutzen",fx:"+1 % Glück an guten Tagen, wenn Kinder auf der Insel sind."},
+  {id:"a_nordlicht",world:"alaska",like:"sternwarte",n:"Nordlichthütte",cost:640,cat:"nutzen",fx:"Polarlichter bleiben einen Tag länger."},
+  {id:"a_iglu",world:"alaska",n:"Iglu",cost:360,cat:"deko",fx:"Drinnen ist es erstaunlich gemütlich."},
+  {id:"a_robben",world:"alaska",n:"Robbenfelsen",cost:300,cat:"deko",fx:"Zwei Robben dösen in der Sonne."}
 ];
 /* Seltene Dinge vom Händlerschiff */
 const RARE=[
@@ -250,7 +276,7 @@ function chestSvg(open,anim){
     ${[[-9,-30,0],[0,-36,.15],[9,-31,.3],[-4,-40,.45],[6,-42,.6]].map(([x,y,d])=>`<g class="coin-up" style="animation-delay:${2.1+d}s"><circle cx="${x}" cy="${y}" r="2.2" fill="#FFE7A3" stroke="#E0A93C" stroke-width=".7"/></g>`).join("")}`;
 }
 function grantItem(id){if(S.items.includes(id)) return false; S.items.push(id); S.itemW=S.itemW||{}; S.itemW[id]=curWorldId(); return true}
-function itemHome(id){const d=itemDef(id); if(d&&d.world) return d.world; if(d&&SHOP.includes(d)) return "heimat"; return (S.itemW&&S.itemW[id])||"heimat"}
+function itemHome(id){if(S.moved&&S.moved[id]) return S.moved[id]; const d=itemDef(id); if(d&&d.world) return d.world; if(d&&SHOP.includes(d)) return "heimat"; return (S.itemW&&S.itemW[id])||"heimat"}
 const curWorldId=()=>(typeof WORLDS!=="undefined"?WORLDS[S.world||0].id:"heimat");
 const hereItems=()=>S.items.filter(id=>itemHome(id)===curWorldId());
 const shopHere=it=>it.cat==="vorrat"||(it.world||"heimat")===curWorldId();
@@ -259,7 +285,8 @@ const adults=()=>here().filter(r=>r.kind==="mensch"&&r.job);
 const jobOn=id=>adults().some(r=>r.job===id&&!r.retired&&!r.sick);
 const jobName=id=>(JOBS.find(j=>j.id===id)||{}).n||"";
 const traitName=id=>(TRAITS.find(t=>t.id===id)||{}).n||"";
-const price=it=>Math.round(it.cost*(jobOn("tischler")?0.9:1)*(has("o_markt")?0.9:1));
+const worldPrice=it=>{if(!it||it.consumable||!it.world) return 1; const i=WORLDS.findIndex(w=>w.id===it.world); return 1+.1*Math.max(0,i)};   // Tropen ×1,1 … Eis ×1,4
+const price=it=>Math.round(it.cost*worldPrice(it)*(jobOn("tischler")?0.9:1)*(has("o_markt")?0.9:1)/5)*5;
 function pickJob(){
   const pool=JOBS.filter(j=>!j.need||S.built.includes(j.need));
   const taken=new Set(S.residents.filter(r=>r.status==="da").map(r=>r.job));
@@ -1224,6 +1251,13 @@ function updateFocus(){
   set("fSun",lerp(40,320,p),340-Math.sin(p*Math.PI)*110);
 }
 function sleeping(){const h=new Date().getHours();return !!(S.night&&S.night.after===S.lastDay&&(h>=20||h<9))}
+function nightAsk(){
+  sheet(`<p class="label" style="color:var(--lilac)">Gute Nacht, Insel</p><h2>Noch eine Inselminute, bevor das Handy schlafen geht?</h2>
+    <p class="muted">Eine Minute Meeresrauschen hilft dem Kopf, zur Ruhe zu kommen. Danach schläft es sich oft leichter ein.</p>
+    <button class="btn" id="ngCalm">Ja, eine Minute Meer</button><button class="btn ghost" id="ngNo" data-ok>Nein danke, gute Nacht</button>`);
+  $("#ngCalm").onclick=()=>{closeModal();goodNight();calmMinute()};
+  $("#ngNo").onclick=()=>{closeModal();goodNight();showPending()};
+}
 function goodNight(){stat("nacht");S.night={after:S.lastDay,at:Date.now()};log("Gute Nacht, Insel. Das Handy ruht bis morgen.","info");
   if(S.wish&&S.wish.type==="nacht"){fulfillWish();save();render();showPending();return}
   save();render();toast("Gute Nacht! Morgen gibt es Traumpunkte.")}
@@ -1475,7 +1509,7 @@ function closeDay(min,quests,appMin){
   checkDiscovery();
   chapterCheck();
   umfrageCheck();
-  if(S.music===undefined&&S.sound!==false&&!S.pending.some(e=>e.type==="musicAsk")) S.pending.push({type:"musicAsk"});   // kommt beim nächsten Öffnen
+  if(S.music===undefined&&S.sound!==false&&!S.pending.some(e=>e.type==="musicAsk")) S.pending.push({type:"musicAsk"});   // kommt gleich nach der Tagesbilanz
   if(netConfigured()&&statsDev().consent===undefined&&!S.pending.some(e=>e.type==="statsAsk")) S.pending.push({type:"statsAsk"});   // steht hinten an: kommt beim nächsten Öffnen mit der Freischaltung
   sortPending(); PEND_BUDGET=3;
   save(); render(); showPending();
@@ -1490,8 +1524,16 @@ function checkDiscovery(){
   chron([],"Am Horizont wurde eine neue Insel entdeckt: "+nw.name+".");
   S.pending.push({type:"discovery",world:S.found});
 }
-function travel(){
+/* Umzugskiste: bis zu zwei Lieblingsstücke ziehen mit auf die neue Insel */
+const KISTE_MAX=2;
+const kisteCost=id=>{const d=itemDef(id); return Math.max(50,Math.round((d?price(d):100)*.5/5)*5)};
+function travel(picks){
   if(!((S.found||0)>(S.world||0))) return;
+  picks=(Array.isArray(picks)?picks:[]).filter(id=>hereItems().includes(id)).slice(0,KISTE_MAX);
+  const cost=picks.reduce((a,id)=>a+kisteCost(id),0); if(cost>S.points) picks=[];
+  const toId=WORLDS[(S.world||0)+1].id;
+  if(picks.length){S.points-=cost; S.moved=S.moved||{}; picks.forEach(id=>{S.moved[id]=toId}); stat("umzugskiste");
+    log("Umzugskiste gepackt: "+nameList(picks.map(itemName))+" "+(picks.length>1?"kommen":"kommt")+" mit. −"+cost+" Punkte.","good")}
   const from=curWorld(); S.world=(S.world||0)+1; S.projectIdx=0; islandView=0; stat("welt_"+S.world);
   if(S.wish&&(!S.wish.type||S.wish.type==="item")){S.wish=null;S.lastWishEnd=S.dayCount}
   const W=curWorld(); S.points+=100;
@@ -1539,7 +1581,7 @@ function viewReise(){
   return `<div class="card"><div class="row between"><p class="label">Weltreise</p><span class="small muted">Welt ${w+1} von ${WORLDS.length}</span></div>
     ${worldMapSvg()}
     <p><b>${esc(W.name)}</b> · <span class="muted">${esc(W.text)}</span></p>
-    ${(S.found||0)>w?`<p class="small" style="color:var(--lime);font-weight:700">Neue Insel entdeckt: ${esc(next.name)}!</p><button class="btn" id="travelBtn">Nach ${esc(next.name)} aufbrechen</button><p class="small muted" style="margin-top:-4px">Alle Bewohner und Tiere kommen mit. Gegenstände aus dem Laden bleiben hier, auf der neuen Insel gibt es passende neue.</p>`
+    ${(S.found||0)>w?`<p class="small" style="color:var(--lime);font-weight:700">Neue Insel entdeckt: ${esc(next.name)}!</p><button class="btn" id="travelBtn">Nach ${esc(next.name)} aufbrechen</button><p class="small muted" style="margin-top:-4px">Alle Bewohner und Tiere kommen mit. Gegenstände aus dem Laden bleiben hier, bis zu ${KISTE_MAX} Lieblingsstücke dürfen in der Umzugskiste mit.</p>`
       :next?`<div class="bar"><i style="width:${built/curProjects().length*100}%;background:var(--amber)"></i></div><p class="small muted">${built} von ${curProjects().length} Großprojekten hier gebaut. Sind alle fertig, wird eine neue Insel am Horizont entdeckt.</p>`
       :`<p class="small" style="color:var(--lime);font-weight:700">Ihr habt das Ende der Welt erreicht. Was für eine Reise!</p>`}
   </div>`;
@@ -2090,8 +2132,8 @@ function worldStructs(W,cx,two,three){
 
 /* Gekaufte Gegenstände automatisch verteilen: Jeder Gegenstand nimmt den freien Platz,
    der am weitesten von den schon platzierten entfernt ist, und weicht Gebäuden und Bäumen aus. */
-const ITEM_W={truhe:28,pokal:22,goldanker:26,siegerbanner:22,t_kanu:30,t_kokos:26,t_haengematte:30,t_orchidee:26,t_tiki:20,t_huette:32,t_surf:22,t_flamingo:22,f_kanu:30,f_schaukel:26,f_beeren:28,f_feuerschale:18,f_scheune:34,f_moos:24,f_wimpel:34,f_runen:14,o_teppich:34,o_dattel:28,o_tee:26,o_wasser:28,o_zelt:34,o_kaktus:26,o_laternen:16,a_eisloch:26,a_kakao:24,a_feuerkorb:16,a_eisbahn:38,a_huskys:44,a_schneemann:16,a_laternen:16,a_eisskulptur:18,teich:36,picknick:34,garten:32,sandburg:30,schaukel:30,spielplatz:28,haengematte:28,stall:28,blumen:28,palme:26,bank:26,feuer:22,brunnen:24,sternwarte:26,bienen:22,schirm:30,vogelhaus:20,zwerg:12,laternen:12,glocke:18,teleskop:28,muschelweg:34,regenbogen:34};
-const ITEM_H={truhe:24,pokal:26,goldanker:28,siegerbanner:34,t_kokos:22,t_haengematte:28,t_tiki:26,t_huette:30,t_surf:28,t_flamingo:24,f_schaukel:36,f_scheune:28,f_wimpel:22,f_runen:22,o_dattel:36,o_tee:22,o_zelt:28,o_laternen:26,a_kakao:24,a_feuerkorb:28,a_huskys:16,a_schneemann:26,a_laternen:24,a_eisskulptur:16,palme:30,laternen:28,vogelhaus:30,schirm:26,glocke:28,sternwarte:30,schaukel:26,haengematte:20,spielplatz:22,stall:22,bienen:24,teleskop:24,feuer:24};
+const ITEM_W={t_bar:30,t_papagei:18,t_muschelweg:30,t_steg:34,t_nest:30,t_lagune:36,f_bank:28,f_sauna:28,f_nistkasten:14,f_heide:28,f_troll:14,f_boot:32,o_kissen:32,o_taube:20,o_blumen:28,o_spiel:32,o_sterne:30,o_mosaik:26,o_sanduhr:12,a_fellbank:28,a_futterhaus:18,a_rodel:30,a_nordlicht:32,a_iglu:28,a_robben:32,truhe:28,pokal:22,goldanker:26,siegerbanner:22,t_kanu:30,t_kokos:26,t_haengematte:30,t_orchidee:26,t_tiki:20,t_huette:32,t_surf:22,t_flamingo:22,f_kanu:30,f_schaukel:26,f_beeren:28,f_feuerschale:18,f_scheune:34,f_moos:24,f_wimpel:34,f_runen:14,o_teppich:34,o_dattel:28,o_tee:26,o_wasser:28,o_zelt:34,o_kaktus:26,o_laternen:16,a_eisloch:26,a_kakao:24,a_feuerkorb:16,a_eisbahn:38,a_huskys:44,a_schneemann:16,a_laternen:16,a_eisskulptur:18,teich:36,picknick:34,garten:32,sandburg:30,schaukel:30,spielplatz:28,haengematte:28,stall:28,blumen:28,palme:26,bank:26,feuer:22,brunnen:24,sternwarte:26,bienen:22,schirm:30,vogelhaus:20,zwerg:12,laternen:12,glocke:18,teleskop:28,muschelweg:34,regenbogen:34};
+const ITEM_H={t_bar:20,t_papagei:30,t_muschelweg:8,t_steg:16,t_nest:10,t_lagune:10,f_bank:12,f_sauna:28,f_nistkasten:28,f_heide:14,f_troll:18,f_boot:22,o_kissen:9,o_taube:30,o_blumen:14,o_spiel:18,o_sterne:20,o_mosaik:18,o_sanduhr:20,a_fellbank:10,a_futterhaus:24,a_rodel:14,a_nordlicht:26,a_iglu:14,a_robben:14,truhe:24,pokal:26,goldanker:28,siegerbanner:34,t_kokos:22,t_haengematte:28,t_tiki:26,t_huette:30,t_surf:28,t_flamingo:24,f_schaukel:36,f_scheune:28,f_wimpel:22,f_runen:22,o_dattel:36,o_tee:22,o_zelt:28,o_laternen:26,a_kakao:24,a_feuerkorb:28,a_huskys:16,a_schneemann:26,a_laternen:24,a_eisskulptur:16,palme:30,laternen:28,vogelhaus:30,schirm:26,glocke:28,sternwarte:30,schaukel:26,haengematte:20,spielplatz:22,stall:22,bienen:24,teleskop:24,feuer:24};
 const FIXED_ITEMS={flagge:c=>[c.cx+50,122],lichter:c=>[c.cx+50,148],windspiel:c=>[c.cx+28,160],angel:c=>[c.cx+108,198]};
 function layoutItems(cx,two,three,nTrees,extra,home){
   const out={}, S8=.8, ctx={cx};
@@ -2871,6 +2913,31 @@ function itemSvg(id){
   case "t_orchidee": return `<rect x="-13" y="-4" width="26" height="4" rx="2" fill="#7A5038"/>${[-8,-1,6].map((x,i)=>`<g class="sway" style="animation-duration:${3+i*.4}s"><path d="M${x} -4q1-6 0-9" stroke="#3FA35A" stroke-width="1.2" fill="none"/><path d="M${x} -14l-3-2 3-1 3 1z" fill="${["#E07AB8","#B6A4FF","#F3F1EA"][i]}"/><circle cx="${x}" cy="-14.6" r="1" fill="#FFD27A"/></g>`).join("")}`;
   case "t_tiki": return `${[-6,6].map((x,i)=>`<path d="M${x} 0v-20" stroke="#8A5A3B" stroke-width="2.4"/><path d="M${x-1.6} -14h3.2M${x-1.6} -9h3.2" stroke="#6B4430"/><path d="M${x-2.4} -20h4.8l-1 -3h-2.8z" fill="#5A3A2A"/><g class="flick" style="animation-delay:${i*.3}s"><path d="M${x} -23c-2 0-3-2-1-5 0 1 1 1 1 1 0-2 1-3 2-4 0 2 1 3 1 4 0 2-1 4-3 4z" fill="#FFB86B"/></g>`).join("")}<g class="glow" style="animation-duration:1.6s"><circle cx="0" cy="-24" r="10" fill="#FFB86B" opacity=".18"/></g>`;
   case "t_huette": return `<path d="M-12 0v-6M12 0v-6" stroke="#8A5A3B" stroke-width="2"/><rect x="-13" y="-7" width="26" height="2" fill="#A0703F"/><rect x="-11" y="-19" width="22" height="12" fill="#D9B86A"/><path d="M-8 -19v12M-4 -19v12M4 -19v12M8 -19v12" stroke="#B8944E" stroke-width=".8"/><path d="M-16 -18l16-11 16 11z" fill="#C9A26A"/><rect x="-3" y="-15" width="6" height="8" fill="#7A5038"/>`;
+  case "t_bar": return `<rect x="-12" y="-10" width="24" height="10" fill="#C9A26A"/><path d="M-15 -10l3-8h24l3 8z" fill="#E9C46A"/><path d="M-12 -10h24" stroke="#B8902E" stroke-width="1.4"/><rect x="-9" y="-7" width="18" height="2" fill="#8A5A3B"/><circle cx="-5" cy="-11.6" r="1.4" fill="#FF9C7A"/><circle cx="4" cy="-11.6" r="1.4" fill="#FFD27A"/>`;
+  case "t_papagei": return `<path d="M0 0v-20M-8 -18h16" stroke="#8A5A3B" stroke-width="2"/><g class="bob" style="animation-duration:2.4s"><ellipse cx="4" cy="-22" rx="3" ry="4" fill="#E5484D"/><circle cx="4" cy="-26.5" r="2.4" fill="#E5484D"/><path d="M6.2 -27l2.2 1-2.2 1.2z" fill="#FFD27A"/><path d="M3 -18.6l-1 5" stroke="#3FA35A" stroke-width="2"/><path d="M1.6 -22.5l-2 3" stroke="#5B8CD6" stroke-width="1.6"/></g>`;
+  case "t_muschelweg": return `${[-12,-4,4,12].map((x,i)=>`<path d="M${x-3.4} 0q3.4-7 6.8 0z" fill="${["#FFD9C2","#FFB3C7","#F3F1EA","#FFD27A"][i]}"/><path d="M${x} -.2v-4M${x-1.6} -.2l.8-3.4M${x+1.6} -.2l-.8-3.4" stroke="#C9A26A" stroke-width=".5"/>`).join("")}`;
+  case "t_steg": return `<path d="M-15 0v-6M15 0v-6M-5 0v-6M5 0v-6" stroke="#8A5A3B" stroke-width="1.8"/><rect x="-16" y="-8" width="32" height="2.6" rx="1" fill="#D9B26A"/><path d="M-11 -8v2.6M-6 -8v2.6M-1 -8v2.6M4 -8v2.6M9 -8v2.6" stroke="#B8902E" stroke-width=".6"/><path d="M-15 -8v-6M15 -8v-6" stroke="#8A5A3B" stroke-width="1.4"/><path d="M-15 -13q15 4 30 0" stroke="#C9A26A" stroke-width="1" fill="none"/>`;
+  case "t_nest": return `<ellipse cx="-4" cy="-1.6" rx="9" ry="3" fill="#D9C08A"/><circle cx="-7" cy="-4" r="2" fill="#F3F1EA"/><circle cx="-3" cy="-4.4" r="2" fill="#F3F1EA"/><circle cx="-5" cy="-6.6" r="2" fill="#F3F1EA"/><g class="wander" style="--wx:4px;animation-duration:9s"><ellipse cx="9" cy="-2.6" rx="5" ry="3" fill="#3FA35A"/><path d="M6 -3.6h6M9 -5.4v4" stroke="#2E7D44" stroke-width=".6"/><circle cx="14.4" cy="-2.6" r="1.7" fill="#7FC57A"/></g>`;
+  case "t_lagune": return `<ellipse cx="0" cy="-3" rx="17" ry="5" fill="#E9D7A6"/><ellipse cx="0" cy="-3" rx="14" ry="3.6" fill="#4FC3D9"/><path d="M-7 -3.4q3.5-1.6 7 0M2 -2.2q3-1.2 6 0" stroke="#F3F1EA" stroke-width=".8" fill="none" opacity=".8"/><circle cx="9" cy="-3.6" r="1.1" fill="#FF9C7A"/>`;
+  case "f_bank": return `<rect x="-13" y="-6" width="26" height="3" rx="1.5" fill="#9A6A3E"/><path d="M-10 -3v3M10 -3v3" stroke="#7A5038" stroke-width="2.4"/><rect x="-13" y="-11" width="26" height="2.4" rx="1.2" fill="#9A6A3E"/><path d="M-12 -8.6v2.6M12 -8.6v2.6" stroke="#7A5038" stroke-width="1.6"/>`;
+  case "f_sauna": return `<rect x="-11" y="-12" width="22" height="12" fill="#9A6A3E"/><path d="M-11 -8h22M-11 -4h22" stroke="#7A5038" stroke-width=".7"/><path d="M-13 -12l13-7 13 7z" fill="#6B4430"/><rect x="-3" y="-8" width="6" height="8" fill="#5A3A26"/><rect x="5" y="-20" width="3" height="5" fill="#5A3A26"/><g class="drift" style="animation-duration:4s"><circle cx="6.5" cy="-23" r="1.6" fill="#F3F1EA" opacity=".6"/><circle cx="8" cy="-26.4" r="2" fill="#F3F1EA" opacity=".4"/></g>`;
+  case "f_nistkasten": return `<path d="M0 0v-14" stroke="#7A5038" stroke-width="2"/><rect x="-5" y="-22" width="10" height="9" fill="#C9A26A"/><path d="M-6.6 -21.4l6.6-5 6.6 5z" fill="#E5484D"/><circle cx="0" cy="-18" r="1.6" fill="#3A2A1E"/>`;
+  case "f_heide": return `<rect x="-13" y="-3" width="26" height="3" rx="1.5" fill="#6B4430"/>${[-9,-4,1,6,10].map((x,i)=>`<g class="sway" style="animation-duration:${3+i*.3}s"><path d="M${x} -3q-1-4 0-7" stroke="#5E8A5C" stroke-width="1"/><circle cx="${x}" cy="-9.6" r="2.1" fill="${i%2?"#B6A4FF":"#D98BD0"}"/></g>`).join("")}`;
+  case "f_troll": return `<ellipse cx="0" cy="-5" rx="6" ry="5" fill="#7FA36B"/><circle cx="0" cy="-12" r="4.6" fill="#8DB37A"/><circle cx="-1.6" cy="-12.6" r=".8" fill="#14151F"/><circle cx="1.6" cy="-12.6" r=".8" fill="#14151F"/><ellipse cx="0" cy="-10.4" rx="1.4" ry="1.8" fill="#6E9A5E"/><path d="M-2.4 -16q2.4-4.4 4.8 0" stroke="#C46D3A" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
+  case "f_boot": return `<path d="M-14 -6q14 9 28 0l-3 6h-22z" fill="#8A5A3B"/><path d="M-14 -6q-3-5 1-7M14 -6q3-5-1-7" stroke="#8A5A3B" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M0 -6v-15" stroke="#6B4430" stroke-width="1.4"/><rect x="-6" y="-19" width="12" height="9" fill="#F3F1EA"/><path d="M-6 -16h12M-6 -13h12" stroke="#E5484D" stroke-width="1.4"/>`;
+  case "o_kissen": return `<ellipse cx="0" cy="-2" rx="15" ry="3.6" fill="#C46D3A"/><path d="M-12 -2h24" stroke="#FFD27A" stroke-width=".7" stroke-dasharray="2 2"/>${[[-9,"#E5484D"],[0,"#FFD27A"],[9,"#5B8CD6"]].map(([x,c])=>`<ellipse cx="${x}" cy="-5" rx="4.4" ry="3" fill="${c}"/>`).join("")}`;
+  case "o_taube": return `<rect x="-5" y="-22" width="10" height="22" fill="#E3C9A0"/><path d="M-6.4 -22h12.8l-6.4-5.4z" fill="#C46D3A"/>${[-17,-11,-5].map(y=>`<circle cx="0" cy="${y}" r="1.4" fill="#5A3A26"/>`).join("")}<g class="bob" style="animation-duration:2.6s"><ellipse cx="7.4" cy="-25" rx="2.8" ry="1.8" fill="#F3F1EA"/><circle cx="9.6" cy="-26" r="1.2" fill="#F3F1EA"/></g>`;
+  case "o_blumen": return `<rect x="-13" y="-3" width="26" height="3" rx="1.5" fill="#C9A26A"/>${[-8,0,8].map((x,i)=>`<path d="M${x} -3v-6" stroke="#5E8A5C" stroke-width="2.6" stroke-linecap="round"/><circle cx="${x}" cy="-10.4" r="2.3" fill="${["#FF6B9A","#FFD27A","#FF9C7A"][i]}"/>`).join("")}`;
+  case "o_spiel": return `<rect x="-14" y="-4" width="14" height="4" fill="#C9A26A"/><rect x="-13" y="-3.4" width="12" height="2.6" fill="#F2D59A"/><path d="M4 0v-14h4v14M4 -5h4M4 -10h4" stroke="#9A6A3E" stroke-width="1.4" fill="none"/><path d="M8 -14q6 4 7 14" stroke="#FF9C7A" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+  case "o_sterne": return `<path d="M-14 0l14-16 14 16z" fill="#3B2F6B"/><path d="M-6 0l6-7 6 7z" fill="#14151F"/><path d="M0 -16v-3" stroke="#C46D3A" stroke-width="1.4"/>${[[-5,-9],[3,-11],[6,-5],[-8,-4]].map(([x,y],i)=>`<circle class="glow" style="animation-delay:${i*.4}s" cx="${x}" cy="${y}" r=".9" fill="#FFD27A"/>`).join("")}`;
+  case "o_mosaik": return `<ellipse cx="0" cy="-3" rx="12" ry="3.6" fill="#2E6FB0"/><ellipse cx="0" cy="-4" rx="10" ry="2.4" fill="#7FD1E6"/><path d="M-10 -2h20" stroke="#F3F1EA" stroke-width=".6" stroke-dasharray="1.4 1.4"/><path d="M0 -4v-8" stroke="#E3C9A0" stroke-width="2"/><g class="bob" style="animation-duration:1.8s"><path d="M-3.4 -12.4q3.4-4 6.8 0" stroke="#7FD1E6" stroke-width="1.3" fill="none"/></g>`;
+  case "o_sanduhr": return `<path d="M-5.4 0h10.8M-5.4 -19h10.8" stroke="#9A6A3E" stroke-width="2.2" stroke-linecap="round"/><path d="M-4 -18h8l-4 8.5zM-4 -1h8l-4-8.5z" fill="#BFE3F0" opacity=".6"/><path d="M-2.4 -1h4.8l-2.4-4z" fill="#E9C46A"/><path d="M-1.6 -15.6h3.2l-1.6 3z" fill="#E9C46A"/>`;
+  case "a_fellbank": return `<rect x="-13" y="-6" width="26" height="3" rx="1.5" fill="#9A6A3E"/><path d="M-10 -3v3M10 -3v3" stroke="#7A5038" stroke-width="2.4"/><path d="M-12 -6q6-4 12 0q6-4 12 0" fill="#E3D8C8"/>`;
+  case "a_futterhaus": return `<path d="M0 0v-12" stroke="#7A5038" stroke-width="2"/><rect x="-7" y="-17" width="14" height="5" fill="#C9A26A"/><path d="M-9 -17l9-6 9 6z" fill="#F3F1EA"/><g class="bob" style="animation-duration:2.2s"><circle cx="-3" cy="-19.6" r="1.7" fill="#E5484D"/><path d="M-1.6 -19.8l1.2.4-1.2.5z" fill="#FFB86B"/></g>`;
+  case "a_rodel": return `<path d="M-15 0q8-13 18-8q6 3 12 8z" fill="#F3F1EA"/><rect x="2" y="-7" width="11" height="3" rx="1" fill="#E5484D"/><path d="M1 -3h13q2 0 2-2" stroke="#9A6A3E" stroke-width="1.2" fill="none"/>`;
+  case "a_nordlicht": return `<path class="glow" d="M-15 -22q15-9 30 0" stroke="#5BF0A4" stroke-width="2.6" fill="none" opacity=".75"/><rect x="-9" y="-10" width="18" height="10" fill="#9A6A3E"/><path d="M-11 -10l11-6 11 6z" fill="#EAF2F8"/><rect x="-2.5" y="-7" width="5" height="7" fill="#5A3A26"/><rect x="4" y="-8" width="3" height="3" fill="#FFD27A"/>`;
+  case "a_iglu": return `<path d="M-13 0a13 12 0 0 1 26 0z" fill="#EAF2F8"/><path d="M-12.6 -4h25.2M-10.6 -8h21.2M-6.6 -11h13.2M-5 -8v-3M5 -8v-3M-8 -4v-4M8 -4v-4M0 -4v-4" stroke="#B8CCDA" stroke-width=".7"/><path d="M-4.4 0a4.4 5.4 0 0 1 8.8 0z" fill="#3A4A66"/>`;
+  case "a_robben": return `<path d="M-15 0q2-8 10-9q8 0 10 3q7 1 9 6z" fill="#8696A6"/><g class="bob" style="animation-duration:3s"><ellipse cx="1" cy="-9.6" rx="5.4" ry="2.6" fill="#B8C4CE"/><circle cx="6.4" cy="-11.4" r="2.1" fill="#B8C4CE"/><circle cx="7" cy="-11.8" r=".5" fill="#14151F"/></g><g class="bob" style="animation-duration:3.4s;animation-delay:.6s"><ellipse cx="-8" cy="-7.6" rx="4.6" ry="2.2" fill="#A3B1BC"/><circle cx="-12.4" cy="-9" r="1.8" fill="#A3B1BC"/></g>`;
   case "t_surf": return `${[[-6,"#FF9C7A",-8],[2,"#5B8CD6",4],[9,"#FFD27A",12]].map(([x,c,r])=>`<g transform="translate(${x} 0) rotate(${r})"><path d="M0 0c-3-8-3-18 0-26 3 8 3 18 0 26z" fill="${c}"/><path d="M0 -2v-22" stroke="#F3F1EA" stroke-width=".8"/></g>`).join("")}`;
   case "t_flamingo": return `${[[-6,0],[6,.6]].map(([x,d])=>`<g transform="translate(${x} 0)"><path d="M0 0v-9" stroke="#E07AB8" stroke-width="1"/><g class="bob" style="animation-duration:2.8s;animation-delay:${d}s"><ellipse cx="1" cy="-12" rx="4.6" ry="3" fill="#FF8FB8"/><path d="M-2 -13q-3-4 0-9q2-1 2 1" stroke="#FF8FB8" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M0 -21l-3 1.4 1 1z" fill="#3A3D58"/></g></g>`).join("")}`;
   /* Fjord */
@@ -3263,7 +3330,7 @@ function bind(){
   const s10=$("#sim10"); if(s10) s10.onclick=()=>{const keep=S.pending.length;for(let i=0;i<10;i++){if($("#modalRoot").innerHTML) break; simDay(Math.random()<.25)}};
   document.querySelectorAll("[data-boat]").forEach(x=>x.onclick=()=>focusSheet(+x.dataset.boat));
   document.querySelectorAll("[data-act]").forEach(x=>x.onclick=()=>doActivity(x.dataset.act));
-  const nb=$("#nightBtn"); if(nb) nb.onclick=goodNight;
+  const nb=$("#nightBtn"); if(nb) nb.onclick=nightAsk;
   const pdn=$("#planDone"); if(pdn) pdn.onclick=()=>{const pl=S.plan, p=pl&&PLANS.find(x=>x.id===pl.id); if(!p) return; pl.res=true; const r=planResult(true,pl.id,pl.day); save(); render(); planDoneSheet(p,r)};
   const wrb=$("#weekBtn"); if(wrb) wrb.onclick=()=>weekSheet(wrb.dataset.wk);
   const zs=$("#zeitShare"); if(zs) zs.onclick=()=>{const e=equivTop(savedTotal())[0]; shareText("Mit OffLand habe ich schon "+hm(savedTotal())+" Handyzeit zurückgewonnen"+(e?", das sind "+e.c+" "+(e.c===1?SING[e.a.n]||e.a.n:e.a.n):"")+".",inviteLink())};
@@ -3468,6 +3535,7 @@ const MUSIC=(()=>{
   function tick(){
     const v=V[cur], spb=60/v.bpm, e=spb/2;
     if(endT&&ac.currentTime>=endT){stop(8);return}
+    if(nextT<ac.currentTime-.05){const skip=Math.ceil((ac.currentTime-nextT)/e); step+=skip; nextT+=skip*e}   // im Hintergrund verpasste Töne nicht alle auf einmal nachspielen
     while(nextT<ac.currentTime+.2){
       const bar=Math.floor(step/8), inBar=step%8, ci=Math.floor(bar/2)%4, chord=v.chords[ci], t=nextT, ph=step%16, rep=Math.floor((step%64)/16), sw=step%2?e*.12:0;
       if(step%64===0){cycle++; if(!motif||cycle%2===1||rnd()<.4) motif=newMotif(v)}
@@ -3494,7 +3562,7 @@ const MUSIC=(()=>{
     if(!ac||!cur) return; const t=ac.currentTime; sec=sec==null?2:sec;
     master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value,t); master.gain.linearRampToValueAtTime(0,t+sec);
     waveGain.gain.setTargetAtTime(0,t+sec*.8,.3);
-    clearTimeout(stopT); stopT=setTimeout(()=>{clearInterval(timer);cur=null},sec*1000+100); endT=0;
+    clearInterval(timer); clearTimeout(stopT); stopT=setTimeout(()=>{cur=null},sec*1000+100); endT=0;   // keine neuen Töne mehr planen
   }
   return {play,stop,playing:()=>cur};
 })();
@@ -3573,7 +3641,7 @@ function soundFor(ev){
    Vorhaben-Nachfrage, Joker und Tagesbilanz kommen immer und zuerst. */
 let PEND_BUDGET=3;
 const PEND_MUST=new Set(["plan","jokerAsk","day"]);
-const PEND_ORDER={plan:0,jokerAsk:1,day:2,planAsk:3,unlock:7,chapter:6,umfrage:8,statsAsk:9,musicAsk:10};
+const PEND_ORDER={plan:0,jokerAsk:1,day:2,planAsk:3,unlock:7,chapter:6,umfrage:8,statsAsk:9,musicAsk:2.5};
 function sortPending(){const o=e=>PEND_ORDER[e.type]!=null?PEND_ORDER[e.type]:5; S.pending=S.pending.map((e,i)=>[e,i]).sort((a,b)=>o(a[0])-o(b[0])||a[1]-b[1]).map(x=>x[0])}
 function showPending(){
   if($("#modalRoot").innerHTML) return;
@@ -3987,10 +4055,20 @@ function importSave(file){
 }
 function travelSheet(){
   const next=WORLDS[(S.world||0)+1]; if(!next||!((S.found||0)>(S.world||0))) return;
+  const box=hereItems().filter(id=>itemDef(id)&&!itemDef(id).consumable);
   modal(`${worldMapSvg()}<p class="label" style="color:var(--lime)">Weltreise</p><h2>Nach ${esc(next.name)} aufbrechen?</h2>
     <p class="muted">${esc(next.text)} Alle Bewohner und Tiere kommen mit. Gegenstände aus dem Laden bleiben hier, auf der neuen Insel gibt es passende neue. Die Großprojekte hier bleiben gebaut, auf der neuen Insel geht es mit neuen weiter.</p>
+    ${box.length?`<div class="kiste"><p class="label" style="color:var(--amber)">Umzugskiste</p><p class="small muted">Bis zu ${KISTE_MAX} Lieblingsstücke dürfen mit. Das Verpacken kostet die Hälfte vom Ladenpreis.</p>
+      <div class="kiste-list">${box.map(id=>`<label class="kiste-it" for="kb_${id}"><input type="checkbox" id="kb_${id}" data-kiste="${id}"><svg viewBox="-18 -30 36 34" width="34" height="32" aria-hidden="true">${itemSvg(id)}</svg><span><b>${esc(itemName(id))}</b><small class="num">${kisteCost(id)} Punkte</small></span></label>`).join("")}</div>
+      <p class="small" id="kisteSum" aria-live="polite"></p></div>`:""}
     <div class="row"><button class="btn secondary grow" id="trNo">Noch bleiben</button><button class="btn grow" id="trYes">Aufbrechen</button></div>`);
-  $("#trNo").onclick=closeModal; $("#trYes").onclick=travel;
+  const picked=()=>[...document.querySelectorAll("[data-kiste]:checked")].map(x=>x.dataset.kiste);
+  const upd=()=>{const ids=picked(), sum=ids.reduce((a,id)=>a+kisteCost(id),0), el=$("#kisteSum");
+    document.querySelectorAll("[data-kiste]").forEach(x=>{x.disabled=!x.checked&&ids.length>=KISTE_MAX});
+    if(el) el.innerHTML=ids.length?`Kiste: <b class="num">${sum} Punkte</b> · du hast <b class="num">${S.points}</b>${sum>S.points?` · <span style="color:var(--coral)">nicht genug Punkte</span>`:""}`:`Du hast <b class="num">${S.points} Punkte</b>.`;
+    $("#trYes").disabled=sum>S.points; $("#trYes").textContent=ids.length?"Mit Kiste aufbrechen":"Aufbrechen"};
+  document.querySelectorAll("[data-kiste]").forEach(x=>x.onchange=upd); upd();
+  $("#trNo").onclick=closeModal; $("#trYes").onclick=()=>travel(picked());
 }
 function confirmReset(){
   sheet(`<h2>Spielstand zurücksetzen?</h2><p class="muted">Deine Insel, alle Bewohner und eingetragenen Tage werden gelöscht. Das lässt sich nicht rückgängig machen.</p>
