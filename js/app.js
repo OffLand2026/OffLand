@@ -3383,11 +3383,19 @@ function audio(){
     if(!AC){const C=window.AudioContext||window.webkitAudioContext; if(!C) return null; AC=new C();
       NOISE=AC.createBuffer(1,AC.sampleRate*0.6,AC.sampleRate); const d=NOISE.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;}
     if(AC.state==="suspended") AC.resume();
+    audioIdle();
     return AC;
   }catch(e){return null}
 }
+/* Tonausgabe schläft kurz nach dem letzten Geräusch wieder ein: Beim Wechsel in eine andere App spielt
+   das iPhone sonst manchmal einen verzerrten Tonrest („Hupen“). Die nächste Berührung oder das nächste Geräusch weckt sie. */
+let idleT=0;
+function audioIdle(){clearTimeout(idleT); idleT=setTimeout(()=>{
+  if(typeof MUSIC!=="undefined"&&(MUSIC.playing()||CALM)) return audioIdle();
+  try{if(AC&&AC.state==="running") AC.suspend()}catch(e){}
+},4500)}
 // iOS/Safari geben Töne erst nach einer Berührung frei
-["pointerdown","touchend","keydown"].forEach(t=>document.addEventListener(t,()=>{if(AC&&AC.state==="suspended")AC.resume();else if(!AC&&S&&S.sound!==false)audio()},{passive:true}));
+["pointerdown","touchend","keydown"].forEach(t=>document.addEventListener(t,()=>{if(S&&S.sound!==false) audio()},{passive:true}));
 function tone(ac,f,t,dur,o){
   o=o||{}; const osc=ac.createOscillator(), g=ac.createGain(), now=ac.currentTime+t, v=(o.vol||.18);
   osc.type=o.type||"sine"; osc.frequency.setValueAtTime(f,now);
@@ -3510,7 +3518,7 @@ const MUSIC=(()=>{
       const g2=ac.createGain(); env(g2,t,.002,.05*v,.5); g2.connect(g); osc("sine",f*5.4,t,t+.7,g2)},
     bass(t,m,dur,v){const g=ac.createGain(); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.3*v,t+.03); g.gain.setTargetAtTime(0,t+dur*.8,.25); out(g,.08); osc("sine",mtof(m),t,t+dur+1.5,g)},
     pad(t,notes,dur,v){const g=ac.createGain(), lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=900;
-      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.06*v,t+dur*.35); g.gain.linearRampToValueAtTime(0,t+dur+1.2); lp.connect(g); out(g,.6);
+      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.06*v,t+Math.min(1.2,dur*.35)); g.gain.linearRampToValueAtTime(0,t+dur+1.2); lp.connect(g); out(g,.6);
       notes.forEach(m=>{osc("triangle",mtof(m),t,t+dur+1.4,lp,-6); osc("triangle",mtof(m),t,t+dur+1.4,lp,6)})},
     bird(t){const g=ac.createGain(); env(g,t,.01,.035,.18); out(g,.5); const o=osc("sine",2600,t,t+.25,g);
       o.frequency.setValueAtTime(2600+rnd()*600,t); o.frequency.exponentialRampToValueAtTime(3800+rnd()*500,t+.08); o.frequency.exponentialRampToValueAtTime(3000,t+.16)},
@@ -3550,7 +3558,7 @@ const MUSIC=(()=>{
     clearTimeout(stopT); clearInterval(timer);
     if(cur!==mood){step=0;cycle=0;motif=null} cur=mood;
     const t=ac.currentTime; nextT=t+.08; endT=o.minutes?t+o.minutes*60:0;
-    master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value,t); master.gain.linearRampToValueAtTime(o.vol||.32,t+(o.fadeIn||3));
+    master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value,t); master.gain.linearRampToValueAtTime(o.vol||.32,t+(o.fadeIn||1.2));
     if(!waveSrc){   // Rauschen läuft nur, solange Musik spielt
       const ns=ac.createBufferSource(); ns.buffer=waveBuf; ns.loop=true;
       const lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=650;
