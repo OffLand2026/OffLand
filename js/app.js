@@ -2610,6 +2610,7 @@ function forYou(wisher){
   const it=[];
   if(S.chapter!=null&&S.setup){const c=CHAPTERS[S.chapter]; if(c){const pr=c.prog();
     it.push(`<div class="fy"><div class="row" style="gap:10px"><span class="says-pic" style="background:#2A2F45;width:38px;height:38px">${bayPic(34)}</span><div><p class="k" style="color:var(--amber)">Kapitel ${S.chapter+1}</p><b>${esc(c.n)}</b></div></div><p class="small muted">${esc(pr||c.goal)}</p></div>`)}}
+  if(S.setup) it.push(`<div class="fy calm-fy"><p class="k" style="color:var(--lilac)">Inselminute</p><b>Kurz runterkommen</b><p class="small muted">Eine Minute Augen zu und Meeresrauschen${S.calmDay===today()?" · heute schon geschafft":" · +1 % Glück"}</p><button class="linkbtn" id="calmBtn">Starten ›</button></div>`);
   if(S.wish&&wisher){const w=S.wish, type=w.type||"item";
     it.push(`<div class="fy"><p class="k" style="color:var(--lilac)">Wunsch von ${esc(wisher.name)}</p><b>${esc(wishText(w))}</b><p class="small muted">+${w.pts||30} Punkte · +${w.gl||6} % Glück${type==="streak"?` · ${w.have}/${w.need} Tage`:""}</p>${type==="item"?`<button class="linkbtn" id="wishShop">Zum Laden ›</button>`:""}</div>`)}
   if(S.weekReady&&today()<=S.weekReady.until)
@@ -3111,6 +3112,7 @@ function settingsHtml(){
     ${S.allFeatures?"":`<label class="check" for="allFeat"><input type="checkbox" id="allFeat"> Alle Funktionen sofort zeigen (statt nach und nach)</label>`}
     <label class="check" for="alarmToggle"><input type="checkbox" id="alarmToggle" ${S.alarm!==false?"checked":""}> Wecker-Ton, wenn die Fokus-Bootsfahrt geschafft ist</label>
     <label class="check" for="soundToggle"><input type="checkbox" id="soundToggle" ${S.sound!==false?"checked":""}> Töne und Geräusche</label>
+    <label class="check" for="musicToggle"><input type="checkbox" id="musicToggle" ${S.music===true?"checked":""}> Leise Inselmusik (klingt nach 3 Minuten aus)</label>
   </div>
   ${netConfigured()?`<div class="card"><p class="label">Online: Freunde und Ranglisten</p>
     <label class="check" for="netToggle"><input type="checkbox" id="netToggle" ${netOn()?"checked":""}> Online sein (Name, Avatar und Wochen-Bildschirmzeit für Freund:innen sichtbar)</label>
@@ -3273,7 +3275,9 @@ function bind(){
   document.querySelectorAll(".res-txt").forEach(x=>x.onclick=()=>x.classList.toggle("open"));   // Bewohner-Zeile: alles zeigen
   const vt=$("#vacToggle"); if(vt) vt.onchange=()=>setVacation(vt.checked);
   const al=$("#alarmToggle"); if(al) al.onchange=()=>{S.alarm=al.checked;save();if(al.checked)ringAlarm()};
-  const so=$("#soundToggle"); if(so) so.onchange=()=>{S.sound=so.checked;save();if(so.checked)sfx("return")};
+  const so=$("#soundToggle"); if(so) so.onchange=()=>{S.sound=so.checked;save();if(so.checked)sfx("return");else MUSIC.stop(.5)};
+  const mu=$("#musicToggle"); if(mu) mu.onchange=()=>{S.music=mu.checked;save();if(mu.checked){musicDone=false;musicStart()}else MUSIC.stop(1)};
+  const calmB=$("#calmBtn"); if(calmB) calmB.onclick=calmMinute;
   document.querySelectorAll("[data-lim]").forEach(x=>x.onchange=()=>{const a=S.apps.find(y=>y.id===x.dataset.lim);if(a){a.limit=clamp(+x.value||a.limit,5,600);save()}});
   const fsh=$("#famShare"); if(fsh) fsh.onchange=()=>{S.family.share=fsh.checked;save();famSync()};
   const flv=$("#famLeaveBtn"); if(flv) flv.onclick=async()=>{flv.disabled=true;await famLeave();toast("Familieninsel verlassen");settingsSheet()};
@@ -3397,6 +3401,150 @@ function voice(ac,who,text,t0){
 function speak(seq,delay){
   const ac=audio(); if(!ac) return;
   let t=delay||0; seq.forEach(([who,text])=>{t+=voice(ac,who,text,t)+.15});
+}
+/* ---------- Inselmusik: live erzeugt wie die Geräusche, leise, klingt nach 3 Minuten aus ----------
+   Morgen (Holzklänge), Abend (sanftes E-Piano mit Knistern), Nacht (Spieluhr); dazu Meeresrauschen. */
+const MUSIC=(()=>{
+  const V={
+    morgen:{bpm:92,lead:"marimba",comp:"stab",chords:[[60,64,67,72],[57,60,64,69],[53,57,60,65],[55,59,62,67]],bass:[48,45,41,43],
+      scale:[64,67,69,72,74,76,79,81],density:.55,birds:true,wave:.22},
+    abend:{bpm:62,lead:"soft",comp:"warm",chords:[[53,57,60,64],[52,55,59,62],[50,53,57,60],[48,52,55,59]],bass:[41,40,38,36],
+      scale:[60,62,64,67,69,72,74,76],density:.3,crackle:true,wave:.34},
+    nacht:{bpm:58,lead:"box",comp:"pad",chords:[[57,60,64,67],[53,57,60,64],[48,52,55,59],[55,59,62,64]],bass:[45,41,36,43],
+      scale:[69,72,74,76,79,81,84,86],density:.3,wave:.5}
+  };
+  let ac=null,master,dry,wet,waveGain,crackleGain,cur=null,timer=0,step=0,nextT=0,motif=null,cycle=0,endT=0,stopT=0;
+  const mtof=m=>440*Math.pow(2,(m-69)/12), rnd=Math.random;
+  function setup(a){
+    if(ac===a) return; ac=a;
+    master=ac.createGain(); master.gain.value=0; master.connect(ac.destination);
+    dry=ac.createGain(); dry.gain.value=.8; dry.connect(master);
+    const len=ac.sampleRate*3, ir=ac.createBuffer(2,len,ac.sampleRate);                       // Hall: selbst erzeugte Raumantwort
+    for(let c=0;c<2;c++){const d=ir.getChannelData(c); for(let i=0;i<len;i++) d[i]=(rnd()*2-1)*Math.pow(1-i/len,3.2)}
+    const conv=ac.createConvolver(); conv.buffer=ir; wet=ac.createGain(); wet.gain.value=.38; wet.connect(conv); conv.connect(master);
+    const nb=ac.createBuffer(1,ac.sampleRate*4,ac.sampleRate), nd=nb.getChannelData(0); let last=0;   // Meeresrauschen
+    for(let i=0;i<nd.length;i++){last=(last+.02*(rnd()*2-1))/1.02; nd[i]=last*3.5}
+    const ns=ac.createBufferSource(); ns.buffer=nb; ns.loop=true;
+    const lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=650;
+    const swell=ac.createGain(); swell.gain.value=.5; const lfo=ac.createOscillator(); lfo.frequency.value=1/9; const lg=ac.createGain(); lg.gain.value=.45;
+    lfo.connect(lg); lg.connect(swell.gain); waveGain=ac.createGain(); waveGain.gain.value=0;
+    ns.connect(lp); lp.connect(swell); swell.connect(waveGain); waveGain.connect(master); ns.start(); lfo.start();
+    crackleGain=ac.createGain(); crackleGain.gain.value=.5; crackleGain.connect(master);
+  }
+  const out=(g,send)=>{g.connect(dry); const s=ac.createGain(); s.gain.value=send; g.connect(s); s.connect(wet)};
+  const env=(g,t,a,peak,dec)=>{g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(peak,t+a); g.gain.exponentialRampToValueAtTime(.0001,t+a+dec)};
+  const osc=(type,f,t,stop,dest,det)=>{const o=ac.createOscillator(); o.type=type; o.frequency.value=f; if(det) o.detune.value=det; o.connect(dest); o.start(t); o.stop(stop); return o};
+  const I={
+    marimba(t,m,dur,v){const f=mtof(m), g=ac.createGain(); env(g,t,.004,.32*v,.9); out(g,.25); osc("sine",f,t,t+1.2,g);
+      const g2=ac.createGain(); env(g2,t,.002,.08*v,.12); g2.connect(g); osc("sine",f*4,t,t+.3,g2)},
+    soft(t,m,dur,v){const f=mtof(m), g=ac.createGain(), lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=950; lp.Q.value=.3;
+      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.2*v,t+.06); g.gain.exponentialRampToValueAtTime(.0001,t+Math.max(2.2,dur*2.2));
+      lp.connect(g); out(g,.55); const e=t+dur*2.4+2.5; osc("sine",f,t,e,lp,-4); osc("sine",f,t,e,lp,5); osc("triangle",f/2,t,e,lp)},
+    hum(t,m,dur,v){const f=mtof(m), g=ac.createGain(), lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=700;
+      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.09*v,t+.08); g.gain.exponentialRampToValueAtTime(.0001,t+2); lp.connect(g); out(g,.5); osc("sine",f,t,t+2.2,lp)},
+    box(t,m,dur,v){const f=mtof(m), g=ac.createGain(); env(g,t,.003,.2*v,1.9); out(g,.55); osc("sine",f,t,t+2.2,g);
+      const g2=ac.createGain(); env(g2,t,.002,.05*v,.5); g2.connect(g); osc("sine",f*5.4,t,t+.7,g2)},
+    bass(t,m,dur,v){const g=ac.createGain(); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.3*v,t+.03); g.gain.setTargetAtTime(0,t+dur*.8,.25); out(g,.08); osc("sine",mtof(m),t,t+dur+1.5,g)},
+    pad(t,notes,dur,v){const g=ac.createGain(), lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=900;
+      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.06*v,t+dur*.35); g.gain.linearRampToValueAtTime(0,t+dur+1.2); lp.connect(g); out(g,.6);
+      notes.forEach(m=>{osc("triangle",mtof(m),t,t+dur+1.4,lp,-6); osc("triangle",mtof(m),t,t+dur+1.4,lp,6)})},
+    bird(t){const g=ac.createGain(); env(g,t,.01,.035,.18); out(g,.5); const o=osc("sine",2600,t,t+.25,g);
+      o.frequency.setValueAtTime(2600+rnd()*600,t); o.frequency.exponentialRampToValueAtTime(3800+rnd()*500,t+.08); o.frequency.exponentialRampToValueAtTime(3000,t+.16)},
+    crackle(t){const len=Math.floor(ac.sampleRate*.012), b=ac.createBuffer(1,len,ac.sampleRate), d=b.getChannelData(0);
+      for(let i=0;i<len;i++) d[i]=(rnd()*2-1)*Math.pow(1-i/len,2);
+      const s=ac.createBufferSource(); s.buffer=b; const hp=ac.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=1500+rnd()*2500;
+      const g=ac.createGain(); g.gain.value=.05+rnd()*.07; s.connect(hp); hp.connect(g); g.connect(crackleGain); s.start(t)}
+  };
+  // kurzes Motiv über zwei Takte, das sich über die vier Akkorde wiederholt und leicht verändert
+  function newMotif(v){
+    const st=[]; let deg=2+Math.floor(rnd()*3);
+    for(let i=0;i<15;i++){const p=i%4===0?v.density+.25:i%2===0?v.density:v.density*.45;
+      if(rnd()<p){deg=Math.max(0,Math.min(v.scale.length-1,deg+[-2,-1,-1,0,1,1,2][Math.floor(rnd()*7)])); st.push({i,deg})}}
+    if(!st.length||st[0].i!==0) st.unshift({i:0,deg:2});
+    return st.map((s,k)=>({i:s.i,deg:s.deg,len:(st[k+1]?st[k+1].i:16)-s.i}));
+  }
+  function pick(v,deg,chord,strong){let m=v.scale[deg]; if(strong){let b=m,bd=99; v.scale.forEach(s=>{if(chord.some(c=>(s-c)%12===0)){const d=Math.abs(s-m); if(d<bd){bd=d;b=s}}}); m=b} return m}
+  function tick(){
+    const v=V[cur], spb=60/v.bpm, e=spb/2;
+    if(endT&&ac.currentTime>=endT){stop(8);return}
+    while(nextT<ac.currentTime+.2){
+      const bar=Math.floor(step/8), inBar=step%8, ci=Math.floor(bar/2)%4, chord=v.chords[ci], t=nextT, ph=step%16, rep=Math.floor((step%64)/16), sw=step%2?e*.12:0;
+      if(step%64===0){cycle++; if(!motif||cycle%2===1||rnd()<.4) motif=newMotif(v)}
+      motif.forEach(n=>{if(n.i===ph&&!(rep===3&&ph>=10)) I[v.lead](t+sw,pick(v,n.deg,chord,ph%4===0),n.len*e,.75+rnd()*.25)});
+      if(rep===3&&ph===10) I[v.lead](t,v.chords[3][0]+12,e*6,.8);
+      if(v.comp==="stab"){if(inBar%4===0) I.bass(t,v.bass[ci],spb*1.6,.9); if(inBar%4===2) chord.slice(0,3).forEach((c,k)=>I.marimba(t+k*.012,c,e,.38))}
+      else if(v.comp==="warm"){if(step%16===0){I.pad(t,chord,spb*8,.8); I.bass(t,v.bass[ci],spb*7,.55)} if(inBar%2===0) I.hum(t,chord[[0,2,1,3][inBar/2]],spb,.75+rnd()*.2)}
+      else {if(step%16===0){I.pad(t,chord,spb*8,1); I.bass(t,v.bass[ci],spb*7,.6)} if(inBar===4&&rnd()<.5) I.box(t,chord[Math.floor(rnd()*4)]+12,e*2,.35)}
+      if(v.birds&&rnd()<.025){I.bird(t+rnd()*.3); if(rnd()<.6) I.bird(t+.22+rnd()*.1)}
+      if(v.crackle){const n=rnd()<.5?1:rnd()<.3?2:0; for(let k=0;k<n;k++) I.crackle(t+rnd()*e)}
+      nextT+=e; step++;
+    }
+  }
+  function play(mood,o){
+    o=o||{}; const a=audio(); if(!a) return false; setup(a);
+    clearTimeout(stopT); clearInterval(timer);
+    if(cur!==mood){step=0;cycle=0;motif=null} cur=mood;
+    const t=ac.currentTime; nextT=t+.08; endT=o.minutes?t+o.minutes*60:0;
+    master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value,t); master.gain.linearRampToValueAtTime(o.vol||.32,t+(o.fadeIn||3));
+    waveGain.gain.setTargetAtTime(o.waves===false?0:V[mood].wave*(o.waveBoost||1),t,.8);
+    timer=setInterval(tick,25); tick(); return true;
+  }
+  function stop(sec){
+    if(!ac||!cur) return; const t=ac.currentTime; sec=sec==null?2:sec;
+    master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value,t); master.gain.linearRampToValueAtTime(0,t+sec);
+    waveGain.gain.setTargetAtTime(0,t+sec*.8,.3);
+    clearTimeout(stopT); stopT=setTimeout(()=>{clearInterval(timer);cur=null},sec*1000+100); endT=0;
+  }
+  return {play,stop,playing:()=>cur};
+})();
+const moodNow=()=>{const h=new Date().getHours(); return h>=22||h<5?"nacht":h>=17?"abend":"morgen"};
+/* Hintergrundmusik: nur wenn eingeschaltet, startet mit der ersten Berührung, klingt nach 3 Minuten aus */
+let musicDone=false;
+function musicStart(){if(S&&S.music===true&&S.sound!==false&&!musicDone&&!MUSIC.playing()&&!document.hidden&&!$(".calm")){if(MUSIC.play(moodNow(),{minutes:3})) musicDone=true}}
+["pointerdown","touchend","keydown"].forEach(t=>document.addEventListener(t,musicStart,{passive:true}));
+document.addEventListener("visibilitychange",()=>{if(document.hidden){MUSIC.stop(.4); if(CALM) calmEnd(false)} else musicDone=false});
+
+/* ---------- Inselminute: eine Minute runterkommen, Bildschirm dunkel, Meeresrauschen ---------- */
+let CALM=null;
+function calmMinute(){
+  if(CALM) return;
+  const keep=S.sound; S.sound=true; audio(); S.sound=keep;                         // hier immer mit Ton, die Minute ist freiwillig gestartet
+  MUSIC.stop(.6);
+  const el=document.createElement("div"); el.className="calm"; el.setAttribute("role","dialog"); el.setAttribute("aria-modal","true"); el.setAttribute("aria-label","Inselminute");
+  el.innerHTML=`<div class="calm-in">
+    <p class="label" style="color:var(--lilac)">Inselminute</p>
+    <h2>Kurz runterkommen von der ganzen Bildschirmzeit</h2>
+    <p class="calm-txt">Nimm dir eine Minute, schließe die Augen und lass dich vom Meeresrauschen auf deine Insel bringen.</p>
+    <div class="calm-orb" aria-hidden="true"><i></i></div>
+    <p class="calm-breath" aria-live="polite">Einatmen …</p>
+    <p class="calm-time num" id="calmTime">1:00</p>
+    <button class="btn ghost" id="calmStop">Beenden</button></div>`;
+  document.body.appendChild(el); requestAnimationFrame(()=>el.classList.add("on"));
+  const keepS=S.sound; S.sound=true; MUSIC.play("nacht",{vol:.3,fadeIn:4,waveBoost:1.5}); S.sound=keepS;
+  let lock=null; try{navigator.wakeLock&&navigator.wakeLock.request("screen").then(l=>{lock=l}).catch(()=>{})}catch(e){}
+  const t0=Date.now(), br=el.querySelector(".calm-breath");
+  CALM={el,lock:()=>lock,iv:setInterval(()=>{
+    const s=Math.floor((Date.now()-t0)/1000), left=Math.max(0,60-s);
+    $("#calmTime").textContent=Math.floor(left/60)+":"+String(left%60).padStart(2,"0");
+    br.textContent=(s%10)<4?"Einatmen …":"Ausatmen …";
+    if(left<=0) calmEnd(true);
+  },250)};
+  $("#calmStop").onclick=()=>calmEnd(false);
+}
+function calmEnd(done){
+  if(!CALM) return; const c=CALM; CALM=null; clearInterval(c.iv); MUSIC.stop(done?5:1.2);
+  try{const l=c.lock(); if(l) l.release()}catch(e){}
+  stat(done?"inselminute":"inselminute_abbruch");
+  if(done){
+    const first=S.calmDay!==today(); S.calmDay=today(); S.calmN=(S.calmN||0)+1;
+    if(first) S.glueck=clamp(S.glueck+1,0,100);
+    save();
+    c.el.querySelector(".calm-in").innerHTML=`<p class="label" style="color:var(--lilac)">Inselminute</p><h2>Schön, dass du da warst</h2>
+      <p class="calm-txt">Eine Minute nur für dich. Die Insel ist auch ein bisschen ruhiger geworden${first?": +1 % Glück":""}.</p>
+      ${S.music===undefined?`<label class="check" for="calmMusic"><input type="checkbox" id="calmMusic"> Leise Inselmusik auch beim Öffnen der App spielen</label>`:""}
+      <button class="btn" id="calmOk">Zurück zur Insel</button>`;
+    $("#calmOk").onclick=()=>{const m=$("#calmMusic"); if(m){S.music=m.checked; save()} c.el.classList.remove("on"); setTimeout(()=>{c.el.remove();render()},500)};
+  } else {c.el.classList.remove("on"); setTimeout(()=>c.el.remove(),500)}
 }
 function soundFor(ev){
   try{
