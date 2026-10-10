@@ -1251,6 +1251,13 @@ function updateFocus(){
   set("fSun",lerp(40,320,p),340-Math.sin(p*Math.PI)*110);
 }
 function sleeping(){const h=new Date().getHours();return !!(S.night&&S.night.after===S.lastDay&&(h>=20||h<9))}
+function nightAsk(){
+  sheet(`<p class="label" style="color:var(--lilac)">Gute Nacht, Insel</p><h2>Noch eine Inselminute, bevor das Handy schlafen geht?</h2>
+    <p class="muted">Eine Minute Meeresrauschen hilft dem Kopf, zur Ruhe zu kommen. Danach schläft es sich oft leichter ein.</p>
+    <button class="btn" id="ngCalm">Ja, eine Minute Meer</button><button class="btn ghost" id="ngNo" data-ok>Nein danke, gute Nacht</button>`);
+  $("#ngCalm").onclick=()=>{closeModal();goodNight();calmMinute()};
+  $("#ngNo").onclick=()=>{closeModal();goodNight();showPending()};
+}
 function goodNight(){stat("nacht");S.night={after:S.lastDay,at:Date.now()};log("Gute Nacht, Insel. Das Handy ruht bis morgen.","info");
   if(S.wish&&S.wish.type==="nacht"){fulfillWish();save();render();showPending();return}
   save();render();toast("Gute Nacht! Morgen gibt es Traumpunkte.")}
@@ -1502,7 +1509,7 @@ function closeDay(min,quests,appMin){
   checkDiscovery();
   chapterCheck();
   umfrageCheck();
-  if(S.music===undefined&&S.sound!==false&&!S.pending.some(e=>e.type==="musicAsk")) S.pending.push({type:"musicAsk"});   // kommt beim nächsten Öffnen
+  if(S.music===undefined&&S.sound!==false&&!S.pending.some(e=>e.type==="musicAsk")) S.pending.push({type:"musicAsk"});   // kommt gleich nach der Tagesbilanz
   if(netConfigured()&&statsDev().consent===undefined&&!S.pending.some(e=>e.type==="statsAsk")) S.pending.push({type:"statsAsk"});   // steht hinten an: kommt beim nächsten Öffnen mit der Freischaltung
   sortPending(); PEND_BUDGET=3;
   save(); render(); showPending();
@@ -3323,7 +3330,7 @@ function bind(){
   const s10=$("#sim10"); if(s10) s10.onclick=()=>{const keep=S.pending.length;for(let i=0;i<10;i++){if($("#modalRoot").innerHTML) break; simDay(Math.random()<.25)}};
   document.querySelectorAll("[data-boat]").forEach(x=>x.onclick=()=>focusSheet(+x.dataset.boat));
   document.querySelectorAll("[data-act]").forEach(x=>x.onclick=()=>doActivity(x.dataset.act));
-  const nb=$("#nightBtn"); if(nb) nb.onclick=goodNight;
+  const nb=$("#nightBtn"); if(nb) nb.onclick=nightAsk;
   const pdn=$("#planDone"); if(pdn) pdn.onclick=()=>{const pl=S.plan, p=pl&&PLANS.find(x=>x.id===pl.id); if(!p) return; pl.res=true; const r=planResult(true,pl.id,pl.day); save(); render(); planDoneSheet(p,r)};
   const wrb=$("#weekBtn"); if(wrb) wrb.onclick=()=>weekSheet(wrb.dataset.wk);
   const zs=$("#zeitShare"); if(zs) zs.onclick=()=>{const e=equivTop(savedTotal())[0]; shareText("Mit OffLand habe ich schon "+hm(savedTotal())+" Handyzeit zurückgewonnen"+(e?", das sind "+e.c+" "+(e.c===1?SING[e.a.n]||e.a.n:e.a.n):"")+".",inviteLink())};
@@ -3528,6 +3535,7 @@ const MUSIC=(()=>{
   function tick(){
     const v=V[cur], spb=60/v.bpm, e=spb/2;
     if(endT&&ac.currentTime>=endT){stop(8);return}
+    if(nextT<ac.currentTime-.05){const skip=Math.ceil((ac.currentTime-nextT)/e); step+=skip; nextT+=skip*e}   // im Hintergrund verpasste Töne nicht alle auf einmal nachspielen
     while(nextT<ac.currentTime+.2){
       const bar=Math.floor(step/8), inBar=step%8, ci=Math.floor(bar/2)%4, chord=v.chords[ci], t=nextT, ph=step%16, rep=Math.floor((step%64)/16), sw=step%2?e*.12:0;
       if(step%64===0){cycle++; if(!motif||cycle%2===1||rnd()<.4) motif=newMotif(v)}
@@ -3554,7 +3562,7 @@ const MUSIC=(()=>{
     if(!ac||!cur) return; const t=ac.currentTime; sec=sec==null?2:sec;
     master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value,t); master.gain.linearRampToValueAtTime(0,t+sec);
     waveGain.gain.setTargetAtTime(0,t+sec*.8,.3);
-    clearTimeout(stopT); stopT=setTimeout(()=>{clearInterval(timer);cur=null},sec*1000+100); endT=0;
+    clearInterval(timer); clearTimeout(stopT); stopT=setTimeout(()=>{cur=null},sec*1000+100); endT=0;   // keine neuen Töne mehr planen
   }
   return {play,stop,playing:()=>cur};
 })();
@@ -3633,7 +3641,7 @@ function soundFor(ev){
    Vorhaben-Nachfrage, Joker und Tagesbilanz kommen immer und zuerst. */
 let PEND_BUDGET=3;
 const PEND_MUST=new Set(["plan","jokerAsk","day"]);
-const PEND_ORDER={plan:0,jokerAsk:1,day:2,planAsk:3,unlock:7,chapter:6,umfrage:8,statsAsk:9,musicAsk:10};
+const PEND_ORDER={plan:0,jokerAsk:1,day:2,planAsk:3,unlock:7,chapter:6,umfrage:8,statsAsk:9,musicAsk:2.5};
 function sortPending(){const o=e=>PEND_ORDER[e.type]!=null?PEND_ORDER[e.type]:5; S.pending=S.pending.map((e,i)=>[e,i]).sort((a,b)=>o(a[0])-o(b[0])||a[1]-b[1]).map(x=>x[0])}
 function showPending(){
   if($("#modalRoot").innerHTML) return;
