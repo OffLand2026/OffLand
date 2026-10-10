@@ -30,7 +30,7 @@ test("Beim nächsten Öffnen kommen Inselladen-Freischaltung und Statistik-Frage
   for (let i = 0; i < 3; i++) { const b = await page.$("#modalRoot [data-ok]"); if (!b) break; await b.click(); await page.waitForTimeout(80); }
   const rest = await page.evaluate(() => T.S.pending.map(e => e.type));
   expect(rest).toContain("unlock");
-  expect(rest[rest.length - 1]).toBe("statsAsk");
+  expect(rest.slice(-2)).toEqual(["statsAsk", "musicAsk"]);
   // zufällige Ereignisse (Streit, Besuch …) für den Test herausnehmen
   await page.evaluate(() => { T.S.pending = T.S.pending.filter(e => e.type === "unlock" || e.type === "statsAsk"); T.S.conflict = null; document.getElementById("modalRoot").innerHTML = ""; });
   // App kommt aus dem Hintergrund zurück

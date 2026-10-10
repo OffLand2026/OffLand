@@ -1475,6 +1475,7 @@ function closeDay(min,quests,appMin){
   checkDiscovery();
   chapterCheck();
   umfrageCheck();
+  if(S.music===undefined&&S.sound!==false&&!S.pending.some(e=>e.type==="musicAsk")) S.pending.push({type:"musicAsk"});   // kommt beim nächsten Öffnen
   if(netConfigured()&&statsDev().consent===undefined&&!S.pending.some(e=>e.type==="statsAsk")) S.pending.push({type:"statsAsk"});   // steht hinten an: kommt beim nächsten Öffnen mit der Freischaltung
   sortPending(); PEND_BUDGET=3;
   save(); render(); showPending();
@@ -3504,6 +3505,18 @@ function musicStart(){if(S&&S.music===true&&S.sound!==false&&!musicDone&&!MUSIC.
 ["pointerdown","touchend","keydown"].forEach(t=>document.addEventListener(t,musicStart,{passive:true}));
 document.addEventListener("visibilitychange",()=>{if(document.hidden){MUSIC.stop(.4); if(CALM) calmEnd(false)} else musicDone=false});
 
+/* einmalige Frage nach der Musik, mit Hörprobe */
+function musicAskSheet(){
+  sheet(`<p class="label" style="color:var(--lilac)">Kurze Frage</p><h2>Magst du leise Inselmusik?</h2>
+    ${saysHtml("bay","Ich hab da was vorbereitet: ein bisschen Musik für deine Besuche auf der Insel. Ganz leise, mit Meeresrauschen. Nach drei Minuten wird es wieder still.")}
+    <button class="btn secondary" id="muTry">▶ Kurz reinhören</button>
+    <p class="small muted">Du kannst das jederzeit in den Einstellungen ändern.</p>
+    <div class="row"><button class="btn ghost grow" id="muNo" data-ok>Lieber ohne</button><button class="btn grow" id="muYes">Ja, gern</button></div>`);
+  const t=$("#muTry");
+  t.onclick=()=>{if(MUSIC.playing()){MUSIC.stop(1);t.textContent="▶ Kurz reinhören"}else if(MUSIC.play(moodNow(),{minutes:3,fadeIn:1.5})){musicDone=true;t.textContent="■ Anhalten"}};
+  $("#muYes").onclick=()=>{S.music=true;save();stat("musik_ja");if(!MUSIC.playing()&&MUSIC.play(moodNow(),{minutes:3}))musicDone=true;closeModal();render();showPending();toast("Inselmusik ist an")};
+  $("#muNo").onclick=()=>{S.music=false;save();stat("musik_nein");MUSIC.stop(1);closeModal();render();showPending()};
+}
 /* ---------- Inselminute: eine Minute runterkommen, Bildschirm dunkel, Meeresrauschen ---------- */
 let CALM=null;
 function calmMinute(){
@@ -3560,7 +3573,7 @@ function soundFor(ev){
    Vorhaben-Nachfrage, Joker und Tagesbilanz kommen immer und zuerst. */
 let PEND_BUDGET=3;
 const PEND_MUST=new Set(["plan","jokerAsk","day"]);
-const PEND_ORDER={plan:0,jokerAsk:1,day:2,planAsk:3,unlock:7,chapter:6,umfrage:8,statsAsk:9};
+const PEND_ORDER={plan:0,jokerAsk:1,day:2,planAsk:3,unlock:7,chapter:6,umfrage:8,statsAsk:9,musicAsk:10};
 function sortPending(){const o=e=>PEND_ORDER[e.type]!=null?PEND_ORDER[e.type]:5; S.pending=S.pending.map((e,i)=>[e,i]).sort((a,b)=>o(a[0])-o(b[0])||a[1]-b[1]).map(x=>x[0])}
 function showPending(){
   if($("#modalRoot").innerHTML) return;
@@ -3587,6 +3600,7 @@ function showPending(){
   if(ev.type==="planAsk") return planAskSheet(ev);
   if(ev.type==="chapter") return chapterSheet(ev.n,true);
   if(ev.type==="umfrage") return umfrageSheet(ev);
+  if(ev.type==="musicAsk"){CUR_EV=null; if(S.music!==undefined||S.sound===false) return showPending(); return musicAskSheet()}
   if(ev.type==="statsAsk"){CUR_EV=null; if(statsDev().consent!==undefined) return showPending(); return statsAskSheet()}
   if(ev.type==="jokerAsk"){
     if(S.jokerWk===ev.wk||S.lastDay!==ev.day) return showPending();

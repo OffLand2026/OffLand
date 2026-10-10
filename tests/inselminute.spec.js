@@ -27,3 +27,18 @@ test("Inselminute läuft eine Minute und gibt einmal am Tag Glück", async ({ pa
   await expect(page.locator(".calm")).toHaveCount(0);
   expect(await page.evaluate(() => T.S.glueck)).toBe(Math.min(100, before + 1));
 });
+
+test("Musik-Frage kommt nach dem ersten Tag, mit Hörprobe", async ({ page }) => {
+  await newGame(page);
+  const queued = await page.evaluate(() => { T.closeDay(60, [], {}); return T.S.pending.some(e => e.type === "musicAsk"); });
+  expect(queued).toBe(true);
+  await page.evaluate(() => { document.getElementById("modalRoot").innerHTML = ""; T.S.pending = [{ type: "musicAsk" }]; T.showPending(); });
+  await expect(page.locator("#modalRoot h2")).toHaveText("Magst du leise Inselmusik?");
+  if (process.env.SHOTS) await page.screenshot({ path: process.env.SHOTS + "/musikfrage.png" });
+  await page.click("#muTry");
+  await expect(page.locator("#muTry")).toContainText("Anhalten");
+  await page.click("#muYes");
+  expect(await page.evaluate(() => T.S.music)).toBe(true);
+  // kommt danach nicht wieder
+  expect(await page.evaluate(() => { T.closeDay(60, [], {}); return T.S.pending.some(e => e.type === "musicAsk"); })).toBe(false);
+});
