@@ -3481,7 +3481,7 @@ const MUSIC=(()=>{
     nacht:{bpm:58,lead:"box",comp:"pad",chords:[[57,60,64,67],[53,57,60,64],[48,52,55,59],[55,59,62,64]],bass:[45,41,36,43],
       scale:[69,72,74,76,79,81,84,86],density:.3,wave:.5}
   };
-  let ac=null,master,dry,wet,waveGain,crackleGain,cur=null,timer=0,step=0,nextT=0,motif=null,cycle=0,endT=0,stopT=0;
+  let ac=null,master,dry,wet,waveGain,waveBuf,waveSrc=null,crackleGain,cur=null,timer=0,step=0,nextT=0,motif=null,cycle=0,endT=0,stopT=0;
   const mtof=m=>440*Math.pow(2,(m-69)/12), rnd=Math.random;
   function setup(a){
     if(ac===a) return; ac=a;
@@ -3490,13 +3490,9 @@ const MUSIC=(()=>{
     const len=ac.sampleRate*3, ir=ac.createBuffer(2,len,ac.sampleRate);                       // Hall: selbst erzeugte Raumantwort
     for(let c=0;c<2;c++){const d=ir.getChannelData(c); for(let i=0;i<len;i++) d[i]=(rnd()*2-1)*Math.pow(1-i/len,3.2)}
     const conv=ac.createConvolver(); conv.buffer=ir; wet=ac.createGain(); wet.gain.value=.38; wet.connect(conv); conv.connect(master);
-    const nb=ac.createBuffer(1,ac.sampleRate*4,ac.sampleRate), nd=nb.getChannelData(0); let last=0;   // Meeresrauschen
+    waveBuf=ac.createBuffer(1,ac.sampleRate*4,ac.sampleRate); const nd=waveBuf.getChannelData(0); let last=0;   // Meeresrauschen
     for(let i=0;i<nd.length;i++){last=(last+.02*(rnd()*2-1))/1.02; nd[i]=last*3.5}
-    const ns=ac.createBufferSource(); ns.buffer=nb; ns.loop=true;
-    const lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=650;
-    const swell=ac.createGain(); swell.gain.value=.5; const lfo=ac.createOscillator(); lfo.frequency.value=1/9; const lg=ac.createGain(); lg.gain.value=.45;
-    lfo.connect(lg); lg.connect(swell.gain); waveGain=ac.createGain(); waveGain.gain.value=0;
-    ns.connect(lp); lp.connect(swell); swell.connect(waveGain); waveGain.connect(master); ns.start(); lfo.start();
+    waveGain=ac.createGain(); waveGain.gain.value=0; waveGain.connect(master);
     crackleGain=ac.createGain(); crackleGain.gain.value=.5; crackleGain.connect(master);
   }
   const out=(g,send)=>{g.connect(dry); const s=ac.createGain(); s.gain.value=send; g.connect(s); s.connect(wet)};
@@ -3555,6 +3551,12 @@ const MUSIC=(()=>{
     if(cur!==mood){step=0;cycle=0;motif=null} cur=mood;
     const t=ac.currentTime; nextT=t+.08; endT=o.minutes?t+o.minutes*60:0;
     master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value,t); master.gain.linearRampToValueAtTime(o.vol||.32,t+(o.fadeIn||3));
+    if(!waveSrc){   // Rauschen läuft nur, solange Musik spielt
+      const ns=ac.createBufferSource(); ns.buffer=waveBuf; ns.loop=true;
+      const lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=650;
+      const swell=ac.createGain(); swell.gain.value=.5; const lfo=ac.createOscillator(); lfo.frequency.value=1/9; const lg=ac.createGain(); lg.gain.value=.45;
+      lfo.connect(lg); lg.connect(swell.gain); ns.connect(lp); lp.connect(swell); swell.connect(waveGain); ns.start(t); lfo.start(t); waveSrc=[ns,lfo];
+    }
     waveGain.gain.setTargetAtTime(o.waves===false?0:V[mood].wave*(o.waveBoost||1),t,.8);
     timer=setInterval(tick,25); tick(); return true;
   }
@@ -3562,16 +3564,23 @@ const MUSIC=(()=>{
     if(!ac||!cur) return; const t=ac.currentTime; sec=sec==null?2:sec;
     master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value,t); master.gain.linearRampToValueAtTime(0,t+sec);
     waveGain.gain.setTargetAtTime(0,t+sec*.8,.3);
-    clearInterval(timer); clearTimeout(stopT); stopT=setTimeout(()=>{cur=null},sec*1000+100); endT=0;   // keine neuen Töne mehr planen
+    clearInterval(timer); clearTimeout(stopT); endT=0;   // keine neuen Töne mehr planen
+    const ws=waveSrc; waveSrc=null; if(ws) ws.forEach(n=>{try{n.stop(t+sec+.3)}catch(e){}});
+    stopT=setTimeout(()=>{cur=null},sec*1000+100);
   }
-  return {play,stop,playing:()=>cur};
+  // sofort still: beim Verlassen der App alles anhalten, damit das iPhone keine Tonreste verzerrt abspielt
+  function halt(){clearInterval(timer); clearTimeout(stopT); endT=0; cur=null; const ws=waveSrc; waveSrc=null;
+    if(ac){try{master.gain.cancelScheduledValues(0); master.gain.value=0}catch(e){} if(ws) ws.forEach(n=>{try{n.stop()}catch(e){}})}}
+  return {play,stop,halt,playing:()=>cur};
 })();
 const moodNow=()=>{const h=new Date().getHours(); return h>=22||h<5?"nacht":h>=17?"abend":"morgen"};
 /* Hintergrundmusik: nur wenn eingeschaltet, startet mit der ersten Berührung, klingt nach 3 Minuten aus */
 let musicDone=false;
 function musicStart(){if(S&&S.music===true&&S.sound!==false&&!musicDone&&!MUSIC.playing()&&!document.hidden&&!$(".calm")){if(MUSIC.play(moodNow(),{minutes:3})) musicDone=true}}
 ["pointerdown","touchend","keydown"].forEach(t=>document.addEventListener(t,musicStart,{passive:true}));
-document.addEventListener("visibilitychange",()=>{if(document.hidden){MUSIC.stop(.4); if(CALM) calmEnd(false)} else musicDone=false});
+function audioSleep(){MUSIC.halt(); if(CALM) calmEnd(false); try{if(AC&&AC.state==="running") AC.suspend()}catch(e){}}   // Töne beim Verlassen sofort anhalten
+document.addEventListener("visibilitychange",()=>{if(document.hidden) audioSleep(); else musicDone=false});
+window.addEventListener("pagehide",audioSleep);
 
 /* einmalige Frage nach der Musik, mit Hörprobe */
 function musicAskSheet(){
