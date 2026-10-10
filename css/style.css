@@ -492,3 +492,14 @@ body:has(#modalRoot .modal) .toast{bottom:auto;top:calc(16px + env(safe-area-ins
 .calm-time{font:800 28px var(--display);color:var(--ink);opacity:.8}
 .calm .check{justify-content:center;color:var(--muted);font-size:14px}
 @media (prefers-reduced-motion:reduce){.calm-orb i{animation:none;transform:scale(.8)}.calm{transition:none}}
+/* Umzugskiste beim Inselwechsel */
+.kiste{border:1.5px dashed var(--line);border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.kiste-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kiste-it{display:flex;align-items:center;gap:8px;background:var(--ground);border-radius:14px;padding:6px 10px 6px 6px;border:1.5px solid transparent;cursor:pointer;min-width:0}
+.kiste-it input{position:absolute;opacity:0;pointer-events:none}
+.kiste-it:has(input:checked){border-color:var(--amber);background:#2a2418}
+.kiste-it:has(input:disabled){opacity:.45;cursor:default}
+.kiste-it:has(input:focus-visible){outline:2px solid var(--lime);outline-offset:2px}
+.kiste-it span{display:flex;flex-direction:column;min-width:0}.kiste-it b{font-size:13px;line-height:1.2}.kiste-it small{color:var(--muted);font-size:12px}
+.kiste-it svg{flex:none}
+.kiste-it{position:relative}
