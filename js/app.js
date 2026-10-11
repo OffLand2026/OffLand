@@ -3606,6 +3606,7 @@ function musicAskSheet(){
 let CALM=null;
 function calmMinute(){
   if(CALM) return;
+  stat("inselminute_start");
   const keep=S.sound; S.sound=true; audio(); S.sound=keep;                         // hier immer mit Ton, die Minute ist freiwillig gestartet
   MUSIC.stop(.6);
   const el=document.createElement("div"); el.className="calm"; el.setAttribute("role","dialog"); el.setAttribute("aria-modal","true"); el.setAttribute("aria-label","Inselminute");

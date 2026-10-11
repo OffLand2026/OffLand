@@ -64,6 +64,8 @@
   th:first-child,td:first-child{text-align:left}
   .scroll{overflow-x:auto}
   .status{font-size:13px;color:var(--text-secondary)}
+  .row-act{display:flex;justify-content:flex-end;margin-top:10px}
+  .delta{font-weight:650}.delta.up{color:var(--good)}.delta.down{color:var(--critical)}
   .demo{background:#fab219;color:#0b0b0b;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700}
   @media (max-width:760px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.grid2{grid-template-columns:1fr}}
 </style>
@@ -82,7 +84,11 @@
     <div class="tile"><div class="lab">Aktive Gerätetage</div><div class="val" id="kAktiv">–</div><div class="hint" id="kAktivH"></div></div>
     <div class="tile"><div class="lab">Neue Konten</div><div class="val" id="kNeu">–</div><div class="hint" id="kNeuH"></div></div>
     <div class="tile"><div class="lab">Eingetragene Tage</div><div class="val" id="kTage">–</div><div class="hint" id="kTageH"></div></div>
-    <div class="tile"><div class="lab">Tage im Budget</div><div class="val" id="kGut">–</div><div class="hint">Anteil der eingetragenen Tage</div></div>
+    <div class="tile"><div class="lab">Tage im Budget</div><div class="val" id="kGut">–</div><div class="hint" id="kGutH">Anteil der eingetragenen Tage</div></div>
+    <div class="tile"><div class="lab">Inselminuten</div><div class="val" id="kRuhe">–</div><div class="hint" id="kRuheH"></div></div>
+    <div class="tile"><div class="lab">Musik an</div><div class="val" id="kMusik">–</div><div class="hint" id="kMusikH">Anteil der Antworten auf die Musik-Frage</div></div>
+    <div class="tile"><div class="lab">Fanpost</div><div class="val" id="kFan">–</div><div class="hint">Postkarten nach guten Tagen</div></div>
+    <div class="tile"><div class="lab">Umfragen beantwortet</div><div class="val" id="kUmf">–</div><div class="hint" id="kUmfH"></div></div>
   </section>
 
   <section class="grid2">
@@ -98,7 +104,14 @@
     <div class="card"><h2>Geschichte</h2><p class="desc">Wie oft jedes Kapitel geschafft wurde, dazu Intro und Joker</p><div id="cKap"></div><div id="cMisc"></div></div>
   </section>
 
-  <details class="card"><summary>Alle Zahlen als Tabelle</summary><div class="scroll" id="tbl"></div></details>
+  <section class="grid2">
+    <div class="card"><h2>Anteil im Budget im Verlauf</h2><p class="desc">Wie viel Prozent der eingetragenen Tage im Budget lagen, Tag für Tag</p><div id="cQuote"></div></div>
+    <div class="card"><h2>Schwierige Wochentage</h2><p class="desc">Anteil im Budget nach Wochentag, in Klammern die Zahl der eingetragenen Tage. Niedrige Werte zeigen, wann Erinnerungen oder Events am meisten helfen würden.</p><div id="cWd"></div></div>
+    <div class="card"><h2>Ruhe und Musik</h2><p class="desc">Inselminuten und Antworten auf die Frage nach der Inselmusik</p><div id="cRuhe"></div></div>
+    <div class="card"><h2>Weltreise und Umfragen</h2><p class="desc">Wie viele eine neue Insel erreichen, und wie die Testphasen-Umfragen ankommen</p><div id="cWelt"></div><div id="cUmf"></div></div>
+  </section>
+
+  <details class="card"><summary>Alle Zahlen als Tabelle</summary><div class="row-act"><button class="chip" id="csvBtn" type="button">Als CSV herunterladen</button></div><div class="scroll" id="tbl"></div></details>
   <p class="note">Gezählt wird nur auf Geräten, die in der App zugestimmt haben (Konto → Einstellungen → Anonyme Statistik). Die Zahlen sind Tagessummen ohne Bezug zu einzelnen Personen. <a href="?demo" id="demoLink" style="color:inherit">Mit Beispieldaten ansehen</a></p>
 </main>
 <div id="tip" role="tooltip"></div>
@@ -120,13 +133,21 @@ const NAMES = {
   album: "Mr. Bays Album", tagebuch_alle: "Tagebuch ganz geöffnet", chronik_alle: "Chronik ganz geöffnet", ueberraschung: "Überraschung",
   online_an: "Online eingeschaltet", familie: "Familieninsel", duell: "Duell gestartet", joker_ja: "Joker eingesetzt", joker_nein: "Joker abgelehnt",
   wunsch_item: "Wunsch: Gegenstand", wunsch_streak: "Wunsch: Serie", wunsch_unter: "Wunsch: Tag unter X", wunsch_plan: "Wunsch: Vorhaben",
-  wunsch_glueck: "Wunsch: Inselglück", wunsch_frei: "Wunsch: vom Handy holen", wunsch_boot: "Wunsch: Bootsfahrt", wunsch_nacht: "Wunsch: Gute Nacht"
+  wunsch_glueck: "Wunsch: Inselglück", wunsch_frei: "Wunsch: vom Handy holen", wunsch_boot: "Wunsch: Bootsfahrt", wunsch_nacht: "Wunsch: Gute Nacht",
+  inselminute: "Inselminute geschafft", fanpost: "Fanpost bekommen", besuch_bleibt: "Seltener Gast getauscht", umzugskiste: "Umzugskiste gepackt"
 };
+// weitere Zähler, die nur in der Tabelle mit Namen erscheinen
+const MORE = { inselminute_start: "Inselminute gestartet", inselminute_abbruch: "Inselminute abgebrochen", musik_ja: "Musik: ja", musik_nein: "Musik: lieber ohne",
+  umfrage_start: "Umfrage Start beantwortet", umfrage_t7: "Umfrage Woche 1 beantwortet", umfrage_t21: "Umfrage Woche 3 beantwortet", umfrage_nein: "Umfrage abgelehnt",
+  welt_1: "Tropeninsel erreicht", welt_2: "Fjordinseln erreicht", welt_3: "Wüsteninsel erreicht", welt_4: "Eisinseln erreicht",
+  aktiv: "Aktive Gerätetage", aktiv_ios: "Aktiv: iOS-App", aktiv_pwa: "Aktiv: Home-Bildschirm", aktiv_web: "Aktiv: Browser", konto_neu: "Neue Konten", insel_start: "Insel gestartet",
+  tag: "Tage eingetragen", tag_gut: "Tage im Budget", tag_schlecht: "Tage über dem Budget", intro_ende: "Intro angesehen", intro_skip: "Intro übersprungen" };
+const label = k => NAMES[k] || MORE[k] || k;
 
 // ---------- Daten holen ----------
 async function load(days) {
   const list = [];
-  for (let i = days - 1; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); list.push(iso(d)); }
+  for (let i = days * 2 - 1; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); list.push(iso(d)); }
   if (demo) return list.map((day, i) => ({ day, c: demoDay(i, days) }));
   const cfg = window.OFFLAND_FIREBASE;
   if (!cfg || !cfg.apiKey) throw new Error("Firebase ist nicht eingerichtet.");
@@ -146,7 +167,10 @@ function demoDay(i, n) {
     vorhaben_gewaehlt: Math.round(tag * .45), vorhaben_ohne: Math.round(tag * .3), vorhaben_ok: Math.round(tag * .3), vorhaben_nein: Math.round(tag * .1),
     boot: Math.round(akt * .25), nacht: Math.round(akt * .15), kauf: Math.round(akt * .2), rueckblick: i % 7 === 6 ? Math.round(akt * .4) : 0, album: Math.round(r(7) * 4),
     joker_ja: Math.round(r(8) * 3), joker_nein: Math.round(r(9) * 2), intro_ende: Math.round(neu * .6), intro_skip: Math.round(neu * .4),
-    kapitel_1: Math.round(neu * .7), kapitel_2: Math.round(neu * .5), kapitel_3: Math.round(neu * .3), kapitel_4: Math.round(r(10) * 2), wunsch_item: Math.round(r(11) * 4), wunsch_plan: Math.round(r(12) * 3) };
+    kapitel_1: Math.round(neu * .7), kapitel_2: Math.round(neu * .5), kapitel_3: Math.round(neu * .3), kapitel_4: Math.round(r(10) * 2), wunsch_item: Math.round(r(11) * 4), wunsch_plan: Math.round(r(12) * 3),
+    inselminute_start: Math.round(akt * .12), inselminute: Math.round(akt * .09), inselminute_abbruch: Math.round(akt * .03), musik_ja: Math.round(neu * .55), musik_nein: Math.round(neu * .35),
+    fanpost: Math.round(r(13) * 3), besuch_bleibt: Math.round(r(14) * 1.4), umzugskiste: Math.round(r(15) * 1.2), welt_1: Math.round(r(16) * 2), welt_2: Math.round(r(17) * 1.2), welt_3: Math.round(r(18) * .8),
+    umfrage_start: Math.round(neu * .5), umfrage_t7: Math.round(neu * .25), umfrage_t21: Math.round(r(19) * 2), umfrage_nein: Math.round(neu * .15) };
 }
 
 // ---------- Tooltip ----------
@@ -197,14 +221,60 @@ function hbars(el, items, opt = {}) {
   el.innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Balkendiagramm">${g}</svg>`; bindTips(el);
 }
 
+// Linie mit Prozentwerten (0–100), Tage ohne Einträge bleiben Lücken
+function line(el, rows, fn) {
+  const W = Math.max(320, Math.min(520, el.clientWidth || 520)), H = W < 420 ? 170 : 190, L = 34, B = 22, T = 10, n = rows.length;
+  const vals = rows.map(fn); if (!vals.some(v => v != null)) { el.innerHTML = `<div class="empty">Noch keine Daten in diesem Zeitraum.</div>`; return; }
+  const x = i => L + (W - L - 8) * (n === 1 ? .5 : i / (n - 1)), y = v => T + (H - T - B) * (1 - v / 100);
+  let g = "";
+  [0, 50, 100].forEach(v => { g += `<line x1="${L}" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/><text x="${L - 6}" y="${y(v) + 3.5}" text-anchor="end">${v} %</text>`; });
+  let d = "", area = "", seg = [];
+  const flush = () => { if (seg.length > 1) { area += `M${seg[0][0]} ${y(0)}` + seg.map(p => `L${p[0]} ${p[1]}`).join("") + `L${seg[seg.length - 1][0]} ${y(0)}z`; } seg = []; };
+  vals.forEach((v, i) => { if (v == null) { flush(); return; } const p = [x(i), y(v)]; d += (seg.length ? "L" : "M") + p[0] + " " + p[1]; seg.push(p); }); flush();
+  g += `<path d="${area}" fill="var(--good)" opacity=".12"/><path d="${d}" fill="none" stroke="var(--good)" stroke-width="2.2" stroke-linejoin="round"/>`;
+  const every = Math.ceil(n / (W < 420 ? 6 : 8));
+  rows.forEach((r, i) => { const v = vals[i];
+    if (v != null) g += `<circle cx="${x(i)}" cy="${y(v)}" r="${i === n - 1 ? 4 : 2.4}" fill="var(--good)"/>`;
+    if ((i % every === 0 && n - 1 - i >= Math.max(2, every)) || i === n - 1) g += `<text x="${x(i)}" y="${H - 6}" text-anchor="middle">${short(r.day)}</text>`;
+    g += `<rect class="hit" x="${x(i) - (W - L) / n / 2}" y="${T}" width="${(W - L) / n}" height="${H - T - B}" data-tip="${esc(`<b>${short(r.day)}</b>${v == null ? "keine Einträge" : v + " % im Budget"}`)}"/>`; });
+  el.innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Liniendiagramm">${g}</svg>`; bindTips(el);
+}
+const WD = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
+const delta = (now, before) => { if (!before) return ""; const p = Math.round((now - before) / before * 100); return p ? ` · <span class="delta ${p > 0 ? "up" : "down"}">${p > 0 ? "+" : ""}${p} %</span> zum Vorzeitraum` : " · gleich wie im Vorzeitraum"; };
+function csv(rows) {
+  const keys = [...new Set(rows.flatMap(r => Object.keys(r.c)))].sort();
+  const q = t => `"${String(t).replace(/"/g, '""')}"`;
+  const out = [["Zähler", ...rows.map(r => r.day), "Summe"].map(q).join(";")].concat(keys.map(k => [q(label(k)), ...rows.map(r => r.c[k] || 0), rows.reduce((a, r) => a + (r.c[k] || 0), 0)].join(";")));
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["\ufeff" + out.join("\n")], { type: "text/csv" })); a.download = `offland-statistik-${rows[0].day}-bis-${rows[rows.length - 1].day}.csv`; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
 // ---------- Seite füllen ----------
-function render(rows) {
-  const sum = k => rows.reduce((a, r) => a + (r.c[k] || 0), 0);
+function render(all) {
+  const half = all.length / 2, prev = all.slice(0, half), rows = all.slice(half);
+  const sum = k => rows.reduce((a, r) => a + (r.c[k] || 0), 0), psum = k => prev.reduce((a, r) => a + (r.c[k] || 0), 0);
   const days = rows.length, aktiv = sum("aktiv"), neu = sum("konto_neu"), tag = sum("tag"), gut = sum("tag_gut");
-  $("#kAktiv").textContent = fmt(aktiv); $("#kAktivH").textContent = `Ø ${fmt(Math.round(aktiv / days * 10) / 10)} pro Tag`;
-  $("#kNeu").textContent = fmt(neu); $("#kNeuH").textContent = `${fmt(sum("insel_start"))} davon Insel gestartet`;
-  $("#kTage").textContent = fmt(tag); $("#kTageH").textContent = aktiv ? `${Math.round(tag / aktiv * 100)} % der aktiven Gerätetage` : "";
+  $("#kAktiv").textContent = fmt(aktiv); $("#kAktivH").innerHTML = `Ø ${fmt(Math.round(aktiv / days * 10) / 10)} pro Tag` + delta(aktiv, psum("aktiv"));
+  $("#kNeu").textContent = fmt(neu); $("#kNeuH").innerHTML = `${fmt(sum("insel_start"))} davon Insel gestartet` + delta(neu, psum("konto_neu"));
+  $("#kTage").textContent = fmt(tag); $("#kTageH").innerHTML = (aktiv ? `${Math.round(tag / aktiv * 100)} % der aktiven Gerätetage` : "") + delta(tag, psum("tag"));
   $("#kGut").textContent = tag ? Math.round(gut / tag * 100) + " %" : "–";
+  { const pt = psum("tag"), pq = pt ? Math.round(psum("tag_gut") / pt * 100) : null, q = tag ? Math.round(gut / tag * 100) : null;
+    $("#kGutH").innerHTML = "Anteil der eingetragenen Tage" + (pq != null && q != null ? ` · <span class="delta ${q >= pq ? "up" : "down"}">${q - pq >= 0 ? "+" : ""}${q - pq} Punkte</span>` : ""); }
+  const rs = sum("inselminute_start"), rd = sum("inselminute");
+  $("#kRuhe").textContent = fmt(rd); $("#kRuheH").innerHTML = (rs ? `${Math.round(rd / rs * 100)} % zu Ende gemacht` : "geschafft") + delta(rd, psum("inselminute"));
+  const mj = sum("musik_ja"), mn = sum("musik_nein");
+  $("#kMusik").textContent = mj + mn ? Math.round(mj / (mj + mn) * 100) + " %" : "–"; $("#kMusikH").textContent = mj + mn ? `${fmt(mj)} ja, ${fmt(mn)} lieber ohne` : "Noch keine Antworten";
+  $("#kFan").textContent = fmt(sum("fanpost"));
+  const ua = sum("umfrage_start") + sum("umfrage_t7") + sum("umfrage_t21"), un = sum("umfrage_nein");
+  $("#kUmf").textContent = fmt(ua); $("#kUmfH").textContent = ua + un ? `${fmt(un)} abgelehnt · Antworten stehen in Firebase unter support` : "Antworten stehen in Firebase unter support";
+
+  line($("#cQuote"), rows, r => r.c.tag ? Math.round((r.c.tag_gut || 0) / r.c.tag * 100) : null);
+  { const g = Array(7).fill(0), t = Array(7).fill(0);
+    rows.forEach(r => { const wd = (new Date(r.day + "T12:00:00").getDay() + 6) % 7; g[wd] += r.c.tag_gut || 0; t[wd] += r.c.tag || 0; });
+    hbars($("#cWd"), WD.map((n, i) => ({ n: t[i] ? `${n} (${fmt(t[i])})` : n, v: t[i] ? Math.round(g[i] / t[i] * 100) : 0, extra: t[i] ? "%" : "" })), { labelW: 140, color: "--good" }); }
+  hbars($("#cRuhe"), [{ n: "Inselminute gestartet", v: rs }, { n: "… zu Ende gemacht", v: rd }, { n: "… abgebrochen", v: sum("inselminute_abbruch") }, { n: "Musik: ja", v: mj }, { n: "Musik: lieber ohne", v: mn }], { labelW: 170, color: "--series-2", empty: "Noch keine Inselminuten oder Musik-Antworten." });
+  hbars($("#cWelt"), [["welt_1", "Tropeninsel"], ["welt_2", "Fjordinseln"], ["welt_3", "Wüsteninsel"], ["welt_4", "Eisinseln"], ["umzugskiste", "Umzugskiste gepackt"]].map(([k, n]) => ({ n, v: sum(k) })), { labelW: 160, empty: "Noch niemand ist weitergereist." });
+  hbars($("#cUmf"), [["umfrage_start", "Start beantwortet"], ["umfrage_t7", "Woche 1 beantwortet"], ["umfrage_t21", "Woche 3 beantwortet"], ["umfrage_nein", "Umfrage abgelehnt"]].map(([k, n]) => ({ n, v: sum(k) })), { labelW: 160, color: "--series-3", empty: "Noch keine Umfragen beantwortet." });
 
   stacked($("#cAktiv"), rows, [{ k: "aktiv_ios", n: "iOS-App", c: "--series-1" }, { k: "aktiv_pwa", n: "Vom Home-Bildschirm", c: "--series-2" }, { k: "aktiv_web", n: "Browser", c: "--series-3" }]);
   stacked($("#cTage"), rows, [{ k: "tag_gut", n: "Im Budget", c: "--good" }, { k: "tag_schlecht", n: "Über dem Budget", c: "--critical" }]);
@@ -218,7 +288,7 @@ function render(rows) {
 
   const keys = [...new Set(rows.flatMap(r => Object.keys(r.c)))].sort();
   $("#tbl").innerHTML = keys.length ? `<table><thead><tr><th>Zähler</th>${rows.map(r => `<th>${short(r.day)}</th>`).join("")}<th>Summe</th></tr></thead><tbody>` +
-    keys.map(k => `<tr><td>${esc(NAMES[k] || k)}</td>${rows.map(r => `<td>${r.c[k] ? fmt(r.c[k]) : ""}</td>`).join("")}<td><b>${fmt(sum(k))}</b></td></tr>`).join("") + "</tbody></table>" : `<div class="empty">Noch keine Daten.</div>`;
+    keys.map(k => `<tr><td>${esc(label(k))}</td>${rows.map(r => `<td>${r.c[k] ? fmt(r.c[k]) : ""}</td>`).join("")}<td><b>${fmt(sum(k))}</b></td></tr>`).join("") + "</tbody></table>" : `<div class="empty">Noch keine Daten.</div>`;
 }
 
 let cur = 14, LAST = null;
@@ -228,13 +298,14 @@ async function go(days) {
   $("#status").innerHTML = "Lade …";
   try {
     const rows = await load(days);
-    const any = rows.some(r => Object.keys(r.c).length);
+    const any = rows.slice(rows.length / 2).some(r => Object.keys(r.c).length);
     $("#status").innerHTML = demo ? `<span class="demo">Beispieldaten</span> So sieht die Seite aus, wenn Zahlen da sind. <a href="./" style="color:inherit">Echte Zahlen</a>`
       : any ? `Stand: ${new Date().toLocaleString("de-DE", { dateStyle: "medium", timeStyle: "short" })}` : "Noch keine Zahlen in diesem Zeitraum. Sie erscheinen, sobald Geräte zugestimmt haben und OffLand nutzen.";
     LAST = rows; render(rows);
   } catch (e) { $("#status").textContent = "Konnte die Zahlen nicht laden: " + (e && e.message || e); }
 }
 document.querySelectorAll("[data-days]").forEach(b => b.onclick = () => go(+b.dataset.days));
+$("#csvBtn").onclick = () => LAST && csv(LAST.slice(LAST.length / 2));
 let rz = 0; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => LAST && render(LAST), 200); });
 if (demo) $("#demoLink").remove();
 go(cur);
