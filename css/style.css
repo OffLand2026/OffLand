@@ -503,3 +503,19 @@ body:has(#modalRoot .modal) .toast{bottom:auto;top:calc(16px + env(safe-area-ins
 .kiste-it span{display:flex;flex-direction:column;min-width:0}.kiste-it b{font-size:13px;line-height:1.2}.kiste-it small{color:var(--muted);font-size:12px}
 .kiste-it svg{flex:none}
 .kiste-it{position:relative}
+/* Bewohner: Suche, einklappbare Abschnitte, Tier-Raster */
+.res-search{width:100%;height:46px;border-radius:23px;padding:0 18px;background:var(--card);color:var(--ink);border:1.5px solid var(--line);font:500 15px var(--body)}
+.res-search:focus{outline:none;border-color:var(--lilac)}
+details.res-sec{display:block}
+details.res-sec>summary{list-style:none;cursor:pointer}
+details.res-sec>summary::-webkit-details-marker{display:none}
+details.res-sec>summary>span:first-child::before{content:"▾";display:inline-block;margin-right:6px;transition:transform .2s}
+details.res-sec:not([open])>summary>span:first-child::before{transform:rotate(-90deg)}
+details.res-sec[open]>summary{margin-bottom:12px}
+details.res-sec+details.res-sec,.res-search+p+details.res-sec{margin-top:4px}
+.ani-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ani-tile{display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--card);border:1.5px solid transparent;border-radius:18px;padding:10px 6px 8px;color:var(--ink);font:inherit;cursor:pointer;min-width:0}
+.ani-tile b{font-size:13.5px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ani-tile .small{font-size:11.5px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ani-tile.bad{border-color:var(--coral)}.ani-tile.warn{border-color:var(--amber)}.ani-tile.gone{opacity:.55}
+.ani-tile:focus-visible{outline:2px solid var(--lime);outline-offset:2px}

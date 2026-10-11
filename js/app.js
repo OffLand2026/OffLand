@@ -2704,11 +2704,27 @@ function resRow(r){
     r.kind==="mensch"?(()=>{const pets=here().filter(p=>p.kind==="tier"&&p.owner===r.id);return pets.length?"Tiere: "+pets.map(p=>p.name).join(", "):""})():"",
     friend?"befreundet mit "+friend[0].name:"", foe?"zerstritten mit "+foe[0].name:"", parents.length?"Kind von "+parents.map(p=>p.name).join(" & "):"", r.status==="weg"?(r.ret>=5?"möchte zurück, wartet auf einen freien Platz":"Rückkehr "+r.ret+"/5 gute Tage"):""].filter(Boolean).join(" · ");
   const bg=r.kind==="mensch"?"#26233D":SEA.includes(r.art)?"#1F2A3A":"#22301F";
-  return `<div class="res"><div class="avatar" style="background:${bg}"><svg width="40" height="40" viewBox="${figVB(r)}" aria-hidden="true">${figure(r,0,0)}</svg></div>
+  return `<div class="res" data-q="${esc((r.name+" "+(r.kind==="mensch"?"":r.art)+" "+sub).toLowerCase())}"><div class="avatar" style="background:${bg}"><svg width="40" height="40" viewBox="${figVB(r)}" aria-hidden="true">${figure(r,0,0)}</svg></div>
     <div class="grow res-txt"><p class="res-name"><b>${esc(r.name)}</b><span class="chip sm ${mCls}">${mText}</span></p><p class="small muted res-sub">${esc(sub||"Bewohner:in")}</p></div>
     ${r.sick&&S.tea>0?`<button class="iconbtn" style="width:44px;height:44px;background:#22301F" data-tea="${r.id}" aria-label="${esc(r.name)} Kräutertee geben"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C8F169" stroke-width="2" stroke-linecap="round"><path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM17 10h2a2 2 0 0 1 0 4h-2M8 5c0-1 1-1 1-2M12 5c0-1 1-1 1-2"/></svg></button>`:""}
     ${r.status==="da"?`<button class="iconbtn" style="width:44px;height:44px" data-rename="${r.id}" aria-label="${esc(r.name)} bearbeiten"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B6A4FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></button>`:""}
   </div>`;
+}
+/* Viele Tiere: kompaktes Raster, Antippen zeigt die ausführliche Zeile mit Bearbeiten und Kräutertee */
+function aniTile(r){
+  const bg=SEA.includes(r.art)?"#1F2A3A":"#22301F", flag=r.status!=="da"?"gone":r.sick?"bad":r.sad?"warn":"";
+  const sub=[r.art,r.owner?(S.residents.find(x=>x.id===r.owner)||{}).name:""].filter(Boolean).join(" ");
+  return `<button type="button" class="ani-tile${flag?" "+flag:""}" data-ani="${r.id}" data-q="${esc((r.name+" "+sub).toLowerCase())}" aria-label="${esc(r.name)}, ${esc(r.art)}${r.sick?", krank":""}">
+    <span class="avatar" style="background:${bg}"><svg width="40" height="40" viewBox="${figVB(r)}" aria-hidden="true">${figure(r,0,0)}</svg></span>
+    <b>${esc(r.name)}</b><span class="small muted">${esc(r.art)}${r.sick?" · krank":r.sad?" · traurig":r.status==="weg"?" · weg":""}</span></button>`;
+}
+function aniSheet(id){
+  const r=S.residents.find(x=>x.id===id); if(!r) return;
+  sheet(`<p class="label">${esc(r.art)}</p><div class="card" style="padding:4px 12px">${resRow(r)}</div><button class="btn secondary" data-ok>Schließen</button>`,()=>{
+    const row=$("#modalRoot .res-txt"); if(row) row.classList.add("open");
+    document.querySelectorAll("#modalRoot [data-tea]").forEach(x=>x.onclick=()=>{closeModal();giveTea(x.dataset.tea)});
+    document.querySelectorAll("#modalRoot [data-rename]").forEach(x=>x.onclick=()=>nameSheet({type:"rename",id:x.dataset.rename}));
+  });
 }
 function viewBewohner(){
   const humans=S.residents.filter(r=>r.kind==="mensch"&&r.status!=="verstorben"), animals=S.residents.filter(r=>r.kind==="tier"&&r.status!=="verstorben"&&r.status!=="umgezogen");
@@ -2750,10 +2766,12 @@ function viewBewohner(){
   </div>
   ${main}
   ${news.length?`<div class="sec-h"><span>Gerade los</span></div><div class="fy-row">${news.join("")}</div>`:""}
-  <div class="sec-h"><span>Menschen</span><span class="small muted" style="text-transform:none;letter-spacing:0">${occupied()}/${capacity()} Plätze</span></div>
-  <div class="card">${humans.map(resRow).join("")||`<p class="muted">Noch niemand.</p>`}</div>
-  <div class="sec-h"><span>Tiere</span></div>
-  <div class="card">${animals.map(resRow).join("")||`<p class="muted">Noch keine Tiere.</p>`}</div>
+  ${humans.length+animals.length>10?`<input id="resSearch" class="res-search" type="search" placeholder="Bewohner suchen: Name, Tier, Beruf …" aria-label="Bewohner suchen" autocomplete="off">
+  <p class="small muted" id="resNone" hidden style="padding:0 4px">Niemand gefunden.</p>`:""}
+  <details class="res-sec" data-fold="m" ${(S.bwFold||{}).m?"":"open"}><summary class="sec-h"><span>Menschen <span class="num muted">${humans.length}</span></span><span class="small muted" style="text-transform:none;letter-spacing:0">${occupied()}/${capacity()} Plätze</span></summary>
+  <div class="card">${humans.map(resRow).join("")||`<p class="muted">Noch niemand.</p>`}</div></details>
+  <details class="res-sec" data-fold="t" ${(S.bwFold||{}).t?"":"open"}><summary class="sec-h"><span>Tiere <span class="num muted">${animals.length}</span></span>${animals.length>6?`<span class="small muted" style="text-transform:none;letter-spacing:0">Antippen für Details</span>`:""}</summary>
+  ${animals.length>6?`<div class="ani-grid">${animals.map(aniTile).join("")}</div>`:`<div class="card">${animals.map(resRow).join("")||`<p class="muted">Noch keine Tiere.</p>`}</div>`}</details>
   ${S.tea?`<p class="small muted" style="padding:0 4px">Kräutertee im Vorrat: ${S.tea}. Tippe bei kranken Bewohnern auf die Tasse.</p>`:""}
   ${S.memorials.length?`<div class="card"><p class="label">In Erinnerung</p>${S.memorials.slice().reverse().map(m=>{const r=S.residents.find(x=>x.id===m.rid);const kids=S.residents.filter(k=>k.parents&&k.parents.includes(m.rid));
     return `<div class="row" style="padding:6px 0;border-top:1px solid var(--card2)"><svg width="36" height="36" viewBox="-12 -26 24 28" aria-hidden="true"><rect x="-1.5" y="-14" width="3" height="14" fill="#8A5A3B"/><circle cx="0" cy="-17" r="8" fill="#4E9A58"/><circle cx="-2" cy="-19" r="1.8" fill="#FFD27A"/></svg><div class="grow"><p><b>${esc(m.name)}</b></p><p class="small muted">${m.job?esc(jobName(m.job))+", ":""}verabschiedet am ${nice(m.day)}${kids.length?" · Kinder: "+kids.map(k=>esc(k.name)).join(", "):""}</p></div></div>`}).join("")}
@@ -3203,6 +3221,7 @@ function settingsHtml(){
       <button class="btn ghost" id="famLeaveBtn">Familieninsel verlassen</button>`
     :`<p class="small muted">Gründe eine Familieninsel oder tritt einer bei: im Tab Freunde.</p>`}
   </div>`:""}
+  <p class="small muted" style="text-align:center"><a href="impressum/" style="color:inherit">Impressum</a> · <a href="datenschutz/" style="color:inherit">Datenschutz</a></p>
   <p class="small muted" id="verLine" style="text-align:center;padding:8px;user-select:none">OffLand · Version ${APP_VERSION}${devMode()?" · Entwicklermodus":""}</p>`;
 }
 
@@ -3341,6 +3360,15 @@ function bind(){
   const dt=$("#deathToggle"); if(dt) dt.onchange=()=>{S.natDeath=dt.checked;save()};
   document.querySelectorAll("[data-tea]").forEach(x=>x.onclick=()=>giveTea(x.dataset.tea));
   document.querySelectorAll(".res-txt").forEach(x=>x.onclick=()=>x.classList.toggle("open"));   // Bewohner-Zeile: alles zeigen
+  document.querySelectorAll("[data-ani]").forEach(x=>x.onclick=()=>aniSheet(x.dataset.ani));
+  document.querySelectorAll("details.res-sec").forEach(d=>d.ontoggle=()=>{if(d.dataset.search) return; (S.bwFold=S.bwFold||{})[d.dataset.fold]=!d.open; save()});
+  const rsq=$("#resSearch"); if(rsq) rsq.oninput=()=>{
+    const q=rsq.value.trim().toLowerCase(); let hits=0;
+    document.querySelectorAll("#view .res-sec [data-q]").forEach(el=>{const ok=!q||el.dataset.q.includes(q); el.hidden=!ok; if(ok) hits++});
+    document.querySelectorAll("details.res-sec").forEach(d=>{d.dataset.search=1; if(q) d.open=true; else d.open=!(S.bwFold||{})[d.dataset.fold]; setTimeout(()=>delete d.dataset.search,0);
+      d.hidden=!!q&&![...d.querySelectorAll("[data-q]")].some(el=>!el.hidden)});   // Abschnitte ohne Treffer ausblenden
+    $("#resNone").hidden=!q||hits>0;
+  };
   const vt=$("#vacToggle"); if(vt) vt.onchange=()=>setVacation(vt.checked);
   const al=$("#alarmToggle"); if(al) al.onchange=()=>{S.alarm=al.checked;save();if(al.checked)ringAlarm()};
   const so=$("#soundToggle"); if(so) so.onchange=()=>{S.sound=so.checked;save();if(so.checked)sfx("return");else MUSIC.stop(.5)};
@@ -5405,6 +5433,7 @@ function showStart(){
       <button class="btn secondary" id="newAcc">+ Neue Insel</button>
       ${netConfigured()?`<button class="btn ghost" id="restoreBtn">Insel aus Backup holen</button>`:""}
       <p class="small muted" style="text-align:center">Alle Daten bleiben auf diesem Gerät, außer du schaltest Online-Funktionen oder die anonyme Statistik ein.</p>
+      <p class="small muted" style="text-align:center"><a href="impressum/" style="color:inherit">Impressum</a> · <a href="datenschutz/" style="color:inherit">Datenschutz</a></p>
     </div></div></div>`;
   else st.innerHTML=`<div class="start-wrap">
     <div class="start-hero">${hero}<div class="start-bub" id="startBub" aria-live="polite"></div></div>
@@ -5416,6 +5445,7 @@ function showStart(){
       <button class="btn" id="newAcc">Konto anlegen</button>`}
     ${netConfigured()?`<button class="btn ghost" id="restoreBtn">Insel aus Backup holen</button>`:""}
     <p class="small muted" style="text-align:center">Alle Daten bleiben auf diesem Gerät, außer du schaltest Online-Funktionen oder die anonyme Statistik ein.</p>
+      <p class="small muted" style="text-align:center"><a href="impressum/" style="color:inherit">Impressum</a> · <a href="datenschutz/" style="color:inherit">Datenschutz</a></p>
   </div>`;
   document.querySelectorAll("[data-login]").forEach(b=>b.onclick=()=>{const p=profiles().find(x=>x.id===b.dataset.login);if(p)tryLogin(p)});
   $("#newAcc").onclick=showCreate;
