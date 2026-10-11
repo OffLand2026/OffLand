@@ -365,6 +365,7 @@ const FEATURES=[
   {id:"monster",day:3,name:"App-Monster",text:"Trag beim Tagesabschluss die Zeit pro App ein. Wer ein Limit sprengt, lockt ein Monster an.",tab:"heute",ic:'<circle cx="12" cy="11" r="7"/><circle cx="9.5" cy="10" r="1"/><circle cx="14.5" cy="10" r="1"/>'},
   {id:"freunde",day:3,name:"Freunde und Ranglisten",text:"Lade Freund:innen ein, vergleicht euch jede Woche und bekommt einmalig zusammen einen Monat Plus.",tab:"freunde",ic:'<path d="M8 4h8v5a4 4 0 0 1-8 0zM12 13v4M8 20h8"/>'},
   {id:"album",day:4,name:"Album",text:"Postkarten, Strandgut, Zeitkapseln und dein Inseltagebuch.",tab:"verlauf",ic:'<path d="M4 5h7v15H4zM13 5h7v15h-7z"/>'},
+  {id:"fest",day:6,name:"Monatsfest",text:"Jeden Monat ein neues Fest. Bleib an genug Tagen im Budget, dann feiert die Insel und du bekommst den Monatsstempel fürs Album.",tab:"heute",ic:'<path d="M5 21V5l7 4 7-4v16"/><path d="M5 13l7 4 7-4"/>'},
   {id:"reise",day:5,name:"Weltreise",text:"Die Karte im Tab Bauen zeigt, welche Inselwelten auf euch warten.",tab:"projekt",ic:'<circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4a12 12 0 0 1 0 16M12 4a12 12 0 0 0 0 16"/>'}
 ];
 const TAB_FEATURE={zeit:"zeit",freunde:"freunde",verlauf:"album"};
@@ -376,6 +377,61 @@ function feature(id){
   return S.dayCount>=f.day;
 }
 const nextFeature=()=>S.allFeatures?null:FEATURES.find(f=>!feature(f.id));
+/* ---------- Gegen das Nachlassen: Monatsfest, Jubiläum, Comeback ---------- */
+const MONTH_N=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+const MFEST=[
+  {n:"Neujahrsfeuer",e:"🎆",t:"Ein Feuerwerk über der Lagune für einen guten Start ins Jahr."},
+  {n:"Karneval der Tiere",e:"🎭",t:"Alle Tiere verkleiden sich. Die Ziege geht als Ziege, wie jedes Jahr."},
+  {n:"Frühlingserwachen",e:"🌱",t:"Die ersten Knospen. Alle pflanzen etwas Neues auf der Insel."},
+  {n:"Blütenfest",e:"🌸",t:"Die ganze Insel blüht, und abends gibt es Blütentee am Strand."},
+  {n:"Maifest",e:"🌼",t:"Ein Maibaum mit bunten Bändern und Tanz bis zum Sonnenuntergang."},
+  {n:"Mittsommer",e:"☀️",t:"Der längste Tag des Jahres. Niemand will ins Bett."},
+  {n:"Sandburgenfest",e:"🏖️",t:"Der große Sandburgen-Wettbewerb. Die Jury ist bestechlich (mit Muscheln)."},
+  {n:"Sternschnuppennacht",e:"🌠",t:"Alle liegen am Strand und zählen Sternschnuppen."},
+  {n:"Erntefest",e:"🍎",t:"Körbe voller Äpfel und ein langer Tisch für alle."},
+  {n:"Kürbisfest",e:"🎃",t:"Geschnitzte Kürbisse leuchten am Steg. Ein bisschen gruselig, sehr gemütlich."},
+  {n:"Laternenumzug",e:"🏮",t:"Mit Laternen einmal um die ganze Insel, und alle singen schief."},
+  {n:"Lichterfest",e:"✨",t:"Lichterketten an jedem Haus und heißer Kakao für alle."}];
+const curMonth=()=>today().slice(0,7);
+const festOf=m=>MFEST[+m.slice(5,7)-1];
+const festMonth=m=>MONTH_N[+m.slice(5,7)-1];
+/* Ziel für den laufenden Monat, beim ersten Mal festgelegt: wer spät im Monat startet, braucht weniger Tage */
+function festGoal(){
+  const m=curMonth();
+  if(!S.mfest||S.mfest.m!==m){const d=parse(today()), left=new Date(d.getFullYear(),d.getMonth()+1,0).getDate()-d.getDate()+1;
+    S.mfest={m,need:Math.max(3,Math.min(12,Math.floor(left*.5))),done:false}}
+  return S.mfest;
+}
+const festHave=m=>S.days.filter(d=>d.day.slice(0,7)===m&&d.min<=S.budget).length;
+function festCheck(day){
+  if(!feature("fest")||day.slice(0,7)!==curMonth()) return;
+  const f=festGoal(); if(f.done||festHave(f.m)<f.need) return;
+  f.done=true; (S.stamps=S.stamps||[]).push(f.m);
+  S.points+=50; S.glueck=clamp(S.glueck+5,0,100); stat("monatsfest");
+  S.pending.push({type:"mfest",m:f.m}); log(festOf(f.m).n+"! Der Monatsstempel für "+festMonth(f.m)+" ist im Album.","good");
+}
+function festCard(){
+  if(!feature("fest")||!S.setup) return "";
+  const f=festGoal(), x=festOf(f.m), have=Math.min(f.need,festHave(f.m));
+  return `<div class="fy"><p class="k" style="color:var(--amber)">${esc(festMonth(f.m))}: ${esc(x.n)}</p><b>${f.done?"Gefeiert! Stempel im Album":have+" / "+f.need+" Tage im Budget"}</b>
+    ${f.done?`<p class="small muted">Nächsten Monat wartet ein neues Fest.</p>`:`<div class="bar" style="margin:6px 0 4px"><i style="width:${have/f.need*100}%;background:var(--amber)"></i></div><p class="small muted">Belohnung: Fest, +50 Punkte und Stempel ${x.e}</p>`}</div>`;
+}
+function stampsCard(){
+  if(!feature("fest")) return "";
+  const got=S.stamps||[], y=today().slice(0,4), yr=MFEST.map((x,i)=>{const m=y+"-"+String(i+1).padStart(2,"0");return [m,x,got.includes(m)]});
+  return `<div class="card"><div class="row between"><p class="label">Monatsstempel ${y}</p><span class="small muted num">${yr.filter(z=>z[2]).length} / 12</span></div>
+    <div class="mstamps">${yr.map(([m,x,ok])=>`<div class="mstamp${ok?" ok":""}" title="${esc(x.n)}"><span aria-hidden="true">${ok?x.e:"·"}</span><small>${MONTH_N[+m.slice(5)-1].slice(0,3)}</small></div>`).join("")}</div>
+    ${got.length>yr.filter(z=>z[2]).length?`<p class="small muted">Insgesamt ${got.length} Stempel gesammelt.</p>`:""}</div>`;
+}
+/* Jubiläum: an runden Tagen zeigt die Insel, was in der Zeit passiert ist */
+const JUBI=[30,60,100,180,365];
+function jubiCheck(){const n=S.days.length; if(JUBI.includes(n)){S.points+=n; S.pending.push({type:"jubi",n}); stat("jubilaeum_"+n)}}
+/* Comeback: nach ein paar Tagen Pause freundlich empfangen, statt mit einem Berg zum Nachtragen */
+function comebackCheck(){
+  if(!S.setup||S.vacation||S.testmode||!S.lastDay||S.comeback===S.lastDay) return;
+  const miss=Math.round((parse(today())-parse(S.lastDay))/864e5)-1; if(miss<3) return;
+  S.comeback=S.lastDay; S.pending.unshift({type:"comeback",miss}); stat("comeback"); save();
+}
 function unlockCheck(){
   if(S.allFeatures) return;
   const ids=FEATURES.filter(f=>f.day===S.dayCount).map(f=>f.id);
@@ -1416,7 +1472,8 @@ function closeDay(min,quests,appMin){
   S.points+=pts;
   S.monsters=monsters;
   S.days.push({day,min,quests,glueck:S.glueck,sunny,pts,apps:appMin,monsters,by:MY_ID||null});
-  statsActive(); stat("tag"); stat(diff>=0?"tag_gut":"tag_schlecht"); if([1,3,7,14,30,60,100].includes(S.days.length)) stat("tage_"+S.days.length);
+  statsActive(); stat("tag"); stat(diff>=0?"tag_gut":"tag_schlecht"); if([1,3,7,14,30,60,100].includes(S.days.length)) stat("tage_"+S.days.length); statsChange(min);
+  festCheck(day); jubiCheck();
   S.lastDay=day; S.dayCount++;
   S.guests=(S.guests||[]).filter(g=>g.until>S.dayCount);                  // Besuch bleibt zwei Tage
   unlockCheck();
@@ -2656,6 +2713,7 @@ function forYou(wisher){
   if(S.setup) it.push(`<div class="fy calm-fy"><p class="k" style="color:var(--lilac)">Inselminute</p><b>Kurz runterkommen</b><p class="small muted">Eine Minute Augen zu und Meeresrauschen${S.calmDay===today()?" · heute schon geschafft":" · +1 % Glück"}</p><button class="linkbtn" id="calmBtn">Starten ›</button></div>`);
   if(S.wish&&wisher){const w=S.wish, type=w.type||"item";
     it.push(`<div class="fy"><p class="k" style="color:var(--lilac)">Wunsch von ${esc(wisher.name)}</p><b>${esc(wishText(w))}</b><p class="small muted">+${w.pts||30} Punkte · +${w.gl||6} % Glück${type==="streak"?` · ${w.have}/${w.need} Tage`:""}</p>${type==="item"?`<button class="linkbtn" id="wishShop">Zum Laden ›</button>`:""}</div>`)}
+  const fc=festCard(); if(fc) it.push(fc);
   if(S.weekReady&&today()<=S.weekReady.until)
     it.push(`<div class="fy"><p class="k" style="color:var(--lime)">Neu</p><b>Inselwoche KW ${+S.weekReady.wk.split("-W")[1]}</b><button class="linkbtn" id="weekReadyBtn">Ansehen ›</button></div>`);
   const f=nextFeature(); if(f&&S.setup){const left=f.day-S.dayCount;
@@ -3181,6 +3239,7 @@ function viewVerlauf(){
     return `<button class="fy" data-card="${c.id}" style="border:none;text-align:left;color:var(--ink);font:inherit"><span style="border-radius:6px;overflow:hidden;border:2px solid #F3F1EA;display:block">${motifSvg(m,true)}</span>${c.fan?`<p class="k" style="color:var(--lime)">♥ Fanpost</p>`:c.hint||c.animal!=null||c.text?`<p class="k" style="color:var(--muted)">Von unterwegs</p>`:""}<b>${esc(m.title)}</b><span class="small muted" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(c.text)}</span></button>`}).join("")}</div>`
     :`<div class="card"><p class="small muted">Noch keine Post. Nach ein paar guten Tagen schreiben Verwandte und Nachbarinseln, was sie Gutes über deine Insel gehört haben. Jede Karte hat ein Motiv zum Sammeln.</p></div>`}
   ${cards.length?viewAlbum():""}
+  ${stampsCard()}
   <div class="sec-h"><span>Strandgut</span></div>
   ${viewStrandgut()}
   <div class="sec-h"><span>Zeitkapseln</span></div>
@@ -3215,7 +3274,7 @@ function settingsHtml(){
   ${netConfigured()?backupCard():""}
   ${netConfigured()?`<div class="card"><p class="label">Anonyme Statistik</p>
     <label class="check" for="statsToggle"><input type="checkbox" id="statsToggle" ${statsDev().consent===true?"checked":""}> Anonym mitzählen, welche Funktionen genutzt werden</label>
-    <p class="small muted">Nur Zähler wie „heute wurde ein Tag eingetragen“, ohne Namen, Bildschirmzeiten oder Kennung. Gilt für dieses Gerät.</p></div>`:""}
+    <p class="small muted">Nur Zähler wie „heute wurde ein Tag eingetragen“, ohne Namen, Minuten oder Kennung; Bildschirmzeit nur als grobe Stufe. Gilt für dieses Gerät.</p></div>`:""}
   <div class="card"><p class="label">Sicherung</p>
     <p class="small muted">Dein Spielstand liegt nur in diesem Browser. Lade ab und zu eine Sicherung herunter, um ihn auf ein anderes Gerät mitzunehmen.</p>
     <div class="row"><button class="btn secondary grow" id="exportBtn">Sichern</button><button class="btn secondary grow" id="importBtn">Laden</button></div>
@@ -3692,8 +3751,8 @@ function soundFor(ev){
 /* Fenster-Warteschlange: höchstens 3 am Stück, der Rest wartet bis zum nächsten Öffnen oder Eintragen.
    Vorhaben-Nachfrage, Joker und Tagesbilanz kommen immer und zuerst. */
 let PEND_BUDGET=3;
-const PEND_MUST=new Set(["plan","jokerAsk","day"]);
-const PEND_ORDER={plan:0,jokerAsk:1,day:2,planAsk:3,unlock:7,chapter:6,umfrage:8,statsAsk:9,musicAsk:2.5};
+const PEND_MUST=new Set(["plan","jokerAsk","day","comeback"]);
+const PEND_ORDER={comeback:-1,plan:0,jokerAsk:1,day:2,planAsk:3,unlock:7,chapter:6,umfrage:8,statsAsk:9,musicAsk:2.5};
 function sortPending(){const o=e=>PEND_ORDER[e.type]!=null?PEND_ORDER[e.type]:5; S.pending=S.pending.map((e,i)=>[e,i]).sort((a,b)=>o(a[0])-o(b[0])||a[1]-b[1]).map(x=>x[0])}
 function showPending(){
   if($("#modalRoot").innerHTML) return;
@@ -3888,6 +3947,34 @@ function showPending(){
       <p class="label" style="color:var(--lime)">Gemeinsames Ziel geschafft</p><h2>${GOAL_DAYS} gute Tage mit ${esc(ev.code)}</h2>
       <p class="muted">Du hast deine Seite des gemeinsamen Ziels geschafft: +150 Punkte und +5 % Glück. Sag deiner Freundin oder deinem Freund Bescheid und teilt eure Inseln!</p>
       <button class="btn secondary" id="buddyShare">Insel teilen</button><button class="btn" data-ok>Super</button>`,()=>{const b=$("#buddyShare");if(b)b.onclick=shareSheet});
+  }
+  if(ev.type==="mfest"){
+    const x=festOf(ev.m);
+    return sheet(`<div class="anim">${base(here().filter(r=>r.kind==="mensch").slice(0,5).map((r,i)=>`<g class="bob" style="animation-delay:${i*.2}s">${figure(r,196+i*16+(i>1?24:0),136)}</g>`).join("")+confetti(),false)}</div>
+      <div class="mstamp big ok" aria-hidden="true"><span>${x.e}</span><small>${esc(festMonth(ev.m))}</small></div>
+      <p class="label" style="color:var(--amber)">Monatsfest</p><h2>${esc(x.n)}</h2><p class="muted">${esc(x.t)}</p>
+      <p class="small muted">+50 Punkte, +5 % Glück und der Stempel für ${esc(festMonth(ev.m))} ist jetzt in deinem Album.</p><button class="btn" data-ok>Mitfeiern</button>`);
+  }
+  if(ev.type==="jubi"){
+    const ds=S.days.slice(0,ev.n), good=ds.filter(d=>d.min<=S.budget).length, saved=ds.reduce((a,d)=>a+Math.max(0,S.baseline-d.min),0);
+    const ppl=here().filter(r=>r.kind==="mensch").length, ani=here().filter(r=>r.kind!=="mensch").length;
+    return sheet(`<div class="anim">${base(here().slice(0,5).map((r,i)=>`<g class="bob" style="animation-delay:${i*.2}s">${figure(r,196+i*16+(i>1?24:0),136)}</g>`).join("")+hearts(240,84)+confetti(),false)}</div>
+      <p class="label" style="color:var(--lime)">Insel-Jubiläum</p><h2>${ev.n} Tage OffLand</h2>
+      ${saysHtml("bay",ev.n>=365?"Ein ganzes Jahr! Ich hab eine Rede vorbereitet, aber ich fang lieber gleich an zu weinen.":"Weißt du noch, wie leer es hier am Anfang war? Schau dich mal um.")}
+      <div class="jubi-grid"><div><b class="num">${good}</b><span>Tage im Budget</span></div><div><b class="num">${hm(saved)}</b><span>weniger am Handy</span></div><div><b class="num">${ppl}</b><span>Menschen</span></div><div><b class="num">${ani}</b><span>Tiere</span></div></div>
+      <p class="small muted">Als Dankeschön: +${ev.n} Punkte.</p><button class="btn" data-ok>Weiter so</button>`);
+  }
+  if(ev.type==="comeback"){
+    const y=addDays(today(),-1);
+    return sheet(`<div class="anim">${base(here().slice(0,4).map((r,i)=>`<g class="bob">${figure(r,214+i*14,134)}</g>`).join("")+hearts(240,90),false)}</div>
+      <p class="label" style="color:var(--lime)">Schön, dass du da bist</p><h2>Die Insel hat auf dich gewartet</h2>
+      ${saysHtml("bay","Keine Sorge, hier ist niemand sauer. Pausen gehören dazu. Wollen wir einfach von heute an weitermachen?")}
+      <p class="small muted">${ev.miss} Tage fehlen. Du kannst sie als Pause abhaken, ohne Punktabzug, oder sie wie gewohnt nachtragen. Als Willkommensgeschenk gibt es eine Sonne für den nächsten schwierigen Tag.</p>
+      <button class="btn" id="cbSkip">Als Pause abhaken</button><button class="btn ghost" id="cbFill">Lieber nachtragen</button>`,()=>{
+      const gift=()=>{S.sun=(S.sun||0)+1};
+      $("#cbSkip").onclick=()=>{gift(); if(S.lastDay<y) S.lastDay=y; S.comeback=S.lastDay; stat("comeback_pause"); log("Pause von "+ev.miss+" Tagen abgehakt. Weiter geht's.","info"); save(); closeModal(); render(); showPending()};
+      $("#cbFill").onclick=()=>{gift(); save(); closeModal(); render(); showPending()};
+    });
   }
   if(ev.type==="fest"){
     return sheet(`<div class="anim">${base(`<g transform="translate(240 134) scale(1.2)">${itemSvg("feuer")}</g>`+here().filter(r=>r.kind==="mensch").slice(0,5).map((r,i)=>`<g class="bob" style="animation-delay:${i*.2}s">${figure(r,200+i*16+(i>1?24:0),136)}</g>`).join("")+`${[0,1,2,3,4,5].map(i=>`<g class="glow" style="animation-delay:${i*.3}s"><circle cx="${190+i*22}" cy="${80+(i%2)*8}" r="4" fill="#FFD27A"/></g>`).join("")}`+confetti(),false)}</div>
@@ -4304,7 +4391,7 @@ function weekStats(){
 const netName=()=>(ACC?ACC.name:"Insel").slice(0,20), netAv=()=>ACC?ACC.avatar:"Ziege";
 /* ---------- Anonyme Nutzungsstatistik (nur mit Zustimmung) ----------
    Gilt pro Gerät, nicht pro Konto. Gesendet werden nur Zähler pro Tag (z. B. „tag_gut +1“) nach stats/JJJJ-MM-TT:
-   keine Namen, keine Minuten, keine Kennungen. Bis zur Zustimmung bleibt die Warteschlange auf dem Gerät. */
+   keine Namen, keine Minuten, keine Kennungen (Bildschirmzeit nur als grobe Stufe, siehe statsChange). Bis zur Zustimmung bleibt die Warteschlange auf dem Gerät. */
 const STATS_KEY="offland-stats";
 function statsDev(){try{return JSON.parse(localStorage.getItem(STATS_KEY))||{}}catch(e){return {}}}
 function statsPut(d){try{localStorage.setItem(STATS_KEY,JSON.stringify(d))}catch(e){}}
@@ -4319,6 +4406,14 @@ function statsActive(){
   if(!d.since) d.since=t; d.active=t; statsPut(d);
   const age=Math.round((parse(t)-parse(d.since))/864e5), b=age===0?"0":age===1?"1":age<4?"2_3":age<8?"4_7":age<15?"8_14":age<31?"15_30":"31";
   stat("aktiv"); stat("aktiv_"+statsPlatform()); stat("aktiv_t"+b);
+}
+/* Wirkt OffLand? Ab Tag 8 wird der Tag mit dem Schnitt der eigenen ersten Woche verglichen.
+   Gezählt wird nur die Stufe (z. B. „bz_w3_m15“ = Woche 3, 15–30 % weniger), keine Minuten. */
+function statsChange(min){
+  const n=S.days.length; if(n<8) return;
+  const base=S.days.slice(0,7).reduce((a,d)=>a+d.min,0)/7; if(base<15) return;
+  const r=(base-min)/base, cls=r>=.5?"m50":r>=.3?"m30":r>=.15?"m15":r>=0?"m0":r>=-.15?"p15":"pp";
+  const w=Math.ceil(n/7); stat("bz_"+(w<=4?"w"+w:w<=8?"w5_8":"w9")+"_"+cls);
 }
 let statsTimer=0;
 function statsFlushSoon(){clearTimeout(statsTimer);statsTimer=setTimeout(statsFlush,4000)}
@@ -4369,8 +4464,8 @@ setTimeout(errFlush,4000);                                                      
 function statsSet(on){const d=statsDev(); d.consent=!!on; if(!on) d.q={}; statsPut(d); if(on){statsActive();statsFlushSoon()} errFlushSoon()}
 function statsAskSheet(){
   sheet(`<p class="label" style="color:var(--lime)">Kurze Frage</p><h2>Hilfst du mit, OffLand besser zu machen?</h2>
-    ${saysHtml("bay","Ich würde gern anonym mitzählen, was auf OffLand gut läuft und was nicht. Keine Namen, keine Bildschirmzeiten. Versprochen, ich bin nur neugierig.")}
-    <p class="small muted">Gezählt wird nur, wie oft etwas passiert, zum Beispiel „heute wurde ein Tag eingetragen“ oder „ein Vorhaben wurde geschafft“. Nichts davon lässt sich dir zuordnen. Du kannst das jederzeit in den Einstellungen ändern.</p>
+    ${saysHtml("bay","Ich würde gern anonym mitzählen, was auf OffLand gut läuft und was nicht. Keine Namen, keine Minuten. Versprochen, ich bin nur neugierig.")}
+    <p class="small muted">Gezählt wird nur, wie oft etwas passiert, zum Beispiel „heute wurde ein Tag eingetragen“ oder „heute 15–30 % weniger am Handy als in der ersten Woche“. Nichts davon lässt sich dir zuordnen. Du kannst das jederzeit in den Einstellungen ändern.</p>
     <div class="row"><button class="btn secondary grow" id="stNo" data-ok>Lieber nicht</button><button class="btn grow" id="stYes" data-ok>Ja, gern</button></div>`);
   $("#stYes").onclick=()=>{statsSet(true);closeModal();render();showPending();toast("Danke! Mr. Bay freut sich.")};
   $("#stNo").onclick=()=>{statsSet(false);closeModal();render();showPending()};
@@ -5377,7 +5472,7 @@ function login(p){
   document.body.classList.remove("start"); $("#start").innerHTML="";
   closeModal(); render(); window.scrollTo(0,0);
   if(S.setup){chapterCheck(true);save()}
-  statsActive(); statsFlushSoon();
+  statsActive(); statsFlushSoon(); comebackCheck();
   if(!S.storySeen) storySheet(!!S.setup); else showPending();
   if(S.setup&&pendingInvite()&&!$("#modalRoot").innerHTML) inviteSheet();
   if(S.setup&&famInvite()&&!S.family&&!$("#modalRoot").innerHTML) famJoinSheet(famInvite());
@@ -5579,7 +5674,7 @@ function deleteSheet(){
 }
 
 $("#accBtn").onclick=accountSheet;
-document.addEventListener("visibilitychange",()=>{if(!document.hidden&&ACC&&S.setup){PEND_BUDGET=3;showPending();checkReplies(false)} if(document.hidden&&ACC&&S.setup)backupNow(false)});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&ACC&&S.setup){PEND_BUDGET=3;comebackCheck();showPending();checkReplies(false)} if(document.hidden&&ACC&&S.setup)backupNow(false)});
 
 function boot(){
   migrateOldSave();

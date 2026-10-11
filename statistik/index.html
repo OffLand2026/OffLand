@@ -87,6 +87,7 @@
     <div class="tile"><div class="lab">Neue Konten</div><div class="val" id="kNeu">–</div><div class="hint" id="kNeuH"></div></div>
     <div class="tile"><div class="lab">Eingetragene Tage</div><div class="val" id="kTage">–</div><div class="hint" id="kTageH"></div></div>
     <div class="tile"><div class="lab">Tage im Budget</div><div class="val" id="kGut">–</div><div class="hint" id="kGutH">Anteil der eingetragenen Tage</div></div>
+    <div class="tile"><div class="lab">Weniger als in Woche 1</div><div class="val" id="kBz">–</div><div class="hint" id="kBzH">Anteil der Tage ab Woche 2</div></div>
     <div class="tile"><div class="lab">Inselminuten</div><div class="val" id="kRuhe">–</div><div class="hint" id="kRuheH"></div></div>
     <div class="tile"><div class="lab">Musik an</div><div class="val" id="kMusik">–</div><div class="hint" id="kMusikH">Anteil der Antworten auf die Musik-Frage</div></div>
     <div class="tile"><div class="lab">Fanpost</div><div class="val" id="kFan">–</div><div class="hint">Postkarten nach guten Tagen</div></div>
@@ -107,6 +108,9 @@
     <div class="card"><h2>Was genutzt wird</h2><p class="desc">Wie oft eine Funktion im Zeitraum genutzt wurde</p><div id="cFeat"></div></div>
     <div class="card"><h2>Geschichte</h2><p class="desc">Wie oft jedes Kapitel geschafft wurde, dazu Intro und Joker</p><div id="cKap"></div><div id="cMisc"></div></div>
   </section>
+
+  <section class="card"><h2>Wirkt OffLand?</h2><p class="desc">Bildschirmzeit im Vergleich zur eigenen ersten Woche, nach Woche seit dem Start. Jeder eingetragene Tag zählt einmal, nur als Stufe ohne Minuten. Grün heißt weniger am Handy als in Woche 1.</p>
+    <div class="legend" id="bzLeg"></div><div id="cBz"></div><p class="note" id="bzNote"></p></section>
 
   <section class="grid2">
     <div class="card"><h2>Anteil im Budget im Verlauf</h2><p class="desc">Wie viel Prozent der eingetragenen Tage im Budget lagen, Tag für Tag</p><div id="cQuote"></div></div>
@@ -134,6 +138,10 @@ const iso = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate(
 const short = s => { const [y, m, d] = s.split("-"); return `${+d}.${+m}.`; };
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
+// Bildschirmzeit gegenüber Woche 1: eine 100-%-Leiste pro Woche, Stufen von „viel weniger“ bis „mehr“
+const BZ_CLS = [["m50", "50 % und mehr weniger", "var(--good)", 1, .6], ["m30", "30–50 % weniger", "var(--good)", .75, .4], ["m15", "15–30 % weniger", "var(--good)", .5, .22], ["m0", "bis 15 % weniger", "var(--good)", .28, .07],
+  ["p15", "bis 15 % mehr", "var(--critical)", .4, -.07], ["pp", "mehr als 15 % mehr", "var(--critical)", .85, -.3]];
+const BZ_WK = [["w2", "Woche 2"], ["w3", "Woche 3"], ["w4", "Woche 4"], ["w5_8", "Woche 5–8"], ["w9", "ab Woche 9"]];
 const NAMES = {
   vorhaben_gewaehlt: "Vorhaben gewählt", vorhaben_ok: "Vorhaben geschafft", vorhaben_nein: "Vorhaben nicht geschafft", vorhaben_ohne: "Ohne Vorhaben weiter",
   boot: "Fokus-Bootsfahrt", nacht: "Gute Nacht, Insel", kauf: "Im Laden gekauft", projekt: "Großprojekt fertig", rueckblick: "Wochenrückblick",
@@ -148,6 +156,7 @@ const MORE = { inselminute_start: "Inselminute gestartet", inselminute_abbruch: 
   umfrage_start: "Umfrage Start beantwortet", umfrage_t7: "Umfrage Woche 1 beantwortet", umfrage_t21: "Umfrage Woche 3 beantwortet", umfrage_nein: "Umfrage abgelehnt",
   fehler: "Fehler gemeldet", fehler_geraet: "Gerätetage mit Fehler", welt_1: "Tropeninsel erreicht", welt_2: "Fjordinseln erreicht", welt_3: "Wüsteninsel erreicht", welt_4: "Eisinseln erreicht",
   aktiv: "Aktive Gerätetage", aktiv_ios: "Aktiv: iOS-App", aktiv_pwa: "Aktiv: Home-Bildschirm", aktiv_web: "Aktiv: Browser", konto_neu: "Neue Konten", insel_start: "Insel gestartet",
+  ...Object.fromEntries(BZ_WK.flatMap(([w, n]) => BZ_CLS.map(([c, cn]) => ["bz_" + w + "_" + c, `${n}: ${cn}`]))),
   tag: "Tage eingetragen", tag_gut: "Tage im Budget", tag_schlecht: "Tage über dem Budget", intro_ende: "Intro angesehen", intro_skip: "Intro übersprungen" };
 const label = k => NAMES[k] || MORE[k] || k;
 
@@ -174,7 +183,8 @@ function demoDay(i, n) {
   const r = k => Math.abs(Math.sin(i * 12.9898 + k * 78.233) * 43758.5453) % 1, grow = 0.4 + i / n;
   const ios = Math.round(18 * grow + r(1) * 6), pwa = Math.round(9 * grow + r(2) * 4), web = Math.round(5 + r(3) * 4), akt = ios + pwa + web;
   const tag = Math.round(akt * (0.6 + r(4) * 0.2)), gut = Math.round(tag * (0.55 + r(5) * 0.25)), neu = Math.round(3 + r(6) * 5);
-  return { aktiv: akt, aktiv_ios: ios, aktiv_pwa: pwa, aktiv_web: web, konto_neu: neu, insel_start: Math.max(0, neu - 1), tag, tag_gut: gut, tag_schlecht: tag - gut,
+  const bz = {}; BZ_WK.forEach(([w], wi) => BZ_CLS.forEach(([c], j) => { bz["bz_" + w + "_" + c] = Math.round([.6, 1.2, 1.6, 1.4, .9, .5][j] * (1 + (wi < 3 ? j < 4 ? wi * .15 : -wi * .1 : 0)) * (4 - wi * .5) * r(30 + wi * 6 + j) * grow); }));
+  return { ...bz, aktiv: akt, aktiv_ios: ios, aktiv_pwa: pwa, aktiv_web: web, konto_neu: neu, insel_start: Math.max(0, neu - 1), tag, tag_gut: gut, tag_schlecht: tag - gut,
     aktiv_t0: neu, aktiv_t1: Math.round(neu * .7), aktiv_t2_3: Math.round(akt * .14), aktiv_t4_7: Math.round(akt * .2), aktiv_t8_14: Math.round(akt * .22), aktiv_t15_30: Math.round(akt * .2), aktiv_t31: Math.round(akt * .1),
     tage_1: Math.max(0, neu - 1), tage_3: Math.round(neu * .6), tage_7: Math.round(neu * .4), tage_14: Math.round(neu * .25), tage_30: Math.round(neu * .12),
     vorhaben_gewaehlt: Math.round(tag * .45), vorhaben_ohne: Math.round(tag * .3), vorhaben_ok: Math.round(tag * .3), vorhaben_nein: Math.round(tag * .1),
@@ -252,6 +262,20 @@ function line(el, rows, fn) {
     g += `<rect class="hit" x="${x(i) - (W - L) / n / 2}" y="${T}" width="${(W - L) / n}" height="${H - T - B}" data-tip="${esc(`<b>${short(r.day)}</b>${v == null ? "keine Einträge" : v + " % im Budget"}`)}"/>`; });
   el.innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Liniendiagramm">${g}</svg>`; bindTips(el);
 }
+function bzChart(el, sum) {
+  const data = BZ_WK.map(([w, n]) => { const v = BZ_CLS.map(c => sum("bz_" + w + "_" + c[0])); return { n, v, t: v.reduce((a, b) => a + b, 0) }; }).filter(d => d.t);
+  if (!data.length) { el.innerHTML = `<div class="empty">Noch keine Daten. Gezählt wird ab dem 8. eingetragenen Tag eines Geräts.</div>`; return; }
+  const W = Math.max(320, Math.min(980, el.clientWidth || 640)), LW = W < 480 ? 74 : 110, RW = W < 480 ? 104 : 110, row = 34, H = data.length * row + 4, span = W - LW - RW;
+  let g = "";
+  data.forEach((d, i) => { const y = i * row + 4; let x = LW;
+    const less = d.v.slice(0, 4).reduce((a, b) => a + b, 0), avg = Math.round(d.v.reduce((a, v, j) => a + v * BZ_CLS[j][4], 0) / d.t * 100);
+    g += `<text class="lab" x="${LW - 8}" y="${y + 17}" text-anchor="end">${esc(d.n)}</text>`;
+    d.v.forEach((v, j) => { if (!v) return; const w = span * v / d.t, c = BZ_CLS[j];
+      g += `<rect x="${x}" y="${y + 4}" width="${Math.max(0, w - 2)}" height="20" rx="3" fill="${c[2]}" opacity="${c[3]}"/>`;
+      g += `<rect class="hit" x="${x}" y="${y}" width="${w}" height="${row}" data-tip="${esc(`<b>${esc(d.n)} · ${esc(c[1])}</b>${fmt(v)} von ${fmt(d.t)} Tagen (${Math.round(v / d.t * 100)} %)`)}"/>`; x += w; });
+    g += `<text class="val" x="${W - RW + 8}" y="${y + 18}">${Math.round(less / d.t * 100)} %<tspan style="fill:var(--text-muted);font-weight:400"> · Ø ${avg > 0 ? "−" : avg < 0 ? "+" : "±"}${Math.abs(avg)} %</tspan></text>`; });
+  el.innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Bildschirmzeit gegenüber Woche 1">${g}</svg>`; bindTips(el);
+}
 const WD = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
 // worse: steigende Werte sind schlecht (z. B. Fehler), dann rot statt grün
 const delta = (now, before, worse) => { if (!before) return ""; const p = Math.round((now - before) / before * 100); return p ? ` · <span class="delta ${(p > 0) !== !!worse ? "up" : "down"}">${p > 0 ? "+" : ""}${p} %</span> zum Vorzeitraum` : " · gleich wie im Vorzeitraum"; };
@@ -282,6 +306,13 @@ function render(all) {
   const ua = sum("umfrage_start") + sum("umfrage_t7") + sum("umfrage_t21"), un = sum("umfrage_nein");
   $("#kUmf").textContent = fmt(ua); $("#kUmfH").textContent = ua + un ? `${fmt(un)} abgelehnt · Antworten stehen in Firebase unter support` : "Antworten stehen in Firebase unter support";
 
+  { const all = BZ_WK.flatMap(([w]) => BZ_CLS.map((c, j) => [sum("bz_" + w + "_" + c[0]), j])), t = all.reduce((a, [v]) => a + v, 0), less = all.filter(([, j]) => j < 4).reduce((a, [v]) => a + v, 0);
+    const avg = t ? Math.round(all.reduce((a, [v, j]) => a + v * BZ_CLS[j][4], 0) / t * 100) : 0;
+    $("#kBz").textContent = t ? Math.round(less / t * 100) + " %" : "–";
+    $("#kBzH").textContent = t ? `${fmt(t)} Tage ab Woche 2 · geschätzt Ø ${avg > 0 ? "−" : "+"}${Math.abs(avg)} % Bildschirmzeit` : "Gezählt ab dem 8. eingetragenen Tag";
+    $("#bzLeg").innerHTML = BZ_CLS.map(c => `<span><i style="background:${c[2]};opacity:${c[3]}"></i>${esc(c[1])}</span>`).join("");
+    bzChart($("#cBz"), sum);
+    $("#bzNote").textContent = t ? "Rechts: Anteil der Tage mit weniger Bildschirmzeit als in Woche 1, dahinter die geschätzte durchschnittliche Veränderung (aus der Mitte jeder Stufe)." : ""; }
   line($("#cQuote"), rows, r => r.c.tag ? Math.round((r.c.tag_gut || 0) / r.c.tag * 100) : null);
   { const g = Array(7).fill(0), t = Array(7).fill(0);
     rows.forEach(r => { const wd = (new Date(r.day + "T12:00:00").getDay() + 6) % 7; g[wd] += r.c.tag_gut || 0; t[wd] += r.c.tag || 0; });
