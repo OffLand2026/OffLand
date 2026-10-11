@@ -2710,17 +2710,23 @@ function resRow(r){
     ${r.status==="da"?`<button class="iconbtn" style="width:44px;height:44px" data-rename="${r.id}" aria-label="${esc(r.name)} bearbeiten"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B6A4FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></button>`:""}
   </div>`;
 }
-/* Viele Tiere: kompaktes Raster, Antippen zeigt die ausführliche Zeile mit Bearbeiten und Kräutertee */
-function aniTile(r){
-  const bg=SEA.includes(r.art)?"#1F2A3A":"#22301F", flag=r.status!=="da"?"gone":r.sick?"bad":r.sad?"warn":"";
-  const sub=[r.art,r.owner?(S.residents.find(x=>x.id===r.owner)||{}).name:""].filter(Boolean).join(" ");
-  return `<button type="button" class="ani-tile${flag?" "+flag:""}" data-ani="${r.id}" data-q="${esc((r.name+" "+sub).toLowerCase())}" aria-label="${esc(r.name)}, ${esc(r.art)}${r.sick?", krank":""}">
-    <span class="avatar" style="background:${bg}"><svg width="40" height="40" viewBox="${figVB(r)}" aria-hidden="true">${figure(r,0,0)}</svg></span>
-    <b>${esc(r.name)}</b><span class="small muted">${esc(r.art)}${r.sick?" · krank":r.sad?" · traurig":r.status==="weg"?" · weg":""}</span></button>`;
+/* Viele Bewohner: kompaktes Raster (ab 7 Menschen bzw. 7 Tieren), Antippen zeigt die ausführliche Zeile mit Bearbeiten und Kräutertee */
+function resLabel(r){
+  if(r.kind!=="mensch") return r.art;
+  return r.job?(r.retired?"Rentner:in":jobName(r.job)):(S.dayCount-(r.born||0)>=3?"Schulkind":"Baby");
 }
-function aniSheet(id){
+function resTile(r){
+  const mensch=r.kind==="mensch", bg=mensch?"#26233D":SEA.includes(r.art)?"#1F2A3A":"#22301F";
+  const flag=r.status!=="da"?"gone":r.sick?"bad":r.sad||r.phone?"warn":"";
+  const q=(resRow(r).match(/data-q="([^"]*)"/)||[])[1]||"";   // gleiche Suchbegriffe wie die ausführliche Zeile
+  const lbl=resLabel(r), note=r.sick?"krank":r.status==="weg"?"weg":r.phone&&mensch?"am Handy":r.sad?"traurig":"";
+  return `<button type="button" class="ani-tile${flag?" "+flag:""}" data-rt="${r.id}" data-q="${q}" aria-label="${esc(r.name)}, ${esc(lbl)}${note?", "+note:""}">
+    <span class="avatar" style="background:${bg}"><svg width="40" height="40" viewBox="${figVB(r)}" aria-hidden="true">${figure(r,0,0)}</svg></span>
+    <b>${esc(r.name)}</b><span class="small muted">${esc(lbl)}${note?" · "+note:""}</span></button>`;
+}
+function resSheet(id){
   const r=S.residents.find(x=>x.id===id); if(!r) return;
-  sheet(`<p class="label">${esc(r.art)}</p><div class="card" style="padding:4px 12px">${resRow(r)}</div><button class="btn secondary" data-ok>Schließen</button>`,()=>{
+  sheet(`<p class="label">${esc(resLabel(r))}</p><div class="card" style="padding:4px 12px">${resRow(r)}</div><button class="btn secondary" data-ok>Schließen</button>`,()=>{
     const row=$("#modalRoot .res-txt"); if(row) row.classList.add("open");
     document.querySelectorAll("#modalRoot [data-tea]").forEach(x=>x.onclick=()=>{closeModal();giveTea(x.dataset.tea)});
     document.querySelectorAll("#modalRoot [data-rename]").forEach(x=>x.onclick=()=>nameSheet({type:"rename",id:x.dataset.rename}));
@@ -2768,10 +2774,10 @@ function viewBewohner(){
   ${news.length?`<div class="sec-h"><span>Gerade los</span></div><div class="fy-row">${news.join("")}</div>`:""}
   ${humans.length+animals.length>10?`<input id="resSearch" class="res-search" type="search" placeholder="Bewohner suchen: Name, Tier, Beruf …" aria-label="Bewohner suchen" autocomplete="off">
   <p class="small muted" id="resNone" hidden style="padding:0 4px">Niemand gefunden.</p>`:""}
-  <details class="res-sec" data-fold="m" ${(S.bwFold||{}).m?"":"open"}><summary class="sec-h"><span>Menschen <span class="num muted">${humans.length}</span></span><span class="small muted" style="text-transform:none;letter-spacing:0">${occupied()}/${capacity()} Plätze</span></summary>
-  <div class="card">${humans.map(resRow).join("")||`<p class="muted">Noch niemand.</p>`}</div></details>
+  <details class="res-sec" data-fold="m" ${(S.bwFold||{}).m?"":"open"}><summary class="sec-h"><span>Menschen <span class="num muted">${humans.length}</span></span><span class="small muted" style="text-transform:none;letter-spacing:0">${occupied()}/${capacity()} Plätze${humans.length>6?" · Antippen für Details":""}</span></summary>
+  ${humans.length>6?`<div class="ani-grid">${humans.map(resTile).join("")}</div>`:`<div class="card">${humans.map(resRow).join("")||`<p class="muted">Noch niemand.</p>`}</div>`}</details>
   <details class="res-sec" data-fold="t" ${(S.bwFold||{}).t?"":"open"}><summary class="sec-h"><span>Tiere <span class="num muted">${animals.length}</span></span>${animals.length>6?`<span class="small muted" style="text-transform:none;letter-spacing:0">Antippen für Details</span>`:""}</summary>
-  ${animals.length>6?`<div class="ani-grid">${animals.map(aniTile).join("")}</div>`:`<div class="card">${animals.map(resRow).join("")||`<p class="muted">Noch keine Tiere.</p>`}</div>`}</details>
+  ${animals.length>6?`<div class="ani-grid">${animals.map(resTile).join("")}</div>`:`<div class="card">${animals.map(resRow).join("")||`<p class="muted">Noch keine Tiere.</p>`}</div>`}</details>
   ${S.tea?`<p class="small muted" style="padding:0 4px">Kräutertee im Vorrat: ${S.tea}. Tippe bei kranken Bewohnern auf die Tasse.</p>`:""}
   ${S.memorials.length?`<div class="card"><p class="label">In Erinnerung</p>${S.memorials.slice().reverse().map(m=>{const r=S.residents.find(x=>x.id===m.rid);const kids=S.residents.filter(k=>k.parents&&k.parents.includes(m.rid));
     return `<div class="row" style="padding:6px 0;border-top:1px solid var(--card2)"><svg width="36" height="36" viewBox="-12 -26 24 28" aria-hidden="true"><rect x="-1.5" y="-14" width="3" height="14" fill="#8A5A3B"/><circle cx="0" cy="-17" r="8" fill="#4E9A58"/><circle cx="-2" cy="-19" r="1.8" fill="#FFD27A"/></svg><div class="grow"><p><b>${esc(m.name)}</b></p><p class="small muted">${m.job?esc(jobName(m.job))+", ":""}verabschiedet am ${nice(m.day)}${kids.length?" · Kinder: "+kids.map(k=>esc(k.name)).join(", "):""}</p></div></div>`}).join("")}
@@ -3360,7 +3366,7 @@ function bind(){
   const dt=$("#deathToggle"); if(dt) dt.onchange=()=>{S.natDeath=dt.checked;save()};
   document.querySelectorAll("[data-tea]").forEach(x=>x.onclick=()=>giveTea(x.dataset.tea));
   document.querySelectorAll(".res-txt").forEach(x=>x.onclick=()=>x.classList.toggle("open"));   // Bewohner-Zeile: alles zeigen
-  document.querySelectorAll("[data-ani]").forEach(x=>x.onclick=()=>aniSheet(x.dataset.ani));
+  document.querySelectorAll("[data-rt]").forEach(x=>x.onclick=()=>resSheet(x.dataset.rt));
   document.querySelectorAll("details.res-sec").forEach(d=>d.ontoggle=()=>{if(d.dataset.search) return; (S.bwFold=S.bwFold||{})[d.dataset.fold]=!d.open; save()});
   const rsq=$("#resSearch"); if(rsq) rsq.oninput=()=>{
     const q=rsq.value.trim().toLowerCase(); let hits=0;
