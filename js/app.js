@@ -2684,25 +2684,33 @@ let ENTRY_OPEN=false;
 function ringSvg(pct,big,small,col){
   return `<svg class="ring" width="92" height="92" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="15.5" fill="none" stroke="#2C2F45" stroke-width="3.4"/><circle cx="18" cy="18" r="15.5" fill="none" stroke="${col}" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="${Math.max(.02,Math.min(1,pct))*97.4} 97.4" transform="rotate(-90 18 18)"/><text x="18" y="17.6" text-anchor="middle" font-size="${String(big).length>4?6.2:7}" font-weight="800" fill="#F3F1EA" font-family="Manrope, sans-serif">${big}</text><text x="18" y="23.4" text-anchor="middle" font-size="3.6" fill="#A4A6BD" font-family="Manrope, sans-serif">${small}</text></svg>`;
 }
-/* Heute: Hauptkarte mit Ring (letzter eingetragener Tag) und Eintragen */
+/* Heute: Hauptkarte (letzter eingetragener Tag) – große Zahl, schmaler Balken, Wochensäulen, Eintragen */
 function heuteMain(ok,nd,form){
   const last=S.days[S.days.length-1], week=S.days.slice(-7), good=last&&last.min<=S.budget;
-  const col=!last?"#C8F169":good?"#C8F169":"#FF9C7A", pct=last?Math.min(1,last.min/S.budget):0;
-  const big=last?Math.floor(last.min/60)+":"+String(last.min%60).padStart(2,"0"):String(Math.round(S.budget/60*10)/10).replace(".",",")+" h";
-  const ring=`<svg class="ring" width="92" height="92" viewBox="0 0 36 36" role="img" aria-label="${last?hm(last.min)+" von "+hm(S.budget):"Tagesziel "+hm(S.budget)}"><circle cx="18" cy="18" r="15.5" fill="none" stroke="#2C2F45" stroke-width="3.4"/>${last?`<circle cx="18" cy="18" r="15.5" fill="none" stroke="${col}" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="${Math.max(.02,pct)*97.4} 97.4" transform="rotate(-90 18 18)"/>`:""}<text x="18" y="17.6" text-anchor="middle" font-size="${big.length>4?6.2:7}" font-weight="800" fill="#F3F1EA" font-family="Manrope, sans-serif">${big}</text><text x="18" y="23.4" text-anchor="middle" font-size="3.6" fill="#A4A6BD" font-family="Manrope, sans-serif">${last?"von "+hm(S.budget):"pro Tag"}</text></svg>`;
+  const col=!last||good?"var(--lime)":"var(--coral)", diff=last?Math.abs(S.budget-last.min):0;
   const pl=S.plan&&!S.plan.res&&S.plan.day>today()?PLANS.find(x=>x.id===S.plan.id):null;   // Vorhaben für heute hat eine eigene Karte
-  const joker=last?(S.jokerWk===isoWeek(today())?"🃏 Joker genutzt":"🃏 Joker bereit"):"";
-  const sub=[pl?"Vorhaben morgen: "+esc(pl.n):"",joker].filter(Boolean).join(" · ");
-  const dots=week.length?`<div class="wk-dots" role="img" aria-label="${week.filter(d=>d.min<=S.budget).length} von ${week.length} Tagen im Ziel">${week.map(d=>`<span title="${nice(d.day)}: ${hm(d.min)}"><i style="background:${d.min<=S.budget?"var(--lime)":"var(--coral)"}"></i>${parse(d.day).toLocaleDateString("de-DE",{weekday:"narrow"})}</span>`).join("")}</div>`:"";
+  const pills=[S.budgetStreak>1?`<span class="hm-pill" title="${S.budgetStreak} Tage in Folge im Ziel">🔥 ${S.budgetStreak}</span>`:"",
+    last?`<span class="hm-pill${S.jokerWk===isoWeek(today())?" off":""}" title="${S.jokerWk===isoWeek(today())?"Joker diese Woche genutzt":"Joker bereit"}">🃏</span>`:""].join("");
+  // Balken: verbrauchte Zeit bis zum Budget (bei mehr: voll, Rest rot)
+  const used=last?Math.min(1,last.min/S.budget):0;
+  const bar=last?`<div class="hm-bar" role="img" aria-label="${hm(last.min)} von ${hm(S.budget)}"><i style="width:${used*100}%;background:${col}"></i></div>
+    <div class="hm-scale"><span>${hm(last.min)} am Handy</span><span>Ziel ${hm(S.budget)}</span></div>`:"";
+  // Wochensäulen: Höhe nach Minuten, gestrichelte Linie = Budget, letzter Tag hervorgehoben
+  const PH=48, top=Math.max(S.budget*1.3,...week.map(d=>d.min)), hgt=m=>Math.max(5,PH*m/top);
+  const cols=week.length>1?`<div class="hm-week" role="img" aria-label="${week.filter(d=>d.min<=S.budget).length} von ${week.length} Tagen im Ziel">
+    <div class="hm-plot" style="height:${PH}px"><span class="hm-goal" style="bottom:${hgt(S.budget).toFixed(1)}px"></span>
+      ${week.map((d,i)=>`<span class="hm-col${i===week.length-1?" now":""}" title="${nice(d.day)}: ${hm(d.min)}"><i style="height:${hgt(d.min).toFixed(1)}px;background:${d.min<=S.budget?"var(--lime)":"var(--coral)"}"></i></span>`).join("")}</div>
+    <div class="hm-days">${week.map((d,i)=>`<b${i===week.length-1?' class="now"':""}>${parse(d.day).toLocaleDateString("de-DE",{weekday:"narrow"})}</b>`).join("")}</div></div>`:"";
+  const foot=form||(ok?`<button class="btn" id="goalGo">${nd===today()?"Tag eintragen":"Tag eintragen · "+nice(nd)}</button>`
+    :S.vacation?"":`<p class="hm-done"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Heute ist eingetragen. Bis morgen!</p>`);
   return `<div class="card hmain">
-    <div class="row" style="gap:14px;align-items:center">${ring}<div class="grow">
-      <p class="label">${last?dayLabel(last.day):"Dein Tagesziel"}</p>
-      <h3 class="hm-title" style="color:${last?col:"var(--ink)"}">${last?(good?hm(S.budget-last.min)+" unter dem Ziel":hm(last.min-S.budget)+" über dem Ziel"):hm(S.budget)+" Bildschirmzeit"}</h3>
-      ${sub?`<p class="small muted">${sub}</p>`:last?"":`<p class="small muted">Trag abends ein, wie lange du am Handy warst.</p>`}
-      ${S.budgetStreak>1?`<p class="small" style="color:var(--lime);font-weight:700">${S.budgetStreak} Tage in Folge im Ziel</p>`:""}
-    </div></div>
-    ${dots}
-    ${form||(ok?`<button class="btn" id="goalGo">${nd===today()?"Tag eintragen":"Tag eintragen · "+nice(nd)}</button>`:S.vacation?"":`<p class="small" style="color:var(--lime);font-weight:700">Heute ist eingetragen. Bis morgen!</p>`)}
+    <div class="hm-head"><p class="label">${last?dayLabel(last.day):"Dein Tagesziel"}</p>${pills?`<div class="hm-pills">${pills}</div>`:""}</div>
+    <h3 class="hm-title">${last?`<span class="hm-big" style="color:${col}">${hm(diff)}</span><span class="hm-word">${good?"unter dem Ziel":"über dem Ziel"}</span>`
+      :`<span class="hm-big">${hm(S.budget)}</span><span class="hm-word">Bildschirmzeit am Tag</span>`}</h3>
+    ${last||form?"":`<p class="small muted">Trag abends ein, wie lange du am Handy warst.</p>`}
+    ${pl?`<p class="small muted">Vorhaben morgen: ${esc(pl.n)}</p>`:""}
+    ${bar}${cols}
+    ${foot}
   </div>`;
 }
 /* Für dich: Kapitel, Wunsch, Wochenrückblick, Neues als Wischkarten */
@@ -3658,6 +3666,8 @@ const MUSIC=(()=>{
       const swell=ac.createGain(); swell.gain.value=.5; const lfo=ac.createOscillator(); lfo.frequency.value=1/9; const lg=ac.createGain(); lg.gain.value=.45;
       lfo.connect(lg); lg.connect(swell.gain); ns.connect(lp); lp.connect(swell); swell.connect(waveGain); ns.start(t); lfo.start(t); waveSrc=[ns,lfo];
     }
+    // geplantes Ausblenden eines vorherigen stop() verwerfen, sonst dreht es das Rauschen kurz danach wieder auf 0
+    waveGain.gain.cancelScheduledValues(t); waveGain.gain.setValueAtTime(waveGain.gain.value,t);
     waveGain.gain.setTargetAtTime(o.waves===false?0:V[mood].wave*(o.waveBoost||1),t,.8);
     timer=setInterval(tick,25); tick(); return true;
   }
@@ -3672,7 +3682,7 @@ const MUSIC=(()=>{
   // sofort still: beim Verlassen der App alles anhalten, damit das iPhone keine Tonreste verzerrt abspielt
   function halt(){clearInterval(timer); clearTimeout(stopT); endT=0; cur=null; const ws=waveSrc; waveSrc=null;
     if(ac){try{master.gain.cancelScheduledValues(0); master.gain.value=0}catch(e){} if(ws) ws.forEach(n=>{try{n.stop()}catch(e){}})}}
-  return {play,stop,halt,playing:()=>cur};
+  return {play,stop,halt,playing:()=>cur,waveLevel:()=>waveGain?waveGain.gain.value:0};
 })();
 const moodNow=()=>{const h=new Date().getHours(); return h>=22||h<5?"nacht":h>=17?"abend":"morgen"};
 /* Hintergrundmusik: nur wenn eingeschaltet, startet mit der ersten Berührung, klingt nach 3 Minuten aus */
@@ -3712,6 +3722,7 @@ function calmMinute(){
     <p class="calm-time num" id="calmTime">1:00</p>
     <button class="btn ghost" id="calmStop">Beenden</button></div>`;
   document.body.appendChild(el); requestAnimationFrame(()=>el.classList.add("on"));
+  calmSession(true);   // auch bei Lautlos-Schalter hörbar, wo das Gerät es erlaubt
   const keepS=S.sound; S.sound=true; MUSIC.play("nacht",{vol:.3,fadeIn:4,waveBoost:1.5}); S.sound=keepS;
   let lock=null; try{navigator.wakeLock&&navigator.wakeLock.request("screen").then(l=>{lock=l}).catch(()=>{})}catch(e){}
   const t0=Date.now(), br=el.querySelector(".calm-breath");
@@ -3723,8 +3734,10 @@ function calmMinute(){
   },250)};
   $("#calmStop").onclick=()=>calmEnd(false);
 }
+/* Inselminute ist bewusst gestartet: Ton wie bei einer Medien-App (Safari/iOS 17+: navigator.audioSession), danach zurück */
+function calmSession(on){try{if(navigator.audioSession) navigator.audioSession.type=on?"playback":"auto"}catch(e){}}
 function calmEnd(done){
-  if(!CALM) return; const c=CALM; CALM=null; clearInterval(c.iv); MUSIC.stop(done?5:1.2);
+  if(!CALM) return; const c=CALM; CALM=null; clearInterval(c.iv); MUSIC.stop(done?5:1.2); setTimeout(()=>{if(!CALM) calmSession(false)},(done?5:1.2)*1000+400);
   try{const l=c.lock(); if(l) l.release()}catch(e){}
   stat(done?"inselminute":"inselminute_abbruch");
   if(done){

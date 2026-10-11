@@ -532,3 +532,26 @@ details.res-sec+details.res-sec,.res-search+p+details.res-sec{margin-top:4px}
 .jubi-grid div{background:var(--card2);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column}
 .jubi-grid b{font-size:20px;color:var(--lime)}
 .jubi-grid span{font-size:12.5px;color:var(--muted)}
+
+/* Tageskarte im Tab Heute: große Zahl, schmaler Balken, Wochensäulen */
+.hmain{gap:10px}
+.hm-head{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:26px}
+.hm-pills{display:flex;gap:6px}
+.hm-pill{display:inline-flex;align-items:center;gap:3px;height:26px;padding:0 10px;border-radius:13px;background:var(--card2);font-size:13px;font-weight:800;color:var(--ink)}
+.hm-pill.off{opacity:.4}
+.hmain .hm-title{display:flex;flex-direction:column;margin:0}
+.hm-big{font:800 40px/1 var(--display);letter-spacing:-1px}
+.hm-word{font:700 15px/1.3 var(--body);color:var(--muted);margin-top:4px}
+.hm-bar{height:8px;border-radius:4px;background:var(--card2);overflow:hidden;margin-top:6px}
+.hm-bar i{display:block;height:100%;border-radius:4px}
+.hm-scale{display:flex;justify-content:space-between;font-size:12.5px;font-weight:700;color:var(--muted);margin-top:-2px}
+.hm-week{padding-top:12px;margin-top:4px;border-top:1px solid var(--card2)}
+.hm-plot{position:relative;display:flex;align-items:flex-end}
+.hm-goal{position:absolute;left:0;right:0;border-top:1.5px dashed rgba(243,241,234,.25);pointer-events:none}
+.hm-col{flex:1;display:flex;justify-content:center}
+.hm-col i{display:block;width:14px;border-radius:5px;opacity:.45}
+.hm-col.now i{opacity:1}
+.hm-days{display:flex;margin-top:6px}
+.hm-days b{flex:1;text-align:center;font-size:11px;font-weight:700;color:var(--muted)}
+.hm-days b.now{color:var(--ink)}
+.hm-done{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--lime);background:rgba(200,241,105,.08);border-radius:12px;padding:10px 12px;margin:2px 0 0}
