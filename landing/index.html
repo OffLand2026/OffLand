@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>OffLand · Weniger Handy. Mehr Insel.</title>
+<meta name="description" content="OffLand macht aus der Zeit, die du nicht am Handy verbringst, eine kleine Insel voller Leben. Bildschirmzeit senken, ganz ohne Verbote.">
+<meta property="og:title" content="OffLand · Weniger Handy. Mehr Insel.">
+<meta property="og:description" content="Bau dir deine eigene Insel, indem du das Handy öfter weglegst.">
+<meta property="og:image" content="img/heute.webp">
+<meta name="theme-color" content="#14151F">
+<link rel="icon" href="../icons/icon-192.png">
+<link rel="apple-touch-icon" href="../icons/icon-192.png">
+<link rel="stylesheet" href="../css/fonts.css">
+<style>
+  /* Startseite im Stil der App: Nachtinsel, Lindgrün als Akzent. Bewusst nur dunkel. */
+  :root{
+    --ground:#14151F; --card:#1E2030; --card2:#2F3248; --line:#3A3D58;
+    --ink:#F3F1EA; --muted:#A4A6BD; --lime:#C8F169; --lilac:#B6A4FF; --amber:#FFB86B; --coral:#FF9C7A; --sea:#24375A; --sky:#1B2340;
+    --display:'Bricolage Grotesque','Avenir Next',system-ui,sans-serif;
+    --body:'Manrope','Segoe UI',system-ui,sans-serif;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--ground);color:var(--ink);font:500 16.5px/1.6 var(--body)}
+  img,video{max-width:100%;height:auto;display:block}
+  a{color:inherit}
+  h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.6px;text-wrap:balance}
+  p{margin:0}
+  .wrap{max-width:1080px;margin:0 auto;padding-inline:20px}
+  .muted{color:var(--muted)}
+  .label{font-size:12.5px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--lime)}
+
+  /* Kopfzeile */
+  header{position:sticky;top:0;z-index:5;background:rgba(20,21,31,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgba(58,61,88,.5);padding-top:env(safe-area-inset-top,0px)}
+  header .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;gap:12px}
+  .brand{display:flex;align-items:center;gap:10px;text-decoration:none;font:800 22px var(--display)}
+  .brand img{width:34px;height:34px;border-radius:9px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:52px;padding:0 24px;border-radius:26px;background:var(--lime);color:#14151F;font:800 16px var(--body);text-decoration:none;border:none;cursor:pointer;white-space:nowrap}
+  .btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+  .btn.sm{height:42px;padding:0 18px;font-size:14.5px}
+  .btn:focus-visible{outline:3px solid var(--lilac);outline-offset:3px}
+
+  /* Hero: Text links, zwei Handys rechts, darunter das Meer */
+  .hero{position:relative;overflow:hidden;background:radial-gradient(120% 90% at 80% 0%,#2A3566 0%,var(--sky) 45%,var(--ground) 100%)}
+  .hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;align-items:center;gap:40px;padding-block:72px 64px}
+  .hero h1{font-size:clamp(42px,6.4vw,74px);font-weight:800;line-height:1}
+  .hero h1 em{font-style:normal;color:var(--lime)}
+  .hero .lead{font-size:clamp(17px,2vw,20px);color:#D3D2DA;margin-top:20px;max-width:30em}
+  .hero .cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+  .hero .note{margin-top:14px;font-size:13.5px;color:var(--muted)}
+  .phones{position:relative;height:560px}
+  .phone{position:absolute;width:250px;border-radius:38px;padding:9px;background:#0B0C13;box-shadow:0 30px 60px rgba(0,0,0,.45),inset 0 0 0 1.5px #343750}
+  .phone img{border-radius:30px;width:100%;height:auto}
+  .phone.a{right:150px;top:10px;transform:rotate(-5deg)}
+  .phone.b{right:0;top:80px;transform:rotate(5deg)}
+  .stars i{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff;opacity:.6;animation:tw 4s ease-in-out infinite}
+  @keyframes tw{50%{opacity:.15}}
+
+  section{padding-block:80px}
+  .head{max-width:640px;display:flex;flex-direction:column;gap:12px;margin-bottom:40px}
+  .head h2{font-size:clamp(30px,4vw,44px);line-height:1.08}
+
+  /* So funktioniert's */
+  .steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;counter-reset:s}
+  .step{background:var(--card);border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:10px}
+  .step .n{width:40px;height:40px;border-radius:20px;display:grid;place-items:center;background:var(--card2);color:var(--lime);font:800 18px var(--display)}
+  .step h3{font-size:21px}
+
+  /* Funktionen: abwechselnd Bild links/rechts */
+  .feat{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:48px;padding-block:28px}
+  .feat:nth-child(even) .shot{order:2}
+  .feat .shot{justify-self:center;width:min(300px,80%);border-radius:36px;padding:9px;background:#0B0C13;box-shadow:0 24px 50px rgba(0,0,0,.4),inset 0 0 0 1.5px #343750}
+  .feat .shot img{border-radius:28px}
+  .feat h3{font-size:clamp(26px,3vw,34px);line-height:1.1;margin-top:8px}
+  .feat p{margin-top:12px;color:#D3D2DA;max-width:32em}
+  .feat ul{margin:14px 0 0;padding-left:20px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+
+  /* Video */
+  .video{display:grid;grid-template-columns:auto 1fr;gap:48px;align-items:center}
+  .video video{width:280px;border-radius:28px;background:#000;box-shadow:0 24px 50px rgba(0,0,0,.4)}
+  .quote{font:800 clamp(26px,3.2vw,38px)/1.15 var(--display)}
+
+  /* Datenschutz-Versprechen */
+  .promise{background:linear-gradient(135deg,#1F2A3A,#1D2418);border:1.5px solid #3D4A2E;border-radius:28px;padding:36px;display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:center}
+  .promise ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+  .promise li{display:flex;gap:12px;align-items:flex-start}
+  .promise li::before{content:"✓";flex:none;width:26px;height:26px;border-radius:13px;background:var(--lime);color:#14151F;font-weight:800;display:grid;place-items:center;font-size:14px;margin-top:1px}
+
+  /* Fragen */
+  .faq{display:flex;flex-direction:column;gap:10px;max-width:760px}
+  .faq details{background:var(--card);border-radius:18px;padding:4px 20px}
+  .faq summary{cursor:pointer;font-weight:800;min-height:56px;display:flex;align-items:center;justify-content:space-between;gap:12px;list-style:none}
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary::after{content:"+";font:800 24px var(--display);color:var(--lime);transition:transform .2s}
+  .faq details[open] summary::after{transform:rotate(45deg)}
+  .faq details p{padding-bottom:18px;color:#D3D2DA}
+
+  /* Abschluss */
+  .final{text-align:center;display:flex;flex-direction:column;align-items:center;gap:18px}
+  .final h2{font-size:clamp(34px,5vw,56px);line-height:1.05}
+  .final .cta{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+  footer{border-top:1px solid var(--line);padding-block:28px calc(28px + env(safe-area-inset-bottom,0px));color:var(--muted);font-size:14px}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:12px 24px;justify-content:space-between}
+  footer nav{display:flex;gap:20px;flex-wrap:wrap}
+
+  @media (max-width:860px){
+    .hero .wrap{grid-template-columns:1fr;padding-block:48px 24px}
+    .phones{height:440px;max-width:420px;width:100%;margin:0 auto}
+    .phone{width:200px}
+    .phone.a{right:auto;left:0}
+    .steps{grid-template-columns:1fr}
+    .feat{grid-template-columns:1fr;gap:24px}
+    .feat:nth-child(even) .shot{order:0}
+    .video{grid-template-columns:1fr;justify-items:center;text-align:center}
+    .promise{grid-template-columns:1fr;padding:26px}
+    section{padding-block:56px}
+  }
+  @media (max-width:420px){.phone{width:170px}.phones{height:380px}.header-cta{display:none}}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.stars i{animation:none}}
+</style>
+</head>
+<body>
+
+<header><div class="wrap">
+  <a class="brand" href="./"><img src="../icons/icon-192.png" alt="">OffLand</a>
+  <a class="btn sm header-cta" href="../">Im Browser ausprobieren</a>
+</div></header>
+
+<main>
+<section class="hero" style="padding:0">
+  <div class="stars" aria-hidden="true"><i style="left:8%;top:14%"></i><i style="left:22%;top:6%;animation-delay:1s"></i><i style="left:46%;top:18%;animation-delay:2s"></i><i style="left:63%;top:8%;animation-delay:.5s"></i><i style="left:88%;top:22%;animation-delay:1.6s"></i><i style="left:34%;top:30%;animation-delay:2.6s"></i></div>
+  <div class="wrap">
+    <div>
+      <p class="label">Bildschirmzeit senken, ganz ohne Verbote</p>
+      <h1 style="margin-top:14px">Weniger Handy.<br><em>Mehr Insel.</em></h1>
+      <p class="lead">OffLand macht aus der Zeit, die du nicht am Handy verbringst, eine kleine Insel voller Leben. Je öfter du das Handy weglegst, desto mehr Bewohner ziehen ein, desto mehr wird gebaut und desto glücklicher wird deine Insel.</p>
+      <div class="cta">
+        <a class="btn" href="../">Kostenlos im Browser ausprobieren</a>
+        <a class="btn ghost" href="../warteliste/">iPhone-App: Warteliste</a>
+      </div>
+      <p class="note">Ohne Anmeldung. Deine Insel bleibt auf deinem Gerät.</p>
+    </div>
+    <div class="phones" aria-hidden="true">
+      <div class="phone a"><img src="img/heute.webp" width="720" height="1558" alt=""></div>
+      <div class="phone b"><img src="img/bewohner.webp" width="720" height="1558" alt=""></div>
+    </div>
+  </div>
+</section>
+
+<section id="so-gehts"><div class="wrap">
+  <div class="head"><p class="label">So funktioniert's</p><h2>Eine Minute am Abend genügt</h2></div>
+  <div class="steps">
+    <div class="step"><span class="n">1</span><h3>Ziel festlegen</h3><p class="muted">Wie viel Bildschirmzeit am Tag ist für dich okay? Das ist dein Budget.</p></div>
+    <div class="step"><span class="n">2</span><h3>Abends eintragen</h3><p class="muted">Trag ein, wie lange du am Handy warst. In der iPhone-App passiert das automatisch.</p></div>
+    <div class="step"><span class="n">3</span><h3>Insel wachsen sehen</h3><p class="muted">Jede Minute unter deinem Budget wird zu Baumaterial, Punkten und Glück für deine Bewohner.</p></div>
+  </div>
+</div></section>
+
+<section style="padding-top:0"><div class="wrap">
+  <div class="feat">
+    <div class="shot"><img src="img/bewohner.webp" width="720" height="1558" alt="Bewohner sitzen abends am Lagerfeuer" loading="lazy"></div>
+    <div><p class="label">Bewohner</p><h3>Eine Insel, die sich auf dich freut</h3>
+      <p>Menschen mit Berufen und Eigenheiten, Tiere, Freundschaften und Familien. An guten Tagen sitzen alle zusammen am Lagerfeuer. An schlechten Tagen greift auch mal jemand zum Handy.</p>
+      <ul><li>Seltene Tiere kommen zu Besuch</li><li>Wünsche erfüllen, Feste feiern</li><li>Fanpost von den Nachbarinseln</li></ul></div>
+  </div>
+  <div class="feat">
+    <div class="shot"><img src="img/zeit.webp" width="720" height="1558" alt="Übersicht der gewonnenen Zeit" loading="lazy"></div>
+    <div><p class="label">Deine Zeit</p><h3>Sieh, was du dir zurückholst</h3>
+      <p>OffLand rechnet dir vor, was aus deiner gewonnenen Zeit geworden ist: Spaziergänge, Buchkapitel, ganze Tage im Jahr. Und hilft dir, sie für etwas zu nutzen, das dir wichtig ist.</p>
+      <ul><li>Wochenrückblick mit deinen besten Tagen</li><li>Vorhaben für morgen</li><li>Fokus-Bootsfahrten zum konzentrierten Arbeiten</li></ul></div>
+  </div>
+  <div class="feat">
+    <div class="shot"><img src="img/ruhe.webp" width="720" height="1558" alt="Inselminute mit Atemkreis" loading="lazy"></div>
+    <div><p class="label">Inselminute</p><h3>Kurz runterkommen</h3>
+      <p>Eine Minute Augen zu, Meeresrauschen und ein Kreis, der mit dir atmet. Perfekt bevor das Handy abends schlafen geht. Dazu leise Inselmusik, wenn du magst.</p></div>
+  </div>
+  <div class="feat">
+    <div class="shot"><img src="img/heute.webp" width="720" height="1558" alt="Startseite mit der Insel und dem Tagesziel" loading="lazy"></div>
+    <div><p class="label">Gemeinsam</p><h3>Mit Freunden und Familie</h3>
+      <p>Vergleicht eure Woche, fordert euch zum Duell heraus oder baut zusammen an einer Familieninsel. Wer gerade mehr am Handy ist, sieht man nicht in Minuten, sondern daran, wie es der Insel geht.</p>
+      <ul><li>Fünf Inselwelten von den Tropen bis ins Eis</li><li>Über 100 Dinge zum Bauen und Einrichten</li></ul></div>
+  </div>
+</div></section>
+
+<section style="background:var(--card)"><div class="wrap video">
+  <video src="img/promo.mp4" poster="img/promo-poster.webp" controls playsinline preload="none" width="540" height="960" aria-label="Kurzes Video: eine schlafende Katze und die Musik aus OffLand"></video>
+  <div><p class="label">Mit Musik aus der App</p><p class="quote" style="margin-top:12px">„So entspannt kann es sein, mit weniger Bildschirmzeit.“</p>
+    <p class="muted" style="margin-top:14px;max-width:30em">Die ruhige Inselmusik wird direkt im Handy erzeugt. Unsere Katze hat sie offiziell abgenommen.</p></div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="promise">
+    <div><p class="label">Datenschutz</p><h2 style="font-size:clamp(28px,3.4vw,40px);margin-top:10px;line-height:1.1">Deine Daten bleiben bei dir</h2>
+      <p class="muted" style="margin-top:12px">OffLand ist kein Werkzeug, um dich länger am Bildschirm zu halten. Im Gegenteil.</p></div>
+    <ul>
+      <li>Keine Anmeldung nötig, deine Insel liegt auf deinem Gerät</li>
+      <li>Keine Werbung und keine Tracking-Dienste</li>
+      <li>Die iPhone-App sieht nur deine Gesamtzeit, nicht welche Apps du nutzt</li>
+      <li>Online-Funktionen und Statistik nur, wenn du sie einschaltest</li>
+    </ul>
+  </div>
+</div></section>
+
+<section style="padding-top:0"><div class="wrap">
+  <div class="head"><p class="label">Fragen</p><h2>Gut zu wissen</h2></div>
+  <div class="faq">
+    <details><summary>Was kostet OffLand?</summary><p>Die Insel und alle Grundfunktionen sind kostenlos. Später gibt es optional OffLand Plus mit zusätzlichen Inseln und Extras. Plus kann man sich auch verdienen, zum Beispiel durch gute Tage oder indem man Freunde einlädt.</p></details>
+    <details><summary>Brauche ich ein Konto?</summary><p>Nein. Du legst nur einen Namen für deine Insel an. Für Freunde, Ranglisten und das Online-Backup kannst du die Online-Funktionen einschalten, auch dafür brauchst du keine E-Mail-Adresse.</p></details>
+    <details><summary>Wird meine Bildschirmzeit automatisch erfasst?</summary><p>In der iPhone-App ja: Sie liest über Apples Bildschirmzeit die Gesamtzeit in 15-Minuten-Schritten. Im Browser trägst du die Zeit abends selbst ein, das dauert wenige Sekunden.</p></details>
+    <details><summary>Wann kommt die App in den App Store?</summary><p>Bald. Trag dich auf die Warteliste ein, dann sagen wir dir Bescheid. Bis dahin kannst du OffLand im Browser spielen und auf deinen Home-Bildschirm legen.</p></details>
+    <details><summary>Gibt es OffLand für Android?</summary><p>Im Browser läuft OffLand auch auf Android. Eine eigene Android-App mit automatischer Bildschirmzeit ist geplant.</p></details>
+  </div>
+</div></section>
+
+<section style="padding-top:20px"><div class="wrap final">
+  <h2>Leg das Handy weg.<br>Deine Insel wartet.</h2>
+  <div class="cta"><a class="btn" href="../">Jetzt kostenlos starten</a><a class="btn ghost" href="../warteliste/">Auf die Warteliste</a></div>
+</div></section>
+</main>
+
+<footer><div class="wrap">
+  <span>© 2026 OffLand</span>
+  <nav><a href="../impressum/">Impressum</a><a href="../datenschutz/">Datenschutz</a><a data-mail href="#">Kontakt</a></nav>
+</div></footer>
+
+<script src="../js/online-config.js"></script>
+<script>
+  // Kontaktadresse aus js/online-config.js
+  document.querySelectorAll("[data-mail]").forEach(function (el) { var m = window.OFFLAND_CONTACT; if (m) el.href = "mailto:" + m; else el.remove(); });
+</script>
+</body>
+</html>
