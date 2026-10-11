@@ -7,7 +7,17 @@
 <meta name="description" content="OffLand macht aus der Zeit, die du nicht am Handy verbringst, eine kleine Insel voller Leben. Bildschirmzeit senken, ganz ohne Verbote.">
 <meta property="og:title" content="OffLand · Weniger Handy. Mehr Insel.">
 <meta property="og:description" content="Bau dir deine eigene Insel, indem du das Handy öfter weglegst.">
-<meta property="og:image" content="img/heute.webp">
+<!-- Absolute Adressen: Beim Umzug auf die eigene Domain hier anpassen -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="OffLand">
+<meta property="og:locale" content="de_DE">
+<meta property="og:url" content="https://offland2026.github.io/OffLand/landing/">
+<meta property="og:image" content="https://offland2026.github.io/OffLand/landing/img/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="OffLand: Weniger Handy. Mehr Insel. Zwei Handys zeigen die Insel und die Familieninsel.">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://offland2026.github.io/OffLand/landing/">
 <meta name="theme-color" content="#14151F">
 <link rel="icon" href="../icons/icon-192.png">
 <link rel="apple-touch-icon" href="../icons/icon-192.png">
@@ -23,6 +33,7 @@
   }
   *{box-sizing:border-box}
   html{scroll-behavior:smooth}
+  #warteliste{scroll-margin-top:110px}
   body{margin:0;background:var(--ground);color:var(--ink);font:500 16.5px/1.6 var(--body)}
   img,video{max-width:100%;height:auto;display:block}
   a{color:inherit}
@@ -98,6 +109,26 @@
   .faq details p{padding-bottom:18px;color:#D3D2DA}
 
   /* Abschluss */
+  .wl{margin-top:12px;max-width:520px}
+  .wl .row{display:flex;gap:10px}
+  .wl input[type=email]{flex:1;min-width:0;height:52px;font:600 16px var(--body);color:var(--ink);background:var(--card);border:1.5px solid var(--line);border-radius:26px;padding:0 20px;outline:none}
+  .wl input[type=email]:focus{border-color:var(--lilac)}
+  .wl .check{display:flex;gap:10px;align-items:flex-start;margin-top:12px;font-size:13.5px;color:var(--muted);line-height:1.45;cursor:pointer}
+  .wl .check input{margin-top:2px;width:18px;height:18px;accent-color:var(--lime);flex:none}
+  .wl .check a{color:var(--ink)}
+  .wl .msg{min-height:1.3em;margin-top:10px;font-size:14.5px;font-weight:700}
+  .wl .msg.ok{color:var(--lime)} .wl .msg.err{color:var(--coral)}
+  .wl .btn:disabled{opacity:.6;cursor:default}
+  .alt{display:inline-block;margin-top:6px;font-size:14.5px;color:var(--muted)}
+  .alt a{color:var(--ink);font-weight:700}
+  .final .wl{margin-inline:auto;text-align:left;width:100%}
+  .parents{display:grid;grid-template-columns:1.1fr 1fr;gap:36px;align-items:center;background:linear-gradient(135deg,#2A2140,#1E2030);border:1.5px solid #463C6A;border-radius:28px;padding:40px}
+  .parents h2{font-size:clamp(28px,3.4vw,40px);line-height:1.1;margin-top:10px}
+  .parents .label{color:var(--lilac)}
+  .parents ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}
+  .parents li{background:rgba(20,21,31,.45);border-radius:18px;padding:16px 18px}
+  .parents li b{display:block;margin-bottom:3px}
+  .parents li span{color:var(--muted);font-size:15px}
   .final{text-align:center;display:flex;flex-direction:column;align-items:center;gap:18px}
   .final h2{font-size:clamp(34px,5vw,56px);line-height:1.05}
   .final .cta{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
@@ -115,9 +146,10 @@
     .feat:nth-child(even) .shot{order:0}
     .video{grid-template-columns:1fr;justify-items:center;text-align:center}
     .promise{grid-template-columns:1fr;padding:26px}
+    .parents{grid-template-columns:1fr;padding:26px;gap:22px}
     section{padding-block:56px}
   }
-  @media (max-width:420px){.phone{width:170px}.phones{height:380px}.header-cta{display:none}}
+  @media (max-width:420px){.phone{width:170px}.phones{height:380px}.header-cta{display:none}.wl .row{flex-direction:column}.wl input[type=email]{flex:none}}
   @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.stars i{animation:none}}
 </style>
 </head>
@@ -125,7 +157,7 @@
 
 <header><div class="wrap">
   <a class="brand" href="./"><img src="../icons/icon-192.png" alt="">OffLand</a>
-  <a class="btn sm header-cta" href="../">Im Browser ausprobieren</a>
+  <a class="btn sm header-cta" href="#warteliste" data-focus>Auf die Warteliste</a>
 </div></header>
 
 <main>
@@ -136,11 +168,13 @@
       <p class="label">Bildschirmzeit senken, ganz ohne Verbote</p>
       <h1 style="margin-top:14px">Weniger Handy.<br><em>Mehr Insel.</em></h1>
       <p class="lead">OffLand macht aus der Zeit, die du nicht am Handy verbringst, eine kleine Insel voller Leben. Je öfter du das Handy weglegst, desto mehr Bewohner ziehen ein, desto mehr wird gebaut und desto glücklicher wird deine Insel.</p>
-      <div class="cta">
-        <a class="btn" href="../">Kostenlos im Browser ausprobieren</a>
-        <a class="btn ghost" href="../warteliste/">iPhone-App: Warteliste</a>
-      </div>
-      <p class="note">Ohne Anmeldung. Deine Insel bleibt auf deinem Gerät.</p>
+      <p class="label" id="warteliste" style="margin-top:28px;color:var(--ink);letter-spacing:.6px;text-transform:none;font-size:15px">Bald im App Store. Sei von Anfang an dabei:</p>
+      <form class="wl" data-src="landing" novalidate>
+        <div class="row"><input type="email" id="email1" placeholder="deine@email.de" autocomplete="email" aria-label="E-Mail-Adresse"><button type="submit" class="btn">Auf die Warteliste</button></div>
+        <label class="check"><input type="checkbox"> <span>Ja, sagt mir per E-Mail Bescheid, wenn OffLand im App Store ist. Mehr schicken wir nicht. Abmelden geht jederzeit, siehe <a href="../datenschutz/">Datenschutz</a>.</span></label>
+        <p class="msg" role="status"></p>
+      </form>
+      <span class="alt">Oder <a href="../">schon jetzt im Browser ausprobieren</a></span>
     </div>
     <div class="phones" aria-hidden="true">
       <div class="phone a"><img src="img/heute.webp" width="720" height="1558" alt=""></div>
@@ -190,6 +224,19 @@
   </div>
 </div></section>
 
+<section style="padding-top:24px"><div class="wrap">
+  <div class="parents">
+    <div><p class="label">Für Familien</p><h2>Weniger Streit ums Handy</h2>
+      <p class="muted" style="margin-top:14px;max-width:30em">Statt Verboten und Diskussionen habt ihr ein gemeinsames Ziel: eure Familieninsel. Jeder Tag, an dem ihr im Budget bleibt, bringt sie weiter, und alle ziehen an einem Strang.</p>
+      <p class="muted" style="margin-top:12px;max-width:30em">Funktioniert für Groß und Klein, egal ob alle zu Hause wohnen oder über das ganze Land verteilt.</p></div>
+    <ul>
+      <li><b>Miteinander statt Kontrolle</b><span>Jede:r setzt sich das eigene Ziel. Gezeigt wird nur, ob jemand im Budget war. Die Minuten sieht man nur, wenn man sie selbst teilen möchte.</span></li>
+      <li><b>Gemeinsam etwas aufbauen</b><span>Lagerfeuer, Baumhaus, Floß und Festzelt: Jeder gute Tag von euch allen bringt die Familieninsel weiter.</span></li>
+      <li><b>Ohne Werbung, ohne E-Mail</b><span>Keine Werbung, keine Tracking-Dienste. Für die Familieninsel braucht niemand ein Konto mit E-Mail-Adresse.</span></li>
+    </ul>
+  </div>
+</div></section>
+
 <section style="background:var(--card)"><div class="wrap video">
   <video src="img/promo.mp4" poster="img/promo-poster.webp" controls playsinline preload="none" width="540" height="960" aria-label="Kurzes Video: eine schlafende Katze und die Musik aus OffLand"></video>
   <div><p class="label">Mit Musik aus der App</p><p class="quote" style="margin-top:12px">„So entspannt kann es sein, mit weniger Bildschirmzeit.“</p>
@@ -222,7 +269,13 @@
 
 <section style="padding-top:20px"><div class="wrap final">
   <h2>Leg das Handy weg.<br>Deine Insel wartet.</h2>
-  <div class="cta"><a class="btn" href="../">Jetzt kostenlos starten</a><a class="btn ghost" href="../warteliste/">Auf die Warteliste</a></div>
+  <p class="muted">Trag dich ein, dann sagen wir dir Bescheid, sobald OffLand im App Store ist.</p>
+  <form class="wl" data-src="landing-end" novalidate>
+        <div class="row"><input type="email" id="email2" placeholder="deine@email.de" autocomplete="email" aria-label="E-Mail-Adresse"><button type="submit" class="btn">Auf die Warteliste</button></div>
+        <label class="check"><input type="checkbox"> <span>Ja, sagt mir per E-Mail Bescheid, wenn OffLand im App Store ist. Mehr schicken wir nicht. Abmelden geht jederzeit, siehe <a href="../datenschutz/">Datenschutz</a>.</span></label>
+        <p class="msg" role="status"></p>
+      </form>
+  <span class="alt">Oder <a href="../">schon jetzt im Browser ausprobieren</a></span>
 </div></section>
 </main>
 
@@ -232,6 +285,49 @@
 </div></footer>
 
 <script src="../js/online-config.js"></script>
+<script type="module">
+  // Warteliste direkt auf der Startseite (gleiche Firestore-Sammlung wie /warteliste/).
+  // Firebase wird erst beim Absenden geladen, vorher geht keine Anfrage an Google.
+  const FB_VER = "10.14.1";
+  let net = null;
+  async function connect() {
+    if (net) return net;
+    const b = "https://www.gstatic.com/firebasejs/" + FB_VER + "/";
+    const [A, U, F] = await Promise.all([import(b + "firebase-app.js"), import(b + "firebase-auth.js"), import(b + "firebase-firestore.js")]);
+    const app = A.initializeApp(window.OFFLAND_FIREBASE, "warteliste"), auth = U.getAuth(app), db = F.getFirestore(app);
+    await auth.authStateReady(); if (!auth.currentUser) await U.signInAnonymously(auth);
+    return net = { db, F };
+  }
+  async function idOf(email) {
+    const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(email));
+    return [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, "0")).join("");
+  }
+  document.querySelectorAll("form.wl").forEach(form => {
+    const mail = form.querySelector("input[type=email]"), ok = form.querySelector("input[type=checkbox]"), go = form.querySelector("button"), msg = form.querySelector(".msg");
+    const say = (t, good) => { msg.textContent = t; msg.className = "msg " + (good ? "ok" : "err"); };
+    form.addEventListener("submit", async e => {
+      e.preventDefault();
+      const email = mail.value.trim().toLowerCase();
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || email.length > 120) return say("Bitte gib eine gültige E-Mail-Adresse ein.");
+      if (!ok.checked) return say("Bitte setz noch den Haken, damit wir dir schreiben dürfen.");
+      if (!window.OFFLAND_FIREBASE) return say("Die Warteliste ist gerade nicht erreichbar. Bitte versuch es später noch einmal.");
+      go.disabled = true; say("Einen Moment …", true);
+      try {
+        const { db, F } = await connect();
+        const ref = F.doc(db, "waitlist", await idOf(email));
+        if ((await F.getDoc(ref)).exists()) return say("Du stehst schon auf der Warteliste. Wir melden uns!", true);
+        const src = new URLSearchParams(location.search).get("src") || form.dataset.src;
+        await F.setDoc(ref, { email, consent: true, src: src.slice(0, 30), at: F.serverTimestamp() });
+        say("Geschafft! Wir schreiben dir, sobald OffLand im App Store ist.", true);
+        mail.value = ""; ok.checked = false;
+      } catch (err) {
+        console.error(err);
+        say("Das hat leider nicht geklappt. Bitte versuch es gleich noch einmal.");
+      } finally { go.disabled = false; }
+    });
+  });
+  document.querySelectorAll("[data-focus]").forEach(a => a.addEventListener("click", () => setTimeout(() => document.getElementById("email1").focus({ preventScroll: true }), 450)));
+</script>
 <script>
   // Kontaktadresse aus js/online-config.js
   document.querySelectorAll("[data-mail]").forEach(function (el) { var m = window.OFFLAND_CONTACT; if (m) el.href = "mailto:" + m; else el.remove(); });
