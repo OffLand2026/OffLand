@@ -3658,6 +3658,8 @@ const MUSIC=(()=>{
       const swell=ac.createGain(); swell.gain.value=.5; const lfo=ac.createOscillator(); lfo.frequency.value=1/9; const lg=ac.createGain(); lg.gain.value=.45;
       lfo.connect(lg); lg.connect(swell.gain); ns.connect(lp); lp.connect(swell); swell.connect(waveGain); ns.start(t); lfo.start(t); waveSrc=[ns,lfo];
     }
+    // geplantes Ausblenden eines vorherigen stop() verwerfen, sonst dreht es das Rauschen kurz danach wieder auf 0
+    waveGain.gain.cancelScheduledValues(t); waveGain.gain.setValueAtTime(waveGain.gain.value,t);
     waveGain.gain.setTargetAtTime(o.waves===false?0:V[mood].wave*(o.waveBoost||1),t,.8);
     timer=setInterval(tick,25); tick(); return true;
   }
@@ -3672,7 +3674,7 @@ const MUSIC=(()=>{
   // sofort still: beim Verlassen der App alles anhalten, damit das iPhone keine Tonreste verzerrt abspielt
   function halt(){clearInterval(timer); clearTimeout(stopT); endT=0; cur=null; const ws=waveSrc; waveSrc=null;
     if(ac){try{master.gain.cancelScheduledValues(0); master.gain.value=0}catch(e){} if(ws) ws.forEach(n=>{try{n.stop()}catch(e){}})}}
-  return {play,stop,halt,playing:()=>cur};
+  return {play,stop,halt,playing:()=>cur,waveLevel:()=>waveGain?waveGain.gain.value:0};
 })();
 const moodNow=()=>{const h=new Date().getHours(); return h>=22||h<5?"nacht":h>=17?"abend":"morgen"};
 /* Hintergrundmusik: nur wenn eingeschaltet, startet mit der ersten Berührung, klingt nach 3 Minuten aus */
@@ -3712,6 +3714,7 @@ function calmMinute(){
     <p class="calm-time num" id="calmTime">1:00</p>
     <button class="btn ghost" id="calmStop">Beenden</button></div>`;
   document.body.appendChild(el); requestAnimationFrame(()=>el.classList.add("on"));
+  calmSession(true);   // auch bei Lautlos-Schalter hörbar, wo das Gerät es erlaubt
   const keepS=S.sound; S.sound=true; MUSIC.play("nacht",{vol:.3,fadeIn:4,waveBoost:1.5}); S.sound=keepS;
   let lock=null; try{navigator.wakeLock&&navigator.wakeLock.request("screen").then(l=>{lock=l}).catch(()=>{})}catch(e){}
   const t0=Date.now(), br=el.querySelector(".calm-breath");
@@ -3723,8 +3726,10 @@ function calmMinute(){
   },250)};
   $("#calmStop").onclick=()=>calmEnd(false);
 }
+/* Inselminute ist bewusst gestartet: Ton wie bei einer Medien-App (Safari/iOS 17+: navigator.audioSession), danach zurück */
+function calmSession(on){try{if(navigator.audioSession) navigator.audioSession.type=on?"playback":"auto"}catch(e){}}
 function calmEnd(done){
-  if(!CALM) return; const c=CALM; CALM=null; clearInterval(c.iv); MUSIC.stop(done?5:1.2);
+  if(!CALM) return; const c=CALM; CALM=null; clearInterval(c.iv); MUSIC.stop(done?5:1.2); setTimeout(()=>{if(!CALM) calmSession(false)},(done?5:1.2)*1000+400);
   try{const l=c.lock(); if(l) l.release()}catch(e){}
   stat(done?"inselminute":"inselminute_abbruch");
   if(done){
