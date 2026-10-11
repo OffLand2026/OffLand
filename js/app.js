@@ -4294,7 +4294,45 @@ async function statsFlush(){
   try{const N=await netInit(); if(!N.inc) throw 0; await N.inc("stats/"+today(),q)}
   catch(e){const d2=statsDev(); if(d2.consent!==true) return; d2.q=d2.q||{}; for(const k in q) d2.q[k]=(d2.q[k]||0)+q[k]; statsPut(d2)}
 }
-function statsSet(on){const d=statsDev(); d.consent=!!on; if(!on) d.q={}; statsPut(d); if(on){statsActive();statsFlushSoon()}}
+/* ---------- Fehlerberichte (nur mit Zustimmung zur Statistik) ----------
+   Gesendet werden nur Fehlertext, Stelle im Code, App-Version und Plattform – keine Namen, keine Inseldaten.
+   Gleiche Fehler landen im selben Dokument errors/<kennung> und werden gezählt. Fehler, durch die die App gar nicht
+   startet, sammelt ein kleines Skript in index.html; sie werden beim nächsten erfolgreichen Start nachgereicht. */
+const ERR_KEY="offland-errors";
+const errSig=t=>{let h=0;for(let i=0;i<t.length;i++)h=(h*31+t.charCodeAt(i))|0;return "e"+(h>>>0).toString(36)};
+const errClean=t=>String(t||"").split(location.origin).join("").replace(/\?v=[^\s:)]*/g,"");
+function errReport(msg,src,stack){
+  try{
+    msg=errClean(msg||"Unbekannter Fehler").slice(0,300).trim(); src=errClean(src).slice(0,200); stack=errClean(stack).slice(0,1200);
+    if(!msg||/ResizeObserver loop|^Script error\.?$/.test(msg)) return;          // harmlos bzw. ohne Inhalt (fremde Skripte)
+    const q=JSON.parse(localStorage.getItem(ERR_KEY)||"[]"); if(q.length>=20) return;
+    q.push({msg,src,stack,v:typeof APP_VERSION!=="undefined"?APP_VERSION:"?",p:statsPlatform(),at:Date.now()});
+    localStorage.setItem(ERR_KEY,JSON.stringify(q)); errFlushSoon();
+  }catch(e){}
+}
+let errTimer=0;
+function errFlushSoon(){clearTimeout(errTimer);errTimer=setTimeout(errFlush,3000)}
+async function errFlush(){
+  let q; try{q=JSON.parse(localStorage.getItem(ERR_KEY)||"[]")}catch(e){q=[]}
+  if(!q.length) return;
+  const d=statsDev(); if(d.consent===false){try{localStorage.removeItem(ERR_KEY)}catch(e){} return}
+  if(d.consent!==true||!netConfigured()) return;                                // wartet auf die Zustimmung
+  try{localStorage.removeItem(ERR_KEY)}catch(e){}
+  try{
+    const N=await netInit(); if(!N.inc) return;
+    const groups={}; q.forEach(e=>{const k=errSig(e.msg+"|"+e.src); (groups[k]=groups[k]||[]).push(e)});
+    for(const k in groups){const g=groups[k], e=g[g.length-1], plat=["ios","pwa","web"].includes(e.p)?e.p:"web", inc={n:g.length}; inc["p_"+plat]=g.length;
+      await N.inc("errors/"+k,inc);
+      await N.set("errors/"+k,{msg:e.msg,src:e.src,stack:e.stack,v:String(e.v).slice(0,12),last:Date.now()});}
+    stat("fehler",q.length);
+    if(d.errDay!==today()){const d2=statsDev(); d2.errDay=today(); statsPut(d2); stat("fehler_geraet")}   // Gerätetage mit Fehler
+  }catch(e){}
+}
+window.__offlandReady=true;                                                       // ab jetzt meldet die App selbst (siehe index.html)
+window.addEventListener("error",e=>errReport(e.message,(e.filename||"")+(e.lineno?":"+e.lineno+":"+(e.colno||0):""),e.error&&e.error.stack));
+window.addEventListener("unhandledrejection",e=>{const r=e.reason; errReport("Promise: "+((r&&r.message)||r),"",r&&r.stack)});
+setTimeout(errFlush,4000);                                                         // Fehler vom letzten Start nachreichen
+function statsSet(on){const d=statsDev(); d.consent=!!on; if(!on) d.q={}; statsPut(d); if(on){statsActive();statsFlushSoon()} errFlushSoon()}
 function statsAskSheet(){
   sheet(`<p class="label" style="color:var(--lime)">Kurze Frage</p><h2>Hilfst du mit, OffLand besser zu machen?</h2>
     ${saysHtml("bay","Ich würde gern anonym mitzählen, was auf OffLand gut läuft und was nicht. Keine Namen, keine Bildschirmzeiten. Versprochen, ich bin nur neugierig.")}

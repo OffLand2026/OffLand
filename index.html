@@ -44,6 +44,10 @@
 
 <div id="modalRoot"></div>
 
+<script>
+  // Fehler beim Start merken, falls die App selbst gar nicht lädt; die App reicht sie beim nächsten Start nach
+  addEventListener("error",function(e){if(window.__offlandReady)return;try{var k="offland-errors",q=JSON.parse(localStorage.getItem(k)||"[]");if(q.length<20){q.push({msg:String(e.message||"Fehler beim Start").slice(0,300),src:String((e.filename||"").split(location.origin).join(""))+":"+(e.lineno||0),stack:String(e.error&&e.error.stack||"").slice(0,1200),v:"start",p:"web",at:Date.now()});localStorage.setItem(k,JSON.stringify(q))}}catch(x){}});
+</script>
 <script src="js/online-config.js"></script>
 <script src="js/app.js"></script>
 </body>

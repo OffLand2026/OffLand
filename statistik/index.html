@@ -64,6 +64,8 @@
   th:first-child,td:first-child{text-align:left}
   .scroll{overflow-x:auto}
   .status{font-size:13px;color:var(--text-secondary)}
+  .errs td{text-align:left;vertical-align:top}.errs td.n{text-align:right;font-weight:650}.errs code{font-size:11.5px;color:var(--text-muted);word-break:break-all}
+  .errs .msg{font-weight:600;word-break:break-word}.errs details summary{font-weight:400;font-size:12px;color:var(--text-muted)}.errs pre{white-space:pre-wrap;font-size:11px;color:var(--text-secondary);margin:4px 0 0}
   .row-act{display:flex;justify-content:flex-end;margin-top:10px}
   .delta{font-weight:650}.delta.up{color:var(--good)}.delta.down{color:var(--critical)}
   .demo{background:#fab219;color:#0b0b0b;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700}
@@ -89,6 +91,8 @@
     <div class="tile"><div class="lab">Musik an</div><div class="val" id="kMusik">–</div><div class="hint" id="kMusikH">Anteil der Antworten auf die Musik-Frage</div></div>
     <div class="tile"><div class="lab">Fanpost</div><div class="val" id="kFan">–</div><div class="hint">Postkarten nach guten Tagen</div></div>
     <div class="tile"><div class="lab">Umfragen beantwortet</div><div class="val" id="kUmf">–</div><div class="hint" id="kUmfH"></div></div>
+    <div class="tile"><div class="lab">Fehlerfreie Gerätetage</div><div class="val" id="kOk">–</div><div class="hint" id="kOkH"></div></div>
+    <div class="tile"><div class="lab">Fehler gemeldet</div><div class="val" id="kErr">–</div><div class="hint" id="kErrH"></div></div>
   </section>
 
   <section class="grid2">
@@ -110,6 +114,9 @@
     <div class="card"><h2>Ruhe und Musik</h2><p class="desc">Inselminuten und Antworten auf die Frage nach der Inselmusik</p><div id="cRuhe"></div></div>
     <div class="card"><h2>Weltreise und Umfragen</h2><p class="desc">Wie viele eine neue Insel erreichen, und wie die Testphasen-Umfragen ankommen</p><div id="cWelt"></div><div id="cUmf"></div></div>
   </section>
+
+  <section class="card"><h2>Fehler und Abstürze</h2><p class="desc">Geräte, auf denen an dem Tag ein Fehler aufgetreten ist, und die häufigsten Fehler. Gezählt nur auf Geräten mit Zustimmung; Abstürze im Swift-Teil der iPhone-App sind nicht dabei.</p>
+    <div class="grid2"><div id="cErr"></div><div class="scroll" id="errList"></div></div></section>
 
   <details class="card"><summary>Alle Zahlen als Tabelle</summary><div class="row-act"><button class="chip" id="csvBtn" type="button">Als CSV herunterladen</button></div><div class="scroll" id="tbl"></div></details>
   <p class="note">Gezählt wird nur auf Geräten, die in der App zugestimmt haben (Konto → Einstellungen → Anonyme Statistik). Die Zahlen sind Tagessummen ohne Bezug zu einzelnen Personen. <a href="?demo" id="demoLink" style="color:inherit">Mit Beispieldaten ansehen</a></p>
@@ -139,7 +146,7 @@ const NAMES = {
 // weitere Zähler, die nur in der Tabelle mit Namen erscheinen
 const MORE = { inselminute_start: "Inselminute gestartet", inselminute_abbruch: "Inselminute abgebrochen", musik_ja: "Musik: ja", musik_nein: "Musik: lieber ohne",
   umfrage_start: "Umfrage Start beantwortet", umfrage_t7: "Umfrage Woche 1 beantwortet", umfrage_t21: "Umfrage Woche 3 beantwortet", umfrage_nein: "Umfrage abgelehnt",
-  welt_1: "Tropeninsel erreicht", welt_2: "Fjordinseln erreicht", welt_3: "Wüsteninsel erreicht", welt_4: "Eisinseln erreicht",
+  fehler: "Fehler gemeldet", fehler_geraet: "Gerätetage mit Fehler", welt_1: "Tropeninsel erreicht", welt_2: "Fjordinseln erreicht", welt_3: "Wüsteninsel erreicht", welt_4: "Eisinseln erreicht",
   aktiv: "Aktive Gerätetage", aktiv_ios: "Aktiv: iOS-App", aktiv_pwa: "Aktiv: Home-Bildschirm", aktiv_web: "Aktiv: Browser", konto_neu: "Neue Konten", insel_start: "Insel gestartet",
   tag: "Tage eingetragen", tag_gut: "Tage im Budget", tag_schlecht: "Tage über dem Budget", intro_ende: "Intro angesehen", intro_skip: "Intro übersprungen" };
 const label = k => NAMES[k] || MORE[k] || k;
@@ -148,15 +155,21 @@ const label = k => NAMES[k] || MORE[k] || k;
 async function load(days) {
   const list = [];
   for (let i = days * 2 - 1; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); list.push(iso(d)); }
-  if (demo) return list.map((day, i) => ({ day, c: demoDay(i, days) }));
+  if (demo) { ERRS = DEMO_ERRS; return list.map((day, i) => ({ day, c: demoDay(i, days) })); }
   const cfg = window.OFFLAND_FIREBASE;
   if (!cfg || !cfg.apiKey) throw new Error("Firebase ist nicht eingerichtet.");
   const [A, U, F] = await Promise.all([import(FB + "firebase-app.js"), import(FB + "firebase-auth.js"), import(FB + "firebase-firestore.js")]);
   const app = A.initializeApp(cfg), auth = U.getAuth(app), db = F.getFirestore(app);
   await auth.authStateReady(); if (!auth.currentUser) await U.signInAnonymously(auth);
   const snaps = await Promise.all(list.map(day => F.getDoc(F.doc(db, "stats/" + day)).catch(() => null)));
+  ERRS = await F.getDocs(F.query(F.collection(db, "errors"), F.orderBy("last", "desc"), F.limit(30))).then(r => r.docs.map(d => d.data())).catch(() => null);
   return list.map((day, i) => ({ day, c: snaps[i] && snaps[i].exists() ? snaps[i].data() : {} }));
 }
+let ERRS = null;
+const DEMO_ERRS = [
+  { msg: "TypeError: Cannot read properties of undefined (reading 'art')", src: "/js/app.js:2412:31", stack: "TypeError: Cannot read properties of undefined (reading 'art')\n    at guestSheet (/js/app.js:2412:31)\n    at showPending (/js/app.js:3640:30)", v: "1.31", n: 14, p_ios: 9, p_pwa: 5, last: Date.now() - 3600e3 },
+  { msg: "Promise: Failed to fetch", src: "", stack: "", v: "1.31", n: 37, p_pwa: 21, p_web: 16, last: Date.now() - 5 * 3600e3 },
+  { msg: "NotAllowedError: play() failed because the user didn't interact with the document first", src: "/js/app.js:3381:12", stack: "", v: "1.30", n: 6, p_ios: 6, last: Date.now() - 2 * 864e5 }];
 function demoDay(i, n) {
   const r = k => Math.abs(Math.sin(i * 12.9898 + k * 78.233) * 43758.5453) % 1, grow = 0.4 + i / n;
   const ios = Math.round(18 * grow + r(1) * 6), pwa = Math.round(9 * grow + r(2) * 4), web = Math.round(5 + r(3) * 4), akt = ios + pwa + web;
@@ -170,7 +183,7 @@ function demoDay(i, n) {
     kapitel_1: Math.round(neu * .7), kapitel_2: Math.round(neu * .5), kapitel_3: Math.round(neu * .3), kapitel_4: Math.round(r(10) * 2), wunsch_item: Math.round(r(11) * 4), wunsch_plan: Math.round(r(12) * 3),
     inselminute_start: Math.round(akt * .12), inselminute: Math.round(akt * .09), inselminute_abbruch: Math.round(akt * .03), musik_ja: Math.round(neu * .55), musik_nein: Math.round(neu * .35),
     fanpost: Math.round(r(13) * 3), besuch_bleibt: Math.round(r(14) * 1.4), umzugskiste: Math.round(r(15) * 1.2), welt_1: Math.round(r(16) * 2), welt_2: Math.round(r(17) * 1.2), welt_3: Math.round(r(18) * .8),
-    umfrage_start: Math.round(neu * .5), umfrage_t7: Math.round(neu * .25), umfrage_t21: Math.round(r(19) * 2), umfrage_nein: Math.round(neu * .15) };
+    fehler: Math.round(r(20) * 6), fehler_geraet: Math.round(r(21) * 3), umfrage_start: Math.round(neu * .5), umfrage_t7: Math.round(neu * .25), umfrage_t21: Math.round(r(19) * 2), umfrage_nein: Math.round(neu * .15) };
 }
 
 // ---------- Tooltip ----------
@@ -240,7 +253,8 @@ function line(el, rows, fn) {
   el.innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Liniendiagramm">${g}</svg>`; bindTips(el);
 }
 const WD = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
-const delta = (now, before) => { if (!before) return ""; const p = Math.round((now - before) / before * 100); return p ? ` · <span class="delta ${p > 0 ? "up" : "down"}">${p > 0 ? "+" : ""}${p} %</span> zum Vorzeitraum` : " · gleich wie im Vorzeitraum"; };
+// worse: steigende Werte sind schlecht (z. B. Fehler), dann rot statt grün
+const delta = (now, before, worse) => { if (!before) return ""; const p = Math.round((now - before) / before * 100); return p ? ` · <span class="delta ${(p > 0) !== !!worse ? "up" : "down"}">${p > 0 ? "+" : ""}${p} %</span> zum Vorzeitraum` : " · gleich wie im Vorzeitraum"; };
 function csv(rows) {
   const keys = [...new Set(rows.flatMap(r => Object.keys(r.c)))].sort();
   const q = t => `"${String(t).replace(/"/g, '""')}"`;
@@ -274,6 +288,16 @@ function render(all) {
     hbars($("#cWd"), WD.map((n, i) => ({ n: t[i] ? `${n} (${fmt(t[i])})` : n, v: t[i] ? Math.round(g[i] / t[i] * 100) : 0, extra: t[i] ? "%" : "" })), { labelW: 140, color: "--good" }); }
   hbars($("#cRuhe"), [{ n: "Inselminute gestartet", v: rs }, { n: "… zu Ende gemacht", v: rd }, { n: "… abgebrochen", v: sum("inselminute_abbruch") }, { n: "Musik: ja", v: mj }, { n: "Musik: lieber ohne", v: mn }], { labelW: 170, color: "--series-2", empty: "Noch keine Inselminuten oder Musik-Antworten." });
   hbars($("#cWelt"), [["welt_1", "Tropeninsel"], ["welt_2", "Fjordinseln"], ["welt_3", "Wüsteninsel"], ["welt_4", "Eisinseln"], ["umzugskiste", "Umzugskiste gepackt"]].map(([k, n]) => ({ n, v: sum(k) })), { labelW: 160, empty: "Noch niemand ist weitergereist." });
+  { const fg = sum("fehler_geraet"), fe = sum("fehler");
+    $("#kOk").textContent = aktiv ? (Math.round((1 - fg / aktiv) * 1000) / 10).toLocaleString("de-DE") + " %" : "–";
+    $("#kOkH").textContent = aktiv ? `${fmt(fg)} von ${fmt(aktiv)} Gerätetagen mit Fehler` : "";
+    $("#kErr").textContent = fmt(fe); $("#kErrH").innerHTML = (ERRS && ERRS.length ? `${ERRS.length} verschiedene in der Liste` : "keine Einträge") + delta(fe, psum("fehler"), true); }
+  stacked($("#cErr"), rows, [{ k: "fehler_geraet", n: "Geräte mit Fehler", c: "--critical" }]);
+  $("#errList").innerHTML = !ERRS ? `<div class="empty">Die Fehlerliste konnte nicht geladen werden (Firestore-Regeln schon veröffentlicht?).</div>`
+    : !ERRS.length ? `<div class="empty">Noch keine Fehler gemeldet. 🎉</div>`
+    : `<table class="errs"><thead><tr><th>Fehler</th><th style="text-align:right">Anzahl</th></tr></thead><tbody>` + ERRS.slice().sort((a, b) => (b.n || 0) - (a.n || 0)).map(e => {
+        const plat = [["p_ios", "iOS"], ["p_pwa", "Home"], ["p_web", "Browser"]].filter(([k]) => e[k]).map(([k, n]) => `${n} ${e[k]}`).join(" · ");
+        return `<tr><td><div class="msg">${esc(e.msg || "–")}</div><code>${esc(e.src || "")}</code><div class="note">${esc(plat)} · Version ${esc(e.v || "?")} · zuletzt ${e.last ? new Date(e.last).toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" }) : "?"}</div>${e.stack ? `<details><summary>Ablauf anzeigen</summary><pre>${esc(e.stack)}</pre></details>` : ""}</td><td class="n">${fmt(e.n || 0)}</td></tr>`; }).join("") + "</tbody></table>";
   hbars($("#cUmf"), [["umfrage_start", "Start beantwortet"], ["umfrage_t7", "Woche 1 beantwortet"], ["umfrage_t21", "Woche 3 beantwortet"], ["umfrage_nein", "Umfrage abgelehnt"]].map(([k, n]) => ({ n, v: sum(k) })), { labelW: 160, color: "--series-3", empty: "Noch keine Umfragen beantwortet." });
 
   stacked($("#cAktiv"), rows, [{ k: "aktiv_ios", n: "iOS-App", c: "--series-1" }, { k: "aktiv_pwa", n: "Vom Home-Bildschirm", c: "--series-2" }, { k: "aktiv_web", n: "Browser", c: "--series-3" }]);

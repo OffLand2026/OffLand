@@ -124,6 +124,19 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().size() <= 80;
     }
 
+    // Fehlerberichte (nur mit Zustimmung zur Statistik): gleicher Fehler = gleiches Dokument, Zähler n und p_<plattform>.
+    // Nur technische Angaben, keine Namen. Lesen und Auflisten für die Statistik-Seite.
+    function okErr(d) {
+      return d.keys().hasOnly(["msg", "src", "stack", "v", "last", "n", "p_ios", "p_pwa", "p_web"])
+        && (!("msg" in d) || shortText(d.msg, 300)) && (!("src" in d) || shortText(d.src, 200))
+        && (!("stack" in d) || shortText(d.stack, 1200)) && (!("v" in d) || shortText(d.v, 12))
+        && (!("n" in d) || d.n is int) && (!("last" in d) || d.last is int);
+    }
+    match /errors/{sig} {
+      allow get, list: if signedIn();
+      allow create, update: if signedIn() && sig.size() <= 16 && okErr(request.resource.data);
+    }
+
     // Rangliste für alle: nur wer zugestimmt hat, steht hier.
     match /weeks/{wk}/public/{pid} {
       allow get: if signedIn();
