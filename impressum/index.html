@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Impressum · OffLand</title>
+<link rel="icon" href="../icons/icon-192.png">
+<link rel="stylesheet" href="../css/fonts.css">
+<style>
+  :root{--ground:#14151F;--card:#1E2030;--line:#3A3D58;--ink:#F3F1EA;--muted:#A4A6BD;--lime:#C8F169;--amber:#FFB86B;color-scheme:dark}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font:500 15.5px/1.6 'Manrope',system-ui,sans-serif}
+  main{max-width:720px;margin:0 auto;padding:calc(24px + env(safe-area-inset-top,0px)) 18px calc(48px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px}
+  h1{font:800 32px/1.15 'Bricolage Grotesque',system-ui,sans-serif;margin:0;letter-spacing:-.4px}
+  h2{font:800 19px/1.3 'Bricolage Grotesque',system-ui,sans-serif;margin:18px 0 0}
+  h3{font-size:15.5px;margin:6px 0 0}
+  p,ul{margin:0}
+  ul{padding-left:20px;display:flex;flex-direction:column;gap:4px}
+  a{color:var(--lime)}
+  .muted{color:var(--muted)}
+  .small{font-size:13.5px}
+  .back{color:var(--muted);text-decoration:none;font-weight:700}
+  .card{background:var(--card);border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+  .todo{background:#3a2c18;border:1px solid #6b4f24;color:var(--amber);border-radius:14px;padding:10px 14px;font-size:14px}
+  mark{background:#3a2c18;color:var(--amber);border-radius:4px;padding:0 4px}
+</style>
+</head>
+<body>
+<main>
+<a class="back" href="../">‹ Zurück zu OffLand</a>
+<h1>Impressum</h1>
+<p class="todo">Entwurf: Die markierten Angaben bitte mit den echten Daten ersetzen und vor dem Start im App Store prüfen lassen.</p>
+<div class="card">
+  <h3>Angaben gemäß § 5 DDG</h3>
+  <p><mark>[Vor- und Nachname bzw. Firmenname]</mark><br><mark>[Straße und Hausnummer]</mark><br><mark>[PLZ und Ort]</mark><br>Deutschland</p>
+</div>
+<div class="card">
+  <h3>Kontakt</h3>
+  <p>E-Mail: <a data-mail href="#"><mark>[E-Mail-Adresse]</mark></a></p>
+  <p class="small muted">In der App erreichst du uns auch über Konto → Hilfe und Support.</p>
+</div>
+<div class="card">
+  <h3>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h3>
+  <p><mark>[Vor- und Nachname, Anschrift wie oben]</mark></p>
+</div>
+<div class="card">
+  <h3>Verbraucherstreitbeilegung</h3>
+  <p>Wir sind nicht bereit und nicht verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>
+</div>
+<p class="small muted" style="margin-top:20px"><a href="../impressum/">Impressum</a> · <a href="../datenschutz/">Datenschutz</a></p>
+</main>
+<script src="../js/online-config.js"></script>
+<script>
+  // Kontaktadresse aus js/online-config.js, damit sie nur an einer Stelle gepflegt wird
+  document.querySelectorAll("[data-mail]").forEach(function (el) { var m = window.OFFLAND_CONTACT; if (m) { el.textContent = m; el.href = "mailto:" + m; } });
+</script>
+</body>
+</html>
