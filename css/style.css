@@ -396,10 +396,10 @@ body.focus-on{overflow:hidden}
 .sky-pick{background:rgba(20,21,31,.82);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);margin-top:-10px}
 .sky-pick .profile:first-of-type{border-top:none}
 /* Heute im neuen Stil: Chips auf der Insel, Hauptkarte, Wischkarten, Kacheln */
-.scene-chips{display:flex;gap:8px;margin:-64px 10px 0;position:relative;z-index:2}
-.scene-chips .cp{flex:1;min-width:0;background:rgba(20,21,31,.74);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:14px;padding:7px 10px}
-.scene-chips i{display:block;font-style:normal;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:#C9CBE0;font-weight:700}
-.scene-chips b{font:800 17px var(--display);white-space:nowrap}
+.scene-chips{display:flex;gap:6px;margin:-50px 10px 0;position:relative;z-index:2}
+.scene-chips .cp{flex:1;min-width:0;background:rgba(20,21,31,.74);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:12px;padding:5px 9px}
+.scene-chips i{display:block;font-style:normal;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#C9CBE0;font-weight:700}
+.scene-chips b{font:800 15px/1.15 var(--display);white-space:nowrap}
 .hmain .ring{flex:0 0 auto}
 .hm-title{margin:2px 0 2px;font:800 19px/1.2 var(--display)}
 .wk-dots{display:flex;justify-content:space-between;padding:2px 4px}
@@ -555,3 +555,53 @@ details.res-sec+details.res-sec,.res-search+p+details.res-sec{margin-top:4px}
 .hm-days b{flex:1;text-align:center;font-size:11px;font-weight:700;color:var(--muted)}
 .hm-days b.now{color:var(--ink)}
 .hm-done{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--lime);background:rgba(200,241,105,.08);border-radius:12px;padding:10px 12px;margin:2px 0 0}
+
+/* Heute neu: Sprechblase auf der Insel */
+.talk{position:absolute;left:10px;right:10px;top:10px;z-index:3;pointer-events:none;display:flex}
+.talk.low{top:52px}
+.talk button{pointer-events:auto;border:0;font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.tk-av{flex:none;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #FBF8F0;overflow:hidden}
+.tk-open{display:flex;align-items:flex-start;gap:8px;background:none;padding:0;text-align:left;max-width:100%;animation:tkPop .35s cubic-bezier(.2,1.4,.4,1) both}
+.tk-bub{position:relative;background:#FBF8F0;color:#1A1B26;border-radius:4px 16px 16px 16px;padding:8px 12px 10px;font-size:13.5px;line-height:1.32;font-weight:600;box-shadow:0 8px 20px rgba(0,0,0,.35);overflow:hidden;display:flex;flex-direction:column;gap:1px}
+.tk-bub b{font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;color:#7C64E8;font-weight:800}
+.tk-n{font-style:normal;align-self:flex-end;font-size:10.5px;font-weight:800;color:#9A97A8;margin-top:2px}
+.tk-prog{position:absolute;left:0;bottom:0;height:3px;width:100%;background:#7C64E8;transform-origin:left;animation:tkProg 6s linear forwards}
+.tk-mini{position:relative;display:flex;align-items:center;gap:4px;background:#FBF8F0;border-radius:999px;padding:3px 10px 3px 3px;box-shadow:0 6px 16px rgba(0,0,0,.35);animation:tkPop .3s ease both}
+.tk-mini .tk-av{width:34px;height:34px;border:0}
+.tk-mini>span:last-of-type{font-size:15px}
+.tk-dot{position:absolute;right:-3px;top:-3px;width:13px;height:13px;border-radius:50%;background:#FF4D5E;border:2.5px solid #FBF8F0}
+@keyframes tkPop{from{opacity:0;transform:scale(.85) translateY(-6px)}to{opacity:1;transform:none}}
+@keyframes tkProg{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+@media (prefers-reduced-motion: reduce){.tk-open,.tk-mini{animation:none}.tk-prog{animation:none;opacity:.4}}
+/* Heute neu: Eintragen mit großer Zahl und Schieberegler */
+.entry2{display:flex;flex-direction:column;gap:6px}
+.tin{display:flex;align-items:baseline;gap:4px;margin-top:4px}
+.tin input.tin-n{flex:none;width:1.2em;min-width:0;height:auto;background:transparent;border:0;border-bottom:2px dashed transparent;border-radius:0;color:var(--ink);font:800 52px/1.05 var(--display);letter-spacing:-1.5px;padding:0;text-align:right;-moz-appearance:textfield;appearance:textfield}
+.tin input.tin-n.tin-m{width:1.22em;text-align:left}
+.tin input.tin-n:focus{outline:none;border-bottom-color:var(--lime)}
+.tin-n::-webkit-inner-spin-button,.tin-n::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.tin span{font:800 34px/1 var(--display);margin-right:8px}
+.tslide{position:relative;margin:26px 0 4px;height:34px}
+.tslide input{width:100%;margin:0;height:34px;background:transparent;-webkit-appearance:none;appearance:none;--p:50%;--c:var(--lime)}
+.tslide input::-webkit-slider-runnable-track{height:10px;border-radius:5px;background:linear-gradient(90deg,var(--c) 0 var(--p),var(--card2) var(--p) 100%)}
+.tslide input::-moz-range-track{height:10px;border-radius:5px;background:linear-gradient(90deg,var(--c) 0 var(--p),var(--card2) var(--p) 100%)}
+.tslide input::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;margin-top:-10px;border-radius:50%;background:var(--ink);box-shadow:0 0 0 6px rgba(200,241,105,.22),0 4px 12px rgba(0,0,0,.4)}
+.tslide input::-moz-range-thumb{width:30px;height:30px;border:0;border-radius:50%;background:var(--ink);box-shadow:0 0 0 6px rgba(200,241,105,.22)}
+.tgoal{position:absolute;top:-6px;height:46px;border-left:2px dashed var(--muted);pointer-events:none}
+.tgoal b{position:absolute;top:-16px;left:0;transform:translateX(-50%);font-size:11px;color:var(--muted);white-space:nowrap}
+.tticks{display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:var(--muted)}
+.live-prev{background:rgba(200,241,105,.1);color:var(--ink);border-radius:14px;padding:10px 13px;font-size:14px;font-weight:700;margin:8px 0 4px}
+.live-prev.bad{background:rgba(255,156,122,.12)}
+.btn.big{height:56px;border-radius:28px;font-size:17px;font-weight:800;width:100%}
+.hm-pill.pts{background:var(--lime);color:#14151F}
+/* Heute neu: Hauptaktion */
+.card.act{gap:8px}
+.act-hint{font-size:13px;color:var(--muted);text-align:center;margin:0}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.act-row:empty{display:none}
+.act-chip{height:40px;padding:0 14px;border-radius:20px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font:700 14px var(--body);cursor:pointer}
+.act-sleep{font-weight:800;text-align:center;margin:4px 0}
+.boat-pick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+/* Für dich: eine Karte */
+.fy-one{display:flex}
+.fy-one>.fy{flex:1}
