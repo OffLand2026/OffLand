@@ -605,3 +605,6 @@ details.res-sec+details.res-sec,.res-search+p+details.res-sec{margin-top:4px}
 /* Für dich: eine Karte */
 .fy-one{display:flex}
 .fy-one>.fy{flex:1}
+/* Verwandlung: heller Umriss der Schattenwesen */
+.lv-rim,.lv-rim *{fill:none!important;stroke:#4A4F80!important;stroke-width:var(--rw)!important;filter:none!important}
+.lv-rim clipPath *{stroke:none!important}

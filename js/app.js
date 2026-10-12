@@ -1770,31 +1770,34 @@ function figure(r,x,y){
       <circle cx="0" cy="-11.4" r="1.4" fill="#9CC8EE"/><circle cx="0" cy="-11.4" r=".6" fill="#F3F1EA"/></g>`;
     const mouth=t<=2?`<path d="M-1.2 -13.1h2.4" stroke="#5A3A2A" stroke-width=".65" stroke-linecap="round"/>`:sad?`<path d="M-1.4 -12.6q1.4-1 2.8 0" stroke="#5A3A2A" stroke-width=".7" fill="none" stroke-linecap="round"/>`:`<path d="M-1.6 -13.3q1.6 1.3 3.2 0" stroke="#5A3A2A" stroke-width=".7" fill="none" stroke-linecap="round"/>`;
     if(st!=="kind"){
-      // Erwachsene: längere Beine, Sneaker, Arme, Oberteil nach Wahl, Augenbrauen, Glanz in den Augen
-      const U=-2.6, alt=st==="alt", sd=shadeC(L.shirt,.78), brow=shadeC(alt?"#8A8780":L.hair,.7);
-      const shoes=alt?`<ellipse cx="-2.6" cy="-.6" rx="2.2" ry="1.15" fill="#6B4A36"/><ellipse cx="2.6" cy="-.6" rx="2.2" ry="1.15" fill="#6B4A36"/>`
-        :`<ellipse cx="-2.6" cy="-.6" rx="2.2" ry="1.15" fill="#F3F1EA"/><ellipse cx="2.6" cy="-.6" rx="2.2" ry="1.15" fill="#F3F1EA"/><path d="M-4.6 -.2h4M.6 -.2h4" stroke="#FF4D5E" stroke-width=".5"/>`;
-      const arms=r.phone?`<path d="M-5.4 ${-9.6+U}q-1.6 3.2 2.4 4.6M5.4 ${-9.6+U}q1.6 3.2-2.4 4.6" stroke="${sd}" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-          <circle cx="0" cy="${-15+U}" r="6.4" fill="#7FB6FF" opacity=".22"/><rect x="-1.9" y="${-9+U}" width="3.8" height="5.4" rx=".9" fill="#2B3350"/><rect x="-1.4" y="${-8.4+U}" width="2.8" height="4" rx=".5" fill="#9CC8EE"/>
-          <circle cx="-2.6" cy="${-4.8+U}" r="1.05" fill="${L.skin}"/><circle cx="2.6" cy="${-4.8+U}" r="1.05" fill="${L.skin}"/>`
-        :`<path d="M-5.4 ${-9.6+U}q-1.4 3.4-1 6" stroke="${sd}" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M5.4 ${-9.6+U}q1.4 3.4 ${alt?"1.8 5.6":"1 6"}" stroke="${sd}" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-          <circle cx="-6.4" cy="${-3.2+U}" r="1.05" fill="${L.skin}"/><circle cx="${alt?7.2:6.4}" cy="${(alt?-3.6:-3.2)+U}" r="1.05" fill="${L.skin}"/>`;
-      // Verwandlung: je weiter weg vom Menschsein, desto tiefer hängt der Kopf und desto dunkler die Figur
-      const hd=`translate(0 ${U+[2.2,1.5,.7,0,0][t]}) rotate(${[13,8,3,0,0][t]} 0 -11)`;
-      const glowC=t===0?"#9CE3FF":"#B8FFE4";
-      const over=t>=3?(r.lvUp!=null&&typeof S!=="undefined"&&S.dayCount-r.lvUp<2?LV_SPARK:"")
-        :`<g transform="${hd}">${t<=1?`<path d="M-2.7 -15.5q.9-.6 1.8 0M.9 -15.5q.9-.6 1.8 0" stroke="${glowC}" stroke-width="1" fill="none" stroke-linecap="round" filter="url(#lvGlow)"/>`
-          :`<circle cx="-1.8" cy="-15.6" r=".9" fill="${glowC}" opacity=".35" filter="url(#lvGlow)"/><circle cx="1.8" cy="-15.6" r=".9" fill="${glowC}" opacity=".35" filter="url(#lvGlow)"/>`}</g>`
-          +(r.phone?`<circle cx="0" cy="${-6.5+U}" r="3.2" fill="#7FB6FF" opacity=".22" filter="url(#lvGlow)"/><rect x="-1.4" y="${-8.4+U}" width="2.8" height="4" rx=".5" fill="#9CC8EE"/><path d="M-1 ${-7.6+U}h2M-1 ${-6.6+U}h1.4" stroke="#2B3350" stroke-width=".35"/>`:"");
-      return `<g transform="translate(${x} ${y})"><title>${esc(r.name)}${r.phone?" (am Handy)":t<4?` (${LV_NAMES[t]})`:""}</title><ellipse cx="0" cy=".2" rx="6" ry="1" fill="#000" opacity=".16"/>${t<4?`<g filter="url(#lv${t})">`:""}
-        ${alt?`<path d="M7.6 0v-8.6q0-1.8-1.8-1.8" stroke="#8A5A3B" stroke-width="1.1" fill="none" stroke-linecap="round"/>`:""}
-        <path d="M-2.3 -6v4.6M2.3 -6v4.6" stroke="${L.pants}" stroke-width="2.5" stroke-linecap="round"/>${shoes}
-        ${topSvg(L.top,L.shirt,U)}<g transform="translate(0 ${U})">${acc.body}</g>${arms}
-        <g transform="${hd}">${hair.back}<rect x="-1.1" y="-12" width="2.2" height="1.4" fill="${shadeC(L.skin,.88)}"/><circle cx="0" cy="-16" r="5" fill="${L.skin}"/>${hair.front}
-          <circle cx="-1.8" cy="-15.6" r=".72" fill="#14151F"/><circle cx="1.8" cy="-15.6" r=".72" fill="#14151F"/><circle cx="-1.6" cy="-15.85" r=".22" fill="#fff"/><circle cx="2" cy="-15.85" r=".22" fill="#fff"/>
-          ${sad?`<path d="M-2.8 -18l1.6.5M2.8 -18l-1.6.5" stroke="${brow}" stroke-width=".55" stroke-linecap="round"/>`:`<path d="M-2.7 -17.6l1.6-.25M1.1 -17.85l1.6.25" stroke="${brow}" stroke-width=".55" stroke-linecap="round"/>`}
-          <circle cx="-3.2" cy="-13.8" r="1" fill="#FF9C7A" opacity=".25"/><circle cx="3.2" cy="-13.8" r="1" fill="#FF9C7A" opacity=".25"/>${mouth.replace("M-1.6 -13.3q1.6 1.3 3.2 0","M-1.4 -13.2q1.4 1 2.8 0")}${acc.head}
-          ${r.retired?`<path d="M-3.6 -16.4h2.6M1 -16.4h2.6M-1 -16.4h2" stroke="#3A3D58" stroke-width=".5" fill="none"/><circle cx="-1.8" cy="-16" r="1.5" fill="none" stroke="#3A3D58" stroke-width=".5"/><circle cx="1.8" cy="-16" r="1.5" fill="none" stroke="#3A3D58" stroke-width=".5"/>`:""}</g>${t<4?"</g>":""}${over}</g>`;
+      // Erwachsene im Stil "Schattenwesen × aufrichtender Zombie": Glockenkörper, kurze Beine, großer Kopf.
+      // Je weiter weg vom Menschsein, desto gebückter, dunkler und schattiger.
+      const alt=st==="alt", sd=shadeC(L.shirt,.82), brow=shadeC(alt?"#8A8780":L.hair,.7);
+      const tilt=[7,4,2,0,0][t], lean=[18,11,5,1,0][t], drop=[3,2,1,0,0][t];
+      const cheer=t===4&&r.lvUp!=null&&typeof S!=="undefined"&&S.dayCount-r.lvUp<2;
+      const hd=`translate(${(lean*.16).toFixed(2)} ${drop}) rotate(${lean} 0 -13) translate(0 -20) scale(1.24) translate(0 16)`;
+      const body=`M-6.4 0q0-13 6.4-13.4q6.4.4 6.4 13.4z`;
+      const arms=t===0?`<path d="M-5.4 -10q-1.6 3.4 2.6 4.6M5.4 -10q1.6 3.4-2.6 4.6" stroke="${sd}" stroke-width="2.2" fill="none" stroke-linecap="round"/><g transform="translate(0 -6.4) rotate(12)"><rect x="-2" y="-2.8" width="4" height="5.6" rx=".8" fill="#232637"/></g>`
+        :cheer?`<path d="M-5.6 -10l-4.4-6M5.6 -10l4.4-6" stroke="${sd}" stroke-width="2.3" stroke-linecap="round"/><circle cx="-10.4" cy="-16.6" r="1.2" fill="${L.skin}"/><circle cx="10.4" cy="-16.6" r="1.2" fill="${L.skin}"/>`
+        :`<path d="M-5.6 -10q-1.6 ${Math.max(1,4-t)} -1 ${Math.max(4,7-t)}M5.6 -10q1.6 ${Math.max(1,4-t)} 1 ${Math.max(4,7-t)}" stroke="${sd}" stroke-width="2.2" fill="none" stroke-linecap="round"/><circle cx="-6.6" cy="${-10+Math.max(4,7-t)}" r="1.05" fill="${L.skin}"/><circle cx="6.6" cy="${-10+Math.max(4,7-t)}" r="1.05" fill="${L.skin}"/>`;
+      const head=`${hair.back}<circle cx="0" cy="-16" r="5" fill="${L.skin}"/>${hair.front}`;
+      const face=t<=2?(t===2?`<path d="M-1.2 -13.1h2.4" stroke="#2A1E1A" stroke-width=".5" stroke-linecap="round"/>`:"")
+        :`<circle cx="-1.8" cy="-16.3" r=".7" fill="#14151F"/><circle cx="1.8" cy="-16.3" r=".7" fill="#14151F"/><circle cx="-1.55" cy="-16.55" r=".23" fill="#fff"/><circle cx="2.05" cy="-16.55" r=".23" fill="#fff"/>
+          ${sad?`<path d="M-2.8 -18.4l1.5.5M2.8 -18.4l-1.5.5" stroke="${brow}" stroke-width=".5" stroke-linecap="round"/>`:`<path d="M-2.7 -18.1l1.5-.25M1.2 -18.35l1.5.25" stroke="${brow}" stroke-width=".5" stroke-linecap="round"/>`}
+          <circle cx="-3.2" cy="-14" r=".9" fill="#FF9C7A" opacity=".5"/><circle cx="3.2" cy="-14" r=".9" fill="#FF9C7A" opacity=".5"/>
+          ${sad?`<path d="M-1.3 -13.2q1.3-.9 2.6 0" stroke="#5A3A2A" stroke-width=".6" fill="none" stroke-linecap="round"/>`:`<path d="M-1.45 -14q1.45 ${cheer?1.6:1.1} 2.9 0" stroke="#5A3A2A" stroke-width=".6" fill="${cheer?"#7A2032":"none"}" stroke-linecap="round"/>`}`;
+      // heller Umriss, damit man die Schatten auch im Dunkeln erkennt (wird mit der Farbe dünner)
+      const rim=t<3?`<g class="lv-rim" style="--rw:${[.55,.55,.37][t]}px"><path d="${body}"/><g transform="${hd}">${hair.back}<circle cx="0" cy="-16" r="5"/>${hair.front}</g></g>`:"";
+      const eyeC=LV_EYES[(hsh(r.id||r.name)>>>13)%LV_EYES.length];
+      const glow=t===0?`<g transform="${hd}"><path d="M-2.9 -15.6h1.9M1 -15.6h1.9" stroke="#9CDCFF" stroke-width=".9" filter="url(#lvGlow)"/><ellipse cx="0" cy="-12.8" rx="5.2" ry="3.4" fill="#9CDCFF" opacity=".38" filter="url(#lvGlow)"/></g>
+          <g transform="translate(0 -6.4) rotate(12)"><rect x="-1.4" y="-2.2" width="2.8" height="4" rx=".3" fill="#CFF3FF" filter="url(#lvGlow)"/></g>`
+        :t===1?`<g transform="${hd}" filter="url(#lvGlow)"><path d="M-3.05 -16.3a1.15 1.15 0 0 0 2.3 0zM.75 -16.3a1.15 1.15 0 0 0 2.3 0z" fill="${eyeC}"/></g>`
+        :t===2?`<g transform="${hd}"><g filter="url(#lvGlow)" opacity=".75"><circle cx="-1.9" cy="-16.4" r=".95" fill="${eyeC}"/><circle cx="1.9" cy="-16.4" r=".95" fill="${eyeC}"/></g><circle cx="-1.9" cy="-16.4" r=".48" fill="#14151F"/><circle cx="1.9" cy="-16.4" r=".48" fill="#14151F"/></g>`:"";
+      return `<g transform="translate(${x} ${y})"><title>${esc(r.name)}${r.phone?" (am Handy)":t<4?` (${LV_NAMES[t]})`:""}</title><ellipse cx="0" cy=".4" rx="7" ry="1.2" fill="#000" opacity="${t<2?.3:.18}"/><g transform="rotate(${tilt})">${t<4?`<g filter="url(#lv${t})">`:""}
+        ${alt?`<path d="M8.4 0v-8q0-1.8-1.8-1.8" stroke="#8A5A3B" stroke-width="1.1" fill="none" stroke-linecap="round"/>`:""}
+        <path d="M-2.4 -1v1.6M2.4 -1v1.6" stroke="${L.pants}" stroke-width="2" stroke-linecap="round"/><path d="${body}" fill="${L.shirt}"/><g transform="translate(0 -2.2)">${acc.body}</g>${arms}
+        <g transform="${hd}">${head}${face}${acc.head}
+          ${r.retired?`<path d="M-3.6 -16.4h2.6M1 -16.4h2.6M-1 -16.4h2" stroke="#3A3D58" stroke-width=".5" fill="none"/><circle cx="-1.8" cy="-16.3" r="1.5" fill="none" stroke="#3A3D58" stroke-width=".5"/><circle cx="1.8" cy="-16.3" r="1.5" fill="none" stroke="#3A3D58" stroke-width=".5"/>`:""}</g>${t<4?"</g>":""}${rim}${glow}</g>${cheer?LV_SPARK_BIG:""}</g>`;
     }
     return `<g transform="translate(${x} ${y}) scale(${kid})"${t<4?` filter="url(#lv${t})"`:""}><title>${esc(r.name)}</title>
       <path d="M-2.4 -3.4v3.2M2.4 -3.4v3.2" stroke="${L.pants}" stroke-width="2.4" stroke-linecap="round"/>
@@ -1808,6 +1811,8 @@ function figure(r,x,y){
   const s=(r.parents?0.7:1)*(r.art==="Wal"?1.6:["Elch","Kamel","Eisbär"].includes(r.art)?1.1:1);
   return `<g transform="translate(${x} ${y}) scale(${s})"><title>${esc(r.name)} (${esc(r.art)})</title>${animalSvg(r.art,animalVar(r))}</g>`;
 }
+const LV_EYES=["#7FE8FF","#FFD45A","#B8F25A","#FF8FB1","#C9A6FF"];
+const LV_SPARK_BIG=[[-9,-26],[9,-24],[-8,-6],[8.6,-31]].map(([x,y])=>`<path d="M${x} ${y-1.6}l.5 1.1 1.1.5-1.1.5-.5 1.1-.5-1.1-1.1-.5 1.1-.5z" fill="#FFE680"/>`).join("");
 const LV_SPARK=`<g fill="#FFD27A"><path d="M-7 -24l.5 1.3 1.3.5-1.3.5-.5 1.3-.5-1.3-1.3-.5 1.3-.5z"/><path d="M7.4 -21l.4 1 1 .4-1 .4-.4 1-.4-1-1-.4 1-.4z"/><path d="M-8.2 -13l.3.8.8.3-.8.3-.3.8-.3-.8-.8-.3.8-.3z" opacity=".8"/></g>`;
 /* ---------- Geschichte: Mr. Bay (Bürgermeister) und Lucifer (Inselkatze) ---------- */
 const PHONE_FIG=`<circle cx="0" cy="-14.6" r="6.4" fill="#7FB6FF" opacity=".22"/><path d="M-3 -7.6q3 1.6 6 0" stroke="#F0C2A0" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".9"/><rect x="-1.9" y="-11.2" width="3.8" height="5.8" rx=".9" fill="#2B3350"/><rect x="-1.4" y="-10.6" width="2.8" height="4.4" rx=".5" fill="#9CC8EE"/>`;
@@ -2094,7 +2099,7 @@ function artVB(a,ratio){
   return [cx-w/2,cy-h/2,w,h].map(v=>+v.toFixed(1)).join(" ");
 }
 function figVB(r){
-  if(r.kind==="mensch") return stage(r)==="kind"||stage(r)==="baby"||r.sick?"-13 -24 26 27":"-13 -26.6 26 27";
+  if(r.kind==="mensch") return stage(r)==="kind"||stage(r)==="baby"||r.sick?"-13 -24 26 27":"-13 -29.4 26 30";
   if(!ART_BOX[r.art]) return "-13 -24 26 27";
   const s=(r.parents?0.7:1)*(r.art==="Wal"?1.6:["Elch","Kamel","Eisbär"].includes(r.art)?1.1:1), [x0,y0,x1,y1]=ART_BOX[r.art];
   const cx=(x0+x1)/2*s, cy=(y0+y1)/2*s, d=Math.max(Math.max(x1-x0,y1-y0)+4,26)*s;   // Kreis: etwas Rand rundum, kleine Tiere nicht riesig
@@ -4268,7 +4273,7 @@ function nameSheet(ev){
 function lookPreview(r,draft){
   const tmp=Object.assign({},r,{sick:null,phone:false,lv:4,lvUp:null});   // im Editor sieht man immer, wie jemand ganz zurück aussieht
   if(r.kind==="mensch") tmp.look=draft; else tmp.fur=draft.fur;
-  return `<svg width="72" height="78" viewBox="${r.kind==="mensch"?(stage(r)==="baby"?"-8.5 -15.5 17 17":stage(r)==="kind"?"-12 -25 24 26":"-12 -27.6 24 28.6"):SEA.includes(tmp.art)?figVB(tmp):"-16 -22 32 25"}" aria-hidden="true">${figure(tmp,0,0)}</svg>`;
+  return `<svg width="72" height="78" viewBox="${r.kind==="mensch"?(stage(r)==="baby"?"-8.5 -15.5 17 17":stage(r)==="kind"?"-12 -25 24 26":"-12.5 -29.6 25 31"):SEA.includes(tmp.art)?figVB(tmp):"-16 -22 32 25"}" aria-hidden="true">${figure(tmp,0,0)}</svg>`;
 }
 function lookEditor(r,d){
   const row=(label,key,list,sel)=>`<div class="sw-row" role="radiogroup" aria-label="${label}"><span class="small muted">${label}</span>${list.map((c,i)=>`<button type="button" class="sw${i===sel?" on":""}" data-look="${key}" data-v="${i}" style="background:${c}" aria-label="${label} ${i+1}" aria-pressed="${i===sel}"></button>`).join("")}</div>`;
@@ -4281,7 +4286,7 @@ function lookEditor(r,d){
     const accs=`<div class="sw-row" role="group" aria-label="Extras"><span class="small muted">Extras (mehrere möglich)</span>${ACC_NAMES.map((n,i)=>{const a=accSvg(i,"#FF9C7A"),hs=hairSvg(0,"#4A3222");
       return `<button type="button" class="sw sw-ic${accOn(i)?" on":""}" data-look="acc" data-v="${i}" aria-label="${n}" aria-pressed="${accOn(i)}">${i===0?`<svg width="22" height="22" viewBox="-10 -10 20 20" aria-hidden="true"><circle r="7.5" fill="none" stroke="#9EA3B8" stroke-width="2"/><path d="M-5.3 5.3L5.3 -5.3" stroke="#9EA3B8" stroke-width="2" stroke-linecap="round"/></svg>`:`<svg width="24" height="24" viewBox="-7.5 -25 15 16" aria-hidden="true"><path d="M-6 -6c0-4 2.4-5.2 6-5.2s6 1.2 6 5.2z" fill="#5B8CD6"/>${a.body}${hs.back}<circle cx="0" cy="-16" r="5" fill="#E8B48F"/>${hs.front}${a.head}</svg>`}</button>`}).join("")}</div>`;
     return `<div class="field"><span>Aussehen</span><div class="look"><div class="look-prev" id="lookPrev">${lookPreview(r,d)}</div><div class="look-opts">
-      ${baby?`${row("Haut","skin",SKIN,d.skin)}${row("Haare","hair",HAIR,d.hair)}${row("Strampler","shirt",SHIRT,d.shirt)}`:`${row("Haut","skin",SKIN,d.skin)}${styles}${row("Haare","hair",HAIR,d.hair)}${stage(r)==="kind"?row("Shirt","shirt",SHIRT,d.shirt):`${tops}${row("Farbe","shirt",SHIRT,d.shirt)}`}${accs}${row("Farbe der Extras","accC",SHIRT,d.accC)}`}</div></div></div>`;
+      ${baby?`${row("Haut","skin",SKIN,d.skin)}${row("Haare","hair",HAIR,d.hair)}${row("Strampler","shirt",SHIRT,d.shirt)}`:`${row("Haut","skin",SKIN,d.skin)}${styles}${row("Haare","hair",HAIR,d.hair)}${stage(r)==="kind"?row("Shirt","shirt",SHIRT,d.shirt):row("Oberteil","shirt",SHIRT,d.shirt)}${accs}${row("Farbe der Extras","accC",SHIRT,d.accC)}`}</div></div></div>`;
   }
   const n=(FUR[r.art]||[]).length; if(n<2) return "";
   return `<div class="field"><span>Fellfarbe</span><div class="sw-row" role="radiogroup" aria-label="Fellfarbe">${Array.from({length:n},(_,i)=>`<button type="button" class="sw sw-ic sw-big${i===d.fur?" on":""}" data-look="fur" data-v="${i}" aria-label="Fellfarbe ${i+1}" aria-pressed="${i===d.fur}"><svg width="38" height="30" viewBox="${artVB(r.art,38/30)}" aria-hidden="true">${animalSvg(r.art,i)}</svg></button>`).join("")}</div></div>`;
