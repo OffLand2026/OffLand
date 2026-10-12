@@ -30,18 +30,20 @@ test("Stufen sieht man auf der Insel, der Editor zeigt die volle Farbe", async (
   await expect(page.locator('#lookPrev > svg [filter^="url(#lv"]')).toHaveCount(0);
 });
 
-test("Editor: Leuchtaugen, Muster und Bart wählen", async ({ page }) => {
+test("Umkleide: Looks, Leuchtaugen, Muster, Bart und Frisur wählen", async ({ page }) => {
   await newGame(page);
   const id = await page.evaluate(() => { document.getElementById("modalRoot").innerHTML = ""; const r = T.S.residents.find(x => x.kind === "mensch" && x.job); T.nameSheet({ type: "rename", id: r.id }); return r.id; });
-  await expect(page.locator('#modalRoot [data-look="eye"]')).toHaveCount(5);
+  await expect(page.locator("#modalRoot [data-lookset]")).toHaveCount(16);
+  await page.click('#modalRoot [data-lookset="4"]');                       // Hipster: Vollbart, Männerdutt
   await expect(page.locator("#lookPrev .look-shadow")).toBeVisible();
+  await page.click('#modalRoot [data-pane="augen"]');
+  await expect(page.locator('#modalRoot [data-look="eye"]')).toHaveCount(5);
   await page.click('#modalRoot [data-look="eye"][data-v="3"]');
   await expect(page.locator('#lookPrev .look-shadow [fill="#FF8FB1"]').first()).toBeAttached();
-  await page.click('#modalRoot [data-pane="kleidung"]');
+  await page.click('#modalRoot [data-pane="muster"]');
   await page.click('#modalRoot [data-look="pat"][data-v="1"]');
-  await page.click('#modalRoot [data-look="shirt"][data-v="2"]');           // Farbwechsel baut die Muster-Knöpfe neu
-  await page.click('#modalRoot [data-pane="gesicht"]');
-  await page.click('#modalRoot [data-look="beard"][data-v="4"]');
+  await page.click('#modalRoot [data-pane="shirt"]');
+  await page.click('#modalRoot [data-look="shirt"][data-v="2"]');
   await page.click('#modalRoot [data-pane="haare"]');
   await page.click('#modalRoot [data-look="style"][data-v="13"]');
   await page.click("#nameOk");

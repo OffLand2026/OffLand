@@ -2864,7 +2864,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.37";
+const APP_VERSION="1.38";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -4324,7 +4324,36 @@ function lookPreview(r,draft){
   const sh=Object.assign({},tmp,{lv:1,lvFull:false});
   return main+`<div class="look-shadow"><svg width="40" height="46" viewBox="-11 -31 24 32" aria-hidden="true">${figure(sh,0,0)}</svg><span>als Schatten</span></div>`;
 }
-let LOOK_PANE="gesicht";
+let LOOK_PANE="looks";
+/* Fertige Looks: komplette Stile als Startpunkt, danach in der Umkleide anpassen */
+const LOOKS=[["Surfer",{skin:1,style:18,hair:4,shirt:5,pat:7,beard:0,acc:[]}],["Skaterin",{skin:4,style:5,hair:0,shirt:2,pat:4,beard:0,acc:[],accC:1}],["Opa Gerd",{skin:0,style:10,hair:7,beard:4,acc:[2],shirt:11,pat:3}],
+  ["Büro",{skin:3,style:12,hair:0,shirt:7,pat:0,beard:0,acc:[2]}],["Hipster",{skin:2,style:16,hair:2,beard:4,shirt:12,pat:3,acc:[2]}],["Sporty",{skin:5,style:15,hair:6,shirt:8,pat:1,beard:0,acc:[7],accC:7}],
+  ["Künstlerin",{skin:1,style:8,hair:8,shirt:13,pat:2,beard:0,acc:[6],accC:10}],["Rocker",{skin:3,style:9,hair:5,shirt:8,pat:4,beard:0,acc:[3]}],["Gärtnerin",{skin:4,style:11,hair:2,shirt:12,pat:6,beard:0,acc:[4],accC:4}],
+  ["Fischer",{skin:2,style:6,hair:7,beard:4,shirt:3,pat:3,acc:[4],accC:8}],["Gamer",{skin:0,style:17,hair:1,shirt:13,pat:8,beard:0,acc:[2]}],["Festival",{skin:5,style:7,hair:10,shirt:6,pat:9,beard:0,acc:[3,6],accC:1}],
+  ["Bücherwurm",{skin:0,style:2,hair:3,shirt:0,pat:5,beard:0,acc:[1,2],accC:8}],["Strandkind",{skin:4,style:4,hair:5,shirt:4,pat:7,beard:0,acc:[3]}],["Bergfex",{skin:1,style:14,hair:3,beard:1,shirt:12,pat:3,acc:[1],accC:8}],["DJ",{skin:5,style:3,hair:9,shirt:14,pat:9,beard:0,acc:[3]}]];
+const UK_PANES=[["looks","✨","Looks"],["gesicht","🙂","Gesicht"],["haare","💇","Haare"],["bart","🧔","Bart"],["shirt","👕","Shirt"],["muster","🎨","Muster"],["extras","🕶️","Extras"],["augen","👁️","Augen"]];
+function ukFig(r,d,ch,s){const t=Object.assign({},r,{sick:null,phone:false,lv:4,lvUp:null,lvFull:true,look:Object.assign({},d,ch)});
+  return `<svg width="${s}" height="${Math.round(s*1.15)}" viewBox="-12.5 -31 25 32" aria-hidden="true">${figure(t,0,0)}</svg>`}
+function umkleide(r,d){
+  const kid=stage(r)==="kind", panes=UK_PANES.filter(p=>!kid||!["bart","muster","augen"].includes(p[0]));
+  if(!panes.some(p=>p[0]===LOOK_PANE)) LOOK_PANE="looks";
+  const sw=(label,key,list,sel)=>`<div class="sw-row" role="radiogroup" aria-label="${label}"><span class="small muted">${label}</span>${list.map((c,i)=>`<button type="button" class="sw${i===sel?" on":""}" data-look="${key}" data-v="${i}" style="background:${c}" aria-label="${label} ${i+1}" aria-pressed="${i===sel}"></button>`).join("")}</div>`;
+  const tiles=(key,names,cur,ch)=>`<div class="uk-grid" role="radiogroup">${names.map((n,i)=>`<button type="button" class="uk-tile${i===cur?" on":""}" data-look="${key}" data-v="${i}" aria-label="${n}" aria-pressed="${i===cur}">${ukFig(r,d,ch(i),62)}</button>`).join("")}</div>`;
+  const al=accList(d.acc);
+  const body={
+    looks:`<p class="uk-h">Fertige Looks <span>${LOOKS.length}</span></p><div class="uk-grid">${LOOKS.map(([n,l],i)=>`<button type="button" class="uk-tile lk" data-lookset="${i}" aria-label="Look ${n}">${ukFig(r,d,kid?Object.assign({},l,{beard:0}):l,62)}<span>${n}</span></button>`).join("")}</div>`,
+    gesicht:sw("Hautfarbe","skin",SKIN,d.skin),
+    haare:`<p class="uk-h">Frisur</p>${tiles("style",STYLE_NAMES,d.style,i=>({style:i}))}${sw("Haarfarbe","hair",HAIR,d.hair)}`,
+    bart:`<p class="uk-h">Bart</p>${tiles("beard",BEARD_NAMES,(d.beard||0)%BEARD_NAMES.length,i=>({beard:i}))}`,
+    shirt:sw(kid?"Shirt":"Oberteil","shirt",SHIRT,d.shirt),
+    muster:`<p class="uk-h">Muster</p>${tiles("pat",PAT_NAMES,(d.pat||0)%PAT_NAMES.length,i=>({pat:i}))}`,
+    extras:`<p class="uk-h">Extras <span>mehrere möglich</span></p><div class="uk-grid">${ACC_NAMES.map((n,i)=>{const on=i?al.includes(i):!al.length;return `<button type="button" class="uk-tile${on?" on":""}" data-look="acc" data-v="${i}" aria-label="${n}" aria-pressed="${on}">${ukFig(r,d,{acc:i?accToggle(al.filter(x=>x!==i),i):[]},62)}<span>${n}</span></button>`}).join("")}</div>${sw("Farbe der Extras","accC",SHIRT,d.accC)}`,
+    augen:`${sw("Leuchtaugen (als Schatten)","eye",LV_EYES,(d.eye||0)%LV_EYES.length)}<p class="small muted">So leuchten die Augen, solange die Farbe noch fehlt. Unten links im Spiegel siehst du es.</p>`
+  }[LOOK_PANE];
+  return `<div class="uk"><div class="uk-rail" role="tablist">${panes.map(([k,e,n])=>`<button type="button" role="tab" class="uk-r${k===LOOK_PANE?" on":""}" data-pane="${k}" aria-selected="${k===LOOK_PANE}"><b aria-hidden="true">${e}</b><i>${n}</i></button>`).join("")}</div>
+    <div class="uk-main"><div class="uk-mir"><div class="look-prev" id="lookPrev">${lookPreview(r,d)}</div><button type="button" class="uk-dice" data-dice aria-label="Zufälliger Look">🎲</button></div>
+    <div class="uk-body">${body}</div></div></div>`;
+}
 function lookEditor(r,d){
   const row=(label,key,list,sel)=>`<div class="sw-row" role="radiogroup" aria-label="${label}"><span class="small muted">${label}</span>${list.map((c,i)=>`<button type="button" class="sw${i===sel?" on":""}" data-look="${key}" data-v="${i}" style="background:${c}" aria-label="${label} ${i+1}" aria-pressed="${i===sel}"></button>`).join("")}</div>`;
   if(r.kind==="mensch"){
@@ -4336,16 +4365,7 @@ function lookEditor(r,d){
     const accs=`<div class="sw-row" role="group" aria-label="Extras"><span class="small muted">Extras (mehrere möglich)</span>${ACC_NAMES.map((n,i)=>{const a=accSvg(i,"#FF9C7A"),hs=hairSvg(0,"#4A3222");
       return `<button type="button" class="sw sw-ic${accOn(i)?" on":""}" data-look="acc" data-v="${i}" aria-label="${n}" aria-pressed="${accOn(i)}">${i===0?`<svg width="22" height="22" viewBox="-10 -10 20 20" aria-hidden="true"><circle r="7.5" fill="none" stroke="#9EA3B8" stroke-width="2"/><path d="M-5.3 5.3L5.3 -5.3" stroke="#9EA3B8" stroke-width="2" stroke-linecap="round"/></svg>`:`<svg width="24" height="24" viewBox="-7.5 -25 15 16" aria-hidden="true"><path d="M-6 -6c0-4 2.4-5.2 6-5.2s6 1.2 6 5.2z" fill="#5B8CD6"/>${a.body}${hs.back}<circle cx="0" cy="-16" r="5" fill="#E8B48F"/>${hs.front}${a.head}</svg>`}</button>`}).join("")}</div>`;
     if(baby) return `<div class="field"><span>Aussehen</span><div class="look"><div class="look-prev" id="lookPrev">${lookPreview(r,d)}</div><div class="look-opts">${row("Haut","skin",SKIN,d.skin)}${row("Haare","hair",HAIR,d.hair)}${row("Strampler","shirt",SHIRT,d.shirt)}</div></div></div>`;
-    // Reiter statt einer langen Liste: immer nur ein Bereich offen, Vorschau bleibt oben stehen
-    const kid=stage(r)==="kind";
-    const panes=[["gesicht","Gesicht",row("Haut","skin",SKIN,d.skin)+(kid?"":beards+row("Leuchtaugen (als Schatten)","eye",LV_EYES,d.eye%LV_EYES.length))],
-      ["haare","Haare",styles+row("Haarfarbe","hair",HAIR,d.hair)],
-      ["kleidung","Kleidung",kid?row("Shirt","shirt",SHIRT,d.shirt):row("Oberteil","shirt",SHIRT,d.shirt)+pats],
-      ["extras","Extras",accs+row("Farbe der Extras","accC",SHIRT,d.accC)]];
-    if(!panes.some(x=>x[0]===LOOK_PANE)) LOOK_PANE="gesicht";
-    return `<div class="field"><span>Aussehen</span><div class="look look-tabs"><div class="look-top"><div class="look-prev" id="lookPrev">${lookPreview(r,d)}</div>
-      <div class="lk-tabs" role="tablist">${panes.map(([k,n])=>`<button type="button" role="tab" class="lk-tab${k===LOOK_PANE?" on":""}" data-pane="${k}" aria-selected="${k===LOOK_PANE}">${n}</button>`).join("")}</div></div>
-      ${panes.map(([k,,h])=>`<div class="look-opts lk-pane" data-pane-box="${k}"${k===LOOK_PANE?"":" hidden"}>${h}</div>`).join("")}</div></div>`;
+    return `<div class="field"><span>Aussehen</span><div id="lookEd">${umkleide(r,d)}</div></div>`;
   }
   const n=(FUR[r.art]||[]).length; if(n<2) return "";
   return `<div class="field"><span>Fellfarbe</span><div class="sw-row" role="radiogroup" aria-label="Fellfarbe">${Array.from({length:n},(_,i)=>`<button type="button" class="sw sw-ic sw-big${i===d.fur?" on":""}" data-look="fur" data-v="${i}" aria-label="Fellfarbe ${i+1}" aria-pressed="${i===d.fur}"><svg width="38" height="30" viewBox="${artVB(r.art,38/30)}" aria-hidden="true">${animalSvg(r.art,i)}</svg></button>`).join("")}</div></div>`;
@@ -4356,6 +4376,18 @@ function lookPatRow(r,d){const c=SHIRT[d.shirt]||"#5B8CD6", sel=(d.pat||0)%PAT_N
 function lookBeardRow(d){const hc=HAIR[d.hair]||"#4A3222", sel=(d.beard||0)%BEARD_NAMES.length;
   return `<div class="sw-row" role="radiogroup" aria-label="Bart" id="beardRow"><span class="small muted">Bart</span>${BEARD_NAMES.map((n,i)=>lookIc(i,i===sel,"beard",n,`<circle cx="0" cy="-16" r="5" fill="${SKIN[d.skin]||"#E8B48F"}"/>${hairSvg(0,hc).front}${beardSvg(i,hc)}<circle cx="-1.8" cy="-16.3" r=".55" fill="#14151F"/><circle cx="1.8" cy="-16.3" r=".55" fill="#14151F"/>`,"-7 -23 14 14")).join("")}</div>`}
 function bindLookEditor(r,draft,onChange){
+  const ed=$("#lookEd");
+  if(ed){
+    const redraw=()=>{const b=ed.querySelector(".uk-body"), y=b?b.scrollTop:0; ed.innerHTML=umkleide(r,draft); const nb=ed.querySelector(".uk-body"); if(nb) nb.scrollTop=y; if(onChange) onChange()};
+    ed.onclick=e=>{const t=e.target.closest("button"); if(!t||!ed.contains(t)) return;
+      if(t.dataset.pane){LOOK_PANE=t.dataset.pane; ed.innerHTML=umkleide(r,draft); return}
+      if(t.dataset.lookset!=null){Object.assign(draft,JSON.parse(JSON.stringify(LOOKS[+t.dataset.lookset][1]))); if(stage(r)==="kind") draft.beard=0; redraw(); return}
+      if(t.dataset.dice!=null){const R=n=>Math.floor(Math.random()*n), kid=stage(r)==="kind";
+        Object.assign(draft,{skin:R(SKIN.length),hair:R(HAIR.length),style:R(STYLE_NAMES.length),shirt:R(SHIRT.length),pat:Math.random()<.4?0:R(PAT_NAMES.length),beard:kid||Math.random()<.6?0:R(BEARD_NAMES.length),acc:Math.random()<.5?[]:[1+R(ACC_NAMES.length-1)],accC:R(SHIRT.length)}); redraw(); return}
+      if(t.dataset.look){const k=t.dataset.look, v=+t.dataset.v; if(k==="acc") draft.acc=accToggle(draft.acc,v); else draft[k]=v; redraw()}
+    };
+    return;
+  }
   document.querySelectorAll("#modalRoot [data-pane]").forEach(t=>t.onclick=()=>{LOOK_PANE=t.dataset.pane;
     document.querySelectorAll("#modalRoot [data-pane]").forEach(x=>{const on=x===t;x.classList.toggle("on",on);x.setAttribute("aria-selected",on)});
     document.querySelectorAll("#modalRoot [data-pane-box]").forEach(b=>b.hidden=b.dataset.paneBox!==LOOK_PANE)});
@@ -5529,7 +5561,7 @@ function famLookSheet(){
     <div class="row"><button class="btn secondary grow" id="flNo">Abbrechen</button><button class="btn grow" id="flOk">Speichern</button></div>`);
   bindLookEditor(me,draft);
   $("#flNo").onclick=()=>{closeModal();render()};
-  $("#flOk").onclick=async()=>{f.look={skin:draft.skin,hair:draft.hair,style:draft.style,shirt:draft.shirt,acc:accList(draft.acc),accC:draft.accC||0};save();
+  $("#flOk").onclick=async()=>{f.look={skin:draft.skin,hair:draft.hair,style:draft.style,shirt:draft.shirt,acc:accList(draft.acc),accC:draft.accC||0,beard:draft.beard||0,pat:draft.pat||0,eye:draft.eye||0};save();
     const b=$("#flOk");b.disabled=true;b.textContent="Speichere …";await famSync();closeModal();render();toast("Figur gespeichert")};
 }
 async function famJoinId(fid,name,code,share){

@@ -613,3 +613,25 @@ body:has(.devbar) #view{padding-bottom:110px}
 .lk-tab.on{background:var(--card2);color:var(--ink)}
 .lk-pane[hidden]{display:none}
 .lk-pane{gap:12px}
+/* Umkleide: links Leiste, rechts Spiegel und Kacheln, in denen die Figur die Option schon trägt */
+.uk{display:flex;gap:10px;height:470px;margin-top:4px}
+.uk-rail{width:60px;flex-shrink:0;background:var(--ground);border-radius:18px;padding:6px 5px;display:flex;flex-direction:column;gap:4px;overflow-y:auto;scrollbar-width:none}
+.uk-rail::-webkit-scrollbar{display:none}
+.uk-r{border:none;background:transparent;color:var(--muted);border-radius:13px;min-height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:4px 0;flex-shrink:0}
+.uk-r b{font-size:19px;line-height:1}.uk-r i{font-style:normal;font-size:9.5px;font-weight:800}
+.uk-r.on{background:#3B3570;color:var(--ink);box-shadow:0 0 0 2px var(--lime)}
+.uk-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.uk-mir{position:relative;height:150px;flex-shrink:0;border-radius:80px 80px 16px 16px;border:2.5px solid #6E6A9E;background:radial-gradient(circle at 50% 85%,#3B3570,#1B1C2E 72%);display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
+.uk-mir .look-prev{width:auto;min-height:0;background:none;padding:0 0 2px;display:block}
+.uk-mir .look-prev>svg{width:100px;height:122px;display:block}
+.uk-mir .look-shadow{position:absolute;left:8px;bottom:6px;width:auto;border:none;padding:0;opacity:.95}
+.uk-mir .look-shadow svg{width:30px;height:35px}.uk-mir .look-shadow span{font-size:8.5px}
+.uk-dice{position:absolute;right:8px;bottom:8px;width:34px;height:34px;border:none;border-radius:12px;background:#2C2F45;font-size:17px}
+.uk-body{flex:1;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:10px;padding:2px 2px 8px}
+.uk-body::-webkit-scrollbar{display:none}
+.uk-h{margin:0;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:800;display:flex;justify-content:space-between}.uk-h span{color:var(--lilac);text-transform:none;letter-spacing:0}
+.uk-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.uk-tile{border:none;background:var(--ground);border-radius:14px;padding:2px 0 3px;display:flex;flex-direction:column;align-items:center;color:var(--ink)}
+.uk-tile svg{width:100%;max-width:62px;height:auto}
+.uk-tile span{font-size:10px;font-weight:800;margin-top:-1px;line-height:1.1;text-align:center}
+.uk-tile.on{box-shadow:0 0 0 2.5px var(--lime)}
