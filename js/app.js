@@ -452,8 +452,8 @@ function newGame(){
     glueck:60, happyStreak:0, unhappyStreak:0, dayCount:0,
     lastDay:null, material:0, projectIdx:0, built:[],
     residents:[
-      {id:p1,name:h1,kind:"mensch",art:"Mensch",pair:p2,status:"da",ret:0,born:0,phone:true},
-      {id:p2,name:h2,kind:"mensch",art:"Mensch",pair:p1,status:"da",ret:0,born:0,phone:true},
+      {id:p1,name:h1,kind:"mensch",art:"Mensch",pair:p2,status:"da",ret:0,born:0,phone:true,lv:1},
+      {id:p2,name:h2,kind:"mensch",art:"Mensch",pair:p1,status:"da",ret:0,born:0,phone:true,lv:1},
       {id:z1,name:a1,kind:"tier",art:"Ziege",pair:z2,status:"da",ret:0,born:0},
       {id:z2,name:a2,kind:"tier",art:"Ziege",pair:z1,status:"da",ret:0,born:0}
     ],
@@ -462,6 +462,8 @@ function newGame(){
   };
 }
 function migrate(st){
+  // Verwandlung Smombie → Mensch: alte Spielstände bekommen eine Stufe passend zum Inselglück
+  (st.residents||[]).forEach(r=>{if(r.kind==="mensch"&&r.lv==null){const g=st.glueck||60;r.lv=r.phone?1:g>=80?4:g>=60?3:g>=40?2:1}});
   if(!st.postcards)st.postcards=[];
   if(st.points==null)st.points=0; if(!st.items)st.items=[]; if(!st.sun)st.sun=0;
   if(!st.rel)st.rel={}; if(st.conflict===undefined)st.conflict=null;
@@ -540,6 +542,14 @@ function capacity(){
   return c;
 }
 const has=b=>S.built.includes(b);
+/* Verwandlung: 0 Smombie (am Handy) · 1 Schatten · 2 schaut auf · 3 fast zurück · 4 Mensch */
+const LV_NAMES=["Smombie","Schatten","schaut auf","fast zurück","strahlt"];
+function lvOf(r){
+  if(!r||r.kind!=="mensch") return 4;
+  if(r.phone) return 0;
+  const st=stage(r), v=r.lv==null?4:r.lv;
+  return st==="baby"?4:st==="kind"?Math.max(2,v):Math.max(1,Math.min(4,v));
+}
 function mood(){return S.glueck>=80?["aufblühend","good"]:S.glueck>=40?["zufrieden","ok"]:["unglücklich","bad"]}
 function savedTotal(){return S.days.reduce((a,d)=>a+Math.max(0,S.baseline-d.min),0)}
 function nextDay(){return S.lastDay?addDays(S.lastDay,1):today()}
@@ -566,7 +576,7 @@ function arrival(){
   const used=S.residents.map(r=>r.name);
   if(isHuman){
     const single=here().find(r=>r.kind==="mensch"&&!r.pair);
-    const r={id:uid(),name:freeName(HUMAN_NAMES,used),kind:"mensch",art:"Mensch",pair:null,status:"da",ret:0,born:S.dayCount,job:pickJob(),trait:pick(TRAITS).id,phone:Math.random()<1/3};   // jeder Dritte bringt sein Handy vom Festland mit
+    const r={id:uid(),name:freeName(HUMAN_NAMES,used),kind:"mensch",art:"Mensch",pair:null,status:"da",ret:0,born:S.dayCount,job:pickJob(),trait:pick(TRAITS).id,phone:Math.random()<1/3,lv:S.glueck>80?2:1};   // vom Festland kommen alle als Schatten, eine sehr glückliche Insel färbt schneller ab   // jeder Dritte bringt sein Handy vom Festland mit
     if(single&&Math.random()<.5){r.pair=single.id;single.pair=r.id;r.pairSince=single.pairSince=S.dayCount}
     else{const pal=adults().filter(x=>x.id!==r.id); if(pal.length) addRel(r.id,pick(pal).id,25)}
     S.residents.push(r); S.pending.push({type:"arrival",id:r.id,partner:single?single.id:null});
@@ -598,7 +608,7 @@ function birth(){
   if(!pairs.length) return false;
   const a=pick(pairs), b=S.residents.find(x=>x.id===a.pair);
   const used=S.residents.map(r=>r.name);
-  const kid={id:uid(),name:freeName(a.kind==="mensch"?HUMAN_NAMES:ANIMAL_NAMES,used),kind:a.kind,art:a.art,pair:null,parents:[a.id,b.id],status:"da",ret:0,born:S.dayCount};
+  const kid={id:uid(),name:freeName(a.kind==="mensch"?HUMAN_NAMES:ANIMAL_NAMES,used),kind:a.kind,art:a.art,pair:null,parents:[a.id,b.id],status:"da",ret:0,born:S.dayCount,lv:4};   // Inselkinder kennen kein Handy
   if(kid.kind==="mensch") kid.trait=pick(TRAITS).id;
   S.residents.push(kid); S.pending.push({type:"birth",id:kid.id,parents:[a.id,b.id]});
   return true;
@@ -1504,7 +1514,15 @@ function closeDay(min,quests,appMin){
   let freed=null, hooked=null;
   const onPhone=here().filter(r=>r.kind==="mensch"&&r.phone);
   if(diff>=0&&onPhone.length){freed=pick(onPhone);freed.phone=false;S.freed=(S.freed||0)+1;log(freed.name+" hat das Handy weggelegt und redet wieder mit allen.","good");chron([freed.id],freed.name+" hat das Handy weggelegt.");if(S.wish&&S.wish.type==="frei") fulfillWish()}
-  else if(diff<0){const c=here().filter(r=>r.kind==="mensch"&&!r.phone&&stage(r)!=="baby");if(c.length&&Math.random()<.5){hooked=pick(c);hooked.phone=true;log(hooked.name+" hängt wieder am Handy.","bad")}}
+  else if(diff<0){const c=here().filter(r=>r.kind==="mensch"&&!r.phone&&stage(r)!=="baby"&&stage(r)!=="kind");if(c.length&&Math.random()<.5){hooked=pick(c);hooked.phone=true;hooked.lv=0;log(hooked.name+" hängt wieder am Handy.","bad")}}
+  // Verwandlung: gute Tage bringen Farbe zurück, schlechte nehmen sie
+  const back=[];
+  here().filter(r=>r.kind==="mensch").forEach(r=>{const st=stage(r); if(st==="baby") return;
+    const v=r.lv==null?4:r.lv, lo=st==="kind"?2:1;
+    if(diff>=0){r.lv=Math.min(4,v+1); if(v<4&&r.lv===4&&!r.phone){r.lvUp=S.dayCount;back.push(r.name)}}
+    else r.lv=Math.max(lo,v-1);
+  });
+  if(back.length) log(nameList(back)+" "+(back.length>1?"sind":"ist")+" wieder ganz Mensch. Die Farbe ist zurück!","good");
   if(!S.testmode) S.pending.push({type:"day",day,min,before,after:S.glueck,saved,pts,sunny,repaired,dreamt,monsters,joker:0,freed:freed&&freed.name,hooked:hooked&&hooked.name});
   if(!S.testmode) S.pending.push({type:"planAsk",day,good:diff>=0});
   if(!S.testmode&&parse(day).getDay()===0&&S.days.filter(d=>isoWeek(d.day)===isoWeek(day)).length>=2){S.pending.push({type:"week",wk:isoWeek(day)});S.weekReady={wk:isoWeek(day),until:addDays(day,3)}}
@@ -1744,13 +1762,13 @@ function figure(r,x,y){
     const hat=L.acc.includes(4)||L.acc.includes(5), hcl=hat?`<clipPath id="hatclip"><rect x="-20" y="-17.6" width="40" height="40"/></clipPath>`:"";
     const hair=hat?{back:hcl+(hair0.back&&L.style===2?`<g clip-path="url(#hatclip)">${hair0.back}</g>`:hair0.back),front:hair0.front?`<g clip-path="url(#hatclip)">${hair0.front}</g>`:""}:hair0;
     if(r.sick) return `<g transform="translate(${x} ${y}) scale(${kid})"><title>${esc(r.name)} (krank: ${esc(r.sick.kind)})</title><rect x="-9" y="-6" width="18" height="6" rx="2" fill="#8A5A3B"/><rect x="-8" y="-9" width="16" height="5" rx="2" fill="#9CC8EE"/><circle cx="-6" cy="-10" r="4" fill="${L.skin}"/><path d="M-9.6 -11a4 4 0 0 1 6.6-2.6" stroke="${L.hair}" stroke-width="2" fill="none"/><path d="M-7.4 -10.4h1.2M-5 -10.4h1.2" stroke="#14151F" stroke-width=".6"/><circle cx="-8" cy="-9" r="1" fill="#E5484D" opacity=".7"/><text x="2" y="-12" font-size="6" fill="#F3F1EA" font-family="Manrope, sans-serif">z</text></g>`;
-    const sad=typeof S!=="undefined"&&S.glueck<40;
+    const sad=typeof S!=="undefined"&&S.glueck<40, t=lvOf(r);
     if(st==="baby") return `<g transform="translate(${x} ${y}) scale(${kid})"><title>${esc(r.name)} (Baby)</title>
       <ellipse cx="0" cy="-5" rx="5.6" ry="5.4" fill="${L.shirt}"/><path d="M-3.4 -1v1.4M3.4 -1v1.4" stroke="${L.skin}" stroke-width="2.4" stroke-linecap="round"/>
       <circle cx="0" cy="-14" r="5.4" fill="${L.skin}"/><path d="M-1 -19.2q1-2.4 2.6-1.6q-1.6.2-1.4 1.8" stroke="${L.hair}" stroke-width="1" fill="none" stroke-linecap="round"/>
       <circle cx="-1.9" cy="-14" r=".75" fill="#14151F"/><circle cx="1.9" cy="-14" r=".75" fill="#14151F"/><circle cx="-3.4" cy="-12.4" r="1.1" fill="#FF9C7A" opacity=".4"/><circle cx="3.4" cy="-12.4" r="1.1" fill="#FF9C7A" opacity=".4"/>
       <circle cx="0" cy="-11.4" r="1.4" fill="#9CC8EE"/><circle cx="0" cy="-11.4" r=".6" fill="#F3F1EA"/></g>`;
-    const mouth=sad?`<path d="M-1.4 -12.6q1.4-1 2.8 0" stroke="#5A3A2A" stroke-width=".7" fill="none" stroke-linecap="round"/>`:`<path d="M-1.6 -13.3q1.6 1.3 3.2 0" stroke="#5A3A2A" stroke-width=".7" fill="none" stroke-linecap="round"/>`;
+    const mouth=t<=2?`<path d="M-1.2 -13.1h2.4" stroke="#5A3A2A" stroke-width=".65" stroke-linecap="round"/>`:sad?`<path d="M-1.4 -12.6q1.4-1 2.8 0" stroke="#5A3A2A" stroke-width=".7" fill="none" stroke-linecap="round"/>`:`<path d="M-1.6 -13.3q1.6 1.3 3.2 0" stroke="#5A3A2A" stroke-width=".7" fill="none" stroke-linecap="round"/>`;
     if(st!=="kind"){
       // Erwachsene: längere Beine, Sneaker, Arme, Oberteil nach Wahl, Augenbrauen, Glanz in den Augen
       const U=-2.6, alt=st==="alt", sd=shadeC(L.shirt,.78), brow=shadeC(alt?"#8A8780":L.hair,.7);
@@ -1761,17 +1779,24 @@ function figure(r,x,y){
           <circle cx="-2.6" cy="${-4.8+U}" r="1.05" fill="${L.skin}"/><circle cx="2.6" cy="${-4.8+U}" r="1.05" fill="${L.skin}"/>`
         :`<path d="M-5.4 ${-9.6+U}q-1.4 3.4-1 6" stroke="${sd}" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M5.4 ${-9.6+U}q1.4 3.4 ${alt?"1.8 5.6":"1 6"}" stroke="${sd}" stroke-width="2.2" fill="none" stroke-linecap="round"/>
           <circle cx="-6.4" cy="${-3.2+U}" r="1.05" fill="${L.skin}"/><circle cx="${alt?7.2:6.4}" cy="${(alt?-3.6:-3.2)+U}" r="1.05" fill="${L.skin}"/>`;
-      return `<g transform="translate(${x} ${y})"><title>${esc(r.name)}${r.phone?" (am Handy)":""}</title><ellipse cx="0" cy=".2" rx="6" ry="1" fill="#000" opacity=".16"/>
+      // Verwandlung: je weiter weg vom Menschsein, desto tiefer hängt der Kopf und desto dunkler die Figur
+      const hd=`translate(0 ${U+[2.2,1.5,.7,0,0][t]}) rotate(${[13,8,3,0,0][t]} 0 -11)`;
+      const glowC=t===0?"#9CE3FF":"#B8FFE4";
+      const over=t>=3?(r.lvUp!=null&&typeof S!=="undefined"&&S.dayCount-r.lvUp<2?LV_SPARK:"")
+        :`<g transform="${hd}">${t<=1?`<path d="M-2.7 -15.5q.9-.6 1.8 0M.9 -15.5q.9-.6 1.8 0" stroke="${glowC}" stroke-width="1" fill="none" stroke-linecap="round" filter="url(#lvGlow)"/>`
+          :`<circle cx="-1.8" cy="-15.6" r=".9" fill="${glowC}" opacity=".35" filter="url(#lvGlow)"/><circle cx="1.8" cy="-15.6" r=".9" fill="${glowC}" opacity=".35" filter="url(#lvGlow)"/>`}</g>`
+          +(r.phone?`<circle cx="0" cy="${-6.5+U}" r="3.2" fill="#7FB6FF" opacity=".22" filter="url(#lvGlow)"/><rect x="-1.4" y="${-8.4+U}" width="2.8" height="4" rx=".5" fill="#9CC8EE"/><path d="M-1 ${-7.6+U}h2M-1 ${-6.6+U}h1.4" stroke="#2B3350" stroke-width=".35"/>`:"");
+      return `<g transform="translate(${x} ${y})"><title>${esc(r.name)}${r.phone?" (am Handy)":t<4?` (${LV_NAMES[t]})`:""}</title><ellipse cx="0" cy=".2" rx="6" ry="1" fill="#000" opacity=".16"/>${t<4?`<g filter="url(#lv${t})">`:""}
         ${alt?`<path d="M7.6 0v-8.6q0-1.8-1.8-1.8" stroke="#8A5A3B" stroke-width="1.1" fill="none" stroke-linecap="round"/>`:""}
         <path d="M-2.3 -6v4.6M2.3 -6v4.6" stroke="${L.pants}" stroke-width="2.5" stroke-linecap="round"/>${shoes}
         ${topSvg(L.top,L.shirt,U)}<g transform="translate(0 ${U})">${acc.body}</g>${arms}
-        <g transform="translate(0 ${U})">${hair.back}<rect x="-1.1" y="-12" width="2.2" height="1.4" fill="${shadeC(L.skin,.88)}"/><circle cx="0" cy="-16" r="5" fill="${L.skin}"/>${hair.front}
+        <g transform="${hd}">${hair.back}<rect x="-1.1" y="-12" width="2.2" height="1.4" fill="${shadeC(L.skin,.88)}"/><circle cx="0" cy="-16" r="5" fill="${L.skin}"/>${hair.front}
           <circle cx="-1.8" cy="-15.6" r=".72" fill="#14151F"/><circle cx="1.8" cy="-15.6" r=".72" fill="#14151F"/><circle cx="-1.6" cy="-15.85" r=".22" fill="#fff"/><circle cx="2" cy="-15.85" r=".22" fill="#fff"/>
           ${sad?`<path d="M-2.8 -18l1.6.5M2.8 -18l-1.6.5" stroke="${brow}" stroke-width=".55" stroke-linecap="round"/>`:`<path d="M-2.7 -17.6l1.6-.25M1.1 -17.85l1.6.25" stroke="${brow}" stroke-width=".55" stroke-linecap="round"/>`}
           <circle cx="-3.2" cy="-13.8" r="1" fill="#FF9C7A" opacity=".25"/><circle cx="3.2" cy="-13.8" r="1" fill="#FF9C7A" opacity=".25"/>${mouth.replace("M-1.6 -13.3q1.6 1.3 3.2 0","M-1.4 -13.2q1.4 1 2.8 0")}${acc.head}
-          ${r.retired?`<path d="M-3.6 -16.4h2.6M1 -16.4h2.6M-1 -16.4h2" stroke="#3A3D58" stroke-width=".5" fill="none"/><circle cx="-1.8" cy="-16" r="1.5" fill="none" stroke="#3A3D58" stroke-width=".5"/><circle cx="1.8" cy="-16" r="1.5" fill="none" stroke="#3A3D58" stroke-width=".5"/>`:""}</g></g>`;
+          ${r.retired?`<path d="M-3.6 -16.4h2.6M1 -16.4h2.6M-1 -16.4h2" stroke="#3A3D58" stroke-width=".5" fill="none"/><circle cx="-1.8" cy="-16" r="1.5" fill="none" stroke="#3A3D58" stroke-width=".5"/><circle cx="1.8" cy="-16" r="1.5" fill="none" stroke="#3A3D58" stroke-width=".5"/>`:""}</g>${t<4?"</g>":""}${over}</g>`;
     }
-    return `<g transform="translate(${x} ${y}) scale(${kid})"><title>${esc(r.name)}</title>
+    return `<g transform="translate(${x} ${y}) scale(${kid})"${t<4?` filter="url(#lv${t})"`:""}><title>${esc(r.name)}</title>
       <path d="M-2.4 -3.4v3.2M2.4 -3.4v3.2" stroke="${L.pants}" stroke-width="2.4" stroke-linecap="round"/>
       <path d="M-6 -2.6c0-6 2.4-8.6 6-8.6s6 2.6 6 8.6z" fill="${L.shirt}"/>${acc.body}
       ${st==="kind"?`<g transform="translate(0 -12) scale(1.18) translate(0 12)">`:""}${hair.back}<circle cx="0" cy="-16" r="5" fill="${L.skin}"/>${hair.front}
@@ -1783,6 +1808,7 @@ function figure(r,x,y){
   const s=(r.parents?0.7:1)*(r.art==="Wal"?1.6:["Elch","Kamel","Eisbär"].includes(r.art)?1.1:1);
   return `<g transform="translate(${x} ${y}) scale(${s})"><title>${esc(r.name)} (${esc(r.art)})</title>${animalSvg(r.art,animalVar(r))}</g>`;
 }
+const LV_SPARK=`<g fill="#FFD27A"><path d="M-7 -24l.5 1.3 1.3.5-1.3.5-.5 1.3-.5-1.3-1.3-.5 1.3-.5z"/><path d="M7.4 -21l.4 1 1 .4-1 .4-.4 1-.4-1-1-.4 1-.4z"/><path d="M-8.2 -13l.3.8.8.3-.8.3-.3.8-.3-.8-.8-.3.8-.3z" opacity=".8"/></g>`;
 /* ---------- Geschichte: Mr. Bay (Bürgermeister) und Lucifer (Inselkatze) ---------- */
 const PHONE_FIG=`<circle cx="0" cy="-14.6" r="6.4" fill="#7FB6FF" opacity=".22"/><path d="M-3 -7.6q3 1.6 6 0" stroke="#F0C2A0" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".9"/><rect x="-1.9" y="-11.2" width="3.8" height="5.8" rx=".9" fill="#2B3350"/><rect x="-1.4" y="-10.6" width="2.8" height="4.4" rx=".5" fill="#9CC8EE"/>`;
 function baySvg(anim){
@@ -2820,7 +2846,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.34";
+const APP_VERSION="1.35";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -2870,7 +2896,7 @@ function resTile(r){
   const mensch=r.kind==="mensch", bg=mensch?"#26233D":SEA.includes(r.art)?"#1F2A3A":"#22301F";
   const flag=r.status!=="da"?"gone":r.sick?"bad":r.sad||r.phone?"warn":"";
   const q=(resRow(r).match(/data-q="([^"]*)"/)||[])[1]||"";   // gleiche Suchbegriffe wie die ausführliche Zeile
-  const lbl=resLabel(r), note=r.sick?"krank":r.status==="weg"?"weg":r.phone&&mensch?"am Handy":r.sad?"traurig":"";
+  const lbl=resLabel(r), note=r.sick?"krank":r.status==="weg"?"weg":r.phone&&mensch?"am Handy":r.sad?"traurig":mensch&&lvOf(r)<4?LV_NAMES[lvOf(r)]:"";
   return `<button type="button" class="ani-tile${flag?" "+flag:""}" data-rt="${r.id}" data-q="${q}" aria-label="${esc(r.name)}, ${esc(lbl)}${note?", "+note:""}">
     <span class="avatar" style="background:${bg}"><svg width="40" height="40" viewBox="${figVB(r)}" aria-hidden="true">${figure(r,0,0)}</svg></span>
     <b>${esc(r.name)}</b><span class="small muted">${esc(lbl)}${note?" · "+note:""}</span></button>`;
@@ -4208,7 +4234,7 @@ function nameSheet(ev){
     <h2>${esc(head)}</h2><p class="muted">${esc(text)}</p>
     <label class="field" for="nameIn">Wie soll ${r.kind==="mensch"?"die Person":"das Tier"} heißen?</label>
     <div class="row"><input id="nameIn" type="text" maxlength="20" value="${esc(r.name)}"><button class="iconbtn" id="dice" aria-label="Zufälligen Namen würfeln"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B6A4FF" stroke-width="2" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="9" cy="9" r="1.3" fill="#B6A4FF"/><circle cx="15" cy="15" r="1.3" fill="#B6A4FF"/><circle cx="15" cy="9" r="1.3" fill="#B6A4FF"/><circle cx="9" cy="15" r="1.3" fill="#B6A4FF"/></svg></button></div>
-    ${lookEditor(r,draft)}
+    ${lookEditor(r,draft)}${r.kind==="mensch"&&lvOf(r)<4?`<p class="small muted lv-hint">✨ So sieht ${esc(r.name)} aus, wenn die Farbe ganz zurück ist. Gerade: <b>${LV_NAMES[lvOf(r)]}</b>. Gute Tage bringen sie zurück.</p>`:""}
     ${r.kind==="tier"&&!isSea(r)&&adults().length?`<label class="field" for="ownSel">Gehört zu<select id="ownSel" style="height:52px;border:1.5px solid var(--line);border-radius:16px;background:var(--ground);color:var(--ink);font:700 17px var(--body);padding:0 12px">${adults().map(a=>`<option value="${a.id}" ${a.id===r.owner?"selected":""}>${esc(a.name)}</option>`).join("")}<option value="" ${r.owner?"":"selected"}>allen zusammen</option></select></label>`:""}
     <button class="btn" id="nameOk">${ev.type==="rename"?"Speichern":"Willkommen heißen"}</button>
     <button class="btn ghost" id="nameNo">${ev.type==="rename"?"Verwerfen":"Änderungen verwerfen"}</button>`);
@@ -4240,7 +4266,7 @@ function nameSheet(ev){
 }
 /* Aussehen wählen: kleine Auswahl mit Live-Vorschau */
 function lookPreview(r,draft){
-  const tmp=Object.assign({},r,{sick:null});
+  const tmp=Object.assign({},r,{sick:null,phone:false,lv:4,lvUp:null});   // im Editor sieht man immer, wie jemand ganz zurück aussieht
   if(r.kind==="mensch") tmp.look=draft; else tmp.fur=draft.fur;
   return `<svg width="72" height="78" viewBox="${r.kind==="mensch"?(stage(r)==="baby"?"-8.5 -15.5 17 17":stage(r)==="kind"?"-12 -25 24 26":"-12 -27.6 24 28.6"):SEA.includes(tmp.art)?figVB(tmp):"-16 -22 32 25"}" aria-hidden="true">${figure(tmp,0,0)}</svg>`;
 }
