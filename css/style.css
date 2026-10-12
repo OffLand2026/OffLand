@@ -559,22 +559,6 @@ details.res-sec+details.res-sec,.res-search+p+details.res-sec{margin-top:4px}
 .hm-done{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--lime);background:rgba(200,241,105,.08);border-radius:12px;padding:10px 12px;margin:2px 0 0}
 
 /* Heute neu: Sprechblase auf der Insel */
-.talk{position:absolute;left:10px;right:10px;top:10px;z-index:3;pointer-events:none;display:flex}
-.talk.low{top:52px}
-.talk button{pointer-events:auto;border:0;font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.tk-av{flex:none;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #FBF8F0;overflow:hidden}
-.tk-open{display:flex;align-items:flex-start;gap:8px;background:none;padding:0;text-align:left;max-width:100%;animation:tkPop .35s cubic-bezier(.2,1.4,.4,1) both}
-.tk-bub{position:relative;background:#FBF8F0;color:#1A1B26;border-radius:4px 16px 16px 16px;padding:8px 12px 10px;font-size:13.5px;line-height:1.32;font-weight:600;box-shadow:0 8px 20px rgba(0,0,0,.35);overflow:hidden;display:flex;flex-direction:column;gap:1px}
-.tk-bub b{font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;color:#7C64E8;font-weight:800}
-.tk-n{font-style:normal;align-self:flex-end;font-size:10.5px;font-weight:800;color:#9A97A8;margin-top:2px}
-.tk-prog{position:absolute;left:0;bottom:0;height:3px;width:100%;background:#7C64E8;transform-origin:left;animation:tkProg 6s linear forwards}
-.tk-mini{position:relative;display:flex;align-items:center;gap:4px;background:#FBF8F0;border-radius:999px;padding:3px 10px 3px 3px;box-shadow:0 6px 16px rgba(0,0,0,.35);animation:tkPop .3s ease both}
-.tk-mini .tk-av{width:34px;height:34px;border:0}
-.tk-mini>span:last-of-type{font-size:15px}
-.tk-dot{position:absolute;right:-3px;top:-3px;width:13px;height:13px;border-radius:50%;background:#FF4D5E;border:2.5px solid #FBF8F0}
-@keyframes tkPop{from{opacity:0;transform:scale(.85) translateY(-6px)}to{opacity:1;transform:none}}
-@keyframes tkProg{from{transform:scaleX(1)}to{transform:scaleX(0)}}
-@media (prefers-reduced-motion: reduce){.tk-open,.tk-mini{animation:none}.tk-prog{animation:none;opacity:.4}}
 /* Heute neu: Eintragen mit großer Zahl und Schieberegler */
 .entry2{display:flex;flex-direction:column;gap:6px}
 .tin{display:flex;align-items:baseline;gap:4px;margin-top:4px}

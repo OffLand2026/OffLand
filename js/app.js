@@ -2809,28 +2809,6 @@ function boatPick(){
     <div class="boat-pick">${[15,25,45,60].map(m=>`<button class="btn secondary" data-boat="${m}">${m} min</button>`).join("")}</div><button class="btn ghost" data-ok>Abbrechen</button>`,
     ()=>document.querySelectorAll("#modalRoot [data-boat]").forEach(x=>x.onclick=()=>{closeModal();focusSheet(+x.dataset.boat)}));
 }
-/* Sprechblase auf der Insel: ploppt beim Öffnen auf, schrumpft nach 6 s, roter Punkt bei Neuem, Antippen blättert */
-const TALK={open:false,i:0,t0:0,seen:null,auto:false,timer:0};
-function talkLines(){
-  const L=[{r:null,t:sleeping()?"Alle schlafen. Leg das Handy weg, ich halte Wache. 🌙":lucLine()}];
-  if(!sleeping()) whispers().forEach(w=>L.push(w));
-  return L;
-}
-const talkKey=()=>S.dayCount+"|"+S.lastDay+"|"+sleeping();
-function talkPic(r){return r?`<span class="tk-av" style="background:${r.kind==="mensch"?"#26233D":SEA.includes(r.art)?"#1F2A3A":"#22301F"}"><svg width="34" height="34" viewBox="${figVB(r)}" aria-hidden="true">${figure(r,0,0)}</svg></span>`:`<span class="tk-av" style="background:#26233D">${lucPic(34)}</span>`}
-function talkOpen(i){TALK.open=true;TALK.i=i||0;TALK.t0=Date.now();TALK.seen=talkKey();clearTimeout(TALK.timer);TALK.timer=setTimeout(()=>{TALK.open=false;renderTalk()},6000);renderTalk()}
-function renderTalk(){
-  const el=$("#talk"); if(!el) return;
-  const L=talkLines(); if(!L.length){el.innerHTML="";return}
-  if(TALK.i>=L.length) TALK.i=0;
-  if(TALK.open){const w=L[TALK.i], r=w.r, el0=Date.now()-TALK.t0;
-    el.innerHTML=`<button class="tk-open" id="tkOpen" aria-label="Nächster Spruch">${talkPic(r)}<span class="tk-bub"><b>${r?esc(r.name)+(r.job?" · "+esc(jobName(r.job)):""):"Lucifer · Inselkatze"}</b><span>${esc(w.t)}</span>${L.length>1?`<i class="tk-n">${TALK.i+1}/${L.length} ›</i>`:""}<i class="tk-prog" style="animation-delay:-${el0}ms"></i></span></button>`;
-    $("#tkOpen").onclick=e=>{e.stopPropagation();if(TALK.i+1<L.length) talkOpen(TALK.i+1); else{clearTimeout(TALK.timer);TALK.open=false;TALK.i=0;renderTalk()}};
-  } else {const w=L[0];
-    el.innerHTML=`<button class="tk-mini" id="tkMini" aria-label="Was die Insel erzählt">${talkPic(w.r)}<span aria-hidden="true">💬</span>${TALK.seen!==talkKey()?`<i class="tk-dot"></i>`:""}</button>`;
-    $("#tkMini").onclick=e=>{e.stopPropagation();talkOpen(0)};
-  }
-}
 /* Heute: Hauptkarte (letzter eingetragener Tag) – große Zahl, schmaler Balken, Wochensäulen, Eintragen */
 function heuteMain(ok,nd,form){
   if(form) return `<div class="card hmain">${form}</div>`;
@@ -2886,7 +2864,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.36";
+const APP_VERSION="1.37";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -3474,9 +3452,7 @@ function renderScene(){
       <button class="snav" data-snav="-1" aria-label="Vorherige Insel">‹</button>
       <div class="snav-mid"><span class="snav-label">${views[islandView].n}</span><span class="snav-dots">${views.map((v,i)=>`<button class="${i===islandView?"on":""}" data-sview="${i}" aria-label="${v.n}"></button>`).join("")}</span></div>
       <button class="snav" data-snav="1" aria-label="Nächste Insel">›</button></div>`:"";
-  const talk=tab==="heute"&&S.setup&&!S.vacation;
-  $("#scene").innerHTML=scene()+nav+(talk?`<div id="talk" class="talk${views.length>1?" low":""}"></div>`:"");
-  if(talk){ if(!TALK.auto){TALK.auto=true;talkOpen(0)} else renderTalk() }
+  $("#scene").innerHTML=scene()+nav;
   setViewBox(views[islandView].vb);
   if(scenePaused){const sv=$("#scene > svg"); if(sv&&sv.pauseAnimations) sv.pauseAnimations()}
   document.querySelectorAll("[data-snav]").forEach(b=>b.onclick=()=>goView(islandView+ +b.dataset.snav));
@@ -3668,7 +3644,7 @@ function bind(){
   document.querySelectorAll("[data-card]").forEach(btn=>btn.onclick=()=>{const c=S.postcards.find(x=>x.id===btn.dataset.card);if(c) sheet(`<p class="label" style="color:var(--lilac)">Aus deinem Album</p>${postcardHtml(c)}<button class="btn" data-ok>Schließen</button>`)});
   document.querySelectorAll("[data-rename]").forEach(btn=>btn.onclick=()=>nameSheet({type:"rename",id:btn.dataset.rename}));
 }
-document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{if(b.dataset.tab==="heute"&&tab!=="heute") TALK.auto=false; tab=b.dataset.tab;render();window.scrollTo(0,0)});
+document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;render();window.scrollTo(0,0)});
 
 /* ---------- Dialoge ---------- */
 let toastT;
