@@ -2626,26 +2626,28 @@ function viewHeute(){
   const last=S.days[S.days.length-1];
   const p=curProjects()[S.projectIdx];
   const warn=S.warn?S.warn.ids.map(id=>S.residents.find(r=>r.id===id)).filter(Boolean):null;
-  const wh=whispers();
   const wisher=S.wish?S.residents.find(r=>r.id===S.wish.rid):null;
   const canNight=feature("nacht")&&S.lastDay&&!sleeping()&&(S.testmode||S.lastDay===today())&&!(S.night&&S.night.after===S.lastDay);
   const mons=(S.monsters||[]).map(id=>S.apps.find(a=>a.id===id)).filter(Boolean);
   const guard=S.vacation&&S.vacation.guard?S.residents.find(r=>r.id===S.vacation.guard):null;
   const closeFirst=ok&&(new Date().getHours()>=17||S.testmode);
   const entry=ok&&(closeFirst||ENTRY_OPEN);
-  const form=`<div id="closeCard" class="entry">
+  const last0=S.days[S.days.length-1], v0=last0?last0.min:Math.min(S.budget,150), smax=entryMax();
+  const form=`<div id="closeCard" class="entry2">
+    <p class="label">${nd===today()?"Heute eintragen":"Eintragen · "+nice(nd)}</p>
     ${S.repair?`<p class="small" style="color:var(--amber)">Reparatur möglich: Bleib heute im Budget, dann holst du ${S.repair.amount} % Glück zurück.</p>`:""}
-    <p class="small muted" id="stNote">Trag die Bildschirmzeit für ${nd===today()?"heute":nice(nd)} aus deinen Handy-Einstellungen ein. Budget: ${hm(S.budget)}.</p>
-    <div class="time">
-      <label class="field" for="inH">Stunden<input id="inH" type="number" min="0" max="24" inputmode="numeric" value="${last?Math.floor(last.min/60):2}"></label>
-      <label class="field" for="inM">Minuten<input id="inM" type="number" min="0" max="59" step="5" inputmode="numeric" value="${last?last.min%60:30}"></label>
-    </div>
-    <div class="goal-bar" id="liveBar" aria-hidden="true"><i></i><span class="goal-mark"></span></div>
-    <p class="small" id="liveTxt" aria-live="polite" style="font-weight:700;margin-top:-4px"></p>
-    ${feature("monster")?`<details><summary style="cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center">Pro App eintragen (für die App-Monster)</summary>
+    <div class="tin" aria-label="Bildschirmzeit">
+      <label for="inH" class="sr">Stunden</label><input id="inH" class="tin-n" type="number" min="0" max="24" inputmode="numeric" value="${Math.floor(v0/60)}"><span>h</span>
+      <label for="inM" class="sr">Minuten</label><input id="inM" class="tin-n tin-m" type="number" min="0" max="59" step="5" inputmode="numeric" value="${String(v0%60).padStart(2,"0")}"><span>min</span></div>
+    <p class="small muted" id="stNote">am Handy · Wert aus den Handy-Einstellungen</p>
+    <div class="tslide"><input id="inR" type="range" min="0" max="${smax}" step="5" value="${Math.min(v0,smax)}" aria-label="Bildschirmzeit einstellen">
+      <span class="tgoal" style="left:${(S.budget/smax*100).toFixed(1)}%"><b>Ziel ${hm(S.budget)}</b></span></div>
+    <div class="tticks">${[0,1,2,3].map(k=>`<span>${Math.round(smax*k/3/60)} h</span>`).join("")}</div>
+    <p class="live-prev" id="liveTxt" aria-live="polite"></p>
+    ${feature("monster")?`<details><summary style="cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px">oder pro App eintragen ›</summary>
       <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:6px">${S.apps.map(a=>`<label class="field" for="app_${a.id}" style="font-size:13px">${esc(a.name)} <span class="muted" style="font-weight:500">Limit ${a.limit} min</span><input id="app_${a.id}" type="number" min="0" max="1440" inputmode="numeric" placeholder="Minuten"></label>`).join("")}</div>
     </details>`:""}
-    <button class="btn" id="closeBtn">Tag abschließen</button></div>`;
+    <button class="btn big" id="closeBtn">Tag abschließen</button></div>`;
   const [gl,glC]=[S.glueck+" %",mCls==="good"?"var(--lime)":mCls==="ok"?"var(--amber)":"var(--coral)"];
   return `
   <div class="scene-chips glass">
@@ -2657,43 +2659,78 @@ function viewHeute(){
   ${heuteMain(ok,nd,entry?form:"")}
   ${warn?`<div class="card warn"><p class="label" style="color:var(--amber)">Wegzug droht</p><p><b>${esc(groupName(warn))}</b> ${vb(warn,"packt","packen")} die Koffer. Bring das Inselglück bis ${nice(S.warn.deadline)} über 40 %, dann ${vb(warn,"bleibt "+esc(warn[0].name),"bleiben alle")}.</p></div>`:""}
   ${planCard()}
+  ${actionCard(ok)}
   ${forYou(wisher)}
   ${mons.length?`<div class="card" style="border:1.5px solid #9B6BD6"><p class="label" style="color:#C8A8FF">App-Monster vor der Insel</p>${mons.map(a=>`<div class="row"><svg width="48" height="40" viewBox="-24 -34 48 40" aria-hidden="true">${monsterSvg(a.m)}</svg><p class="grow">${esc(monName(a,false))}: ${esc(a.name)} lag gestern über ${hm(a.limit)}.</p></div>`).join("")}<p class="small muted">Bleib heute bei diesen Apps unter dem Limit, dann tauchen sie wieder ab.</p></div>`:""}
-  ${S.setup?`<div class="sec-h"><span>Inselgeflüster</span>${wh.length>1?`<button class="linkbtn" id="whMore">mehr ›</button>`:""}</div>
-  <div class="card whisper">${whisperRow(null,lucLine())}${wh.slice(0,1).map(w=>whisperRow(w.r,w.t)).join("")}</div>`:""}
-  ${feature("boot")||feature("nacht")?`<div class="sec-h"><span>Handy weg</span></div>
-  <div class="tiles2">
-    ${feature("boot")?`<div class="tile"><span class="tile-ic">⛵</span><b>Fokus-Bootsfahrt</b>${S.boat?`<span class="small muted">Das Boot ist draußen. Leg das Handy weg, bis es zurück ist.</span>`
-      :`<span class="small muted">Handy weg, ein Bewohner fährt fischen.</span><div class="boat-row">${[15,25,45,60].map(m=>`<button class="mini" data-boat="${m}" ${adults().length?"":"disabled"}>${m}</button>`).join("")}</div>`}</div>`:""}
-    ${feature("nacht")?`<div class="tile${canNight?"":" off"}"><span class="tile-ic">🌙</span><b>Gute Nacht, Insel</b>${canNight?`<span class="small muted">Handy weg, morgen +15 Traumpunkte.</span><button class="mini wide" id="nightBtn">Gute Nacht</button>`
-      :`<span class="small muted">${sleeping()?"Die Insel schläft. Bis morgen!":"Geht nach dem Eintragen."}</span>`}</div>`
-    // noch gesperrt: als gestrichelte Kachel zeigen, damit die Reihe von Anfang an vollständig ist
-    :(()=>{const nf=FEATURES.find(x=>x.id==="nacht"), left=nf?nf.day-S.dayCount:0;
-      return `<div class="tile dashed"><span class="tile-ic" style="opacity:.5">🌙</span><b>Gute Nacht, Insel</b><span class="small muted">Bald freigeschaltet · ${left<=1?"nach dem nächsten Tag":"in "+left+" Tagen"}</span></div>`})()}
-  </div>`:""}
-  ${friendsCard()}
-  ${devMode()||S.testmode?`<div class="card">
-    <div class="row between"><p class="label">Testmodus</p><label class="check" for="tm" style="min-height:auto"><input type="checkbox" id="tm" ${S.testmode?"checked":""}> an</label></div>
-    <p class="small muted">Im Testmodus kannst du beliebig viele Tage nacheinander eintragen oder zufällig simulieren.</p>
-    ${S.testmode?`<div class="row"><button class="btn secondary grow" id="simGood">Guter Tag</button><button class="btn secondary grow" id="simBad">Schlechter Tag</button></div>
-    <button class="btn ghost" id="sim10">10 Tage gemischt</button>
-    <button class="btn ghost" id="resetBtn">Spielstand zurücksetzen</button>`:""}
-  </div>`:""}`;
+  ${friendsCard()}`;
 }
-let ENTRY_OPEN=false;
+let ENTRY_OPEN=false, CU_KEY=null;
+/* Nach dem Eintragen: große Zahl zählt hoch, Balken füllt sich (einmal pro Tag) */
+function countUpMain(){
+  const big=$(".hm-big[data-cu]"); if(!big) return;
+  const key=S.lastDay+"|"+S.days.length; if(CU_KEY===key) return; const first=CU_KEY!==null; CU_KEY=key;
+  if(!first) return;   // beim App-Start nicht, nur direkt nach dem Eintragen
+  const to=+big.dataset.cu, reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches; if(reduce||!to) return;
+  const bw=$(".hm-bar[data-w]"), bar=bw&&bw.querySelector("i"), w=bw?bw.dataset.w:0;
+  if(bar){bar.style.transition="none";bar.style.width="0";requestAnimationFrame(()=>requestAnimationFrame(()=>{bar.style.transition="width 1.1s cubic-bezier(.2,.8,.2,1)";bar.style.width=w+"%"}))}
+  const t0=performance.now();(function step(t){const k=Math.min(1,(t-t0)/1100);big.textContent=hm(Math.round(to*(1-Math.pow(1-k,3))));if(k<1)requestAnimationFrame(step)})(t0);
+}
 function ringSvg(pct,big,small,col){
   return `<svg class="ring" width="92" height="92" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="15.5" fill="none" stroke="#2C2F45" stroke-width="3.4"/><circle cx="18" cy="18" r="15.5" fill="none" stroke="${col}" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="${Math.max(.02,Math.min(1,pct))*97.4} 97.4" transform="rotate(-90 18 18)"/><text x="18" y="17.6" text-anchor="middle" font-size="${String(big).length>4?6.2:7}" font-weight="800" fill="#F3F1EA" font-family="Manrope, sans-serif">${big}</text><text x="18" y="23.4" text-anchor="middle" font-size="3.6" fill="#A4A6BD" font-family="Manrope, sans-serif">${small}</text></svg>`;
 }
+/* Heute: eine Hauptaktion je nach Tageszustand (eintragen → Fokus-Bootsfahrt → abends Gute Nacht) */
+function actionCard(ok){
+  if(!S.setup||S.vacation||S.boat) return "";
+  const boot=feature("boot")&&adults().length, night=feature("nacht")&&S.lastDay&&!sleeping()&&(S.testmode||S.lastDay===today())&&!(S.night&&S.night.after===S.lastDay);
+  const eve=new Date().getHours()>=20;
+  const chip=(id,ic,t)=>`<button class="act-chip" id="${id}">${ic} ${t}</button>`;
+  const calm=chip("calmBtn","🌊",S.calmDay===today()?"Inselminute ✓":"Inselminute");
+  if(sleeping()) return `<div class="card act"><p class="act-sleep">🌙 Die Insel schläft. Bis morgen!</p><div class="act-row">${calm}</div></div>`;
+  let main="", hint="", side=[];
+  if(ok){ side=[boot?chip("boatGo","⛵","Fokus-Bootsfahrt"):"",calm] }   // vor dem Eintragen ist das Eintragen die Hauptsache
+  else if(night&&(eve||!boot)){ main=`<button class="btn big" id="nightBtn">🌙 Gute Nacht, Insel</button>`; hint="Handy weglegen · morgen gibt es Traumpunkte"; side=[boot?chip("boatGo","⛵","Fokus-Bootsfahrt"):"",calm] }
+  else if(boot){ main=`<button class="btn big" id="boatGo">⛵ Fokus-Bootsfahrt starten</button>`; hint="Handy weg · ein Bewohner fährt fischen"; side=[night?chip("nightBtn","🌙","Gute Nacht"):"",calm] }
+  else side=[calm];
+  return `<div class="card act">${main}${hint?`<p class="act-hint">${hint}</p>`:""}<div class="act-row">${side.join("")}</div></div>`;
+}
+function boatPick(){
+  sheet(`<p class="label">Fokus-Bootsfahrt</p><h2>Wie lange legst du das Handy weg?</h2><p class="muted">Ein Bewohner fährt so lange fischen und bringt Punkte mit.</p>
+    <div class="boat-pick">${[15,25,45,60].map(m=>`<button class="btn secondary" data-boat="${m}">${m} min</button>`).join("")}</div><button class="btn ghost" data-ok>Abbrechen</button>`,
+    ()=>document.querySelectorAll("#modalRoot [data-boat]").forEach(x=>x.onclick=()=>{closeModal();focusSheet(+x.dataset.boat)}));
+}
+/* Sprechblase auf der Insel: ploppt beim Öffnen auf, schrumpft nach 6 s, roter Punkt bei Neuem, Antippen blättert */
+const TALK={open:false,i:0,t0:0,seen:null,auto:false,timer:0};
+function talkLines(){
+  const L=[{r:null,t:sleeping()?"Alle schlafen. Leg das Handy weg, ich halte Wache. 🌙":lucLine()}];
+  if(!sleeping()) whispers().forEach(w=>L.push(w));
+  return L;
+}
+const talkKey=()=>S.dayCount+"|"+S.lastDay+"|"+sleeping();
+function talkPic(r){return r?`<span class="tk-av" style="background:${r.kind==="mensch"?"#26233D":SEA.includes(r.art)?"#1F2A3A":"#22301F"}"><svg width="34" height="34" viewBox="${figVB(r)}" aria-hidden="true">${figure(r,0,0)}</svg></span>`:`<span class="tk-av" style="background:#26233D">${lucPic(34)}</span>`}
+function talkOpen(i){TALK.open=true;TALK.i=i||0;TALK.t0=Date.now();TALK.seen=talkKey();clearTimeout(TALK.timer);TALK.timer=setTimeout(()=>{TALK.open=false;renderTalk()},6000);renderTalk()}
+function renderTalk(){
+  const el=$("#talk"); if(!el) return;
+  const L=talkLines(); if(!L.length){el.innerHTML="";return}
+  if(TALK.i>=L.length) TALK.i=0;
+  if(TALK.open){const w=L[TALK.i], r=w.r, el0=Date.now()-TALK.t0;
+    el.innerHTML=`<button class="tk-open" id="tkOpen" aria-label="Nächster Spruch">${talkPic(r)}<span class="tk-bub"><b>${r?esc(r.name)+(r.job?" · "+esc(jobName(r.job)):""):"Lucifer · Inselkatze"}</b><span>${esc(w.t)}</span>${L.length>1?`<i class="tk-n">${TALK.i+1}/${L.length} ›</i>`:""}<i class="tk-prog" style="animation-delay:-${el0}ms"></i></span></button>`;
+    $("#tkOpen").onclick=e=>{e.stopPropagation();if(TALK.i+1<L.length) talkOpen(TALK.i+1); else{clearTimeout(TALK.timer);TALK.open=false;TALK.i=0;renderTalk()}};
+  } else {const w=L[0];
+    el.innerHTML=`<button class="tk-mini" id="tkMini" aria-label="Was die Insel erzählt">${talkPic(w.r)}<span aria-hidden="true">💬</span>${TALK.seen!==talkKey()?`<i class="tk-dot"></i>`:""}</button>`;
+    $("#tkMini").onclick=e=>{e.stopPropagation();talkOpen(0)};
+  }
+}
 /* Heute: Hauptkarte (letzter eingetragener Tag) – große Zahl, schmaler Balken, Wochensäulen, Eintragen */
 function heuteMain(ok,nd,form){
+  if(form) return `<div class="card hmain">${form}</div>`;
   const last=S.days[S.days.length-1], week=S.days.slice(-7), good=last&&last.min<=S.budget;
   const col=!last||good?"var(--lime)":"var(--coral)", diff=last?Math.abs(S.budget-last.min):0;
   const pl=S.plan&&!S.plan.res&&S.plan.day>today()?PLANS.find(x=>x.id===S.plan.id):null;   // Vorhaben für heute hat eine eigene Karte
-  const pills=[S.budgetStreak>1?`<span class="hm-pill" title="${S.budgetStreak} Tage in Folge im Ziel">🔥 ${S.budgetStreak}</span>`:"",
+  const pills=[last&&last.pts>0&&last.day===S.lastDay?`<span class="hm-pill pts">+${last.pts} Punkte</span>`:"",S.budgetStreak>1?`<span class="hm-pill" title="${S.budgetStreak} Tage in Folge im Ziel">🔥 ${S.budgetStreak}</span>`:"",
     last?`<span class="hm-pill${S.jokerWk===isoWeek(today())?" off":""}" title="${S.jokerWk===isoWeek(today())?"Joker diese Woche genutzt":"Joker bereit"}">🃏</span>`:""].join("");
   // Balken: verbrauchte Zeit bis zum Budget (bei mehr: voll, Rest rot)
   const used=last?Math.min(1,last.min/S.budget):0;
-  const bar=last?`<div class="hm-bar" role="img" aria-label="${hm(last.min)} von ${hm(S.budget)}"><i style="width:${used*100}%;background:${col}"></i></div>
+  const bar=last?`<div class="hm-bar" data-w="${used*100}" role="img" aria-label="${hm(last.min)} von ${hm(S.budget)}"><i style="width:${used*100}%;background:${col}"></i></div>
     <div class="hm-scale"><span>${hm(last.min)} am Handy</span><span>Ziel ${hm(S.budget)}</span></div>`:"";
   // Wochensäulen: Höhe nach Minuten, gestrichelte Linie = Budget, letzter Tag hervorgehoben
   const PH=48, top=Math.max(S.budget*1.3,...week.map(d=>d.min)), hgt=m=>Math.max(5,PH*m/top);
@@ -2705,7 +2742,7 @@ function heuteMain(ok,nd,form){
     :S.vacation?"":`<p class="hm-done"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Heute ist eingetragen. Bis morgen!</p>`);
   return `<div class="card hmain">
     <div class="hm-head"><p class="label">${last?dayLabel(last.day):"Dein Tagesziel"}</p>${pills?`<div class="hm-pills">${pills}</div>`:""}</div>
-    <h3 class="hm-title">${last?`<span class="hm-big" style="color:${col}">${hm(diff)}</span><span class="hm-word">${good?"unter dem Ziel":"über dem Ziel"}</span>`
+    <h3 class="hm-title">${last?`<span class="hm-big" style="color:${col}" data-cu="${diff}">${hm(diff)}</span><span class="hm-word">${good?"unter dem Ziel":"über dem Ziel"}</span>`
       :`<span class="hm-big">${hm(S.budget)}</span><span class="hm-word">Bildschirmzeit am Tag</span>`}</h3>
     ${last||form?"":`<p class="small muted">Trag abends ein, wie lange du am Handy warst.</p>`}
     ${pl?`<p class="small muted">Vorhaben morgen: ${esc(pl.n)}</p>`:""}
@@ -2713,12 +2750,12 @@ function heuteMain(ok,nd,form){
     ${foot}
   </div>`;
 }
-/* Für dich: Kapitel, Wunsch, Wochenrückblick, Neues als Wischkarten */
+/* Für dich: Kapitel, Wunsch, Wochenrückblick, Neues: eine Karte, durchblättern mit › */
+let FY_I=0;
 function forYou(wisher){
   const it=[];
   if(S.chapter!=null&&S.setup){const c=CHAPTERS[S.chapter]; if(c){const pr=c.prog();
     it.push(`<div class="fy"><div class="row" style="gap:10px"><span class="says-pic" style="background:#2A2F45;width:38px;height:38px">${bayPic(34)}</span><div><p class="k" style="color:var(--amber)">Kapitel ${S.chapter+1}</p><b>${esc(c.n)}</b></div></div><p class="small muted">${esc(pr||c.goal)}</p></div>`)}}
-  if(S.setup) it.push(`<div class="fy calm-fy"><p class="k" style="color:var(--lilac)">Inselminute</p><b>Kurz runterkommen</b><p class="small muted">Eine Minute Augen zu und Meeresrauschen${S.calmDay===today()?" · heute schon geschafft":" · +1 % Glück"}</p><button class="linkbtn" id="calmBtn">Starten ›</button></div>`);
   if(S.wish&&wisher){const w=S.wish, type=w.type||"item";
     it.push(`<div class="fy"><p class="k" style="color:var(--lilac)">Wunsch von ${esc(wisher.name)}</p><b>${esc(wishText(w))}</b><p class="small muted">+${w.pts||30} Punkte · +${w.gl||6} % Glück${type==="streak"?` · ${w.have}/${w.need} Tage`:""}</p>${type==="item"?`<button class="linkbtn" id="wishShop">Zum Laden ›</button>`:""}</div>`)}
   const fc=festCard(); if(fc) it.push(fc);
@@ -2727,7 +2764,10 @@ function forYou(wisher){
   const f=nextFeature(); if(f&&S.setup){const left=f.day-S.dayCount;
     it.push(`<div class="fy dashed"><p class="k" style="color:var(--muted)">Bald freigeschaltet</p><b>${esc(f.name)}</b><p class="small muted">${left<=1?"Nach dem nächsten Tag":"In "+left+" Tagen"}</p></div>`)}
   if(!it.length) return "";
-  return `<div class="sec-h"><span>Für dich</span></div><div class="fy-row">${it.join("")}</div>`;
+  // Wunsch und Fest zuerst, dann Kapitel & Co.: immer nur eine Karte, mit › zur nächsten
+  const order=[...it.filter(x=>!/Kapitel|dashed/.test(x)),...it.filter(x=>/Kapitel|dashed/.test(x))];
+  FY_I=FY_I%order.length;
+  return `<div class="sec-h"><span>Für dich</span>${order.length>1?`<button class="linkbtn" id="fyNext" aria-label="Nächste Karte">${FY_I+1}/${order.length} ›</button>`:""}</div><div class="fy-one">${order[FY_I]}</div>`;
 }
 function whisperRow(r,t){
   const pic=r?`<div class="avatar" style="background:${r.kind==="mensch"?"#26233D":SEA.includes(r.art)?"#1F2A3A":"#22301F"}"><svg width="40" height="40" viewBox="${figVB(r)}" aria-hidden="true">${figure(r,0,0)}</svg></div>`:`<div class="avatar" style="background:#26233D">${lucPic(40)}</div>`;
@@ -2737,18 +2777,20 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.31";
+const APP_VERSION="1.32";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
+function entryMax(){return Math.min(720,Math.max(360,Math.ceil(S.budget*2/60)*60))}
 function liveUpdate(){
-  const h=$("#inH"), m=$("#inM"), bar=$("#liveBar"); if(!h||!m||!bar) return;
-  const min=clamp((+h.value||0)*60+(+m.value||0),0,1440), good=min<=S.budget;
-  const scale=Math.max(S.budget*1.5,min), col=good?"var(--lime)":"var(--coral)";
-  const i=bar.querySelector("i"); i.style.width=Math.min(100,min/scale*100)+"%"; i.style.background=col;
-  bar.querySelector(".goal-mark").style.left=(S.budget/scale*100)+"%";
-  const t=$("#liveTxt"); t.style.color=col;
-  t.textContent=hm(min)+(good?" · "+hm(S.budget-min)+" unter deinem Ziel":" · "+hm(min-S.budget)+" über deinem Ziel");
+  const h=$("#inH"), m=$("#inM"), r=$("#inR"), t=$("#liveTxt"); if(!h||!m) return;
+  const min=clamp((+h.value||0)*60+(+m.value||0),0,1440), good=min<=S.budget, col=good?"var(--lime)":"var(--coral)";
+  [h,m].forEach(x=>{if(x.classList.contains("tin-n")) x.style.width=(Math.max(1,String(x.value).length)*.56+.06)+"em"});   // Feld so breit wie die Zahl
+  if(r){r.value=Math.min(min,+r.max); r.style.setProperty("--p",(Math.min(min,+r.max)/r.max*100)+"%"); r.style.setProperty("--c",col)}
+  if(!t) return;
+  t.classList.toggle("bad",!good);
+  t.textContent=good?(S.budget-min>=5?"🌞 "+hm(S.budget-min)+" unter dem Ziel. Deine Insel wächst heute!":"🌤️ Genau im Ziel. Deine Insel freut sich!")
+    :"☁️ "+hm(min-S.budget)+" über dem Ziel. Es wird bewölkt auf der Insel …";
 }
 
 function resRow(r){
@@ -3294,6 +3336,13 @@ function settingsHtml(){
       <button class="btn ghost" id="famLeaveBtn">Familieninsel verlassen</button>`
     :`<p class="small muted">Gründe eine Familieninsel oder tritt einer bei: im Tab Freunde.</p>`}
   </div>`:""}
+  ${devMode()||S.testmode?`<div class="card">
+    <div class="row between"><p class="label">Testmodus</p><label class="check" for="tm" style="min-height:auto"><input type="checkbox" id="tm" ${S.testmode?"checked":""}> an</label></div>
+    <p class="small muted">Im Testmodus kannst du beliebig viele Tage nacheinander eintragen oder zufällig simulieren.</p>
+    ${S.testmode?`<div class="row"><button class="btn secondary grow" id="simGood">Guter Tag</button><button class="btn secondary grow" id="simBad">Schlechter Tag</button></div>
+    <button class="btn ghost" id="sim10">10 Tage gemischt</button>
+    <button class="btn ghost" id="resetBtn">Spielstand zurücksetzen</button>`:""}
+  </div>`:""}
   <p class="small muted" style="text-align:center"><a href="impressum/" style="color:inherit">Impressum</a> · <a href="datenschutz/" style="color:inherit">Datenschutz</a></p>
   <p class="small muted" id="verLine" style="text-align:center;padding:8px;user-select:none">OffLand · Version ${APP_VERSION}${devMode()?" · Entwicklermodus":""}</p>`;
 }
@@ -3316,7 +3365,9 @@ function renderScene(){
       <button class="snav" data-snav="-1" aria-label="Vorherige Insel">‹</button>
       <div class="snav-mid"><span class="snav-label">${views[islandView].n}</span><span class="snav-dots">${views.map((v,i)=>`<button class="${i===islandView?"on":""}" data-sview="${i}" aria-label="${v.n}"></button>`).join("")}</span></div>
       <button class="snav" data-snav="1" aria-label="Nächste Insel">›</button></div>`:"";
-  $("#scene").innerHTML=scene()+nav;
+  const talk=tab==="heute"&&S.setup&&!S.vacation;
+  $("#scene").innerHTML=scene()+nav+(talk?`<div id="talk" class="talk${views.length>1?" low":""}"></div>`:"");
+  if(talk){ if(!TALK.auto){TALK.auto=true;talkOpen(0)} else renderTalk() }
   setViewBox(views[islandView].vb);
   if(scenePaused){const sv=$("#scene > svg"); if(sv&&sv.pauseAnimations) sv.pauseAnimations()}
   document.querySelectorAll("[data-snav]").forEach(b=>b.onclick=()=>goView(islandView+ +b.dataset.snav));
@@ -3357,7 +3408,8 @@ function render(){
   // Im Tab Freunde steht die Familieninsel, dort die eigene Insel oben ausblenden
   $("#scene").hidden=["freunde","bewohner","zeit","projekt","verlauf"].includes(tab);
   renderScene();
-  $("#streakChip").textContent=S.happyStreak>0?S.happyStreak+(S.happyStreak===1?" glücklicher Tag":" glückliche Tage"):S.dayCount+(S.dayCount===1?" Tag":" Tage")+" gespielt";
+  $("#streakChip").textContent=S.happyStreak>0?"🔥 "+S.happyStreak+(S.happyStreak===1?" Tag":" Tage"):S.dayCount+(S.dayCount===1?" Tag":" Tage")+" gespielt";
+  $("#streakChip").title=S.happyStreak>0?S.happyStreak+(S.happyStreak===1?" glücklicher Tag":" glückliche Tage")+" in Folge":"";
   $("#streakChip").className="chip "+(S.happyStreak>0?"good":"gone");
   $("#accBtn").innerHTML=ACC?avatarSvg(ACC.avatar,40):"";
   $("#title").textContent=!S.setup?"Deine Insel":tab==="heute"?(ACC?"Hallo "+ACC.name:"Deine Insel"):tab==="bewohner"?"Bewohner":tab==="zeit"?"Deine Zeit":tab==="projekt"?"Bauen":tab==="freunde"?"Freunde":tab==="verlauf"?"Album":"Deine Insel";
@@ -3408,13 +3460,17 @@ function bind(){
   const gg=$("#goalGo"); if(gg) gg.onclick=()=>{ENTRY_OPEN=true;render();const c=$("#closeCard");if(c)c.scrollIntoView({behavior:"smooth",block:"center"})};
   const wm=$("#whMore"); if(wm) wm.onclick=whisperSheet;
   ["#inH","#inM"].forEach(id=>{const el=$(id);if(el)el.oninput=liveUpdate}); liveUpdate();
+  const ir=$("#inR"); if(ir) ir.oninput=()=>{const v=+ir.value, h=$("#inH"), m=$("#inM"); h.value=Math.floor(v/60); m.value=String(v%60).padStart(2,"0"); h.dataset.touched=m.dataset.touched="1"; liveUpdate()};
+  const bg=$("#boatGo"); if(bg) bg.onclick=boatPick;
+  const fyn=$("#fyNext"); if(fyn) fyn.onclick=()=>{FY_I++;render()};
+  countUpMain();
   const cb=$("#closeBtn"); if(cb) cb.onclick=()=>{
     const h=+($("#inH").value||0), m=+($("#inM").value||0);
     const min=clamp(h*60+m,0,1440);
     const apps={}; S.apps.forEach(a=>{const el=$("#app_"+a.id);if(el&&el.value!=="")apps[a.id]=clamp(+el.value,0,1440)});
     closeDay(min,[],apps);
   };
-  const tm=$("#tm"); if(tm) tm.onchange=()=>{S.testmode=tm.checked;save();render()};
+  const tm=$("#tm"); if(tm) tm.onchange=()=>{S.testmode=tm.checked;save();render();if(tm.closest("#modalRoot"))settingsSheet()};
   const simApps=bad=>{const o={};S.apps.forEach(a=>{o[a.id]=Math.round(a.limit*(bad?(0.6+Math.random()*1.2):(0.2+Math.random()*0.7)))});return o};
   const simDay=bad=>closeDay(Math.round(S.budget*(bad?(1.3+Math.random()*0.8):(0.4+Math.random()*0.5))/5)*5,[],simApps(bad));
   const g=$("#simGood"); if(g) g.onclick=()=>simDay(false);
@@ -3470,7 +3526,7 @@ function bind(){
   document.querySelectorAll("[data-card]").forEach(btn=>btn.onclick=()=>{const c=S.postcards.find(x=>x.id===btn.dataset.card);if(c) sheet(`<p class="label" style="color:var(--lilac)">Aus deinem Album</p>${postcardHtml(c)}<button class="btn" data-ok>Schließen</button>`)});
   document.querySelectorAll("[data-rename]").forEach(btn=>btn.onclick=()=>nameSheet({type:"rename",id:btn.dataset.rename}));
 }
-document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;render();window.scrollTo(0,0)});
+document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{if(b.dataset.tab==="heute"&&tab!=="heute") TALK.auto=false; tab=b.dataset.tab;render();window.scrollTo(0,0)});
 
 /* ---------- Dialoge ---------- */
 let toastT;
@@ -5635,7 +5691,7 @@ function settingsSheet(){
   $("#setClose").onclick=done; $("#setDone").onclick=done;
   let vt=0; const vl=$("#verLine"); if(vl) vl.onclick=()=>{if(++vt<7)return; vt=0; const on=localStorage.getItem("offland-dev")!=="1";
     try{on?localStorage.setItem("offland-dev","1"):localStorage.removeItem("offland-dev")}catch(e){}
-    if(!on&&S.testmode){S.testmode=false;save()} toast(on?"Entwicklermodus an: Testmodus im Tab Heute":"Entwicklermodus aus"); settingsSheet()}; $("#setBack").onclick=()=>{render();accountSheet()};
+    if(!on&&S.testmode){S.testmode=false;save()} toast(on?"Entwicklermodus an: Testmodus hier in den Einstellungen":"Entwicklermodus aus"); settingsSheet()}; $("#setBack").onclick=()=>{render();accountSheet()};
 }
 function editSheet(){
   modal(`<p class="label">Konto</p><h2>Name und Avatar</h2>${accFields(ACC)}<p class="err" id="accErr" role="alert"></p>

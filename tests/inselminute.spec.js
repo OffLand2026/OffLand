@@ -19,7 +19,7 @@ test("Inselminute läuft eine Minute und gibt einmal am Tag Glück", async ({ pa
   await page.clock.runFor(1000);
   await expect(page.locator(".calm")).toHaveCount(0);
   expect(await page.evaluate(() => T.S.music)).toBe(true);
-  await expect(page.locator(".calm-fy")).toContainText("heute schon geschafft");
+  await expect(page.locator("#calmBtn")).toContainText("✓");
   // zweites Mal am selben Tag: kein weiteres Glück, Abbrechen schließt sofort
   await page.click("#calmBtn");
   await page.click("#calmStop");
