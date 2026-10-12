@@ -544,10 +544,13 @@ function capacity(){
 const has=b=>S.built.includes(b);
 /* Verwandlung: 0 Smombie (am Handy) · 1 Schatten · 2 schaut auf · 3 fast zurück · 4 Mensch */
 const LV_NAMES=["Smombie","Schatten","schaut auf","fast zurück","strahlt"];
+// Höchste Stufe hängt am Inselglück: ganz Mensch (und Jubel) erst ab 80 %
+function lvCap(){const g=typeof S!=="undefined"&&S?S.glueck:100;return g>=80?4:g>=60?3:g>=40?2:1}
 function lvOf(r){
   if(!r||r.kind!=="mensch") return 4;
   if(r.phone) return 0;
-  const st=stage(r), v=r.lv==null?4:r.lv;
+  if(r.lvFull) return 4;   // Editor-Vorschau
+  const st=stage(r), v=Math.min(r.lv==null?4:r.lv,lvCap());
   return st==="baby"?4:st==="kind"?Math.max(2,v):Math.max(1,Math.min(4,v));
 }
 function mood(){return S.glueck>=80?["aufblühend","good"]:S.glueck>=40?["zufrieden","ok"]:["unglücklich","bad"]}
@@ -1519,8 +1522,9 @@ function closeDay(min,quests,appMin){
   const back=[];
   here().filter(r=>r.kind==="mensch").forEach(r=>{const st=stage(r); if(st==="baby") return;
     const v=r.lv==null?4:r.lv, lo=st==="kind"?2:1;
-    if(diff>=0){r.lv=Math.min(4,v+1); if(v<4&&r.lv===4&&!r.phone){r.lvUp=S.dayCount;back.push(r.name)}}
-    else r.lv=Math.max(lo,v-1);
+    const cap=Math.max(lo,lvCap()), was=Math.min(v,cap);
+    if(diff>=0){r.lv=Math.min(cap,was+1); if(was<4&&r.lv===4&&!r.phone){r.lvUp=S.dayCount;back.push(r.name)}}
+    else r.lv=Math.max(lo,was-1);
   });
   if(back.length) log(nameList(back)+" "+(back.length>1?"sind":"ist")+" wieder ganz Mensch. Die Farbe ist zurück!","good");
   if(!S.testmode) S.pending.push({type:"day",day,min,before,after:S.glueck,saved,pts,sunny,repaired,dreamt,monsters,joker:0,freed:freed&&freed.name,hooked:hooked&&hooked.name});
@@ -1805,7 +1809,7 @@ function figure(r,x,y){
       // Je weiter weg vom Menschsein, desto gebückter, dunkler und schattiger.
       const alt=st==="alt", sd=shadeC(L.shirt,.82), brow=shadeC(alt?"#8A8780":L.hair,.7);
       const tilt=[7,4,2,0,0][t], lean=[18,11,5,1,0][t], drop=[3,2,1,0,0][t];
-      const cheer=t===4&&r.lvUp!=null&&typeof S!=="undefined"&&S.dayCount-r.lvUp<2;
+      const cheer=t===4&&typeof S!=="undefined"&&S&&S.glueck>=100&&!r.lvFull;   // Arme hoch nur bei 100 % Inselglück
       const hd=`translate(${(lean*.16).toFixed(2)} ${drop}) rotate(${lean} 0 -13) translate(0 -20) scale(1.24) translate(0 16)`;
       const body=`M-6.4 0q0-13 6.4-13.4q6.4.4 6.4 13.4z`;
       const arms=t===0?`<path d="M-5.4 -10q-1.6 3.4 2.6 4.6M5.4 -10q1.6 3.4-2.6 4.6" stroke="${sd}" stroke-width="2.2" fill="none" stroke-linecap="round"/><g transform="translate(0 -6.4) rotate(12)"><rect x="-2" y="-2.8" width="4" height="5.6" rx=".8" fill="#232637"/></g>`
@@ -2767,7 +2771,9 @@ function viewHeute(){
   ${actionCard(ok)}
   ${forYou(wisher)}
   ${mons.length?`<div class="card" style="border:1.5px solid #9B6BD6"><p class="label" style="color:#C8A8FF">App-Monster vor der Insel</p>${mons.map(a=>`<div class="row"><svg width="48" height="40" viewBox="-24 -34 48 40" aria-hidden="true">${monsterSvg(a.m)}</svg><p class="grow">${esc(monName(a,false))}: ${esc(a.name)} lag gestern über ${hm(a.limit)}.</p></div>`).join("")}<p class="small muted">Bleib heute bei diesen Apps unter dem Limit, dann tauchen sie wieder ab.</p></div>`:""}
-  ${friendsCard()}`;
+  ${friendsCard()}
+  ${S.setup?(()=>{const wh=whispers();return `<div class="sec-h"><span>Inselgeflüster</span>${wh.length>1?`<button class="linkbtn" id="whMore">mehr ›</button>`:""}</div>
+  <div class="card whisper">${whisperRow(null,lucLine())}${wh.slice(0,1).map(w=>whisperRow(w.r,w.t)).join("")}</div>`})():""}`;
 }
 let ENTRY_OPEN=false, CU_KEY=null;
 /* Nach dem Eintragen: große Zahl zählt hoch, Balken füllt sich (einmal pro Tag) */
@@ -2855,8 +2861,7 @@ function heuteMain(ok,nd,form){
     ${foot}
   </div>`;
 }
-/* Für dich: Kapitel, Wunsch, Wochenrückblick, Neues: eine Karte, durchblättern mit › */
-let FY_I=0;
+/* Für dich: Kapitel, Wunsch, Wochenrückblick, Neues: zum Wischen nebeneinander */
 function forYou(wisher){
   const it=[];
   if(S.chapter!=null&&S.setup){const c=CHAPTERS[S.chapter]; if(c){const pr=c.prog();
@@ -2869,10 +2874,9 @@ function forYou(wisher){
   const f=nextFeature(); if(f&&S.setup){const left=f.day-S.dayCount;
     it.push(`<div class="fy dashed"><p class="k" style="color:var(--muted)">Bald freigeschaltet</p><b>${esc(f.name)}</b><p class="small muted">${left<=1?"Nach dem nächsten Tag":"In "+left+" Tagen"}</p></div>`)}
   if(!it.length) return "";
-  // Wunsch und Fest zuerst, dann Kapitel & Co.: immer nur eine Karte, mit › zur nächsten
+  // Wunsch und Fest zuerst, dann Kapitel & Co.; mehrere Karten wischt man seitlich durch
   const order=[...it.filter(x=>!/Kapitel|dashed/.test(x)),...it.filter(x=>/Kapitel|dashed/.test(x))];
-  FY_I=FY_I%order.length;
-  return `<div class="sec-h"><span>Für dich</span>${order.length>1?`<button class="linkbtn" id="fyNext" aria-label="Nächste Karte">${FY_I+1}/${order.length} ›</button>`:""}</div><div class="fy-one">${order[FY_I]}</div>`;
+  return `<div class="sec-h"><span>Für dich</span>${order.length>1?`<span class="small muted">${order.length} Karten · wischen</span>`:""}</div><div class="${order.length>1?"fy-row":"fy-one"}">${order.join("")}</div>`;
 }
 function whisperRow(r,t){
   const pic=r?`<div class="avatar" style="background:${r.kind==="mensch"?"#26233D":SEA.includes(r.art)?"#1F2A3A":"#22301F"}"><svg width="40" height="40" viewBox="${figVB(r)}" aria-hidden="true">${figure(r,0,0)}</svg></div>`:`<div class="avatar" style="background:#26233D">${lucPic(40)}</div>`;
@@ -2882,7 +2886,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.35";
+const APP_VERSION="1.36";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -3509,6 +3513,38 @@ let scenePaused=false;
 })();
 
 /* ---------- Rendern ---------- */
+/* ---------- Testleiste: im Testmodus immer sichtbar, zeigt was ein simulierter Tag verändert ---------- */
+let devLast=null;
+function devSimDay(bad){
+  const apps={};S.apps.forEach(a=>{apps[a.id]=Math.round(a.limit*(bad?(0.6+Math.random()*1.2):(0.2+Math.random()*0.7)))});
+  const g0=S.glueck, before=new Map(S.residents.map(r=>[r.id,{lv:lvOf(r),phone:!!r.phone,status:r.status}]));
+  closeDay(Math.round(S.budget*(bad?(1.3+Math.random()*0.8):(0.4+Math.random()*0.5))/5)*5,[],apps);
+  const notes=[];
+  S.residents.forEach(r=>{const b=before.get(r.id);
+    if(!b){notes.push((r.parents?"👶 ":"🛶 ")+r.name+(r.parents?" geboren":" zieht ein"));return}
+    if(b.status!=="weg"&&r.status==="weg") notes.push("👋 "+r.name+" ist weg");
+    if(r.kind!=="mensch"||r.status==="weg") return;
+    const t=lvOf(r);
+    if(r.phone&&!b.phone) notes.push("📱 "+r.name+" hängt am Handy");
+    else if(t!==b.lv) notes.push((t>b.lv?"⬆️ ":"⬇️ ")+r.name+": "+(t===4?"wieder Mensch ✨":LV_NAMES[t]));
+  });
+  devLast={bad,day:S.dayCount,g0,g1:S.glueck,notes};
+}
+function devBar(){
+  let el=$("#devBar");
+  if(!S.testmode||!S.setup){if(el) el.remove();return}
+  if(!el){el=document.createElement("div");el.id="devBar";el.className="devbar";document.body.appendChild(el)}
+  const L=devLast, d=L?L.g1-L.g0:0;
+  el.innerHTML=`${L?`<div class="dev-res"><b>${L.bad?"🌧":"☀️"} Tag ${L.day}</b> · Glück ${L.g0} → <b class="${d>=0?"up":"down"}">${L.g1} %</b>${L.notes.length?`<span>${L.notes.slice(0,4).map(esc).join(" · ")}${L.notes.length>4?" · +"+(L.notes.length-4):""}</span>`:`<span class="muted">Sonst keine Veränderung</span>`}</div>`:`<div class="dev-res muted">Testmodus: Tage simulieren und zuschauen, was passiert</div>`}
+    <div class="dev-btns"><button type="button" data-dev="good">☀️ Gut</button><button type="button" data-dev="bad">🌧 Schlecht</button><button type="button" data-dev="week">⏩ 7 Tage</button><button type="button" data-dev="off" aria-label="Testmodus aus">✕</button></div>`;
+  el.querySelectorAll("[data-dev]").forEach(b=>b.onclick=()=>{
+    const k=b.dataset.dev;
+    if(k==="off"){S.testmode=false;devLast=null;save();render();toast("Testmodus aus");return}
+    if(k==="week"){let notes=[],g0=S.glueck;for(let i=0;i<7;i++){if($("#modalRoot").innerHTML) break; devSimDay(Math.random()<.3); notes=notes.concat(devLast.notes)} devLast.g0=g0; devLast.notes=notes; devLast.bad=devLast.g1<g0}
+    else devSimDay(k==="bad");
+    save(); render(); if(tab==="heute") window.scrollTo({top:0,behavior:"smooth"});
+  });
+}
 function render(){
   // Im Tab Freunde steht die Familieninsel, dort die eigene Insel oben ausblenden
   $("#scene").hidden=["freunde","bewohner","zeit","projekt","verlauf"].includes(tab);
@@ -3529,6 +3565,7 @@ function render(){
   renderFocus();
   if(tab==="freunde"&&$("#rankBox")) fillRanks();
   if(tab==="freunde"&&$("#famBox")) fillFamily();
+  devBar();
 }
 function bind(){
   bindGuests();
@@ -3567,7 +3604,6 @@ function bind(){
   ["#inH","#inM"].forEach(id=>{const el=$(id);if(el)el.oninput=liveUpdate}); liveUpdate();
   const ir=$("#inR"); if(ir) ir.oninput=()=>{const v=+ir.value, h=$("#inH"), m=$("#inM"); h.value=Math.floor(v/60); m.value=String(v%60).padStart(2,"0"); h.dataset.touched=m.dataset.touched="1"; liveUpdate()};
   const bg=$("#boatGo"); if(bg) bg.onclick=boatPick;
-  const fyn=$("#fyNext"); if(fyn) fyn.onclick=()=>{FY_I++;render()};
   countUpMain();
   const cb=$("#closeBtn"); if(cb) cb.onclick=()=>{
     const h=+($("#inH").value||0), m=+($("#inM").value||0);
@@ -3575,9 +3611,10 @@ function bind(){
     const apps={}; S.apps.forEach(a=>{const el=$("#app_"+a.id);if(el&&el.value!=="")apps[a.id]=clamp(+el.value,0,1440)});
     closeDay(min,[],apps);
   };
-  const tm=$("#tm"); if(tm) tm.onchange=()=>{S.testmode=tm.checked;save();render();if(tm.closest("#modalRoot"))settingsSheet()};
-  const simApps=bad=>{const o={};S.apps.forEach(a=>{o[a.id]=Math.round(a.limit*(bad?(0.6+Math.random()*1.2):(0.2+Math.random()*0.7)))});return o};
-  const simDay=bad=>closeDay(Math.round(S.budget*(bad?(1.3+Math.random()*0.8):(0.4+Math.random()*0.5))/5)*5,[],simApps(bad));
+  const tm=$("#tm"); if(tm) tm.onchange=()=>{S.testmode=tm.checked;devLast=null;save();
+    // Beim Einschalten direkt zur Insel, damit man sieht, was die Testleiste bewirkt
+    if(S.testmode){closeModal();tab="heute";render();window.scrollTo(0,0);toast("Testmodus an: Leiste unten")} else {render();if(tm.closest("#modalRoot"))settingsSheet()}};
+  const simDay=devSimDay;
   const g=$("#simGood"); if(g) g.onclick=()=>simDay(false);
   const b=$("#simBad"); if(b) b.onclick=()=>simDay(true);
   const s10=$("#sim10"); if(s10) s10.onclick=()=>{const keep=S.pending.length;for(let i=0;i<10;i++){if($("#modalRoot").innerHTML) break; simDay(Math.random()<.25)}};
@@ -4302,13 +4339,13 @@ function nameSheet(ev){
 }
 /* Aussehen wählen: kleine Auswahl mit Live-Vorschau */
 function lookPreview(r,draft){
-  const tmp=Object.assign({},r,{sick:null,phone:false,lv:4,lvUp:null});   // im Editor sieht man immer, wie jemand ganz zurück aussieht
+  const tmp=Object.assign({},r,{sick:null,phone:false,lv:4,lvUp:null,lvFull:true});   // im Editor sieht man immer, wie jemand ganz zurück aussieht
   if(r.kind==="mensch") tmp.look=draft; else tmp.fur=draft.fur;
   const adult=r.kind==="mensch"&&stage(r)!=="baby"&&stage(r)!=="kind";
   const main=`<svg width="76" height="${adult?92:78}" viewBox="${r.kind==="mensch"?(stage(r)==="baby"?"-8.5 -15.5 17 17":stage(r)==="kind"?"-12 -25 24 26":"-13.5 -32.4 27 33.4"):SEA.includes(tmp.art)?figVB(tmp):"-16 -22 32 25"}" aria-hidden="true">${figure(tmp,0,0)}</svg>`;
   if(!adult) return main;
   // Kleine Schatten-Vorschau: so leuchten die Augen, solange die Farbe noch fehlt
-  const sh=Object.assign({},tmp,{lv:1});
+  const sh=Object.assign({},tmp,{lv:1,lvFull:false});
   return main+`<div class="look-shadow"><svg width="40" height="46" viewBox="-11 -31 24 32" aria-hidden="true">${figure(sh,0,0)}</svg><span>als Schatten</span></div>`;
 }
 function lookEditor(r,d){

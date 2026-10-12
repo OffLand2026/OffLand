@@ -412,7 +412,7 @@ body.focus-on{overflow:hidden}
 .linkbtn{background:none;border:none;padding:6px 0;color:var(--lilac);font:700 13px var(--body);cursor:pointer;text-align:left;letter-spacing:0;text-transform:none;min-height:32px}
 .fy-row{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:0 -16px;padding:0 16px}
 .fy-row::-webkit-scrollbar{display:none}
-.fy{flex:0 0 62%;scroll-snap-align:start;background:var(--card);border-radius:22px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.fy{flex:0 0 84%;scroll-snap-align:start;background:var(--card);border-radius:22px;padding:14px;display:flex;flex-direction:column;gap:6px}
 .fy.dashed{background:transparent;border:1.5px dashed #3A3D58}
 .fy .k{margin:0;font-size:11px;letter-spacing:1px;font-weight:700;text-transform:uppercase}
 .fy p{margin:0}
@@ -610,3 +610,12 @@ details.res-sec+details.res-sec,.res-search+p+details.res-sec{margin-top:4px}
 /* Verwandlung: heller Umriss der Schattenwesen */
 .lv-rim,.lv-rim *{fill:none!important;stroke:#4A4F80!important;stroke-width:var(--rw)!important;filter:none!important}
 .lv-rim clipPath *{stroke:none!important}
+/* Testleiste über dem Menü (nur im Testmodus) */
+.devbar{position:fixed;z-index:25;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));width:min(396px,calc(100% - 32px));background:rgba(38,35,61,.96);border:1px solid rgba(182,164,255,.35);border-radius:18px;padding:8px 10px;box-shadow:0 8px 24px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:6px;font-size:12.5px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.dev-res{line-height:1.35}
+.dev-res span{display:block;color:var(--ink);opacity:.85;font-size:12px}
+.dev-res .up{color:var(--lime)} .dev-res .down{color:#FF8A7A}
+.dev-btns{display:grid;grid-template-columns:1fr 1fr 1fr 36px;gap:6px}
+.dev-btns button{height:34px;border:none;border-radius:12px;background:var(--card2);color:var(--ink);font-weight:800;font-size:12.5px}
+.dev-btns button:active{transform:scale(.97)}
+body:has(.devbar) #view{padding-bottom:110px}
