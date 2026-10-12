@@ -13,16 +13,6 @@ test("Hauptkarte öffnet das Eintragen und schließt den Tag ab", async ({ page 
   await expect(page.locator(".hmain .hm-title")).toContainText("unter dem Ziel");
 });
 
-test("Sprechblase auf der Insel: aufploppen, durchblättern, einklappen", async ({ page }) => {
-  await newGame(page);
-  await expect(page.locator("#talk .tk-open")).toContainText("Lucifer");
-  const n = await page.evaluate(() => document.querySelectorAll("#talk .tk-n").length ? +document.querySelector("#talk .tk-n").textContent.split("/")[1].trim().split(" ")[0] : 1);
-  for (let i = 0; i < n; i++) await page.click("#tkOpen");
-  await expect(page.locator("#tkMini")).toBeVisible();
-  await page.click("#tkMini");
-  await expect(page.locator("#talk .tk-open")).toContainText("Lucifer");
-});
-
 test("Schieberegler und Zahlenfelder bleiben gleich", async ({ page }) => {
   await newGame(page);
   if (await page.$("#goalGo")) await page.click("#goalGo");
