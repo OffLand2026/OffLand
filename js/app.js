@@ -407,7 +407,7 @@ function festCheck(day){
   if(!feature("fest")||day.slice(0,7)!==curMonth()) return;
   const f=festGoal(); if(f.done||festHave(f.m)<f.need) return;
   f.done=true; (S.stamps=S.stamps||[]).push(f.m);
-  S.points+=50; S.glueck=clamp(S.glueck+5,0,100); stat("monatsfest");
+  S.points+=50; glAdd(5); stat("monatsfest");
   S.pending.push({type:"mfest",m:f.m}); log(festOf(f.m).n+"! Der Monatsstempel für "+festMonth(f.m)+" ist im Album.","good");
 }
 function festCard(){
@@ -624,7 +624,7 @@ const kidsOf=(...ids)=>S.residents.filter(k=>k.parents&&k.status!=="verstorben"&
 function breakup(a,b){
   a.pair=null;b.pair=null;a.married=b.married=false;
   a.ex=(a.ex||[]).concat(b.id);b.ex=(b.ex||[]).concat(a.id);
-  S.rel[rk(a.id,b.id)]=-10; S.glueck=clamp(S.glueck-4,0,100);
+  S.rel[rk(a.id,b.id)]=-10; glAdd(-(4));
   const kids=kidsOf(a.id,b.id).filter(k=>k.status==="da"), pets=here().filter(p=>p.kind==="tier"&&(p.owner===a.id||p.owner===b.id));
   log(a.name+" und "+b.name+" haben sich getrennt."+(kids.length?" "+nameList(kids.map(k=>k.name))+" "+vb(kids,"lebt","leben")+" jetzt abwechselnd bei beiden.":""),"bad");
   chron([a.id,b.id],a.name+" und "+b.name+" haben sich getrennt.");
@@ -643,7 +643,7 @@ function coupleDay(good){
     const c=S.crisis, a=S.residents.find(r=>r.id===c.a), b=S.residents.find(r=>r.id===c.b); S.crisis=null;
     if(!a||!b||a.pair!==b.id||c.day===S.lastDay) return;
     const ok=c.state==="abend"?good:Math.random()<(good?.55:.2);
-    if(ok){addRel(a.id,b.id,c.state==="abend"?45:25);S.glueck=clamp(S.glueck+(c.state==="abend"?3:1),0,100);
+    if(ok){addRel(a.id,b.id,c.state==="abend"?45:25);glAdd((c.state==="abend"?3:1));
       log(a.name+" und "+b.name+" haben sich wieder zusammengerauft.","good");S.pending.push({type:"crisisResult",a:a.id,b:b.id,ok:true,abend:c.state==="abend"})}
     else{addRel(a.id,b.id,-25);
       if(relOf(a.id,b.id)<=-35) breakup(a,b);
@@ -661,7 +661,7 @@ function coupleDay(good){
   // Hochzeit für lange, sehr glückliche Paare
   if(good){
     const c=couples().find(([a,b])=>!a.married&&relOf(a.id,b.id)>=70&&S.dayCount-(a.pairSince||0)>=14);
-    if(c&&Math.random()<.18){const [a,b]=c;a.married=b.married=true;S.glueck=clamp(S.glueck+5,0,100);S.points+=40;
+    if(c&&Math.random()<.18){const [a,b]=c;a.married=b.married=true;glAdd(5);S.points+=40;
       log(a.name+" und "+b.name+" haben geheiratet! +5 % Glück, +40 Punkte.","good");chron([a.id,b.id],"Hochzeit: "+a.name+" und "+b.name+".");
       S.pending.push({type:"wedding",a:a.id,b:b.id})}
   }
@@ -734,7 +734,7 @@ function fulfillWish(){
   const w=S.wish; if(!w) return; const r=S.residents.find(x=>x.id===w.rid); S.wish=null; S.lastWishEnd=S.dayCount;
   if(!r) return;
   const pts=w.pts||30, gl=w.gl||6;
-  r.happyUntil=S.dayCount+7; S.points+=pts; S.glueck=clamp(S.glueck+gl,0,100);
+  r.happyUntil=S.dayCount+7; S.points+=pts; glAdd(gl);
   S.wishCount=(S.wishCount||0)+1; stat("wunsch_"+(w.type||"item"));
   log(r.name+"s Wunsch ist erfüllt: "+wishText(w)+". +"+pts+" Punkte, +"+gl+" % Glück.","good");
   chron([r.id],r.name+"s Wunsch ist erfüllt: "+wishText(w)+".");
@@ -773,8 +773,8 @@ function social(good){
     const a=S.residents.find(r=>r.id===S.conflict.a), b=S.residents.find(r=>r.id===S.conflict.b);
     const ok=good||(jobOn("koch")&&Math.random()<.5);
     if(a&&b){
-      if(ok){addRel(a.id,b.id,35);S.glueck=clamp(S.glueck+4,0,100);log(a.name+" und "+b.name+" haben sich am handyfreien Abend ausgesprochen und vertragen sich wieder.","good")}
-      else{addRel(a.id,b.id,-25);S.glueck=clamp(S.glueck-3,0,100);log("Der Klärungsabend ist ausgefallen. "+a.name+" und "+b.name+" reden nicht mehr miteinander.","bad")}
+      if(ok){addRel(a.id,b.id,35);glAdd(4);log(a.name+" und "+b.name+" haben sich am handyfreien Abend ausgesprochen und vertragen sich wieder.","good")}
+      else{addRel(a.id,b.id,-25);glAdd(-(3));log("Der Klärungsabend ist ausgefallen. "+a.name+" und "+b.name+" reden nicht mehr miteinander.","bad")}
       S.pending.push({type:"conflictResult",a:a.id,b:b.id,ok});
       escalate(a,b);
     }
@@ -825,7 +825,7 @@ function resolveConflict(choice){
   } else {
     S.conflict=null;
     if(Math.random()<.4){addRel(a.id,b.id,10);log(a.name+" und "+b.name+" haben sich von selbst wieder eingekriegt.","good")}
-    else{addRel(a.id,b.id,-30);S.glueck=clamp(S.glueck-3,0,100);log("Der Streit zwischen "+a.name+" und "+b.name+" schwelt weiter.","bad");escalate(a,b)}
+    else{addRel(a.id,b.id,-30);glAdd(-(3));log("Der Streit zwischen "+a.name+" und "+b.name+" schwelt weiter.","bad");escalate(a,b)}
   }
   save();
 }
@@ -849,7 +849,7 @@ function extras(day,diff,quests,dreamt){
   });
   // Geburtstag: alle 30 Inseltage feiert jemand (höchstens ein Fest pro Tag)
   const bday=here().find(r=>r.kind==="mensch"&&!r.sick&&S.dayCount-(r.born||0)>0&&(S.dayCount-(r.born||0))%30===0);
-  if(bday){const n=(S.dayCount-(bday.born||0))/30;S.points+=15;S.glueck=clamp(S.glueck+3,0,100);bday.happyUntil=Math.max(bday.happyUntil||0,S.dayCount+1);
+  if(bday){const n=(S.dayCount-(bday.born||0))/30;S.points+=15;glAdd(3);bday.happyUntil=Math.max(bday.happyUntil||0,S.dayCount+1);
     log(bday.name+" feiert den "+n+". Inselgeburtstag! +15 Punkte, +3 % Glück.","good");chron([bday.id],bday.name+" hat den "+n+". Inselgeburtstag gefeiert.");S.pending.push({type:"birthday",id:bday.id,n})}
   // Wünsche
   wishCheck();
@@ -858,7 +858,7 @@ function extras(day,diff,quests,dreamt){
   const chance=.35+(dreamt?.2:0)+(owns("teleskop")?.15:0);
   if(Math.random()<chance){
     const f=wpickF(FINDS);
-    if(f.pts) S.points+=f.pts; if(f.mat) S.material+=f.mat; if(f.glueck) S.glueck=clamp(S.glueck+f.glueck,0,100);
+    if(f.pts) S.points+=f.pts; if(f.mat) S.material+=f.mat; if(f.glueck) glAdd(f.glueck);
     const msg=f.id==="flaschenpost"?pick(BOTTLE):null;
     S.finds.push({id:f.id,day,msg});
     S.pending.push({type:"strandgut",find:f.id,msg});
@@ -873,7 +873,7 @@ function extras(day,diff,quests,dreamt){
   if(good&&S.budgetStreak>0&&S.budgetStreak%(has("f_nordlicht")?5:7)===0){
     S.aurora=owns("sternwarte")?4:3; S.pending.push({type:"visitor",kind:"aurora"}); log("Polarlicht über der Insel! 7 Tage am Stück im Budget.","good"); chron([],"Polarlicht nach "+S.budgetStreak+" Tagen im Budget.");
   } else if(good&&S.glueck>=60&&!S.birds&&Math.random()<(owns("vogelhaus")?.2:.1)){
-    S.birds=2; S.glueck=clamp(S.glueck+3,0,100); S.pending.push({type:"visitor",kind:"birds"}); log("Ein Schwarm Zugvögel rastet auf der Insel. +3 % Glück.","good");
+    S.birds=2; glAdd(3); S.pending.push({type:"visitor",kind:"birds"}); log("Ein Schwarm Zugvögel rastet auf der Insel. +3 % Glück.","good");
   } else if(!S.trader&&Math.random()<.12){
     const offer=RARE.filter(x=>!owns(x.id));
     if(offer.length){S.trader={until:addDays(day,2),items:shuffle(offer).slice(0,2).map(x=>x.id)};S.pending.push({type:"visitor",kind:"trader"});log("Ein Händlerschiff hat angelegt. Es bleibt 2 Tage.","info")}
@@ -883,7 +883,7 @@ function extras(day,diff,quests,dreamt){
   // Inselfest nach einer guten Woche
   if(S.dayCount%7===0){
     const g=S.days.slice(-7).filter(d=>d.min<=S.budget).length;
-    if(g>=(has("festzelt")?4:5)){S.fests=(S.fests||0)+1;const fp=has("festzelt")?50:30;S.glueck=clamp(S.glueck+5,0,100);S.points+=fp;S.pending.push({type:"fest",good:g});log("Inselfest! "+g+" von 7 Tagen im Budget. +5 % Glück, +"+fp+" Punkte.","good");chron([],"Inselfest nach "+g+" guten Tagen.")}
+    if(g>=(has("festzelt")?4:5)){S.fests=(S.fests||0)+1;const fp=has("festzelt")?50:30;glAdd(5);S.points+=fp;S.pending.push({type:"fest",good:g});log("Inselfest! "+g+" von 7 Tagen im Budget. +5 % Glück, +"+fp+" Punkte.","good");chron([],"Inselfest nach "+g+" guten Tagen.")}
   }
   // Monats-Zeitkapsel
   const mon=day.slice(0,7);
@@ -903,13 +903,13 @@ function surprise(day){
     else {ev.tea=1;ev.pts=30;S.tea++;S.points+=30}
     log("Überraschung: Eine Schatztruhe ist am Strand angespült worden!","good"); chron([],"Eine Schatztruhe wurde am Strand gefunden.");
   } else if(k==="schildkroete"){
-    ev.pts=20; S.points+=20; S.glueck=clamp(S.glueck+4,0,100);
+    ev.pts=20; S.points+=20; glAdd(4);
     log("Überraschung: Eine Meeresschildkröte hat am Strand Eier gelegt. +4 % Glück, +20 Punkte.","good"); chron([],"Eine Meeresschildkröte hat am Strand Eier gelegt.");
   } else if(k==="sternschnuppe"){
     ev.mat=120; S.material+=120;
     log("Überraschung: Sternschnuppenregen! Alle haben sich etwas gewünscht. +2 h Baumaterial.","good"); chron([],"Sternschnuppenregen über der Insel.");
   } else {
-    S.glueck=clamp(S.glueck+3,0,100); here().forEach(r=>{if(r.kind==="mensch") r.happyUntil=Math.max(r.happyUntil||0,S.dayCount+1)});
+    glAdd(3); here().forEach(r=>{if(r.kind==="mensch") r.happyUntil=Math.max(r.happyUntil||0,S.dayCount+1)});
     log("Überraschung: Glühwürmchen-Nacht! Alle sitzen draußen und staunen. +3 % Glück.","good"); chron([],"Glühwürmchen-Nacht auf der Insel.");
   }
   S.surprises.push({k,day}); if(S.surprises.length>100) S.surprises.shift();
@@ -1010,11 +1010,11 @@ function doActivity(id){
   if(S.activities[k].includes(id)) return;
   S.activities[k].push(id); S.actTotals[id]=(S.actTotals[id]||0)+1;
   const a=ACTIVITIES.find(x=>x.id===id);
-  if(id==="spaziergang"){S.path++;S.glueck=clamp(S.glueck+1,0,100)}
-  if(id==="lesen"){S.glueck=clamp(S.glueck+1,0,100)}
-  if(id==="sport"){S.glueck=clamp(S.glueck+2,0,100)}
+  if(id==="spaziergang"){S.path++;glAdd(1)}
+  if(id==="lesen"){glAdd(1)}
+  if(id==="sport"){glAdd(2)}
   if(id==="kochen"){S.points+=15}
-  if(id==="freunde"){const ad=adults();for(let i=0;i<3&&ad.length>1;i++){const x=pick(ad),y=pick(ad);if(x.id!==y.id)addRel(x.id,y.id,5)}S.glueck=clamp(S.glueck+1,0,100)}
+  if(id==="freunde"){const ad=adults();for(let i=0;i<3&&ad.length>1;i++){const x=pick(ad),y=pick(ad);if(x.id!==y.id)addRel(x.id,y.id,5)}glAdd(1)}
   log("Echte Aktivität: "+a.n+". "+a.fx+".","good"); toast(a.n+" eingetragen");
   save(); render();
 }
@@ -1050,7 +1050,7 @@ function planResult(ok,id,day){
   const p=PLANS.find(x=>x.id===id); if(!p) return null;
   S.planLog.push({day,id,ok}); if(S.planLog.length>300) S.planLog.shift(); stat(ok?"vorhaben_ok":"vorhaben_nein");
   if(!ok){log("Vorhaben „"+p.n+"“ hat diesmal nicht geklappt. Morgen ist ein neuer Versuch.","info"); return null}
-  S.points+=20; S.glueck=clamp(S.glueck+2,0,100); S.actTotals[id]=(S.actTotals[id]||0)+1;
+  S.points+=20; glAdd(2); S.actTotals[id]=(S.actTotals[id]||0)+1;
   if(S.wish&&S.wish.type==="plan"&&S.wish.plan===id) fulfillWish();
   const ad=adults(), r=ad.length?pick(ad):null;
   if(r){r.planWith={id,dc:S.dayCount}; chron([r.id],r.name+" hat heute auch "+p.pp+", genau wie du.")}
@@ -1206,7 +1206,7 @@ function finishBoat(){
 function boatHonest(ok,dur,crewId,cat,task,done){
   if(ok){
     S.focusLog=[{day:today(),at:Date.now(),cat:cat||"ruhe",task:task||"",min:dur,done:!!done}].concat(S.focusLog||[]).slice(0,300);
-    if(done){S.points+=Math.round(dur/5);S.glueck=clamp(S.glueck+2,0,100)}const fish=Math.max(1,Math.round(dur/10))*(has("floss")?2:1)*(has("a_eisfischen")?2:1), pts=Math.round(dur*(owns("angel")?1.2:1)*(has("f_wikinger")?1.2:1));S.fish+=fish;S.points+=pts;S.material+=dur;S.focusMin+=dur;
+    if(done){S.points+=Math.round(dur/5);glAdd(2)}const fish=Math.max(1,Math.round(dur/10))*(has("floss")?2:1)*(has("a_eisfischen")?2:1), pts=Math.round(dur*(owns("angel")?1.2:1)*(has("f_wikinger")?1.2:1));S.fish+=fish;S.points+=pts;S.material+=dur;S.focusMin+=dur;
     log("Fokus-Bootsfahrt: "+dur+" Minuten "+(cat?focusCat(cat)[1]:"ohne Handy")+(task?" ("+task+")":"")+". "+fish+" Fische, +"+(pts+(done?Math.round(dur/5):0))+" Punkte"+(done?", Vorhaben geschafft!":"."),"good");
     if(S.wish&&S.wish.type==="boot"&&dur>=S.wish.need) fulfillWish()}
   else log("Die Bootsfahrt kam leer zurück. Beim nächsten Mal klappt es.","bad");
@@ -1427,6 +1427,16 @@ async function joinFamily(code){
 }
 async function leaveFamily(){try{localStorage.removeItem(FAM_KEY)}catch(e){} await connectStore(); toast("Zurück auf deiner eigenen Insel.")}
 
+/* ---------- Glück: oben wird es zäh, und oben verliert man schneller ----------
+   Gewinne zählen unter 50 % voll, bis 80 % zu 60 %, bis 90 % zu 35 %, darüber zu 20 %.
+   Verluste ab 80 % wiegen 1,3-fach. So ist 100 % ein echtes Ziel, das man halten muss. */
+function glGainRate(g){return g<50?1:g<80?.6:g<90?.35:.2}
+function glAdd(n){
+  let g=S.glueck;
+  if(n>0){let rest=n; while(rest>0){const step=Math.min(1,rest); g+=step*glGainRate(g); rest-=step}}
+  else if(n<0) g+=n*(g>=80?1.3:1);
+  S.glueck=clamp(Math.round(g),0,100); return S.glueck;
+}
 /* ---------- Tag abschließen ---------- */
 function closeDay(min,quests,appMin){
   appMin=appMin||{}; ENTRY_OPEN=false;
@@ -1457,7 +1467,8 @@ function closeDay(min,quests,appMin){
   let repaired=0;
   if(S.repair){ if(diff>=0){repaired=S.repair.amount;delta+=repaired} S.repair=null; }
   const before=S.glueck;
-  S.glueck=clamp(S.glueck+delta,0,100);
+  glAdd(delta);
+  if(before>=95&&diff<S.budget*.25) glAdd(-1);   // ganz oben bleibt nur, wer richtig gute Tage hat
   if(diff<0) S.repair={amount:Math.max(2,Math.round((before-S.glueck)/2))};
   const saved=Math.max(0,S.baseline-min);
   S.material+=saved;
@@ -2809,7 +2820,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.33";
+const APP_VERSION="1.34";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -3550,7 +3561,7 @@ function bind(){
   document.querySelectorAll("[data-buy]").forEach(btn=>btn.onclick=()=>{
     const it=allItems().find(x=>x.id===btn.dataset.buy), cost=price(it); if(S.points<cost) return;
     S.points-=cost;
-    if(it.consumable){if(it.id==="tee")S.tea++;else if(it.id==="klee")S.glueck=clamp(S.glueck+5,0,100);else S.sun++} else if(!owns(it.id)){ if(!S.items.includes(it.id)) S.items.push(it.id); if(!it.world&&RARE.includes(it)){S.itemW=S.itemW||{};S.itemW[it.id]=curWorldId()} }
+    if(it.consumable){if(it.id==="tee")S.tea++;else if(it.id==="klee")glAdd(5);else S.sun++} else if(!owns(it.id)){ if(!S.items.includes(it.id)) S.items.push(it.id); if(!it.world&&RARE.includes(it)){S.itemW=S.itemW||{};S.itemW[it.id]=curWorldId()} }
     sfx("buy"); stat("kauf"); log("Gekauft: "+it.n+" für "+cost+" Punkte.","good"); toast(it.n+(it.consumable?" auf Vorrat":" steht jetzt auf deiner Insel"));
     if(S.wish&&(!S.wish.type||S.wish.type==="item")&&S.wish.item===it.id) fulfillWish();
     save(); render(); showPending();
@@ -3830,7 +3841,7 @@ function calmEnd(done){
   stat(done?"inselminute":"inselminute_abbruch");
   if(done){
     const first=S.calmDay!==today(); S.calmDay=today(); S.calmN=(S.calmN||0)+1;
-    if(first) S.glueck=clamp(S.glueck+1,0,100);
+    if(first) glAdd(1);
     save();
     c.el.querySelector(".calm-in").innerHTML=`<p class="label" style="color:var(--lilac)">Inselminute</p><h2>Schön, dass du da warst</h2>
       <p class="calm-txt">Eine Minute nur für dich. Die Insel ist auch ein bisschen ruhiger geworden${first?": +1 % Glück":""}.</p>
@@ -4380,7 +4391,7 @@ function buddyProgress(){
   (S.buddies||[]).forEach(b=>{
     if(b.reward) return;
     b.done++;
-    if(b.done>=GOAL_DAYS){b.reward=true;S.points+=150;S.glueck=clamp(S.glueck+5,0,100);
+    if(b.done>=GOAL_DAYS){b.reward=true;S.points+=150;glAdd(5);
       log("Gemeinsames Ziel mit "+b.code+" geschafft: +150 Punkte, +5 % Glück.","good");S.pending.push({type:"buddy",code:b.code})}
   });
 }
