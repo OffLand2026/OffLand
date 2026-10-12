@@ -38,3 +38,13 @@ test("Viele Bewohner: suchen, einklappen, Mensch und Tier antippen", async ({ pa
   await expect(page.locator("#modalRoot .label")).toHaveText("Fischer:in");
   await expect(page.locator("#modalRoot [data-rename]")).toBeVisible();
 });
+
+test("Erwachsene: Oberteil im Aussehen wählen", async ({ page }) => {
+  await newGame(page);
+  const id = await page.evaluate(() => { document.getElementById("modalRoot").innerHTML = ""; const r = T.S.residents.find(x => x.kind === "mensch" && x.job); T.nameSheet({ type: "rename", id: r.id }); return r.id; });
+  await expect(page.locator('#modalRoot [data-look="top"]')).toHaveCount(4);
+  await page.click('#modalRoot [data-look="top"][data-v="2"]');
+  await expect(page.locator("#lookPrev")).toBeVisible();
+  await page.click("#nameOk");
+  expect(await page.evaluate(id => T.S.residents.find(x => x.id === id).look.top, id)).toBe(2);
+});
