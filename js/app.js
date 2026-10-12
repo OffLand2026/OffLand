@@ -4324,6 +4324,7 @@ function lookPreview(r,draft){
   const sh=Object.assign({},tmp,{lv:1,lvFull:false});
   return main+`<div class="look-shadow"><svg width="40" height="46" viewBox="-11 -31 24 32" aria-hidden="true">${figure(sh,0,0)}</svg><span>als Schatten</span></div>`;
 }
+let LOOK_PANE="gesicht";
 function lookEditor(r,d){
   const row=(label,key,list,sel)=>`<div class="sw-row" role="radiogroup" aria-label="${label}"><span class="small muted">${label}</span>${list.map((c,i)=>`<button type="button" class="sw${i===sel?" on":""}" data-look="${key}" data-v="${i}" style="background:${c}" aria-label="${label} ${i+1}" aria-pressed="${i===sel}"></button>`).join("")}</div>`;
   if(r.kind==="mensch"){
@@ -4331,12 +4332,20 @@ function lookEditor(r,d){
     const styles=`<div class="sw-row" role="radiogroup" aria-label="Frisur"><span class="small muted">Frisur</span>${STYLE_NAMES.map((n,i)=>{const hs=hairSvg(i,i===5?"#B6A4FF":"#4A3222");
       return `<button type="button" class="sw sw-ic${i===d.style?" on":""}" data-look="style" data-v="${i}" aria-label="${n}" aria-pressed="${i===d.style}"><svg width="24" height="24" viewBox="-7.5 -24 15 15" aria-hidden="true">${hs.back}<circle cx="0" cy="-16" r="5" fill="#E8B48F"/>${hs.front}</svg></button>`}).join("")}</div>`;
     const al=accList(d.acc), accOn=i=>i?al.includes(i):!al.length, tsel=(d.top==null?lookIdx(r).top:d.top)%TOP_NAMES.length;
-    const tops=`<div class="sw-row" role="radiogroup" aria-label="Oberteil"><span class="small muted">Oberteil</span>${TOP_NAMES.map((n,i)=>`<button type="button" class="sw sw-ic${i===tsel?" on":""}" data-look="top" data-v="${i}" aria-label="${n}" aria-pressed="${i===tsel}"><svg width="24" height="24" viewBox="-7.5 -14.5 15 13" aria-hidden="true">${topSvg(i,"#5B8CD6",0)}</svg></button>`).join("")}</div>`;
     const pats=lookPatRow(r,d), beards=lookBeardRow(d);
     const accs=`<div class="sw-row" role="group" aria-label="Extras"><span class="small muted">Extras (mehrere möglich)</span>${ACC_NAMES.map((n,i)=>{const a=accSvg(i,"#FF9C7A"),hs=hairSvg(0,"#4A3222");
       return `<button type="button" class="sw sw-ic${accOn(i)?" on":""}" data-look="acc" data-v="${i}" aria-label="${n}" aria-pressed="${accOn(i)}">${i===0?`<svg width="22" height="22" viewBox="-10 -10 20 20" aria-hidden="true"><circle r="7.5" fill="none" stroke="#9EA3B8" stroke-width="2"/><path d="M-5.3 5.3L5.3 -5.3" stroke="#9EA3B8" stroke-width="2" stroke-linecap="round"/></svg>`:`<svg width="24" height="24" viewBox="-7.5 -25 15 16" aria-hidden="true"><path d="M-6 -6c0-4 2.4-5.2 6-5.2s6 1.2 6 5.2z" fill="#5B8CD6"/>${a.body}${hs.back}<circle cx="0" cy="-16" r="5" fill="#E8B48F"/>${hs.front}${a.head}</svg>`}</button>`}).join("")}</div>`;
-    return `<div class="field"><span>Aussehen</span><div class="look"><div class="look-prev" id="lookPrev">${lookPreview(r,d)}</div><div class="look-opts">
-      ${baby?`${row("Haut","skin",SKIN,d.skin)}${row("Haare","hair",HAIR,d.hair)}${row("Strampler","shirt",SHIRT,d.shirt)}`:`${row("Haut","skin",SKIN,d.skin)}${styles}${row("Haare","hair",HAIR,d.hair)}${stage(r)==="kind"?row("Shirt","shirt",SHIRT,d.shirt):row("Oberteil","shirt",SHIRT,d.shirt)+pats+beards+row("Leuchtaugen (als Schatten)","eye",LV_EYES,d.eye%LV_EYES.length)}${accs}${row("Farbe der Extras","accC",SHIRT,d.accC)}`}</div></div></div>`;
+    if(baby) return `<div class="field"><span>Aussehen</span><div class="look"><div class="look-prev" id="lookPrev">${lookPreview(r,d)}</div><div class="look-opts">${row("Haut","skin",SKIN,d.skin)}${row("Haare","hair",HAIR,d.hair)}${row("Strampler","shirt",SHIRT,d.shirt)}</div></div></div>`;
+    // Reiter statt einer langen Liste: immer nur ein Bereich offen, Vorschau bleibt oben stehen
+    const kid=stage(r)==="kind";
+    const panes=[["gesicht","Gesicht",row("Haut","skin",SKIN,d.skin)+(kid?"":beards+row("Leuchtaugen (als Schatten)","eye",LV_EYES,d.eye%LV_EYES.length))],
+      ["haare","Haare",styles+row("Haarfarbe","hair",HAIR,d.hair)],
+      ["kleidung","Kleidung",kid?row("Shirt","shirt",SHIRT,d.shirt):row("Oberteil","shirt",SHIRT,d.shirt)+pats],
+      ["extras","Extras",accs+row("Farbe der Extras","accC",SHIRT,d.accC)]];
+    if(!panes.some(x=>x[0]===LOOK_PANE)) LOOK_PANE="gesicht";
+    return `<div class="field"><span>Aussehen</span><div class="look look-tabs"><div class="look-top"><div class="look-prev" id="lookPrev">${lookPreview(r,d)}</div>
+      <div class="lk-tabs" role="tablist">${panes.map(([k,n])=>`<button type="button" role="tab" class="lk-tab${k===LOOK_PANE?" on":""}" data-pane="${k}" aria-selected="${k===LOOK_PANE}">${n}</button>`).join("")}</div></div>
+      ${panes.map(([k,,h])=>`<div class="look-opts lk-pane" data-pane-box="${k}"${k===LOOK_PANE?"":" hidden"}>${h}</div>`).join("")}</div></div>`;
   }
   const n=(FUR[r.art]||[]).length; if(n<2) return "";
   return `<div class="field"><span>Fellfarbe</span><div class="sw-row" role="radiogroup" aria-label="Fellfarbe">${Array.from({length:n},(_,i)=>`<button type="button" class="sw sw-ic sw-big${i===d.fur?" on":""}" data-look="fur" data-v="${i}" aria-label="Fellfarbe ${i+1}" aria-pressed="${i===d.fur}"><svg width="38" height="30" viewBox="${artVB(r.art,38/30)}" aria-hidden="true">${animalSvg(r.art,i)}</svg></button>`).join("")}</div></div>`;
@@ -4347,6 +4356,9 @@ function lookPatRow(r,d){const c=SHIRT[d.shirt]||"#5B8CD6", sel=(d.pat||0)%PAT_N
 function lookBeardRow(d){const hc=HAIR[d.hair]||"#4A3222", sel=(d.beard||0)%BEARD_NAMES.length;
   return `<div class="sw-row" role="radiogroup" aria-label="Bart" id="beardRow"><span class="small muted">Bart</span>${BEARD_NAMES.map((n,i)=>lookIc(i,i===sel,"beard",n,`<circle cx="0" cy="-16" r="5" fill="${SKIN[d.skin]||"#E8B48F"}"/>${hairSvg(0,hc).front}${beardSvg(i,hc)}<circle cx="-1.8" cy="-16.3" r=".55" fill="#14151F"/><circle cx="1.8" cy="-16.3" r=".55" fill="#14151F"/>`,"-7 -23 14 14")).join("")}</div>`}
 function bindLookEditor(r,draft,onChange){
+  document.querySelectorAll("#modalRoot [data-pane]").forEach(t=>t.onclick=()=>{LOOK_PANE=t.dataset.pane;
+    document.querySelectorAll("#modalRoot [data-pane]").forEach(x=>{const on=x===t;x.classList.toggle("on",on);x.setAttribute("aria-selected",on)});
+    document.querySelectorAll("#modalRoot [data-pane-box]").forEach(b=>b.hidden=b.dataset.paneBox!==LOOK_PANE)});
   document.querySelectorAll("#modalRoot [data-look]").forEach(b=>b.onclick=()=>{
     const k=b.dataset.look, v=+b.dataset.v;
     if(k==="acc"){draft.acc=accToggle(draft.acc,v); const al=draft.acc;

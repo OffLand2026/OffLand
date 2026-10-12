@@ -37,9 +37,12 @@ test("Editor: Leuchtaugen, Muster und Bart wählen", async ({ page }) => {
   await expect(page.locator("#lookPrev .look-shadow")).toBeVisible();
   await page.click('#modalRoot [data-look="eye"][data-v="3"]');
   await expect(page.locator('#lookPrev .look-shadow [fill="#FF8FB1"]').first()).toBeAttached();
+  await page.click('#modalRoot [data-pane="kleidung"]');
   await page.click('#modalRoot [data-look="pat"][data-v="1"]');
   await page.click('#modalRoot [data-look="shirt"][data-v="2"]');           // Farbwechsel baut die Muster-Knöpfe neu
+  await page.click('#modalRoot [data-pane="gesicht"]');
   await page.click('#modalRoot [data-look="beard"][data-v="4"]');
+  await page.click('#modalRoot [data-pane="haare"]');
   await page.click('#modalRoot [data-look="style"][data-v="13"]');
   await page.click("#nameOk");
   const look = await page.evaluate(id => T.S.residents.find(x => x.id === id).look, id);

@@ -603,3 +603,13 @@ details.res-sec+details.res-sec,.res-search+p+details.res-sec{margin-top:4px}
 .dev-btns button{height:34px;border:none;border-radius:12px;background:var(--card2);color:var(--ink);font-weight:800;font-size:12.5px}
 .dev-btns button:active{transform:scale(.97)}
 body:has(.devbar) #view{padding-bottom:110px}
+/* Editor mit Reitern: Vorschau und Reiter oben, darunter nur der gewählte Bereich */
+.look-tabs{flex-direction:column;align-items:stretch;gap:10px}
+.look-top{position:sticky;top:-1px;z-index:3;background:var(--card);display:flex;flex-direction:column;gap:8px;padding:4px 0 6px}
+.look-tabs .look-prev{width:100%;min-height:0;flex-direction:row;justify-content:center;gap:18px;padding:6px 0}
+.look-tabs .look-shadow{border-top:none;border-left:1px solid rgba(255,255,255,.08);padding:0 0 0 14px;width:auto}
+.lk-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--ground);border-radius:14px;padding:4px}
+.lk-tab{height:34px;border:none;border-radius:10px;background:transparent;color:var(--muted);font-weight:800;font-size:13px}
+.lk-tab.on{background:var(--card2);color:var(--ink)}
+.lk-pane[hidden]{display:none}
+.lk-pane{gap:12px}
