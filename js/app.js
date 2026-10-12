@@ -1697,10 +1697,41 @@ function hairSvg(style,c){
     case 10: return {back:"",front:`<path d="M-3 -19.8q1.6-.8 3.2-.4" stroke="#FFFFFF" stroke-width=".7" fill="none" opacity=".35" stroke-linecap="round"/>`};
     case 11: return {back:`<g stroke="${c}" stroke-width="2.3" stroke-linecap="round" fill="none"><path d="M-4.4 -16.4q-2.4 1.4-2.2 6.4"/><path d="M4.4 -16.4q2.4 1.4 2.2 6.4"/></g><path d="M-6.9 -13.6l1.2.5M-6.8 -11.6l1.2.4M6.9 -13.6l-1.2.5M6.8 -11.6l-1.2.4" stroke="#14151F" stroke-width=".35" opacity=".25"/>`,front:`<path d="M-5.3 -16.4a5.3 5.5 0 0 1 10.6 0q-2.6-1.6-5.3-1.6t-5.3 1.6z" fill="${c}"/><circle cx="-6.5" cy="-10.6" r=".95" fill="#E07AB8"/><circle cx="6.5" cy="-10.6" r=".95" fill="#E07AB8"/>`};
     case 12: return {back:"",front:`<path d="M-5.4 -16.2a5.4 5.6 0 0 1 10.8 0q-1.6-.6-3.4-2.6q-3 2.2-7.4 2.6z" fill="${c}"/>`};
+    case 13: return {back:"",front:`<path d="M-5.3 -16.4a5.3 5.5 0 0 1 10.6 0q-2-.8-3-1.8q-3.2 1.4-7.6 1.8z" fill="${c}"/><path d="M-3.6 -20.2q1.4-4 6.6-3q-1.2 1.4-.4 3q-3-1.2-6.2 0z" fill="${c}"/>`};
+    case 14: return {back:"",front:`<path d="M-5 -17.6a5 4 0 0 1 10 0q-5-1.2-10 0z" fill="${c}" opacity=".4"/><path d="M-4.8 -18.4q.4-4.2 5.4-4q4.8.4 5 4.6q-1.4-1.2-3-1.2q-3.8-.2-7.4.6z" fill="${c}"/>`};
+    case 15: return {back:"",front:`<path d="M-5.2 -16.6l.3-3.2 1.3 1.1.8-3.2 1.5 1.7 1.3-2.8 1.3 2.8 1.5-1.7.8 3.2 1.3-1.1.3 3.2q-5.2-1.8-10.4 0z" fill="${c}"/>`};
+    case 16: return {back:`<circle cx="0" cy="-22" r="2" fill="${c}"/>`,front:`<path d="M-5.3 -16.4a5.3 5.5 0 0 1 10.6 0q-5.3-1.8-10.6 0z" fill="${c}"/><path d="M-1.6 -20.6h3.2" stroke="${shadeC(c,.6)}" stroke-width=".6" stroke-linecap="round"/>`};
+    case 17: return {back:"",front:`<path d="M-5.3 -16.4a5.3 5.5 0 0 1 10.6 0q-5.3-1.6-10.6 0z" fill="${c}"/><g fill="${c}"><ellipse cx="-3.6" cy="-20.4" rx="1.1" ry="1.7"/><ellipse cx="-1.2" cy="-21.6" rx="1.1" ry="1.8"/><ellipse cx="1.3" cy="-21.6" rx="1.1" ry="1.8"/><ellipse cx="3.7" cy="-20.3" rx="1.1" ry="1.7"/></g>`};
+    case 18: return {back:`<path d="M-5.8 -16.5a5.8 6 0 0 1 11.6 0v4q-1.2.8-2.4 0v-2.4h-6.8v2.4q-1.2.8-2.4 0z" fill="${c}"/>`,front:`<path d="M-5.6 -15.6a5.6 5.8 0 0 1 11.2 0q-1.6-.4-3.2-2q-1.4-.8-2.4-2.4q-1 1.6-2.4 2.4q-1.6 1.6-3.2 2z" fill="${c}"/>`};
     default: return {back:"",front:`<path d="M-5 -17.6a5 4 0 0 1 10 0q-5-1.2-10 0z" fill="${c}"/>`};
   }
 }
-const STYLE_NAMES=["Kurz","Lang","Dutt","Zopf","Locken","Mütze","Stoppeln","Pferdeschwanz","Bob","Iro","Glatze","Zwei Zöpfe","Seitenscheitel"];
+/* Bart (Farbe wie die Haare) und Muster auf dem Oberteil */
+const BEARD_NAMES=["Kein Bart","Dreitagebart","Schnurrbart","Kinnbart","Vollbart"];
+function beardSvg(b,c){
+  const jaw=`M-4.9 -15.4q.2 5.6 4.9 5.6t4.9-5.6q-.9 1.6-2.2 1.9q-1.1-1.1-2.7-1.1t-2.7 1.1q-1.3-.3-2.2-1.9z`;
+  return ["",`<path d="${jaw}" fill="${c}" opacity=".32"/>`,
+    `<path d="M-2.5 -14.5q1.2-1.1 2.5-.5q1.3-.6 2.5.5q-1.3.6-2.5.1q-1.2.5-2.5-.1z" fill="${c}"/>`,
+    `<path d="M-1.5 -12.6q1.5.6 3 0l-.5 1.9q-1 .8-2 0z" fill="${c}"/><path d="M-2.3 -14.4q1.1-.9 2.3-.4q1.2-.5 2.3.4q-1.2.4-2.3.1q-1.1.3-2.3-.1z" fill="${c}"/>`,
+    `<path d="${jaw}" fill="${c}"/>`][b]||"";
+}
+const PAT_NAMES=["Uni","Streifen","Punkte","Karo","Blitz","Stern","Herz","Palme","Initiale","Welle"];
+function patSvg(p,c,name){
+  const v=parseInt(c.slice(1),16), light=((v>>16)*.3+(v>>8&255)*.59+(v&255)*.11)>150, k=light?shadeC(c,.62):"#F3F1EA", o=light?1:.75;
+  switch(p){
+    case 1: return `<g stroke="${k}" stroke-width="1.1" opacity="${o}"><path d="M-8 -10.4h16M-8 -7.4h16M-8 -4.4h16M-8 -1.4h16"/></g>`;
+    case 2: return `<g fill="${k}" opacity="${o}">${[[-3.4,-9.6],[1.2,-10.4],[3.8,-6.6],[-1,-6],[-4.4,-3],[0.8,-2.4],[4.4,-1.6]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r=".75"/>`).join("")}</g>`;
+    case 3: return `<g stroke="${k}" stroke-width=".7" opacity="${o*.8}"><path d="M-8 -9.6h16M-8 -6h16M-8 -2.4h16M-3.6 -14v14M0 -14v14M3.6 -14v14"/></g>`;
+    case 4: return `<path d="M.8 -10.6l-3 4.4h2l-1.2 4.2 3.6-5h-2.1z" fill="${k}" opacity="${o}"/>`;
+    case 5: return `<path d="M0 -10.2l1.1 2.3 2.5.3-1.8 1.7.5 2.5-2.3-1.2-2.3 1.2.5-2.5-1.8-1.7 2.5-.3z" fill="${k}" opacity="${o}"/>`;
+    case 6: return `<path d="M0 -3.8q-3.6-2.4-3.6-4.6q0-1.8 1.8-1.8q1.2 0 1.8 1.2q.6-1.2 1.8-1.2q1.8 0 1.8 1.8q0 2.2-3.6 4.6z" fill="${light?"#E5484D":"#FF8FB1"}"/>`;
+    case 7: return `<g fill="${k}" opacity="${o}"><path d="M-.3 -2.2q.8-3.4 .2-6.6h.6q.8 3.2 0 6.6z"/><path d="M.2 -8.8q-2.4-1.2-4 .2q2.2-.2 4-.2zM.2 -8.8q2.4-1.4 4 0q-2.2-.2-4 0zM.2 -8.8q-1.6-2.2-3.4-1.8q1.8.6 3.4 1.8zM.2 -8.8q1.6-2.2 3.4-1.8q-1.8.6-3.4 1.8z"/></g>`;
+    case 8: return `<text x="0" y="-3.6" text-anchor="middle" font-size="6.4" font-weight="800" font-family="Bricolage Grotesque, Manrope, sans-serif" fill="${k}" opacity="${o}">${esc(((name||"?").trim()[0]||"?").toUpperCase())}</text>`;
+    case 9: return `<path d="M-8 -6.6q2-1.6 4 0t4 0 4 0 4 0M-8 -3.2q2-1.6 4 0t4 0 4 0 4 0" stroke="${k}" stroke-width="1" fill="none" opacity="${o}"/>`;
+    default: return "";
+  }
+}
+const STYLE_NAMES=["Kurz","Lang","Dutt","Zopf","Locken","Mütze","Stoppeln","Pferdeschwanz","Bob","Iro","Glatze","Zwei Zöpfe","Seitenscheitel","Tolle","Undercut","Spikes","Männerdutt","Twists","Surfer"];
 /* Extras: Schal, Brille, Sonnenbrille, Bommelmütze, Kappe, Blume, Stirnband */
 const ACC_NAMES=["Nichts","Schal","Brille","Sonnenbrille","Bommelmütze","Kappe","Blume","Stirnband"];
 const TOP_NAMES=["Hoodie","Offene Jacke","Hemd","Bomberjacke"];
@@ -1740,13 +1771,13 @@ function lookIdx(r){
   const h=hsh(r.id||r.name), o=r.look||{};
   const pickI=(k,v)=>o[k]!=null?o[k]:v;
   const a=(h>>>18)%14;     // etwa die Hälfte trägt von sich aus ein Extra
-  return {skin:pickI("skin",h%SKIN.length),hair:pickI("hair",(h>>>3)%7),style:pickI("style",(h>>>6)%7),shirt:pickI("shirt",(h>>>9)%8),top:pickI("top",(h>>>26)%TOP_NAMES.length),
+  return {skin:pickI("skin",h%SKIN.length),hair:pickI("hair",(h>>>3)%7),style:pickI("style",(h>>>6)%7),shirt:pickI("shirt",(h>>>9)%8),top:pickI("top",(h>>>26)%TOP_NAMES.length),eye:pickI("eye",(h>>>13)%5),beard:pickI("beard",0),pat:pickI("pat",(()=>{const q=(h>>>20)%18;return q<9?0:q-8})()),
     acc:pickI("acc",o.skin!=null?0:(a<7?0:a-6)),accC:pickI("accC",(h>>>22)%SHIRT.length)};
 }
 function looks(r){
   const h=hsh(r.id||r.name), i=lookIdx(r);
   return {skin:SKIN[i.skin],hair:r.retired?"#D9D6CE":HAIR[i.hair]||HAIR[0],style:i.style,
-    shirt:SHIRT[i.shirt]||SHIRT[0],pants:PANTS[(h>>>12)%PANTS.length],cap:SHIRT[(h>>>15)%8],acc:accList(i.acc),accC:SHIRT[i.accC]||SHIRT[0],top:i.top%TOP_NAMES.length};
+    shirt:SHIRT[i.shirt]||SHIRT[0],pants:PANTS[(h>>>12)%PANTS.length],cap:SHIRT[(h>>>15)%8],acc:accList(i.acc),accC:SHIRT[i.accC]||SHIRT[0],top:i.top%TOP_NAMES.length,beard:i.beard||0,pat:i.pat||0};
 }
 /* Lebensphase für die Figur: Baby, Kind, erwachsen, Rente */
 function stage(r){
@@ -1788,15 +1819,15 @@ function figure(r,x,y){
           ${sad?`<path d="M-1.3 -13.2q1.3-.9 2.6 0" stroke="#5A3A2A" stroke-width=".6" fill="none" stroke-linecap="round"/>`:`<path d="M-1.45 -14q1.45 ${cheer?1.6:1.1} 2.9 0" stroke="#5A3A2A" stroke-width=".6" fill="${cheer?"#7A2032":"none"}" stroke-linecap="round"/>`}`;
       // heller Umriss, damit man die Schatten auch im Dunkeln erkennt (wird mit der Farbe dünner)
       const rim=t<3?`<g class="lv-rim" style="--rw:${[.55,.55,.37][t]}px"><path d="${body}"/><g transform="${hd}">${hair.back}<circle cx="0" cy="-16" r="5"/>${hair.front}</g></g>`:"";
-      const eyeC=LV_EYES[(hsh(r.id||r.name)>>>13)%LV_EYES.length];
+      const eyeC=LV_EYES[lookIdx(r).eye%LV_EYES.length];
       const glow=t===0?`<g transform="${hd}"><path d="M-2.9 -15.6h1.9M1 -15.6h1.9" stroke="#9CDCFF" stroke-width=".9" filter="url(#lvGlow)"/><ellipse cx="0" cy="-12.8" rx="5.2" ry="3.4" fill="#9CDCFF" opacity=".38" filter="url(#lvGlow)"/></g>
           <g transform="translate(0 -6.4) rotate(12)"><rect x="-1.4" y="-2.2" width="2.8" height="4" rx=".3" fill="#CFF3FF" filter="url(#lvGlow)"/></g>`
         :t===1?`<g transform="${hd}" filter="url(#lvGlow)"><path d="M-3.05 -16.3a1.15 1.15 0 0 0 2.3 0zM.75 -16.3a1.15 1.15 0 0 0 2.3 0z" fill="${eyeC}"/></g>`
         :t===2?`<g transform="${hd}"><g filter="url(#lvGlow)" opacity=".75"><circle cx="-1.9" cy="-16.4" r=".95" fill="${eyeC}"/><circle cx="1.9" cy="-16.4" r=".95" fill="${eyeC}"/></g><circle cx="-1.9" cy="-16.4" r=".48" fill="#14151F"/><circle cx="1.9" cy="-16.4" r=".48" fill="#14151F"/></g>`:"";
       return `<g transform="translate(${x} ${y})"><title>${esc(r.name)}${r.phone?" (am Handy)":t<4?` (${LV_NAMES[t]})`:""}</title><ellipse cx="0" cy=".4" rx="7" ry="1.2" fill="#000" opacity="${t<2?.3:.18}"/><g transform="rotate(${tilt})">${t<4?`<g filter="url(#lv${t})">`:""}
         ${alt?`<path d="M8.4 0v-8q0-1.8-1.8-1.8" stroke="#8A5A3B" stroke-width="1.1" fill="none" stroke-linecap="round"/>`:""}
-        <path d="M-2.4 -1v1.6M2.4 -1v1.6" stroke="${L.pants}" stroke-width="2" stroke-linecap="round"/><path d="${body}" fill="${L.shirt}"/><g transform="translate(0 -2.2)">${acc.body}</g>${arms}
-        <g transform="${hd}">${head}${face}${acc.head}
+        <path d="M-2.4 -1v1.6M2.4 -1v1.6" stroke="${L.pants}" stroke-width="2" stroke-linecap="round"/><path d="${body}" fill="${L.shirt}"/>${L.pat?`<g clip-path="url(#lvBody)">${patSvg(L.pat,L.shirt,r.name)}</g>`:""}<g transform="translate(0 -2.2)">${acc.body}</g>${arms}
+        <g transform="${hd}">${head}${beardSvg(L.beard,L.hair)}${face}${acc.head}
           ${r.retired?`<path d="M-3.6 -16.4h2.6M1 -16.4h2.6M-1 -16.4h2" stroke="#3A3D58" stroke-width=".5" fill="none"/><circle cx="-1.8" cy="-16.3" r="1.5" fill="none" stroke="#3A3D58" stroke-width=".5"/><circle cx="1.8" cy="-16.3" r="1.5" fill="none" stroke="#3A3D58" stroke-width=".5"/>`:""}</g>${t<4?"</g>":""}${rim}${glow}</g>${cheer?LV_SPARK_BIG:""}</g>`;
     }
     return `<g transform="translate(${x} ${y}) scale(${kid})"${t<4?` filter="url(#lv${t})"`:""}><title>${esc(r.name)}</title>
@@ -4273,7 +4304,12 @@ function nameSheet(ev){
 function lookPreview(r,draft){
   const tmp=Object.assign({},r,{sick:null,phone:false,lv:4,lvUp:null});   // im Editor sieht man immer, wie jemand ganz zurück aussieht
   if(r.kind==="mensch") tmp.look=draft; else tmp.fur=draft.fur;
-  return `<svg width="72" height="78" viewBox="${r.kind==="mensch"?(stage(r)==="baby"?"-8.5 -15.5 17 17":stage(r)==="kind"?"-12 -25 24 26":"-12.5 -29.6 25 31"):SEA.includes(tmp.art)?figVB(tmp):"-16 -22 32 25"}" aria-hidden="true">${figure(tmp,0,0)}</svg>`;
+  const adult=r.kind==="mensch"&&stage(r)!=="baby"&&stage(r)!=="kind";
+  const main=`<svg width="76" height="${adult?92:78}" viewBox="${r.kind==="mensch"?(stage(r)==="baby"?"-8.5 -15.5 17 17":stage(r)==="kind"?"-12 -25 24 26":"-13.5 -32.4 27 33.4"):SEA.includes(tmp.art)?figVB(tmp):"-16 -22 32 25"}" aria-hidden="true">${figure(tmp,0,0)}</svg>`;
+  if(!adult) return main;
+  // Kleine Schatten-Vorschau: so leuchten die Augen, solange die Farbe noch fehlt
+  const sh=Object.assign({},tmp,{lv:1});
+  return main+`<div class="look-shadow"><svg width="40" height="46" viewBox="-11 -31 24 32" aria-hidden="true">${figure(sh,0,0)}</svg><span>als Schatten</span></div>`;
 }
 function lookEditor(r,d){
   const row=(label,key,list,sel)=>`<div class="sw-row" role="radiogroup" aria-label="${label}"><span class="small muted">${label}</span>${list.map((c,i)=>`<button type="button" class="sw${i===sel?" on":""}" data-look="${key}" data-v="${i}" style="background:${c}" aria-label="${label} ${i+1}" aria-pressed="${i===sel}"></button>`).join("")}</div>`;
@@ -4283,14 +4319,20 @@ function lookEditor(r,d){
       return `<button type="button" class="sw sw-ic${i===d.style?" on":""}" data-look="style" data-v="${i}" aria-label="${n}" aria-pressed="${i===d.style}"><svg width="24" height="24" viewBox="-7.5 -24 15 15" aria-hidden="true">${hs.back}<circle cx="0" cy="-16" r="5" fill="#E8B48F"/>${hs.front}</svg></button>`}).join("")}</div>`;
     const al=accList(d.acc), accOn=i=>i?al.includes(i):!al.length, tsel=(d.top==null?lookIdx(r).top:d.top)%TOP_NAMES.length;
     const tops=`<div class="sw-row" role="radiogroup" aria-label="Oberteil"><span class="small muted">Oberteil</span>${TOP_NAMES.map((n,i)=>`<button type="button" class="sw sw-ic${i===tsel?" on":""}" data-look="top" data-v="${i}" aria-label="${n}" aria-pressed="${i===tsel}"><svg width="24" height="24" viewBox="-7.5 -14.5 15 13" aria-hidden="true">${topSvg(i,"#5B8CD6",0)}</svg></button>`).join("")}</div>`;
+    const pats=lookPatRow(r,d), beards=lookBeardRow(d);
     const accs=`<div class="sw-row" role="group" aria-label="Extras"><span class="small muted">Extras (mehrere möglich)</span>${ACC_NAMES.map((n,i)=>{const a=accSvg(i,"#FF9C7A"),hs=hairSvg(0,"#4A3222");
       return `<button type="button" class="sw sw-ic${accOn(i)?" on":""}" data-look="acc" data-v="${i}" aria-label="${n}" aria-pressed="${accOn(i)}">${i===0?`<svg width="22" height="22" viewBox="-10 -10 20 20" aria-hidden="true"><circle r="7.5" fill="none" stroke="#9EA3B8" stroke-width="2"/><path d="M-5.3 5.3L5.3 -5.3" stroke="#9EA3B8" stroke-width="2" stroke-linecap="round"/></svg>`:`<svg width="24" height="24" viewBox="-7.5 -25 15 16" aria-hidden="true"><path d="M-6 -6c0-4 2.4-5.2 6-5.2s6 1.2 6 5.2z" fill="#5B8CD6"/>${a.body}${hs.back}<circle cx="0" cy="-16" r="5" fill="#E8B48F"/>${hs.front}${a.head}</svg>`}</button>`}).join("")}</div>`;
     return `<div class="field"><span>Aussehen</span><div class="look"><div class="look-prev" id="lookPrev">${lookPreview(r,d)}</div><div class="look-opts">
-      ${baby?`${row("Haut","skin",SKIN,d.skin)}${row("Haare","hair",HAIR,d.hair)}${row("Strampler","shirt",SHIRT,d.shirt)}`:`${row("Haut","skin",SKIN,d.skin)}${styles}${row("Haare","hair",HAIR,d.hair)}${stage(r)==="kind"?row("Shirt","shirt",SHIRT,d.shirt):row("Oberteil","shirt",SHIRT,d.shirt)}${accs}${row("Farbe der Extras","accC",SHIRT,d.accC)}`}</div></div></div>`;
+      ${baby?`${row("Haut","skin",SKIN,d.skin)}${row("Haare","hair",HAIR,d.hair)}${row("Strampler","shirt",SHIRT,d.shirt)}`:`${row("Haut","skin",SKIN,d.skin)}${styles}${row("Haare","hair",HAIR,d.hair)}${stage(r)==="kind"?row("Shirt","shirt",SHIRT,d.shirt):row("Oberteil","shirt",SHIRT,d.shirt)+pats+beards+row("Leuchtaugen (als Schatten)","eye",LV_EYES,d.eye%LV_EYES.length)}${accs}${row("Farbe der Extras","accC",SHIRT,d.accC)}`}</div></div></div>`;
   }
   const n=(FUR[r.art]||[]).length; if(n<2) return "";
   return `<div class="field"><span>Fellfarbe</span><div class="sw-row" role="radiogroup" aria-label="Fellfarbe">${Array.from({length:n},(_,i)=>`<button type="button" class="sw sw-ic sw-big${i===d.fur?" on":""}" data-look="fur" data-v="${i}" aria-label="Fellfarbe ${i+1}" aria-pressed="${i===d.fur}"><svg width="38" height="30" viewBox="${artVB(r.art,38/30)}" aria-hidden="true">${animalSvg(r.art,i)}</svg></button>`).join("")}</div></div>`;
 }
+function lookIc(i,on,k,n,inner,vb){return `<button type="button" class="sw sw-ic${on?" on":""}" data-look="${k}" data-v="${i}" aria-label="${n}" aria-pressed="${on}"><svg width="24" height="24" viewBox="${vb}" aria-hidden="true">${inner}</svg></button>`}
+function lookPatRow(r,d){const c=SHIRT[d.shirt]||"#5B8CD6", sel=(d.pat||0)%PAT_NAMES.length;
+  return `<div class="sw-row" role="radiogroup" aria-label="Muster" id="patRow"><span class="small muted">Muster</span>${PAT_NAMES.map((n,i)=>lookIc(i,i===sel,"pat",n,`<path d="M-6.4 0q0-13 6.4-13.4q6.4.4 6.4 13.4z" fill="${c}"/><g clip-path="url(#lvBody)">${patSvg(i,c,r.name)}</g>`,"-7.5 -14 15 14.5")).join("")}</div>`}
+function lookBeardRow(d){const hc=HAIR[d.hair]||"#4A3222", sel=(d.beard||0)%BEARD_NAMES.length;
+  return `<div class="sw-row" role="radiogroup" aria-label="Bart" id="beardRow"><span class="small muted">Bart</span>${BEARD_NAMES.map((n,i)=>lookIc(i,i===sel,"beard",n,`<circle cx="0" cy="-16" r="5" fill="${SKIN[d.skin]||"#E8B48F"}"/>${hairSvg(0,hc).front}${beardSvg(i,hc)}<circle cx="-1.8" cy="-16.3" r=".55" fill="#14151F"/><circle cx="1.8" cy="-16.3" r=".55" fill="#14151F"/>`,"-7 -23 14 14")).join("")}</div>`}
 function bindLookEditor(r,draft,onChange){
   document.querySelectorAll("#modalRoot [data-look]").forEach(b=>b.onclick=()=>{
     const k=b.dataset.look, v=+b.dataset.v;
@@ -4299,6 +4341,8 @@ function bindLookEditor(r,draft,onChange){
     } else {draft[k]=v;
       document.querySelectorAll(`#modalRoot [data-look="${k}"]`).forEach(x=>{const on=x===b;x.classList.toggle("on",on);x.setAttribute("aria-pressed",on)});}
     const pv=$("#lookPrev"); if(pv) pv.innerHTML=lookPreview(r,draft);
+    // Muster- und Bart-Knöpfe in der aktuellen Oberteil-, Haut- und Haarfarbe zeigen
+    if(["shirt","skin","hair"].includes(k)){const pr=$("#patRow"),br=$("#beardRow"); if(pr) pr.outerHTML=lookPatRow(r,draft); if(br) br.outerHTML=lookBeardRow(draft); if(pr||br) bindLookEditor(r,draft,onChange)}
     if(onChange) onChange();
   });
 }
