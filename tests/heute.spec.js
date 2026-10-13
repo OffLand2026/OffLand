@@ -22,3 +22,26 @@ test("Schieberegler und Zahlenfelder bleiben gleich", async ({ page }) => {
   await page.fill("#inH", "5"); await page.fill("#inM", "0");
   await expect(page.locator("#liveTxt")).toContainText("über dem Ziel");
 });
+
+test("Bildschirmzeit automatisch (Simulation) füllt das Eintragen vor", async ({ page }) => {
+  await newGame(page, "Mia");
+  await page.evaluate(() => { T.S.testmode = true; T.render(); });
+  await page.click("#stEntry");
+  await page.click(".st-sim [data-st=ok]");   // Erlaubnis
+  await page.click(".st-sim [data-st=ok]");   // Apps
+  await expect(page.locator("#stNote")).toContainText("Automatisch gemessen (Simulation)");
+  await expect(page.locator("#stEntry")).toHaveCount(0);
+  const v = await page.evaluate(() => (+document.getElementById("inH").value) * 60 + (+document.getElementById("inM").value));
+  expect(v % 15).toBe(0);
+  expect(await page.evaluate(() => T.S.autoTime && T.S.stSim.monitoring)).toBe(true);
+});
+
+test("Link zum automatischen Messen verschwindet nach dem Ablehnen", async ({ page }) => {
+  await newGame(page, "Mia");
+  await page.evaluate(() => { T.S.testmode = true; T.render(); });
+  await page.click("#stEntry");
+  await page.click(".st-sim [data-st=no]");
+  await expect(page.locator("#stEntry")).toHaveCount(0);
+  await expect(page.locator("#closeBtn")).toBeVisible();
+  expect(await page.evaluate(() => !!T.S.autoTime)).toBe(false);
+});
