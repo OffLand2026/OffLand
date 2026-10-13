@@ -70,6 +70,9 @@
   .delta{font-weight:650}.delta.up{color:var(--good)}.delta.down{color:var(--critical)}
   .demo{background:#fab219;color:#0b0b0b;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700}
   @media (max-width:760px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.grid2{grid-template-columns:1fr}}
+  .chip.from { display: inline-flex; align-items: center; gap: 6px; }
+  .chip.from input { border: none; background: transparent; font: inherit; color: inherit; padding: 0; max-width: 128px; }
+  .chip.from[aria-pressed="true"] input { color: inherit; }
 </style>
 </head>
 <body>
@@ -78,6 +81,7 @@
     <div><h1>OffLand Statistik</h1><p class="sub">Anonyme Tageszähler von Geräten, die zugestimmt haben · keine Namen, keine Bildschirmzeiten</p></div>
     <div class="chips" role="group" aria-label="Zeitraum">
       <button class="chip" data-days="7">7 Tage</button><button class="chip" data-days="14">14 Tage</button><button class="chip" data-days="30">30 Tage</button><button class="chip" data-days="90">90 Tage</button>
+      <label class="chip from" id="fromWrap">Ab <input type="date" id="fromIn" aria-label="Erst ab diesem Datum zählen"></label><button class="chip" id="fromClr" type="button" hidden aria-label="Datum zurücksetzen">✕</button>
     </div>
   </div>
   <p class="status" id="status">Lade …</p>
@@ -386,19 +390,29 @@ function render(all) {
 }
 
 let cur = 14, LAST = null;
+// „Ab Datum“: zeigt nur Tage ab einem Stichtag (z. B. Teststart). Die Daten in Firebase bleiben unverändert; der Stichtag wird nur in diesem Browser gemerkt.
+let FROM = null; try { FROM = localStorage.getItem("offland-stat-from") || null; } catch (e) {}
+const daysSince = f => Math.min(365, Math.max(1, Math.round((new Date(iso(new Date())) - new Date(f)) / 864e5) + 1));
 async function go(days) {
+  if (FROM) days = daysSince(FROM);
   cur = days;
-  document.querySelectorAll("[data-days]").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.days === days)));
+  document.querySelectorAll("[data-days]").forEach(b => b.setAttribute("aria-pressed", String(!FROM && +b.dataset.days === days)));
+  $("#fromIn").value = FROM || ""; $("#fromWrap").setAttribute("aria-pressed", String(!!FROM)); $("#fromClr").hidden = !FROM;
   $("#status").innerHTML = "Lade …";
   try {
     const rows = await load(days);
+    if (FROM) rows.slice(0, rows.length / 2).forEach(r => r.c = {});   // vor dem Stichtag nichts vergleichen
     const any = rows.slice(rows.length / 2).some(r => Object.keys(r.c).length);
     $("#status").innerHTML = demo ? `<span class="demo">Beispieldaten</span> So sieht die Seite aus, wenn Zahlen da sind. <a href="./" style="color:inherit">Echte Zahlen</a>`
-      : any ? `Stand: ${new Date().toLocaleString("de-DE", { dateStyle: "medium", timeStyle: "short" })}` : "Noch keine Zahlen in diesem Zeitraum. Sie erscheinen, sobald Geräte zugestimmt haben und OffLand nutzen.";
+      : any ? `Stand: ${new Date().toLocaleString("de-DE", { dateStyle: "medium", timeStyle: "short" })}${FROM ? ` · gezählt ab ${new Date(FROM).toLocaleDateString("de-DE", { dateStyle: "medium" })}` : ""}` : "Noch keine Zahlen in diesem Zeitraum. Sie erscheinen, sobald Geräte zugestimmt haben und OffLand nutzen.";
     LAST = rows; render(rows);
   } catch (e) { $("#status").textContent = "Konnte die Zahlen nicht laden: " + (e && e.message || e); }
 }
-document.querySelectorAll("[data-days]").forEach(b => b.onclick = () => go(+b.dataset.days));
+const setFrom = f => { FROM = f || null; try { FROM ? localStorage.setItem("offland-stat-from", FROM) : localStorage.removeItem("offland-stat-from"); } catch (e) {} };
+document.querySelectorAll("[data-days]").forEach(b => b.onclick = () => { setFrom(null); go(+b.dataset.days); });
+$("#fromIn").max = iso(new Date());
+$("#fromIn").onchange = () => { const v = $("#fromIn").value; if (v && v <= iso(new Date())) { setFrom(v); go(cur); } };
+$("#fromClr").onclick = () => { setFrom(null); go(14); };
 $("#csvBtn").onclick = () => LAST && csv(LAST.slice(LAST.length / 2));
 let rz = 0; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => LAST && render(LAST), 200); });
 if (demo) $("#demoLink").remove();
