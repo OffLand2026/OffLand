@@ -49,8 +49,12 @@ test("Kontoverwaltung von Anfang bis Ende", async ({ page }) => {
   // Löschen erst nach Bestätigung
   await page.click("#accBtn"); await page.click("#accDel");
   await expect(page.locator("#delYes")).toBeDisabled();
+  await page.click('#modalRoot [data-why="neustart"]');
   await page.check("#delSure"); await page.click("#delYes");
   expect((await profiles(page)).map(p => p.name)).toEqual(["Meine Insel"]);
+  // Statistik zählt das gelöschte Konto samt freiwilligem Grund (ohne Firebase bleibt es lokal in der Warteschlange)
+  const q = await page.evaluate(k => (JSON.parse(localStorage.getItem(k)) || {}).q || {}, "offland-stats");
+  expect(q.konto_geloescht).toBe(1); expect(q.konto_grund_neustart).toBe(1);
   await expect(page.locator("body")).toHaveClass(/start/);
 
   // Altes Konto öffnet mit seinen Daten

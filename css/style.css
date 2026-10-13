@@ -635,3 +635,8 @@ body:has(.devbar) #view{padding-bottom:110px}
 .uk-tile svg{width:100%;max-width:62px;height:auto}
 .uk-tile span{font-size:10px;font-weight:800;margin-top:-1px;line-height:1.1;text-align:center}
 .uk-tile.on{box-shadow:0 0 0 2.5px var(--lime)}
+
+/* Konto löschen: freiwilliger Grund */
+.del-why{display:flex;flex-wrap:wrap;gap:6px}
+.del-why .chip{border:none;cursor:pointer;font:inherit;font-size:12.5px;font-weight:700;padding:7px 11px;border-radius:12px;background:var(--card2);color:var(--ink)}
+.del-why .chip.on{background:#3B3570;box-shadow:0 0 0 2px var(--lilac)}

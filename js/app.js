@@ -2875,7 +2875,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.39";
+const APP_VERSION="1.40";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -5906,20 +5906,28 @@ function pinSheet(){
   };
   if(has) $("#pinDel").onclick=async()=>{if(!await oldOk())return err("Gib zuerst deine aktuelle PIN ein.");updateProfile(ACC.id,{pin:null});closeModal();render();toast("PIN entfernt")};
 }
+const DEL_WHY=[["unnoetig","Brauche ich nicht mehr"],["wirkt_nicht","Hilft mir nicht"],["aufwand","Zu viel Aufwand"],["neustart","Will neu anfangen"],["anderes","Anderes"]];
 function deleteSheet(){
   modal(`<p class="label" style="color:var(--coral)">Konto löschen</p><h2>„${esc(ACC.name)}“ wirklich löschen?</h2>
     <p class="muted">Deine Insel mit allen Bewohnern, eingetragenen Tagen, Postkarten und Punkten wird von diesem Gerät gelöscht. Das lässt sich nicht rückgängig machen.</p>
     <button class="btn secondary" id="delBackup">Vorher Sicherung herunterladen</button>
     ${ACC.pin?pinField("delPin","Zur Bestätigung deine PIN"):""}
+    <p class="small muted" style="margin-bottom:-4px">Magst du uns sagen, warum? (freiwillig, anonym)</p>
+    <div class="del-why" role="radiogroup" aria-label="Grund">${DEL_WHY.map(([k,t])=>`<button type="button" class="chip" data-why="${k}" aria-pressed="false">${t}</button>`).join("")}</div>
     <label class="check" for="delSure"><input type="checkbox" id="delSure"> Ja, ich will mein Konto endgültig löschen</label>
     <p class="err" id="delErr" role="alert"></p>
     <div class="row"><button class="btn secondary grow" id="delNo">Abbrechen</button><button class="btn grow" id="delYes" style="background:var(--coral)" disabled>Löschen</button></div>`);
-  const sure=$("#delSure"), yes=$("#delYes");
+  const sure=$("#delSure"), yes=$("#delYes"); let why=null;
+  document.querySelectorAll("#modalRoot [data-why]").forEach(b=>b.onclick=()=>{why=why===b.dataset.why?null:b.dataset.why;
+    document.querySelectorAll("#modalRoot [data-why]").forEach(x=>{const on=x.dataset.why===why;x.classList.toggle("on",on);x.setAttribute("aria-pressed",on)})});
   sure.onchange=()=>{yes.disabled=!sure.checked};
   $("#delBackup").onclick=exportSave; $("#delNo").onclick=accountSheet;
   yes.onclick=async()=>{
     if(ACC.pin&&await hashPin($("#delPin").value,ACC.salt)!==ACC.pin) return $("#delErr").textContent="Die PIN stimmt nicht.";
     const id=ACC.id;
+    // Statistik: gelöschte Konten nach Spieldauer und freiwilligem Grund (nur Zähler, nichts Persönliches)
+    const nd=(S.days||[]).length; stat("konto_geloescht"); stat("konto_geloescht_t"+(nd===0?"0":nd<7?"1_6":nd<30?"7_29":"30")); if(why) stat("konto_grund_"+why);
+    yes.disabled=true; try{await statsFlush()}catch(e){}
     if(S.online&&S.online.pid){yes.disabled=true;yes.textContent="Lösche …";await netDeleteAll()}
     if(S.backup&&S.backup.on){yes.disabled=true;yes.textContent="Lösche …";await backupDelete()}
     if(S.family){yes.disabled=true;yes.textContent="Lösche …";await famLeave()}
