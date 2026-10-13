@@ -416,13 +416,6 @@ function festCard(){
   return `<div class="fy"><p class="k" style="color:var(--amber)">${esc(festMonth(f.m))}: ${esc(x.n)}</p><b>${f.done?"Gefeiert! Stempel im Album":have+" / "+f.need+" Tage im Budget"}</b>
     ${f.done?`<p class="small muted">Nächsten Monat wartet ein neues Fest.</p>`:`<div class="bar" style="margin:6px 0 4px"><i style="width:${have/f.need*100}%;background:var(--amber)"></i></div><p class="small muted">Belohnung: Fest, +50 Punkte und Stempel ${x.e}</p>`}</div>`;
 }
-function stampsCard(){
-  if(!feature("fest")) return "";
-  const got=S.stamps||[], y=today().slice(0,4), yr=MFEST.map((x,i)=>{const m=y+"-"+String(i+1).padStart(2,"0");return [m,x,got.includes(m)]});
-  return `<div class="card"><div class="row between"><p class="label">Monatsstempel ${y}</p><span class="small muted num">${yr.filter(z=>z[2]).length} / 12</span></div>
-    <div class="mstamps">${yr.map(([m,x,ok])=>`<div class="mstamp${ok?" ok":""}" title="${esc(x.n)}"><span aria-hidden="true">${ok?x.e:"·"}</span><small>${MONTH_N[+m.slice(5)-1].slice(0,3)}</small></div>`).join("")}</div>
-    ${got.length>yr.filter(z=>z[2]).length?`<p class="small muted">Insgesamt ${got.length} Stempel gesammelt.</p>`:""}</div>`;
-}
 /* Jubiläum: an runden Tagen zeigt die Insel, was in der Zeit passiert ist */
 const JUBI=[30,60,100,180,365];
 function jubiCheck(){const n=S.days.length; if(JUBI.includes(n)){S.points+=n; S.pending.push({type:"jubi",n}); stat("jubilaeum_"+n)}}
@@ -2074,13 +2067,6 @@ function chapterSheet(n,fresh){
     <button class="btn" data-ok>${fresh?"Ins Album kleben":"Schließen"}</button>`);
   if(fresh) sfx("chapter"); speak([["bay",c.bay],["luc",c.luc]],fresh?1:.1);
 }
-function viewBayAlbum(){
-  if(S.chapter==null) return "";
-  const done=Math.min(S.chapter,CHAPTERS.length), last=done-1, c=CHAPTERS[Math.max(0,last)];
-  return `<button class="card bay-cover" id="bayAlbum"><div class="row between"><p class="label">Mr. Bays Album</p><span class="small muted num">${done} / ${CHAPTERS.length} Kapitel</span></div>
-    <div class="bay-stack">${done?`<div class="story-art past">${c.world?worldPhoto(c.world,c.k):damalsArt(last)}</div>`:`<div class="lock">?</div>`}</div>
-    <p class="row between"><span class="small muted">${done?`Zuletzt: <b style="color:var(--ink)">${esc(c.n)}</b>`:"Noch leer. Das erste Foto kommt bald."}</span><span class="bay-open">Durchblättern ›</span></p></button>`;
-}
 function bayAlbumSheet(){
   stat("album");
   const done=Math.min(S.chapter,CHAPTERS.length), next=CHAPTERS[done];
@@ -2914,7 +2900,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.49";
+const APP_VERSION="1.50";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -3083,14 +3069,6 @@ function viewArten(){
       <svg width="48" height="34" viewBox="${artVB(a,48/34)}" aria-hidden="true">${ok?animalSvg(a):`<g opacity=".5" style="filter:brightness(0) invert(.45)">${animalSvg(a)}</g>`}</svg>
       <span style="font-size:${ok&&a.length>9?"9.5px":"11px"};letter-spacing:${ok&&a.length>9?"-.2px":"0"};font-weight:700;text-align:center;line-height:1.2;max-width:100%">${ok?(a==="Meerschweinchen"?"Meer&shy;schweinchen":a):"?"}</span>${ok&&!lived.has(a)?`<span style="font-size:10px;color:var(--lime);font-weight:700">zu Besuch</span>`:""}</div>`}).join("")}</div>
   <p class="small muted">Delfine und Wale kommen erst, wenn der Leuchtturm steht. Papagei, Elch, Kamel und Eisbär leben nur in fernen Inselwelten.</p></div>`;
-}
-function viewAlbum(){
-  const have=new Set(S.postcards.map(c=>c.motif));
-  return `<div class="card"><div class="row between"><p class="label">Motive</p><span class="small muted num">${have.size} / ${MOTIFS.length} Motive</span></div>
-  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">${MOTIFS.map(m=>have.has(m.id)
-    ?`<div style="border-radius:8px;overflow:hidden;border:2px solid #F3F1EA">${motifSvg(m,true)}</div>`
-    :`<div style="border-radius:8px;border:1.5px dashed var(--line);aspect-ratio:350/120;display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7C7F99" stroke-width="2" stroke-linecap="round" aria-label="Noch nicht gesammelt"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>`).join("")}</div>
-  </div>`;
 }
 /* Tab Zeit: gewonnene Zeit mit Wochenbalken, Inseljahr als Kalender, Umrechnungen als Sammelkarten */
 let zeitPage=0, zeitSel=null;
@@ -3411,17 +3389,6 @@ function viewGemeinsam(){
     :`<p class="small muted">Noch keine anderen Inseln. Teile diese App über das Teilen-Menü mit Freund:innen, dann erscheinen ihre Inseln hier.</p>`}
   </div>`;
 }
-function chart(){
-  const d=S.days.slice(-14); if(!d.length) return "";
-  const W=320,H=140,max=Math.max(S.budget*1.5,...d.map(x=>x.min));
-  const bw=W/14;
-  let s=`<svg viewBox="0 0 ${W} ${H+20}" style="width:100%;height:auto" role="img" aria-label="Bildschirmzeit der letzten ${d.length} Tage">`;
-  const by=H-S.budget/max*H;
-  s+=`<line x1="0" x2="${W}" y1="${by}" y2="${by}" stroke="#7C7F99" stroke-dasharray="4 4"/>`;
-  d.forEach((x,i)=>{const h=Math.max(2,x.min/max*H);s+=`<rect x="${i*bw+3}" y="${H-h}" width="${bw-6}" height="${h}" rx="4" fill="${x.min<=S.budget?"#C8F169":"#FF9C7A"}"><title>${nice(x.day)}: ${hm(x.min)}</title></rect><text x="${i*bw+bw/2}" y="${H+14}" text-anchor="middle" font-size="9" fill="#A4A6BD" font-family="Manrope, sans-serif">${parse(x.day).getDate()}.</text>`});
-  s+=`<text x="4" y="${by-5}" font-size="10" font-weight="700" fill="#A4A6BD" stroke="#1E2030" stroke-width="3" paint-order="stroke" font-family="Manrope, sans-serif">Budget ${hm(S.budget)}</text>`;
-  return s+"</svg>";
-}
 function findSvg(id){
   switch(id){
   case "muschel": return `<path d="M0 -2l-12 -10a14 14 0 0 1 24 0z" fill="#FFB3C7"/><path d="M0 -2l-6 -14M0 -2v-15M0 -2l6 -14" stroke="#E08AA0" stroke-width="1.4"/>`;
@@ -3434,48 +3401,70 @@ function findSvg(id){
   }
   return "";
 }
-function viewStrandgut(){
-  const have=new Set(S.finds.map(f=>f.id));
-  const bottles=S.finds.filter(f=>f.msg).reverse().filter((f,i,a)=>a.findIndex(x=>x.msg===f.msg)===i).slice(0,3);   // gleiche Botschaft nur einmal
-  return `<div class="card"><div class="row between"><p class="label">Sammlung</p><span class="small muted num">${S.finds.length} ${S.finds.length===1?"Fund":"Funde"}</span></div>
-  <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">${FINDS.map(f=>{const ok=have.has(f.id);const n=S.finds.filter(x=>x.id===f.id).length;
-    return `<div style="background:var(--ground);border-radius:14px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;${ok?"":"opacity:.4"}"><svg width="40" height="30" viewBox="-16 -22 32 24" aria-hidden="true">${ok?findSvg(f.id):`<g style="filter:brightness(0) invert(.45)">${findSvg(f.id)}</g>`}</svg><span style="font-size:11px;font-weight:700;text-align:center;line-height:1.2">${ok?esc(f.n)+(n>1?" ×"+n:""):"?"}</span></div>`}).join("")}</div>
-  ${bottles.length?`<p class="small" style="font-weight:700">Flaschenpost</p>${bottles.map(b=>`<p class="small" style="font-family:'Caveat',cursive;font-size:19px;line-height:1.2">${esc(b.msg)}</p>`).join("")}`:""}
-  <p class="small muted">Je früher das Handy abends weg ist, desto mehr wird angespült.</p></div>`;
+/* Tab Album: Pinnwand mit dem Neuesten, Strandgut-Vitrine, Postkarten-Ständer, Inselpass */
+function albumBoard(cards){
+  const pins=[], recent=addDays(today(),-3);
+  cards.slice(0,3).forEach(c=>pins.push({t:"card",c}));
+  const bottle=S.finds.slice().reverse().find(f=>f.msg), find=S.finds.slice().reverse().find(f=>!f.msg), stamp=(S.stamps||[]).slice(-1)[0];
+  if(!cards.length&&!S.finds.length&&!stamp) return `<div class="alb-board empty"><p>Noch ist die Pinnwand leer.<br>Postkarten, Strandgut und Fest-Stempel landen hier, sobald sie ankommen.</p></div>`;
+  const P=[["4%","5%",-5],["52%","8%",6],["27%","34%",-2]];
+  let h=pins.map((p,i)=>{const m=MOTIFS.find(x=>x.id===p.c.motif)||MOTIFS[0];
+    return `<button type="button" class="alb-pin" data-card="${p.c.id}" style="left:${P[i][0]};top:${P[i][1]};transform:rotate(${P[i][2]}deg)" aria-label="Postkarte ${esc(m.title)}"><i class="alb-tack"></i>${motifSvg(m,true)}</button>`}).join("");
+  if(bottle) h+=`<div class="alb-note" style="left:4%;top:62%"><b>Flaschenpost:</b> ${esc(bottle.msg)}</div>`;
+  if(find){const f=FINDS.find(x=>x.id===find.id); h+=`<div class="alb-find" style="left:66%;top:60%"><svg width="58" height="44" viewBox="-16 -22 32 24" aria-hidden="true">${findSvg(find.id)}</svg>${find.day>=recent?`<span class="alb-new">NEU</span>`:""}<span class="sr">${esc(f?f.n:"")}</span></div>`}
+  if(stamp){const x=MFEST[+stamp.slice(5)-1]; h+=`<div class="alb-stamp" style="left:48%;top:74%" title="${esc(x.n)}"><span>${x.e}</span><small>${MONTH_N[+stamp.slice(5)-1].slice(0,3).toUpperCase()}</small></div>`}
+  return `<div class="alb-board" role="group" aria-label="Zuletzt angekommen">${h}<span class="alb-label">📌 Zuletzt angekommen</span></div>`;
 }
-function viewKapseln(){
+function albumVitrine(){
+  const have=new Set(S.finds.map(f=>f.id)), rows=[];
+  for(let i=0;i<FINDS.length;i+=4) rows.push(FINDS.slice(i,i+4));
+  const bottles=S.finds.filter(f=>f.msg).reverse().filter((f,i,a)=>a.findIndex(x=>x.msg===f.msg)===i).slice(0,3);
+  return `<div class="sec-h"><span>Strandgut-Vitrine</span><span class="num" style="text-transform:none;letter-spacing:0;color:var(--lime)">${have.size} / ${FINDS.length}</span></div>
+  <div class="card alb-vitrine">${rows.map(r=>`<div class="alb-shelf">${r.map(f=>{const ok=have.has(f.id), n=S.finds.filter(x=>x.id===f.id).length;
+    return `<div class="alb-item${ok?"":" off"}" title="${ok?esc(f.n):"Noch nicht gefunden"}"><svg width="46" height="34" viewBox="-16 -22 32 24" aria-hidden="true">${ok?findSvg(f.id):`<g style="filter:brightness(0) opacity(.45)">${findSvg(f.id)}</g>`}</svg><span>${ok?esc(f.n)+(n>1?" ×"+n:""):"?"}</span></div>`}).join("")}</div>`).join("")}
+    ${bottles.length?`<div class="alb-bottles">${bottles.map(b=>`<p>${esc(b.msg)}</p>`).join("")}</div>`:""}
+    <p class="small" style="color:#E9D7A3">Je früher das Handy abends weg ist, desto mehr wird angespült.</p></div>`;
+}
+function albumStand(cards){
+  const have=new Set(S.postcards.map(c=>c.motif)), miss=MOTIFS.length-have.size;
+  return `<div class="sec-h"><span>Postkarten-Ständer</span><span class="num" style="text-transform:none;letter-spacing:0;color:var(--lime)">${have.size} / ${MOTIFS.length} Motive</span></div>
+  <div class="card">${cards.length?`<div class="fy-row alb-cards">${cards.map((c,i)=>{const m=MOTIFS.find(x=>x.id===c.motif)||MOTIFS[0];
+      return `<button class="alb-pc" data-card="${c.id}" style="transform:rotate(${[-3,2,-1,3,-2][i%5]}deg)" aria-label="${esc(m.title)}">${motifSvg(m,true)}${c.fan?`<i class="alb-fan">♥</i>`:""}</button>`}).join("")}</div>`
+      :`<p class="small muted">Noch keine Post. Nach ein paar guten Tagen schreiben Verwandte und Nachbarinseln, was sie Gutes über deine Insel gehört haben.</p>`}
+    ${miss?`<div class="alb-miss">${Array.from({length:Math.min(miss,8)},()=>`<span>?</span>`).join("")}</div><p class="small muted">${miss} ${miss===1?"Motiv fehlt":"Motive fehlen"} noch. Jede Karte hat ein Motiv zum Sammeln.</p>`:`<p class="small" style="color:var(--lime)">Alle Motive gesammelt!</p>`}</div>`;
+}
+function albumPass(){
+  if(!feature("fest")) return "";
+  const got=S.stamps||[], y=today().slice(0,4), cur=today().slice(0,7);
+  const yr=MFEST.map((x,i)=>{const m=y+"-"+String(i+1).padStart(2,"0");return {m,x,ok:got.includes(m),now:m===cur,past:m<cur}});
+  return `<div class="sec-h"><span>Inselpass ${y}</span><span class="num" style="text-transform:none;letter-spacing:0;color:var(--lime)">${yr.filter(z=>z.ok).length} ${yr.filter(z=>z.ok).length===1?"Stempel":"Stempel"}</span></div>
+  <div class="card alb-pass"><div class="alb-stamps">${yr.map((z,i)=>`<div class="alb-st${z.ok?" ok":z.now?" now":z.past?" miss":""}" style="--c:${["#FFB86B","#B9A6FF","#C8F169","#7FD4E8","#FF9C7A"][i%5]};transform:rotate(${[-8,5,-3,7,-6,4][i%6]}deg)" title="${esc(z.x.n)}"><span>${z.ok?z.x.e:z.now?"…":""}</span><small>${MONTH_N[i].slice(0,3).toUpperCase()}</small></div>`).join("")}</div>
+    <p class="small muted">Jeden Monat ein Fest-Stempel, wenn deine Insel ihr Monatsziel schafft.${got.length>yr.filter(z=>z.ok).length?` Insgesamt ${got.length} Stempel gesammelt.`:""}</p></div>`;
+}
+function kapselSheet(){
   const cs=S.capsules.slice().reverse();
-  return `<div class="card">${cs.length?cs.map(c=>`<button data-kapsel="${c.id}" style="display:flex;flex-direction:column;gap:2px;text-align:left;border:none;border-radius:14px;background:var(--ground);color:var(--ink);padding:10px 12px;min-height:48px"><b>${esc(c.title)}</b><span class="small muted">${esc(c.lines[0])}</span></button>`).join("")
-    :`<p class="small muted">Am Ende jedes Monats bekommst du hier eine Rückblick-Karte, die du teilen kannst.</p>`}</div>`;
+  sheet(`<p class="label" style="color:var(--lilac)">Zeitkapseln</p><h2>Deine Monatsrückblicke</h2>
+    ${cs.length?cs.map(c=>`<button class="rowbtn" data-kapsel="${c.id}" style="background:var(--ground);border-radius:14px;padding:10px 12px"><span class="grow"><b>${esc(c.title)}</b><span class="small muted" style="display:block">${c.good} von ${c.total} Tagen im Budget</span></span><span class="muted">›</span></button>`).join("")
+      :`<p class="muted">Am Ende jedes Monats bekommst du hier eine Rückblick-Karte, die du teilen kannst.</p>`}
+    <button class="btn" data-ok>Schließen</button>`);
+  document.querySelectorAll("#modalRoot [data-kapsel]").forEach(x=>x.onclick=()=>{const c=S.capsules.find(y=>y.id===x.dataset.kapsel);if(c) capsuleSheet(c)});
 }
 function viewVerlauf(){
-  const have=new Set(S.postcards.map(c=>c.motif)), found=new Set(S.finds.map(f=>f.id));
-  const cards=S.postcards.slice().reverse();
-  // Bild: die letzten drei Postkarten als Stapel, leere Plätze gestrichelt
-  const slots=[0,1,2].map(i=>cards[i]?MOTIFS.find(x=>x.id===cards[i].motif)||MOTIFS[0]:null);
-  const pos=[["8%","10%",-7],["44%","6%",5],["24%","30%",-2]];
-  const hero=`<div class="album-hero" role="img" aria-label="${cards.length?"Deine letzten Postkarten":"Noch keine Postkarten"}">${slots.map((m,i)=>`<div class="ah-card${m?"":" empty"}" style="left:${pos[i][0]};top:${pos[i][1]};transform:rotate(${pos[i][2]}deg)">${m?motifSvg(m,true):"<span>?</span>"}</div>`).reverse().join("")}
-    ${[...found].slice(0,2).map((id,i)=>`<svg class="ah-find" style="left:${i?"84%":"6%"};top:${i?"14%":"52%"}" width="46" height="34" viewBox="-16 -22 32 24" aria-hidden="true">${findSvg(id)}</svg>`).join("")}</div>`;
-  return `<div class="hero-card" style="background:#2A2238">${hero}</div>
-  <div class="scene-chips">
+  const have=new Set(S.postcards.map(c=>c.motif)), found=new Set(S.finds.map(f=>f.id)), cards=S.postcards.slice().reverse();
+  const done=S.chapter==null?0:Math.min(S.chapter,CHAPTERS.length);
+  const row=(id,ic,title,sub,attr)=>`<button class="card rowbtn alb-row" ${attr||`id="${id}"`}><span class="alb-ric" aria-hidden="true">${ic}</span><span class="grow"><b>${title}</b><span class="small muted" style="display:block">${sub}</span></span><span class="muted">›</span></button>`;
+  return `${albumBoard(cards)}
+  <div class="row zt-chips">
     <div class="cp"><i>Postkarten</i><b>${have.size} / ${MOTIFS.length}</b></div>
     <div class="cp"><i>Strandgut</i><b>${found.size} / ${FINDS.length}</b></div>
-    <div class="cp"><i>Kapseln</i><b>${S.capsules.length}</b></div>
+    <div class="cp"><i>Stempel</i><b style="color:var(--amber)">${(S.stamps||[]).length}</b></div>
   </div>
-  ${viewBayAlbum()}
-  <div class="sec-h"><span>Postkarten</span><span class="num" style="text-transform:none;letter-spacing:0">${cards.length?cards.length+" "+(cards.length===1?"Karte":"Karten"):""}</span></div>
-  ${cards.length?`<div class="fy-row">${cards.map(c=>{const m=MOTIFS.find(x=>x.id===c.motif)||MOTIFS[0];
-    return `<button class="fy" data-card="${c.id}" style="border:none;text-align:left;color:var(--ink);font:inherit"><span style="border-radius:6px;overflow:hidden;border:2px solid #F3F1EA;display:block">${motifSvg(m,true)}</span>${c.fan?`<p class="k" style="color:var(--lime)">♥ Fanpost</p>`:c.hint||c.animal!=null||c.text?`<p class="k" style="color:var(--muted)">Von unterwegs</p>`:""}<b>${esc(m.title)}</b><span class="small muted" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(c.text)}</span></button>`}).join("")}</div>`
-    :`<div class="card"><p class="small muted">Noch keine Post. Nach ein paar guten Tagen schreiben Verwandte und Nachbarinseln, was sie Gutes über deine Insel gehört haben. Jede Karte hat ein Motiv zum Sammeln.</p></div>`}
-  ${cards.length?viewAlbum():""}
-  ${stampsCard()}
-  <div class="sec-h"><span>Strandgut</span></div>
-  ${viewStrandgut()}
-  <div class="sec-h"><span>Zeitkapseln</span></div>
-  ${viewKapseln()}
-  <div class="sec-h"><span>Tagebuch</span></div>
-  <div class="card"><div class="row between"><p class="label">Letzte 14 Tage</p><span class="small muted">${S.days.length} Tage gespielt</span></div>${chart()||`<p class="muted">Noch keine Tage eingetragen.</p>`}</div>
-  ${feedCard("feed","Inseltagebuch",S.feed,"Hier erscheint, was auf deiner Insel passiert.")}
+  ${albumVitrine()}
+  ${albumStand(cards)}
+  ${albumPass()}
+  ${S.chapter!=null?row("bayAlbum","🎩","Mr. Bays Album",`Die Geschichte von OffLand · ${done} / ${CHAPTERS.length} Kapitel`):""}
+  ${row("kapselBtn","⏳","Zeitkapseln",S.capsules.length?S.capsules.length+(S.capsules.length===1?" Monatsrückblick":" Monatsrückblicke")+" zum Teilen":"Am Monatsende kommt der erste Rückblick")}
+  ${row("","✍️","Inseltagebuch",S.feed.length?S.feed.length+(S.feed.length===1?" Eintrag · ":" Einträge · ")+esc((S.feed[0]||{}).text||"").slice(0,48)+((S.feed[0]||{}).text&&S.feed[0].text.length>48?"…":""):"Hier erscheint, was auf deiner Insel passiert.",'data-feed="feed"')}
 `;
 }
 /* Einstellungen: erreichbar über das Profilbild oben rechts */
@@ -3697,6 +3686,7 @@ function bind(){
   const zo=$("#ztOld"); if(zo) zo.onclick=()=>{zeitPage++; render()};
   const zn=$("#ztNew"); if(zn) zn.onclick=()=>{zeitPage=Math.max(0,zeitPage-1); render()};
   if($("#bayAlbum")) $("#bayAlbum").onclick=bayAlbumSheet;
+  const kb=$("#kapselBtn"); if(kb) kb.onclick=kapselSheet;
   document.querySelectorAll("[data-feed]").forEach(b=>b.onclick=()=>feedSheet(b.dataset.feed));
   const wrr=$("#weekReadyBtn"); if(wrr) wrr.onclick=()=>weekSheet(S.weekReady.wk);
   const vo=$("#vacOff"); if(vo) vo.onclick=()=>setVacation(false);

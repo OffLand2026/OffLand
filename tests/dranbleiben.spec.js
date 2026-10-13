@@ -24,8 +24,8 @@ test("Monatsfest: Ziel erreichen gibt Fest und Stempel im Album", async ({ page 
   await expect(page.locator("#modalRoot h2")).toHaveText("Kürbisfest");
   await page.click("#modalRoot [data-ok]");
   await page.click("[data-tab=verlauf]");
-  await expect(page.locator(".mstamp.ok")).toHaveCount(1);
-  await expect(page.locator(".mstamp")).toHaveCount(12);
+  await expect(page.locator(".alb-st.ok")).toHaveCount(1);
+  await expect(page.locator(".alb-st")).toHaveCount(12);
 });
 
 test("Spät im Monat gestartet: kleineres Ziel", async ({ page }) => {
