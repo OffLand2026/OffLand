@@ -2914,7 +2914,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.48";
+const APP_VERSION="1.49";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -4869,9 +4869,11 @@ async function netSync(){
     const row={owner:N.uid,name:netName(),avatar:netAv(),avg:w.avg,days:w.days,good:w.good,streak:S.budgetStreak,world:curWorld().name,updated:Date.now()};
     row.duel=S.duel&&S.duel.wk===w.wk?S.duel.vs:null;                              // merge-Schreiben: null löscht ein altes Duell
     row.duelOff=S.duelOff&&S.duelOff.wk===w.wk?S.duelOff.vs:null;                  // abgebrochen oder abgelehnt
+    postsUpdate(); row.ev=S.posts.map(p=>Object.assign({},p));                         // Inselpost: eigene Meilensteine
+    const co=S.cheerOut||{}; row.ch=Object.keys(co).filter(k=>co[k].d>=addDays(today(),-7)).slice(0,20).map(k=>({p:k,k:co[k].k,e:co[k].e,d:co[k].d}));
     await N.set("players/"+o.pid,{owner:N.uid,name:row.name,avatar:row.avatar,world:row.world,updated:row.updated});
     await N.set("weeks/"+w.wk+"/ranks/"+o.pid,row);
-    if(o.pub&&w.avg!=null&&w.days>=3){const pub=Object.assign({},row);delete pub.duel;delete pub.duelOff;await N.set("weeks/"+w.wk+"/public/"+o.pid,pub)}
+    if(o.pub&&w.avg!=null&&w.days>=3){const pub=Object.assign({},row);delete pub.duel;delete pub.duelOff;delete pub.ev;delete pub.ch;await N.set("weeks/"+w.wk+"/public/"+o.pid,pub)}
     else await N.del("weeks/"+w.wk+"/public/"+o.pid).catch(()=>{});
     await netPullFriends();
     await duelCheck();
@@ -4984,28 +4986,31 @@ function rankSheet(){closeModal();tab="freunde";render();window.scrollTo(0,0)}
 const TROPHY='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8M10 17h4v3h-4z"/></svg>';
 /* Tab „Freunde“: Vorschau, Ranglisten, Freunde hinzufügen, gemeinsame Ziele */
 function viewFreunde(){
-  const inv=pendingInvite(), on=netConfigured()&&netOn();
-  let h=(inv?friendsCardInvite(inv):"")+`<div class="hero-card" id="frHero" style="background:#1B2340">${frHeroSvg(null)}</div>
-  ${on?`<div class="scene-chips">
-    <div class="cp"><i>Platz</i><b id="chPl">–</b></div>
-    <div class="cp"><i>Duell</i><b id="chDu">${!on?"–":S.duel&&S.duel.wk===isoWeek(today())?"läuft":"offen"}</b></div>
-    <div class="cp"><i>Freunde</i><b id="chFr">…</b></div>
+  const inv=pendingInvite(), on=netConfigured()&&netOn(), wk=isoWeek(today()), left=6-(new Date().getDay()+6)%7;
+  const meRow={id:"me",name:"Du",avatar:netAv(),avg:weekStats().avg,me:true};
+  let h=(inv?friendsCardInvite(inv):"")+(on?`<div class="fr-stories" id="frStories">${storiesHtml([meRow])}</div>`:"")+
+  `<div class="card fr-reg"><div class="row between"><p class="label" style="color:#9CC8EE">Regatta · KW ${+wk.split("-W")[1]}</p><span class="small muted">${left?"noch "+left+(left===1?" Tag":" Tage"):"letzter Tag"}</span></div>
+    <div id="frHero">${regattaSvg([meRow])}</div>
+    ${on?`<div class="row fr-seg" role="tablist"><button class="${rankTab==="freunde"?"on":""}" data-rk="freunde" role="tab" aria-selected="${rankTab==="freunde"}">Freunde</button><button class="${rankTab==="alle"?"on":""}" data-rk="alle" role="tab" aria-selected="${rankTab==="alle"}">Alle</button></div><div id="rankHint"></div>`:""}
+  </div>
+  ${on?`<div class="row zt-chips">
+    <div class="cp"><i>Dein Platz</i><b id="chPl" style="color:var(--lime)">–</b></div>
+    <div class="cp"><i>Bis Platz 1</i><b id="chLead">–</b></div>
+    <div class="cp"><i>Rückenwind</i><b style="color:var(--amber)">${S.budgetStreak} ${S.budgetStreak===1?"Tag":"Tage"}</b></div>
   </div>`:""}`;
   if(!on){
     h+=`<div class="card" style="align-items:center;text-align:center">
       <div style="width:64px;height:64px;border-radius:32px;background:#26233D;color:var(--amber);display:flex;align-items:center;justify-content:center"><span style="width:34px;height:34px;display:block">${TROPHY}</span></div>
       <h2>Freunde und Ranglisten</h2>
-      <p class="muted">Vergleicht euch jede Woche: Wer war am wenigsten am Handy? Ladet euch gegenseitig ein, dann bekommt ihr ${plusOffer(false)}ein gemeinsames Ziel.</p>
+      <p class="muted">Segelt jede Woche gegeneinander: Wer am wenigsten am Handy war, liegt vorn. Ladet euch gegenseitig ein, dann bekommt ihr ${plusOffer(false)}ein gemeinsames Ziel.</p>
       ${netConfigured()?`<button class="btn" id="goOnline" style="align-self:stretch">Mitmachen</button>`:`<p class="small muted">Ranglisten sind in dieser Version noch nicht verfügbar.</p>`}
     </div>`+(netConfigured()?duelTeaser("Dafür musst du oben bei Freunde und Ranglisten mitmachen."):"");
   } else {
-    h+=`<div class="card" id="rankHero"><p class="label" style="color:var(--lime)">Diese Woche</p><p class="muted">Lade Rangliste …</p></div>
-    <div id="duelBox">${duelTeaser("Lade Freund:innen …")}</div>
-    <div class="sec-h"><span>Rangliste</span></div>
-    <div class="card">
-      <div class="row" role="tablist"><button class="btn ${rankTab==="freunde"?"":"secondary"} grow" data-rk="freunde" role="tab" aria-selected="${rankTab==="freunde"}">Freunde</button><button class="btn ${rankTab==="alle"?"":"secondary"} grow" data-rk="alle" role="tab" aria-selected="${rankTab==="alle"}">Alle</button></div>
-      <div id="rankBox"><p class="small muted">Lade …</p></div>
-    </div>`;
+    h+=`<div id="duelBox">${duelTeaser("Lade Freund:innen …")}</div>
+    <div class="sec-h"><span>Inselpost</span></div>
+    <div id="postBox" class="fr-posts"><div class="card"><p class="small muted">Lade …</p></div></div>
+    <details class="card zt-fold" id="rankFold"><summary><span class="grow"><b>Ganze Rangliste</b><span class="small muted">${rankTab==="alle"?"Alle diese Woche":"Deine Freund:innen"}</span></span><span class="muted zt-chev">›</span></summary>
+      <div id="rankBox"><p class="small muted">Lade …</p></div></details>`;
   }
   const fam=famCard();
   if(fam) h+=`<div class="sec-h"><span>Familie</span></div>`+fam;
@@ -5024,24 +5029,98 @@ function viewFreunde(){
   return h;
 }
 /* Freunde: Wettsegeln oben, wer im Schnitt weniger am Handy ist, segelt weiter vorne */
-function frHeroSvg(list){
-  const me={name:"Du",avatar:netAv(),me:true};
-  list=(list&&list.length?list:[me]).slice(0,3);
-  // Bild unten verdecken die Chips: alle Boote zwischen y 84 und 128, vorne liegt oben rechts
-  const n=list.length, lane=n===1?[116]:n===2?[92,124]:[86,108,130];
-  const boat=(r,i)=>{const x=n===1?150:246-i*(140/(n-1||1)), y=lane[i], sail=r.me?"#C8F169":["#B6A4FF","#FF9C7A","#9CC8EE"][i%3];
-    return `<g transform="translate(${x} ${y})"><g class="bob" style="animation-duration:${2+i*.3}s;animation-delay:${i*.2}s">
-      <path d="M-22 -2h44l-7 10h-30z" fill="#8A5A3B"/><path d="M0 -2V-40" stroke="#D9D4C6" stroke-width="1.8"/><path d="M2 -38q15 12 13 34h-13z" fill="${sail}"/><path d="M-2 -35q-12 10-12 31h12z" fill="#F3F1EA" opacity=".9"/>
-      <g transform="translate(-9 -3) scale(.55)">${animalSvg(r.avatar||"Ziege",0)}</g>
-      <path d="M-26 7q-10 2-20 0" stroke="#9CC8EE" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".6"/>
-      <text x="26" y="2" font-size="10" font-weight="800" fill="${sail}" font-family="Manrope, sans-serif">${i===0&&n>1?"★ ":""}${esc(r.me?"Du":r.name||"?")}</text></g></g>`};
-  return `<svg viewBox="0 0 360 200" role="img" aria-label="Wettsegeln mit deinen Freund:innen" style="width:100%;height:auto;display:block">
-    <defs><linearGradient id="frSea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A4A7A"/><stop offset="1" stop-color="#16294A"/></linearGradient></defs>
-    <rect width="360" height="200" fill="#1B2340"/>${[[40,22],[96,40],[210,18],[300,34],[150,30]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.2" fill="#F3F1EA" opacity=".7"/>`).join("")}
-    <rect y="54" width="360" height="146" fill="url(#frSea)"/>
-    <g stroke="#9CC8EE" fill="none" stroke-linecap="round" opacity=".3"><path class="wscroll" style="animation-duration:5s" d="${wavePath(84,2)}" stroke-width="1.4"/><path class="wscroll" style="animation-duration:3.8s" d="${wavePath(126,2.5)}" stroke-width="1.4"/></g>
-    <g transform="translate(334 0)"><path d="M0 134V60" stroke="#F3F1EA" stroke-width="2"/><g class="flagwave">${[0,1,2].map(r=>[0,1,2].map(c=>`<rect x="${1+c*6}" y="${60+r*5}" width="6" height="5" fill="${(r+c)%2?"#14151F":"#F3F1EA"}"/>`).join("")).join("")}</g></g>
-    ${list.map(boat).join("")}</svg>`;
+/* Freunde oben als Kreise; grüner Ring = in den letzten 2 Tagen ist etwas passiert */
+function storiesHtml(list){
+  const fresh=r=>!r.me&&((r.ev||[]).some(p=>p.d>=addDays(today(),-2)));
+  return list.map((r,i)=>`<button type="button" class="fr-st" data-story="${esc(r.id)}" aria-label="${esc(r.me?"Du":r.name||"?")}"><span class="fr-av${fresh(r)?" new":""}">${avatarSvg(r.avatar||"Ziege",50)}</span><span class="small">${esc(r.me?"Du":r.name||"?")}</span></button>`).join("")
+    +`<button type="button" class="fr-st" id="frAdd" aria-label="Freund:in einladen"><span class="fr-av add">+</span><span class="small">Einladen</span></button>`;
+}
+/* Regatta: jede Person ein Boot auf eigener Bahn, wer im Schnitt weniger am Handy ist, liegt näher am Ziel */
+function regattaSvg(list,places){
+  list=list.slice(0,8); const n=Math.max(1,list.length), H=26+n*38;
+  const av=list.filter(r=>r.avg!=null).map(r=>r.avg), lo=Math.min(...av), hi=Math.max(...av);
+  const X=r=>r.avg==null?56:hi===lo?262:262-(r.avg-lo)/(hi-lo)*170;
+  const boats=list.map((r,i)=>{const y=14+i*38, x=X(r), c=r.me?"#C8F169":"#F3F1EA", pl=places?places[i]:i+1;
+    return `<text x="6" y="${y+24}" font-family="Bricolage Grotesque, Manrope, sans-serif" font-weight="800" font-size="13" fill="${r.me?"#C8F169":"#A4A6BD"}">${pl}</text>
+    <path d="M22 ${y+27}h268" stroke="#F3F1EA" stroke-opacity=".12" stroke-dasharray="4 6"/>
+    <g transform="translate(${x.toFixed(1)} ${y+20})"><g class="bob" style="animation-duration:${2+i%3*.3}s">
+      <path d="M-15 0h30l-5 7h-20z" fill="#8A5A3B"/><path d="M0 0V-19" stroke="#D9D4C6" stroke-width="1.4"/><path d="M1.5 -18q10 8 9 18h-9z" fill="${c}"/><path d="M-1.5 -16q-8 7-8 16h8z" fill="#F3F1EA" opacity=".85"/>
+      <g transform="translate(-30 2) scale(.62)">${animalSvg(r.avatar||"Ziege",0)}</g>
+      <text x="14" y="-6" font-family="Manrope, sans-serif" font-weight="800" font-size="10" fill="${c}">${esc(r.me?"Du":r.name||"?")}</text>
+      <text x="14" y="5" font-family="Manrope, sans-serif" font-weight="700" font-size="9" fill="${c}" opacity=".75">${r.avg!=null?hm(r.avg):"–"}</text></g></g>`}).join("");
+  return `<svg viewBox="0 0 330 ${H}" role="img" aria-label="Regatta: wer diese Woche am wenigsten am Handy ist" style="width:100%;height:auto;display:block">
+    <rect x="304" y="6" width="3" height="${H-12}" fill="#F3F1EA" opacity=".55"/><g class="flagwave" transform="translate(307 6)">${[0,1].map(r=>[0,1,2].map(c=>`<rect x="${c*5}" y="${r*5}" width="5" height="5" fill="${(r+c)%2?"#14151F":"#F3F1EA"}"/>`).join("")).join("")}</g>
+    ${boats}</svg>`;
+}
+/* ---------- Inselpost: Meilensteine, die Freund:innen sehen, und Reaktionen darauf ----------
+   Gespeichert im Wochen-Eintrag (weeks/…/ranks/…): ev = eigene Meilensteine, ch = eigene Reaktionen.
+   Keine freien Texte: nur Art, Zahl bzw. Großprojekt und Datum. */
+const POST_MILES=[3,5,7,10,14,21,30,50,75,100,150,200,365];
+const postKey=p=>p.k+(p.n||"")+(p.it||"");
+function postsUpdate(){
+  const d=S.lastDay&&S.lastDay<=today()?S.lastDay:today(), P=(S.posts||[]).filter(p=>p.d>=addDays(today(),-14)&&p.d<=today());
+  const add=p=>{if(!P.some(x=>postKey(x)===postKey(p))) P.push(p)};
+  const m=POST_MILES.filter(x=>S.budgetStreak>=x).pop(); if(m) add({k:"serie",n:m,d});
+  const b=(S.builtLog||[]).slice(-1)[0]; if(b&&b.day>=addDays(today(),-14)&&b.day<=today()) add({k:"bau",it:b.id,d:b.day});
+  if(S.glueck>=100&&!P.some(x=>x.k==="glueck"&&x.d>=addDays(d,-6))) add({k:"glueck",d});
+  P.sort((x,y)=>x.d<y.d?1:x.d>y.d?-1:0); S.posts=P.slice(0,6);
+}
+function postText(p){
+  if(p.k==="serie") return `hat ${p.n} Tage Serie geschafft 🔥`;
+  if(p.k==="bau"){const pr=projById(p.it); return `hat ${pr?"„"+pr.name+"“":"ein Großprojekt"} gebaut 🏗️`}
+  if(p.k==="glueck") return "hat eine Insel mit 100 % Glück 🌞";
+  return "war auf der Insel";
+}
+const POST_EMO=["👏","🌴"];
+function postAgo(d){const n=Math.round((parse(today())-parse(d))/864e5);return n<=0?"heute":n===1?"gestern":"vor "+n+" Tagen"}
+function postFeed(R){
+  const me=S.online.pid, wk=isoWeek(today()), items=[], old=addDays(today(),-7);
+  R.friends.forEach(r=>{
+    if(r.id===me) return;
+    (r.ev||[]).forEach(p=>{if(p&&p.d>=old&&p.d<=today()) items.push({t:"post",r,p,d:p.d})});
+    (r.ch||[]).filter(c=>c&&c.p===me&&c.d>=old).slice(0,1).forEach(c=>items.push({t:"cheer",r,c,d:c.d}));
+  });
+  (S.frOver||[]).filter(o=>o.wk===wk).forEach(o=>{const r=R.friends.find(x=>x.id===o.id); if(r) items.push({t:"over",r,d:o.d})});
+  if(S.duel&&S.duel.wk===wk&&S.duel.by==="them"&&S.duel.d){const r=R.friends.find(x=>x.id===S.duel.vs); if(r) items.push({t:"duel",r,d:S.duel.d})}
+  items.sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:0);
+  return items.slice(0,8);
+}
+function postHtml(it,R){
+  const r=it.r, me=S.online.pid, nm=esc(r.name||"?"), head=(txt,sub)=>`<div class="row">${avatarSvg(r.avatar||"Ziege",40)}<div class="grow" style="min-width:0"><p><b>${nm}</b> ${txt}</p><p class="small muted">${sub}</p></div></div>`;
+  if(it.t==="post"){
+    const k=postKey(it.p), mine=(S.cheerOut||{})[r.id], cnt=e=>R.friends.filter(x=>(x.ch||[]).some(c=>c&&c.p===r.id&&c.k===k&&c.e===e)).length;
+    return `<div class="card fr-post">${head(postText(it.p),postAgo(it.d)+(r.avg!=null?" · Ø "+hm(r.avg)+" diese Woche":""))}
+      <div class="row fr-react">${POST_EMO.map(e=>{const on=mine&&mine.k===k&&mine.e===e, n=cnt(e);return `<button type="button" class="fr-chip${on?" on":""}" data-cheer="${esc(r.id)}" data-k="${esc(k)}" data-e="${e}" aria-pressed="${!!on}">${e}${n?" "+n:""}</button>`}).join("")}
+      <button type="button" class="fr-chip" data-story="${esc(r.id)}" style="margin-left:auto">Ansehen</button></div></div>`;
+  }
+  if(it.t==="cheer") return `<div class="card fr-post">${head(`feuert dich an ${esc(it.c.e)}`,postAgo(it.d))}</div>`;
+  if(it.t==="over"){const dw=S.duel&&S.duel.wk===isoWeek(today()), off=(S.duelOff&&S.duelOff.wk===isoWeek(today())&&S.duelOff.vs===r.id)||r.duelOff===me;
+    return `<div class="card fr-post">${head("hat dich überholt ⛵",postAgo(it.d)+(r.avg!=null?" · Ø "+hm(r.avg)+" diese Woche":""))}
+      <div class="row fr-react">${!dw&&!off?`<button type="button" class="fr-chip" data-duel="${esc(r.id)}">⚔️ Revanche</button>`:""}<button type="button" class="fr-chip" data-cheer="${esc(r.id)}" data-k="over" data-e="👏" style="margin-left:auto">👏 Glückwunsch</button></div></div>`}
+  if(it.t==="duel") return `<div class="card fr-post">${head("hat dich zum Duell herausgefordert ⚔️","Wer ist diese Woche weniger am Handy? Der Stand steht oben.")}</div>`;
+  return "";
+}
+function cheer(pid,k,e){
+  S.cheerOut=S.cheerOut||{}; const cur=S.cheerOut[pid];
+  if(cur&&cur.k===k&&cur.e===e) delete S.cheerOut[pid]; else {S.cheerOut[pid]={k,e,d:today()}; toast(e==="🌴"?"Palme geschickt":"Angefeuert!"); stat("anfeuern")}
+  save(); RANKC=null; netSync().then(()=>{if(tab==="freunde") fillRanks(true)});
+}
+function friendSheet(r){
+  const wk=isoWeek(today()), me=S.online.pid, dw=S.duel&&S.duel.wk===wk, off=(S.duelOff&&S.duelOff.wk===wk&&S.duelOff.vs===r.id)||r.duelOff===me, self=r.id===me;
+  const last=(r.ev||[])[0];
+  sheet(`<div style="align-self:center">${avatarSvg(r.avatar||"Ziege",76)}</div><p class="label" style="color:var(--lime);text-align:center">${esc(r.world||"")}</p><h2 style="text-align:center">${esc(self?"Du":r.name||"?")}</h2>
+    <div class="row zt-chips"><div class="cp"><i>Ø diese Woche</i><b>${r.avg!=null?hm(r.avg):"–"}</b></div><div class="cp"><i>Im Ziel</i><b>${r.good||0} von ${r.days||0}</b></div><div class="cp"><i>Serie</i><b style="color:var(--amber)">${r.streak||0}</b></div></div>
+    ${last&&!self?`<p class="muted" style="text-align:center">Zuletzt: ${esc(r.name||"?")} ${postText(last)}</p>`:""}
+    ${self?"":`<button class="btn" id="fsCheer">👏 Anfeuern</button>${!dw&&!off?`<button class="btn secondary" id="fsDuel">⚔️ Zum Duell herausfordern</button>`:""}`}
+    <button class="btn ghost" data-ok>Schließen</button>`);
+  const c=$("#fsCheer"); if(c) c.onclick=()=>{closeModal();cheer(r.id,last?postKey(last):"hi","👏")};
+  const d=$("#fsDuel"); if(d) d.onclick=()=>{closeModal();duelChallenge(r)};
+}
+function bindFriendsUi(R){
+  document.querySelectorAll("#frStories [data-story], #postBox [data-story]").forEach(b=>b.onclick=()=>{const r=R.friends.find(x=>x.id===b.dataset.story||(b.dataset.story==="me"&&x.id===S.online.pid)); if(r) friendSheet(r)});
+  const fa=$("#frAdd"); if(fa) fa.onclick=friendsSheet;
+  document.querySelectorAll("#postBox [data-cheer]").forEach(b=>b.onclick=()=>{b.disabled=true;cheer(b.dataset.cheer,b.dataset.k,b.dataset.e)});
+  document.querySelectorAll("#postBox [data-duel]").forEach(b=>b.onclick=()=>{const r=R.friends.find(x=>x.id===b.dataset.duel); if(r){b.disabled=true;duelChallenge(r)}});
 }
 function friendsCardInvite(inv){
   return `<div class="card" style="border:1.5px solid var(--lime)"><p class="label" style="color:var(--lime)">Einladung</p>
@@ -5100,25 +5179,33 @@ async function fillRanks(force){
   if(S.duel&&S.duel.wk===wkNow){const opp=R.friends.find(r=>r.id===S.duel.vs);
     if(opp&&opp.duelOff===me){const n=S.duel.name;S.duelOff={vs:S.duel.vs,wk:wkNow};S.duel=null;log(n+" hat das Duell abgebrochen.","info");save();toast(n+" hat das Duell abgebrochen");netSync()}}
   const ch=R.friends.find(r=>r.id!==me&&r.duel===me&&r.duelOff!==me&&!(S.duelOff&&S.duelOff.wk===wkNow&&S.duelOff.vs===r.id));
-  if(ch&&!(S.duel&&S.duel.wk===wkNow)){S.duel={vs:ch.id,name:ch.name||"?",avatar:ch.avatar||"Ziege",wk:wkNow,by:"them"};log(S.duel.name+" hat dich zum Duell der Woche herausgefordert.","info");S.pending.push({type:"duelStart",name:S.duel.name,avatar:S.duel.avatar});save();netSync();showPending()}
+  if(ch&&!(S.duel&&S.duel.wk===wkNow)){S.duel={vs:ch.id,name:ch.name||"?",avatar:ch.avatar||"Ziege",wk:wkNow,by:"them",d:today()};log(S.duel.name+" hat dich zum Duell der Woche herausgefordert.","info");S.pending.push({type:"duelStart",name:S.duel.name,avatar:S.duel.avatar});save();netSync();showPending()}
   const db=$("#duelBox"); if(db){db.innerHTML=duelHtml(R); db.querySelectorAll("[data-duel]").forEach(b=>b.onclick=()=>{const r=R.friends.find(x=>x.id===b.dataset.duel); if(r){b.disabled=true;duelChallenge(r)}});
     const st=$("#duelStop"); if(st) st.onclick=duelCancelSheet}
-  // Vorschau oben: Ring-Karte, Chips und Wettsegeln im Bild
-  const nF=R.friends.length, ahead=fi>0?R.friends[fi-1]:null;
-  const ring=R.nFriends?ringSvg((nF-fi)/nF,"#"+(fi+1),"von "+nF,fi===0?"#FFB86B":"#B6A4FF")
-    :ringSvg(mine.avg!=null?Math.min(1,mine.avg/S.budget):0,mine.avg!=null?Math.floor(Math.round(mine.avg)/60)+":"+String(Math.round(mine.avg)%60).padStart(2,"0"):"–",mine.avg!=null?"pro Tag":"im Schnitt",mine.avg!=null&&mine.avg<=S.budget?"#C8F169":"#FF9C7A");
-  $("#rankHero").innerHTML=`<div class="row" style="gap:14px;align-items:center">${ring}<div class="grow">
-    <p class="label" style="color:var(--lime)">Diese Woche${R.nFriends?" · Freund:innen":""}</p>
-    ${R.nFriends?`<h3 class="hm-title" style="color:${fi===0?"var(--amber)":"var(--ink)"}">${fi===0?"Du führst!":"Platz "+(fi+1)}</h3>
-      <p class="small muted">${fi===0?"Niemand war diese Woche weniger am Handy.":ahead&&mine.avg!=null&&ahead.avg!=null?"Noch "+hm(mine.avg-ahead.avg+1)+" pro Tag weniger, dann überholst du "+esc(ahead.name||"?")+".":"Jeder Tag im Budget bringt dich nach vorne."}</p>`
-    :`<h3 class="hm-title">${mine.avg!=null?"Dein Schnitt":"Noch kein Tag"}</h3><p class="small muted">${mine.avg!=null?"Lade Freund:innen ein, um euch zu vergleichen.":"Trag deinen ersten Tag ein, dann geht's los."}</p>`}
-    </div></div>${pubHint}${simHint}`;
+  // Überholt? Wer letztes Mal hinter mir lag und jetzt vorne ist, landet in der Inselpost
+  const behind=R.friends.slice(fi+1).map(r=>r.id);
+  if(fi>=0&&mine.avg!=null){
+    if(S.frSeen&&S.frSeen.wk===wkNow) R.friends.slice(0,fi).filter(r=>S.frSeen.behind.includes(r.id)).forEach(r=>{
+      S.frOver=(S.frOver||[]).filter(o=>o.wk===wkNow&&o.id!==r.id); S.frOver.unshift({id:r.id,wk:wkNow,d:today()})});
+    S.frSeen={wk:wkNow,behind}; save();
+  }
+  // Oben: Kreise, Regatta, Chips
+  const nF=R.friends.length, lead=R.friends[0];
+  const st=$("#frStories"); if(st){st.innerHTML=storiesHtml(R.friends.map(r=>r.id===me?Object.assign({},r,{me:true,avatar:netAv()}):r).sort((a,b)=>(b.me?1:0)-(a.me?1:0)));bindFriendsUi(R)}
+  let regList, regPl=null;
+  if(rankTab==="alle"&&R.all){regList=R.all.slice(0,8); regPl=pl.slice(0,8); if(ai<0||ai>=8){regList=regList.slice(0,7).concat([mine]); regPl=regPl.slice(0,7).concat([R.place||"–"])}}
+  else regList=R.friends;
+  const fh=$("#frHero"); if(fh) fh.innerHTML=regattaSvg(regList.map(r=>r.id===me?Object.assign({},r,{me:true,avatar:netAv()}):r),regPl);
+  const hint=$("#rankHint"); if(hint) hint.innerHTML=(rankTab==="freunde"&&!R.nFriends?`<p class="small muted">Noch allein auf dem Wasser. Lade jemanden ein, dann segelt ihr gegeneinander.</p>`:"")+pubHint+simHint;
   const set=(id,t)=>{const e=$(id); if(e) e.textContent=t};
-  set("#chPl",R.nFriends?(fi+1)+" von "+nF:R.place!=null?R.place.toLocaleString("de-DE"):"–");
-  set("#chFr",String(R.nFriends));
-  const dw=S.duel&&S.duel.wk===isoWeek(today())?S.duel:null, dOpp=dw?R.friends.find(r=>r.id===dw.vs):null;
-  set("#chDu",!dw?"offen":dOpp&&dOpp.avg!=null&&mine.avg!=null?(mine.avg<dOpp.avg?"vorne":mine.avg>dOpp.avg?"hinten":"gleich"):"läuft");
-  const fh=$("#frHero"); if(fh) fh.innerHTML=frHeroSvg(R.friends.map(r=>r.id===me?Object.assign({},r,{me:true,avatar:netAv()}):r));
+  if(rankTab==="alle") set("#chPl",R.place!=null?R.place.toLocaleString("de-DE")+" von "+Math.max(R.total||0,R.place).toLocaleString("de-DE"):"–");
+  else set("#chPl",R.nFriends?(fi+1)+" von "+nF:"–");
+  const top=rankTab==="alle"&&R.all&&R.all[0]?R.all[0]:lead;
+  set("#chLead",!top||mine.avg==null||top.avg==null?"–":top.id===me||mine.avg<=top.avg?"Du führst":"−"+hm(mine.avg-top.avg));
+  // Inselpost
+  const pb=$("#postBox"); if(pb){const items=postFeed(R);
+    pb.innerHTML=items.length?items.map(it=>postHtml(it,R)).join(""):`<div class="card"><p class="small muted">${R.nFriends?"Noch nichts los. Sobald deine Freund:innen eine Serie schaffen oder etwas bauen, steht es hier.":"Hier siehst du, was bei deinen Freund:innen passiert: Serien, neue Bauten und wer dich überholt hat."}</p></div>`;
+    bindFriendsUi(R)}
   // Liste
   if(rankTab==="freunde"){
     box.innerHTML=(R.nFriends?"":`<p class="small muted">Noch keine Freund:innen online. Füg jemanden mit dem Code hinzu oder schick eine Einladung.</p>`)+
@@ -5172,35 +5259,6 @@ function duelChallenge(r){
   log("Du hast "+S.duel.name+" zum Duell der Woche herausgefordert.","info");
   save(); RANKC=null; toast("Duell gestartet!"); netSync().then(()=>fillRanks(true));
 }
-/* Wettsegeln: je weiter vorne, desto weniger Handyzeit im Schnitt. Die Handyzeit-Welle jagt beide. */
-function duelRace(me,them){
-  const wd=(new Date().getDay()+6)%7, p=(wd+1)/7, base=70+190*p;
-  const known=me.avg!=null&&them.avg!=null, lead=known?them.avg-me.avg:0;
-  const gap=known?Math.min(110,Math.abs(lead)/60*55):0;
-  let xm=base, xt=base;
-  if(known){if(lead>0) xt=base-gap; else if(lead<0) xm=base-gap}
-  if(me.avg==null) xm=36; if(them.avg==null) xt=36;
-  const boat=(r,x,y,sail,delay,lead)=>`<g transform="translate(${x} ${y})"><g><animateTransform attributeName="transform" type="translate" from="${30-x} 0" to="0 0" dur="1.8s" begin="${delay}s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines=".2 .8 .2 1"/>
-      <g class="bob" style="animation-duration:${lead?1.6:2.2}s">
-      <path d="M-26 -2h52l-8 12h-36z" fill="#8A5A3B"/><path d="M-26 -2h52" stroke="#A0703F" stroke-width="2"/>
-      <path d="M0 -2V-50" stroke="#D9D4C6" stroke-width="2"/><g class="sailflap"><path d="M2 -48q18 14 16 42h-16z" fill="${sail}"/></g><path d="M-2 -44q-14 12-14 38h14z" fill="#F3F1EA" opacity=".9"/>
-      <g transform="translate(-10 -4) scale(.62)">${animalSvg(r.avatar||"Ziege",0)}</g>
-      ${lead?`<g class="pop fb" style="animation-delay:2s"><path d="M0 -52l2 4 4 .5-3 3 .8 4.5-3.8-2-3.8 2 .8-4.5-3-3 4-.5z" fill="#FFD27A"/></g>`:""}
-      <path class="wake" d="M-30 8q-10 2-22 0M-30 4q-8 2-16 0" stroke="#9CC8EE" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".7"/>
-      <text x="0" y="24" text-anchor="middle" font-size="10" font-weight="800" fill="${sail}" font-family="Manrope, sans-serif">${esc(r.name)}</text></g></g></g>`;
-  const back=Math.max(10,Math.min(xm,xt)-78);
-  return `<svg viewBox="0 0 340 220" class="duel-svg" role="img" aria-label="Wettsegeln: ${esc(me.name)} gegen ${esc(them.name)}">
-    <defs><linearGradient id="dSea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A4A7A"/><stop offset="1" stop-color="#16294A"/></linearGradient></defs>
-    <rect width="340" height="220" rx="18" fill="#1B2340"/><rect y="40" width="340" height="180" fill="url(#dSea)"/>
-    <g stroke="#9CC8EE" fill="none" stroke-linecap="round" opacity=".35"><path class="wscroll" style="animation-duration:5s" d="${wavePath(70,2)}" stroke-width="1.4"/><path class="wscroll" style="animation-duration:3.8s" d="${wavePath(130,2.5)}" stroke-width="1.6"/><path class="wscroll" style="animation-duration:4.4s" d="${wavePath(186,2)}" stroke-width="1.4"/></g>
-    <g transform="translate(272 0)"><path d="M0 196V36" stroke="#F3F1EA" stroke-width="2"/><g class="flagwave">${[0,1,2,3].map(r=>[0,1,2].map(c=>`<rect x="${1+c*7}" y="${36+r*6}" width="7" height="6" fill="${(r+c)%2?"#14151F":"#F3F1EA"}"/>`).join("")).join("")}</g></g>
-    <g transform="translate(${back} 140) scale(1.4)"><g class="chase">${monsterSvg("strudel")}</g></g>
-    ${boat(them,xt,104,"#B6A4FF",.1,known&&lead<0)}
-    ${boat(me,xm,170,"#C8F169",.3,known&&lead>0)}
-    <text x="12" y="26" font-size="12" fill="#F3F1EA" font-family="Manrope, sans-serif" font-weight="800">${esc(them.name)}: ${them.avg!=null?hm(them.avg)+" / Tag":"noch nichts eingetragen"}</text>
-    <text x="328" y="26" text-anchor="end" font-size="12" fill="#C8F169" font-family="Manrope, sans-serif" font-weight="800">Du: ${me.avg!=null?hm(me.avg)+" / Tag":"noch nichts"}</text>
-</svg>`;
-}
 function duelTeaser(text,btn){
   return `<div class="card duel-card"><p class="label" style="color:var(--amber)">⚔️ Duell der Woche</p>
     <div class="duel-vs" style="justify-content:flex-start"><span>${avatarSvg(netAv(),48)}</span><b class="duel-x" style="font-size:24px">⚔️</b><span class="avatar" style="width:48px;height:48px;border-radius:24px;background:var(--card2);display:inline-flex;align-items:center;justify-content:center;font-weight:800;color:var(--muted)">?</span></div>
@@ -5225,8 +5283,9 @@ function duelHtml(R){
     :lead>0?`<b style="color:var(--lime)">Du liegst vorne!</b> ${hm(lead)} weniger pro Tag als ${esc(B.name)}.`
     :lead<0?`<b style="color:var(--coral)">${esc(B.name)} liegt ${hm(-lead)} vorne.</b> Ein guter Tag, und du holst auf!`:`<b>Gleichstand!</b> Jetzt zählt jeder Tag.`;
   return `<div class="card duel-card"><div class="row between"><p class="label" style="color:var(--amber)">⚔️ Duell gegen ${esc(B.name)}</p><span class="chip ok">${left?"noch "+left+(left===1?" Tag":" Tage"):"letzter Tag"}</span></div>
-    ${duelRace(A,B)}<p>${msg}</p>
-    <p class="small muted">Die Handyzeit-Welle jagt euch beide. Wer im Schnitt weniger am Handy ist, segelt vorne. Sieg am Sonntag: eine Deko für die Insel.</p>
+    <div class="row duel-bar">${avatarSvg(A.avatar||"Ziege",40)}<div class="grow"><div class="duel-track"><i style="width:${known?(B.avg+A.avg?Math.round(B.avg/(A.avg+B.avg)*100):50):A.avg!=null?70:B.avg!=null?30:50}%"></i></div>
+      <p class="small muted row between"><span>Du ${A.avg!=null?"Ø "+hm(A.avg):"–"}</span><span>${esc(B.name)} ${B.avg!=null?"Ø "+hm(B.avg):"–"}</span></p></div>${avatarSvg(B.avatar||"Ziege",40)}</div>
+    <p>${msg}</p><p class="small muted">Sieg am Sonntag: eine Deko für die Insel. Auch wer verliert, bekommt Punkte fürs Mitmachen.</p>
     <button class="btn ghost" id="duelStop">Duell abbrechen</button></div>`;
 }
 function duelStartSheet(ev){

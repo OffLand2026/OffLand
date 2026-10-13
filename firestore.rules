@@ -16,7 +16,9 @@ service cloud.firestore {
       return d.owner == request.auth.uid && shortText(d.name, 20) && shortText(d.avatar, 20)
         && (d.avg == null || (d.avg is int && d.avg >= 0 && d.avg <= 1440))
         && d.days is int && d.days >= 0 && d.days <= 7
-        && d.good is int && d.good >= 0 && d.good <= 7 && shortText(d.world, 30);
+        && d.good is int && d.good >= 0 && d.good <= 7 && shortText(d.world, 30)
+        && (!("ev" in d) || d.ev == null || (d.ev is list && d.ev.size() <= 6))      // Inselpost: eigene Meilensteine
+        && (!("ch" in d) || d.ch == null || (d.ch is list && d.ch.size() <= 20));    // Inselpost: eigene Reaktionen
     }
 
     // Spielerprofil: Name, Avatar, Code, Inselwelt. Lesen nur einzeln (keine Liste aller Spieler).

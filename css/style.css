@@ -712,3 +712,21 @@ body.enter-b #start .sky-inner>:nth-child(n+4){animation-delay:1.3s!important}
 .zt-fold summary .grow{display:flex;flex-direction:column}
 .zt-fold .zt-chev{transition:transform .2s}.zt-fold[open] .zt-chev{transform:rotate(90deg)}
 .zt-fold>.card{background:none;padding:8px 0 0}
+/* Tab Freunde */
+.fr-stories{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:2px 16px}
+.fr-stories::-webkit-scrollbar{display:none}
+.fr-st{flex:none;background:none;border:0;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:4px;font:inherit;cursor:pointer;min-width:56px}
+.fr-av{border:2.5px solid var(--line);border-radius:50%;padding:2px;display:block;line-height:0}
+.fr-av.new{border-color:var(--lime)}
+.fr-av.add{width:58px;height:58px;border:2px dashed #5b5f80;display:grid;place-items:center;color:var(--lime);font:800 26px/1 var(--display)}
+.fr-reg{background:linear-gradient(180deg,#1B2340,#24375A)}
+.fr-seg{gap:6px;background:rgba(20,21,31,.35);border-radius:14px;padding:4px}
+.fr-seg button{flex:1;min-height:40px;border:0;border-radius:11px;background:none;color:var(--muted);font-weight:700;font-size:14px;font-family:inherit;cursor:pointer}
+.fr-seg button.on{background:#2B3D5E;color:var(--ink)}
+.fr-posts{display:flex;flex-direction:column;gap:10px}
+.fr-react{gap:8px;flex-wrap:wrap}
+.fr-chip{min-height:40px;padding:0 14px;border:0;border-radius:14px;background:var(--card2);color:var(--ink);font-family:inherit;font-weight:700;font-size:14px;cursor:pointer}
+.fr-chip.on{background:#3A4A1E;color:var(--lime);box-shadow:inset 0 0 0 1.5px var(--lime)}
+.duel-bar{gap:10px;align-items:center}
+.duel-track{height:10px;border-radius:5px;background:var(--coral);overflow:hidden}
+.duel-track i{display:block;height:100%;background:var(--lime);border-radius:5px 0 0 5px}
