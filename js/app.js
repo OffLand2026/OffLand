@@ -2760,6 +2760,7 @@ function viewHeute(){
       <label for="inH" class="sr">Stunden</label><input id="inH" class="tin-n" type="number" min="0" max="24" inputmode="numeric" value="${Math.floor(v0/60)}"><span>h</span>
       <label for="inM" class="sr">Minuten</label><input id="inM" class="tin-n tin-m" type="number" min="0" max="59" step="5" inputmode="numeric" value="${String(v0%60).padStart(2,"0")}"><span>min</span></div>
     <p class="small muted" id="stNote">am Handy · Wert aus den Handy-Einstellungen</p>
+    ${ST&&!S.autoTime?`<button class="st-link" id="stEntry">⚡ Automatisch messen lassen</button>`:""}
     <div class="tslide"><input id="inR" type="range" min="0" max="${smax}" step="5" value="${Math.min(v0,smax)}" aria-label="Bildschirmzeit einstellen">
       <span class="tgoal" style="left:${(S.budget/smax*100).toFixed(1)}%"><b>Ziel ${hm(S.budget)}</b></span></div>
     <div class="tticks">${[0,1,2,3].map(k=>`<span>${Math.round(smax*k/3/60)} h</span>`).join("")}</div>
@@ -2875,7 +2876,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.45";
+const APP_VERSION="1.46";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -3565,6 +3566,7 @@ function bind(){
   const wsb=$("#wishShop"); if(wsb) wsb.onclick=()=>{tab="projekt";bauTab="laden";render();window.scrollTo(0,0)};
   document.querySelectorAll("[data-bau]").forEach(b=>b.onclick=()=>{bauTab=b.dataset.bau;render();const t=$("[data-bau]");if(t&&t.getBoundingClientRect().top<0)t.scrollIntoView({block:"start"})});
   const stS=$("#stSetup"); if(stS) stS.onclick=stSetup;
+  const stE=$("#stEntry"); if(stE) stE.onclick=()=>stSetup(true);
   const stA=$("#stApps"); if(stA) stA.onclick=async()=>{try{await ST.pickApps()}catch(e){} await stStatus(); settingsSheet()};
   const stO=$("#stOff"); if(stO) stO.onclick=async()=>{try{await ST.stop()}catch(e){} S.autoTime=false; save(); await stStatus(); settingsSheet()};
   ["#inH","#inM"].forEach(id=>{const el=$(id); if(el) el.addEventListener("input",()=>{el.dataset.touched="1"})});
@@ -5280,7 +5282,52 @@ function umfrageSheet(ev){
 /* ---------- Bildschirmzeit automatisch (nur iPhone-App) ----------
    Natives Plugin "ScreenTime" (ios/App/App/ScreenTimePlugin.swift). Apple liefert nur Schwellen:
    Die Monitor-Erweiterung merkt sich pro Tag die höchste erreichte 15-Minuten-Stufe. */
-const ST=(()=>{try{const C=window.Capacitor;return C&&C.isNativePlatform&&C.isNativePlatform()&&C.getPlatform()==="ios"&&C.registerPlugin?C.registerPlugin("ScreenTime"):null}catch(e){return null}})();
+const ST_NATIVE=(()=>{try{const C=window.Capacitor;return C&&C.isNativePlatform&&C.isNativePlatform()&&C.getPlatform()==="ios"&&C.registerPlugin?C.registerPlugin("ScreenTime"):null}catch(e){return null}})();
+/* Ohne iPhone-App: Simulation mit denselben Schritten wie das echte Plugin (Erlaubnis, Apps wählen,
+   Minuten in 15-Minuten-Stufen). Die Werte sind ausgedacht, aber pro Tag immer gleich. */
+function stSimAsk(html){
+  return new Promise(res=>{
+    const d=document.createElement("div"); d.className="modal st-sim"; d.style.zIndex="400";
+    d.innerHTML=`<div class="sheet" role="dialog" aria-modal="true">${html}</div>`;
+    document.body.appendChild(d);
+    d.querySelectorAll("[data-st]").forEach(b=>b.onclick=()=>{const v=b.dataset.st==="ok"?[...d.querySelectorAll("input:checked")].map(x=>x.value):null; d.remove(); res(v)});
+  });
+}
+const ST_SIM={
+  now(){const s=S.stSim||{};return {available:true,simulated:true,status:s.status||"notDetermined",monitoring:!!s.monitoring}},
+  async status(){return ST_SIM.now()},
+  async authorize(){
+    const ok=await stSimAsk(`<p class="label">Simulation · so fragt das iPhone</p>
+      <h2>„OffLand“ möchte auf Bildschirmzeit zugreifen</h2>
+      <p class="small muted">Wenn du OffLand den Zugriff auf Bildschirmzeit gewährst, kann die App deine Aktivitätsdaten sehen, Inhalte einschränken und die Nutzung von Apps und Websites begrenzen.</p>
+      <button class="btn" data-st="ok">Fortfahren</button><button class="btn ghost" data-st="no">Nicht erlauben</button>`);
+    S.stSim=Object.assign(S.stSim||{},{status:ok?"approved":"denied"}); save();
+    if(!ok) throw new Error("Bildschirmzeit wurde nicht erlaubt");
+    return {status:"approved"};
+  },
+  async pickApps(){
+    const cats=[["social","Soziale Netzwerke",1],["games","Spiele",1],["video","Unterhaltung",1],["web","Safari und Websites",1],["chat","Kommunikation",0],["other","Alle anderen Apps",0]];
+    const sel=await stSimAsk(`<p class="label">Simulation · Auswahl wie auf dem iPhone</p>
+      <h2>Welche Apps zählen?</h2>
+      <p class="small muted">OffLand sieht später nicht, welche Apps du gewählt hast, nur die Gesamtzeit.</p>
+      <div style="display:flex;flex-direction:column;gap:8px">${cats.map(([v,n,on])=>`<label class="field" style="flex-direction:row;align-items:center;gap:10px;min-height:44px"><input type="checkbox" value="${v}"${on?" checked":""}> ${n}</label>`).join("")}</div>
+      <button class="btn" data-st="ok">Fertig</button><button class="btn ghost" data-st="no">Abbrechen</button>`);
+    if(!sel||!sel.length) return {ok:false};
+    S.stSim=Object.assign(S.stSim||{},{monitoring:true,apps:sel,since:S.stSim&&S.stSim.since||today()}); save();
+    return {ok:true};
+  },
+  async minutes({day}){
+    const s=S.stSim||{}; if(!s.monitoring) return {has:false,minutes:0};
+    // typischer Wert: Schnitt der letzten Tage, sonst knapp unter dem Ausgangswert
+    const recent=S.days.slice(-7).map(d=>d.min), base=recent.length?recent.reduce((a,b)=>a+b,0)/recent.length:Math.max(60,(S.baseline||S.budget||180)*.8);
+    let h=0; for(const c of String(day)) h=(h*31+c.charCodeAt(0))>>>0;
+    let m=base*(0.65+(h%70)/100)*(1+((s.apps||[]).length-4)*.06);
+    if(day===today()){const n=new Date(), f=clamp((n.getHours()+n.getMinutes()/60-7)/16,0,1); m*=f}
+    return {has:true,minutes:Math.max(0,Math.floor(m/15)*15)};
+  },
+  async stop(){S.stSim=Object.assign(S.stSim||{},{monitoring:false}); save()}
+};
+const ST=ST_NATIVE||ST_SIM;
 let stInfo=null;
 async function stStatus(){if(!ST)return null;try{stInfo=await ST.status()}catch(e){stInfo={available:false}}return stInfo}
 function stCard(){
@@ -5288,6 +5335,7 @@ function stCard(){
   const i=stInfo||{};
   const on=i.status==="approved"&&i.monitoring;
   return `<div class="card" id="stCard"><p class="label">Bildschirmzeit automatisch</p>
+    ${i.simulated?`<p class="small" style="color:var(--amber)">In der Web-Version simuliert: Die Zeiten sind ausgedacht. In der iPhone-App kommen sie von Apple.</p>`:""}
     ${on?`<p class="small muted">OffLand misst deine Bildschirmzeit in 15-Minuten-Schritten mit. Beim Eintragen ist die Zeit schon vorausgefüllt, du musst nur noch bestätigen.</p>
       <div class="row"><button class="btn secondary grow" id="stApps">Apps ändern</button><button class="btn ghost grow" id="stOff">Ausschalten</button></div>`
     :i.status==="denied"?`<p class="small muted">Du hast den Zugriff auf die Bildschirmzeit abgelehnt. Erlauben kannst du ihn in den iPhone-Einstellungen unter Bildschirmzeit.</p><button class="btn secondary" id="stSetup">Erneut versuchen</button>`
@@ -5295,22 +5343,22 @@ function stCard(){
       <button class="btn secondary" id="stSetup">Einrichten</button>`}
   </div>`;
 }
-async function stSetup(){
+async function stSetup(fromEntry){
   try{
     await ST.authorize();
     const r=await ST.pickApps();
     if(r&&r.ok){S.autoTime=true;save();toast("Bildschirmzeit wird jetzt automatisch gemessen")}
   }catch(e){toast(String(e&&e.message||e).slice(0,120))}
-  await stStatus(); settingsSheet();
+  await stStatus(); if(fromEntry===true) render(); else settingsSheet();
 }
 /* Beim Eintragen: gemessene Zeit des einzutragenden Tages vorausfüllen */
 async function stFill(){
   if(!ST||!$("#inH")) return;
-  const i=stInfo||await stStatus(); if(!i||i.status!=="approved"||!i.monitoring) return;
+  const i=ST===ST_SIM?ST_SIM.now():stInfo||await stStatus(); if(!i||i.status!=="approved"||!i.monitoring) return;
   const day=nextDay(); let r; try{r=await ST.minutes({day})}catch(e){return}
   const h=$("#inH"), m=$("#inM"), note=$("#stNote"); if(!h||!r||!r.has) return;
   if(!h.dataset.touched&&!m.dataset.touched){h.value=Math.floor(r.minutes/60);m.value=r.minutes%60;liveUpdate()}
-  if(note) note.innerHTML=`<b style="color:var(--lime)">Automatisch gemessen:</b> mindestens ${hm(r.minutes)}${day===today()?" bis jetzt":""}. Apple meldet die Zeit in 15-Minuten-Schritten, darum kann es bis zu 14 Minuten mehr gewesen sein.`;
+  if(note) note.innerHTML=`<b style="color:var(--lime)">Automatisch gemessen${i.simulated?" (Simulation)":""}:</b> mindestens ${hm(r.minutes)}${day===today()?" bis jetzt":""}. Apple meldet die Zeit in 15-Minuten-Schritten, darum kann es bis zu 14 Minuten mehr gewesen sein.`;
 }
 
 /* ---------- Online-Backup: verschlüsselt, nur mit Wiederherstellungs-Code lesbar ----------
@@ -5869,6 +5917,7 @@ function accountSheet(){
   $("#accClose").focus();
 }
 function settingsSheet(){
+  if(ST===ST_SIM) stInfo=ST_SIM.now();
   if(ST&&!stInfo){stStatus().then(settingsSheet);return}
   modal(`<div class="row between"><div><p class="label">Konto · ${esc(ACC?ACC.name:"")}</p><h2>Einstellungen</h2></div><button class="iconbtn" id="setClose" aria-label="Schließen"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F3F1EA" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     ${settingsHtml()}
