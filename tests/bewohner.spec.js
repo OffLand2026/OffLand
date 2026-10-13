@@ -1,5 +1,5 @@
 // Bewohnerliste: Suche, einklappbare Abschnitte, Raster für Menschen und Tiere mit Details
-const { test, expect, newGame } = require("./helpers");
+const { test, expect, newGame, dismiss } = require("./helpers");
 
 test("Viele Bewohner: suchen, einklappen, Mensch und Tier antippen", async ({ page }) => {
   await newGame(page);
@@ -37,4 +37,33 @@ test("Viele Bewohner: suchen, einklappen, Mensch und Tier antippen", async ({ pa
   await page.locator("details[data-fold=m] .ani-tile", { hasText: "Zora" }).click();
   await expect(page.locator("#modalRoot .label")).toHaveText("Fischer:in");
   await expect(page.locator("#modalRoot [data-rename]")).toBeVisible();
+});
+
+test("Tier-Umkleide: Look, Halsband und Brille werden gespeichert", async ({ page }) => {
+  await newGame(page, "Mia");
+  const id = await page.evaluate(() => { const r = T.S.residents.find(x => x.kind === "tier"); T.nameSheet({ type: "rename", id: r.id }); return r.id; });
+  await expect(page.locator("#lookEd .uk-rail [data-pane=brille]")).toBeVisible();
+  await page.click('#lookEd [data-lookset="2"]');
+  await page.click('#lookEd [data-pane="brille"]');
+  await page.click('#lookEd [data-look="specs"][data-v="1"]');
+  await page.click("#nameOk");
+  const g = await page.evaluate(id => T.S.residents.find(x => x.id === id).gear, id);
+  expect(g.specs).toBe(1);
+  await page.evaluate(() => T.render());
+  expect(await page.evaluate(() => document.body.innerHTML.includes('fill="#14151F" stroke="#3A3D58" stroke-width=".3"'))).toBe(true);
+});
+
+test("Tab Zeit: Kalender, Tag antippen und Sammelkarten", async ({ page }) => {
+  await newGame(page, "Mia");
+  await page.evaluate(() => { T.S.testmode = true; T.S.baseline = 300; T.S.budget = 180; });
+  for (let i = 0; i < 8; i++) { await page.evaluate(i => T.closeDay([60, 200, 120, 90, 150, 30, 240, 100][i], [], {}), i); await dismiss(page); }
+  await page.evaluate(() => { document.getElementById("modalRoot").innerHTML = ""; });
+  await page.click("#tabs [data-tab=zeit]");
+  await expect(page.locator("#ztCal [data-zday]")).toHaveCount(8);
+  const d = await page.locator("#ztCal [data-zday]").first().getAttribute("data-zday");
+  await page.locator("#ztCal [data-zday]").first().dispatchEvent("click");
+  await expect(page.locator(".zt-day")).toContainText("1 h");
+  expect(await page.locator(".zt-card").count()).toBeGreaterThan(1);
+  await expect(page.locator(".zt-chips").nth(1)).toContainText("Bester Monat");
+  expect(d).toBeTruthy();
 });

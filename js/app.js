@@ -1844,7 +1844,7 @@ function figure(r,x,y){
       ${st==="alt"?`<path d="M7.4 0v-9.4q0-1.8-1.8-1.8" stroke="#8A5A3B" stroke-width="1.1" fill="none" stroke-linecap="round"/>`:""}${r.phone?PHONE_FIG:""}</g>`;
   }
   const s=(r.parents?0.7:1)*(r.art==="Wal"?1.6:["Elch","Kamel","Eisbär"].includes(r.art)?1.1:1);
-  return `<g transform="translate(${x} ${y}) scale(${s})"><title>${esc(r.name)} (${esc(r.art)})</title>${animalSvg(r.art,animalVar(r))}</g>`;
+  return `<g transform="translate(${x} ${y}) scale(${s})"><title>${esc(r.name)} (${esc(r.art)})</title>${animalSvg(r.art,animalVar(r))}${gearSvg(r.art,r.gear)}</g>`;
 }
 const LV_EYES=["#7FE8FF","#FFD45A","#B8F25A","#FF8FB1","#C9A6FF"];
 const LV_SPARK_BIG=[[-9,-26],[9,-24],[-8,-6],[8.6,-31]].map(([x,y])=>`<path d="M${x} ${y-1.6}l.5 1.1 1.1.5-1.1.5-.5 1.1-.5-1.1-1.1-.5 1.1-.5z" fill="#FFE680"/>`).join("");
@@ -2202,6 +2202,44 @@ function animalShape(art){
   case "Eisbär": return `<path d="M-6 -7v7M-2 -7v7M6 -7v7M10 -7v7" stroke="#F3F1EA" stroke-width="3.2" stroke-linecap="round"/><ellipse cx="2" cy="-9" rx="10" ry="6" fill="#F3F1EA"/><path d="M-8 -10q-6-1-8 3q2 2 6 1z" fill="#F3F1EA"/><circle cx="-8" cy="-12" r="4.2" fill="#F3F1EA"/><circle cx="-7" cy="-16" r="1.6" fill="#F3F1EA" stroke="#D9D4C6" stroke-width=".5"/><circle cx="-15.6" cy="-7.6" r="1" fill="#14151F"/>${E(-10.6,-12)}<path d="M-4 -4q6 2 12 0" stroke="#D9D4C6" stroke-width="1" fill="none"/>`;
   default: return `<ellipse cx="0" cy="-5" rx="8" ry="5" fill="#F3F1EA"/><circle cx="-8" cy="-10" r="3.6" fill="#F3F1EA"/>${E(-9,-10.5)}`;
   }
+}
+/* Ausstattung der Tiere: Halsband und Brille. e = Auge (Brille), e2 = zweites Auge,
+   n = Halsband als Strecke quer über den Hals, f = 1 wenn das Tier nach rechts schaut */
+const GEAR={Huhn:{e:[-5.6,-11.6],n:[-4.6,-8.2,-2.4,-10.2]},Ziege:{e:[-9.6,-14.4],n:[-8.84,-10.3,-5.16,-13.1]},Schaf:{e:[-8.4,-9.2],n:[-6,-5.8,-5,-11.2]},
+  Esel:{e:[-10.6,-15.6],n:[-9.55,-11.75,-5.65,-14.85]},Katze:{e:[-5.4,-10.6],e2:[-2.8,-10.6],n:[-3.8,-6,-0.6,-8.6]},Hund:{e:[-7,-12.6],n:[-4.8,-7.4,-2.2,-10.2]},
+  Meerschweinchen:{e:[-7.4,-7.2],n:[-4.2,-3.4,-3.4,-9.4]},Hase:{e:[-5.8,-9.4],n:[-4.4,-5.6,-1.6,-7.8]},Robbe:{e:[3.6,-9.6],f:1},Delfin:{e:[-9.4,-8.4]},Wal:{e:[-10.4,-6.6]},
+  Papagei:{e:[-3,-18],n:[-3.6,-14.4,3.4,-13.8]},Elch:{e:[-11,-19.6],n:[-8.84,-15.16,-5.16,-18.84]},Kamel:{e:[-12,-23],n:[-10.9,-16.9,-7.1,-18.1]},"Eisbär":{e:[-10.6,-12],n:[-4.9,-8,-3.9,-14]}};
+const COLLAR_NAMES=["Ohne","Halsband","Glöckchen","Halstuch","Fliege"], SPECS_NAMES=["Ohne","Sonnenbrille","Pilotenbrille","Herzbrille","Sportbrille"];
+const hasCollar=art=>!!(GEAR[art]&&GEAR[art].n);
+function gearSvg(art,g){
+  const G=GEAR[art]; if(!G||!g) return "";
+  let s="";
+  const f=v=>(+v).toFixed(2);
+  if(g.collar&&G.n){
+    const [x1,y1,x2,y2]=G.n, c=SHIRT[g.cc||0]||SHIRT[0], mx=(x1+x2)/2, my=(y1+y2)/2, L=Math.hypot(x2-x1,y2-y1)||1, ux=(x2-x1)/L, uy=(y2-y1)/L;
+    let nx=-uy, ny=ux; if(ny<0||(Math.abs(ny)<.3&&nx>0)){nx=-nx;ny=-ny}
+    const P=(k,j=0)=>`${f(mx+nx*k+ux*j)} ${f(my+ny*k+uy*j)}`, C=k=>`cx="${f(mx+nx*k)}" cy="${f(my+ny*k)}"`;
+    if(g.collar===3) s+=`<path d="M${x1} ${y1}L${x2} ${y2}L${P(2.8)}z" fill="${c}" stroke="${c}" stroke-width=".8" stroke-linejoin="round"/><circle ${C(1)} r=".35" fill="#F3F1EA" opacity=".8"/>`;
+    else s+=`<path d="M${x1} ${y1}L${x2} ${y2}" stroke="${c}" stroke-width="1.5" stroke-linecap="round"/>`;
+    if(g.collar===1) s+=`<circle ${C(.9)} r=".55" fill="#FFD27A"/>`;
+    if(g.collar===2) s+=`<circle ${C(1.3)} r="1" fill="#FFD27A" stroke="#C9A35A" stroke-width=".3"/><circle ${C(1.7)} r=".25" fill="#8A5A3B"/>`;
+    if(g.collar===4) s+=`<path d="M${P(.2)}L${P(1.2,-1.6)}L${P(-.8,-1.6)}zM${P(.2)}L${P(1.2,1.6)}L${P(-.8,1.6)}z" fill="${c}" stroke="${c}" stroke-width=".5" stroke-linejoin="round"/><circle ${C(.2)} r=".5" fill="${c}" stroke="#14151F" stroke-opacity=".3" stroke-width=".25"/>`;
+  }
+  if(g.specs){
+    const back=G.f?-1:1, eyes=G.e2?[G.e,G.e2]:[G.e], ey=G.e[1];
+    const outer=back>0?eyes.reduce((a,e)=>e[0]>a[0]?e:a):eyes.reduce((a,e)=>e[0]<a[0]?e:a);
+    const armC=g.specs===2?"#E0B04A":g.specs===3?"#C93E78":g.specs===4?"#8FB34F":"#14151F";
+    const arm=`<path d="M${f(outer[0]+1.5*back)} ${f(outer[1]-.3)}L${f(outer[0]+3.6*back)} ${f(outer[1]-.9)}" stroke="${armC}" stroke-width=".45" stroke-linecap="round"/>`;
+    const lens=([x,y])=>{switch(g.specs){
+      case 2: return `<path d="M${f(x-1.7)} ${f(y-1)}h3.4q.2 2.4-1.7 2.6q-1.9-.2-1.7-2.6z" fill="#2C4770" stroke="#E0B04A" stroke-width=".35"/>`;
+      case 3: return `<path d="M${f(x)} ${f(y+1.3)}l-1.6-1.6a.9 .9 0 0 1 1.6-1.1a.9 .9 0 0 1 1.6 1.1z" fill="#FF6FA8" stroke="#C93E78" stroke-width=".3"/>`;
+      default: return `<ellipse cx="${f(x)}" cy="${f(y)}" rx="1.65" ry="1.3" fill="#14151F" stroke="#3A3D58" stroke-width=".3"/><path d="M${f(x-.9)} ${f(y-.5)}l.6-.4" stroke="#F3F1EA" stroke-width=".35" stroke-linecap="round" opacity=".7"/>`;
+    }};
+    if(g.specs===4){const xs=eyes.map(e=>e[0]), a=Math.min(...xs)-1.9, w=Math.max(...xs)+1.9-a;
+      s+=arm+`<path d="M${f(a)} ${f(ey-.9)}h${f(w)}v1.5q${f(-w/2)} 1 ${f(-w)} 0z" fill="#C8F169" stroke="#8FB34F" stroke-width=".3"/><path d="M${f(a+.5)} ${f(ey-.5)}h${f(w*.45)}" stroke="#F3F1EA" stroke-width=".3" opacity=".8"/>`;}
+    else s+=arm+(eyes.length>1?`<path d="M${f(eyes[0][0]+1.5)} ${f(ey-.3)}H${f(eyes[1][0]-1.5)}" stroke="#14151F" stroke-width=".4"/>`:"")+eyes.map(lens).join("");
+  }
+  return s;
 }
 function skyNow(){
   const h=new Date().getHours();
@@ -2876,7 +2914,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.47";
+const APP_VERSION="1.48";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -3054,6 +3092,55 @@ function viewAlbum(){
     :`<div style="border-radius:8px;border:1.5px dashed var(--line);aspect-ratio:350/120;display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7C7F99" stroke-width="2" stroke-linecap="round" aria-label="Noch nicht gesammelt"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>`).join("")}</div>
   </div>`;
 }
+/* Tab Zeit: gewonnene Zeit mit Wochenbalken, Inseljahr als Kalender, Umrechnungen als Sammelkarten */
+let zeitPage=0, zeitSel=null;
+const ZT_COL=["#B9A6FF","#C8F169","#FFB86B","#7FD4E8","#FF9C7A"];
+function dayCol(d){return d.min<=S.budget*.75?"#C8F169":d.min<=S.budget?"#8FB34F":"#FF9C7A"}
+function zeitCal(){
+  const by={}; S.days.forEach(d=>by[d.day]=d);
+  const end=S.lastDay&&S.lastDay>today()?S.lastDay:today(), wd=(parse(end).getDay()+6)%7;
+  const mon=addDays(end,-wd-7*12-zeitPage*91), W=13, cw=22.6;
+  const first=S.days.length?S.days[0].day:end;
+  let cells="";
+  for(let w=0;w<W;w++) for(let d=0;d<7;d++){
+    const day=addDays(mon,w*7+d), x=S.days.length?by[day]:null, sel=x&&x.day===zeitSel;
+    if(day>end){cells+=`<rect x="${20+w*cw}" y="${d*cw}" width="19" height="19" rx="6" fill="#1A1C2C"/>`;continue}
+    cells+=x?`<rect x="${20+w*cw}" y="${d*cw}" width="19" height="19" rx="6" fill="${dayCol(x)}" data-zday="${day}" style="cursor:pointer"${sel?' stroke="#F3F1EA" stroke-width="2.5"':""}><title>${nice(day)}: ${hm(x.min)}</title></rect>`
+      :`<rect x="${20+w*cw}" y="${d*cw}" width="19" height="19" rx="6" fill="#26283B"/>`;
+  }
+  const lbl=["Mo","","Mi","","Fr","","So"].map((l,d)=>l?`<text x="0" y="${d*cw+14}" font-family="Manrope, sans-serif" font-size="10" fill="#A4A6BD">${l}</text>`:"").join("");
+  const m=s=>parse(s).toLocaleDateString("de-DE",{month:"short"}).replace(".","");
+  const lastCol=addDays(mon,W*7-1), range=m(mon)===m(lastCol>end?end:lastCol)?m(mon):m(mon)+" – "+m(lastCol>end?end:lastCol);
+  const older=first<mon, newer=zeitPage>0;
+  const sd=by[zeitSel]||S.days[S.days.length-1];
+  const ev=sd?(S.feed||[]).find(f=>f.day===sd.day&&f.kind==="good"):null;
+  return `<div class="sec-h zt-h"><span>Dein Inseljahr</span><span class="zt-nav"><button class="zt-arr" id="ztOld" aria-label="Frühere Wochen"${older?"":" disabled"}>‹</button>${range}<button class="zt-arr" id="ztNew" aria-label="Spätere Wochen"${newer?"":" disabled"}>›</button></span></div>
+  <div class="card"><svg viewBox="0 0 316 160" style="width:100%;height:auto;display:block" id="ztCal" role="img" aria-label="Kalender der letzten Wochen">${lbl}${cells}</svg>
+    <div class="row small muted" style="gap:12px;flex-wrap:wrap"><span><b style="color:#C8F169">■</b> weit drunter</span><span><b style="color:#8FB34F">■</b> im Ziel</span><span><b style="color:#FF9C7A">■</b> drüber</span></div>
+    ${sd?`<div class="zt-day"><div class="row between"><p class="label" style="color:${dayCol(sd)===`#FF9C7A`?"var(--coral)":"var(--lime)"}">${nice(sd.day)}</p><span class="small muted">Ziel ${hm(S.budget)}${sd.pts?` · <b style="color:var(--lime)">+${sd.pts} P</b>`:""}</span></div>
+      <p class="hm-title" style="font-size:24px">${hm(sd.min)}</p>${ev?`<p class="small muted">${esc(ev.text)}</p>`:""}</div>`:`<p class="small muted">Sobald du Tage einträgst, füllt sich hier dein Inseljahr.</p>`}
+  </div>`;
+}
+function zeitBest(){
+  if(S.days.length<7) return "";
+  const avgBy=f=>{const g={};S.days.forEach(d=>{const k=f(d);(g[k]=g[k]||[]).push(d.min)});return Object.entries(g).filter(([,v])=>v.length>=2).map(([k,v])=>[k,v.reduce((a,b)=>a+b,0)/v.length]).sort((a,b)=>a[1]-b[1])[0]};
+  const bm=avgBy(d=>d.day.slice(0,7)), bw=avgBy(d=>(parse(d.day).getDay()+6)%7);
+  const WD=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+  return `<div class="row zt-chips">${bm?`<div class="cp"><i>Bester Monat</i><b>${parse(bm[0]+"-01").toLocaleDateString("de-DE",{month:"long"})}</b></div>`:""}${bw?`<div class="cp"><i>Bester Wochentag</i><b>${WD[bw[0]]}</b></div>`:""}</div>`;
+}
+function zeitCards(saved){
+  const got=ACTS.filter(a=>saved>=a.min).sort((a,b)=>b.min-a.min), next=ACTS.filter(a=>saved<a.min).sort((a,b)=>a.min-b.min)[0];
+  const cards=got.map((a,i)=>{const c=Math.floor(saved/a.min);return `<button class="zt-card" style="background:${ZT_COL[i%ZT_COL.length]}" data-zshare="${ACTS.indexOf(a)}" aria-label="${c} ${esc(c===1?SING[a.n]||a.n:a.n)} teilen"><span class="zt-top"><span class="zt-ic">${actIcon(a)}</span><span class="zt-sh">↗</span></span><span><b>${c}</b><span>${esc(c===1?SING[a.n]||a.n:a.n)}</span></span></button>`}).join("");
+  const lock=next?`<div class="zt-card zt-lock"><span class="zt-top"><span class="zt-ic">${actIcon(next)}</span><span>🔒</span></span><span><span>noch ${hm(next.min-saved)}: ${esc(SING[next.n]||next.n)}</span></span></div>`:"";
+  return `<div class="sec-h"><span>Deine Sammlung · ${got.length} von ${ACTS.length}</span></div><div class="fy-row">${cards}${lock}</div>`;
+}
+function zeitDid(){
+  const it=[];
+  const fl=(S.focusLog||[]).length; if(fl||S.focusMin) it.push(["⛵",fl||1,"Fokus"]);
+  PLANS.map(p=>({p,c:(S.actTotals||{})[p.id]||0})).filter(x=>x.c).sort((a,b)=>b.c-a.c).forEach(x=>it.push([`<span class="plan-ic">${planIcon(x.p)}</span>`,x.c,x.p.n]));
+  if(!it.length) return "";
+  return `<div class="sec-h"><span>Was du daraus gemacht hast</span></div><div class="fy-row">${it.map(([e,c,n])=>`<div class="zt-did"><span class="zt-e">${e}</span><b>${c}×</b><i>${esc(n)}</i></div>`).join("")}</div>`;
+}
 function viewZeit(){
   const n=S.days.length;
   const saved=savedTotal();
@@ -3063,51 +3150,44 @@ function viewZeit(){
   const yearOld=S.baseline*365/60/24, yearNow=avg*365/60/24;
   const week=S.days.slice(-7), prev=S.days.slice(-14,-7);
   const sum=a=>a.reduce((x,d)=>x+d.min,0);
-  // Bild: gewonnene Zeit groß, daneben die letzten 7 Tage als Balken
+  // Bild: gewonnene Zeit groß, daneben die letzten 7 Tage als Balken mit Wochentag
   const max=Math.max(S.budget*1.4,...week.map(d=>d.min)), bh=72, y0=124;
-  const bars=week.map((d,i)=>{const h=Math.max(4,d.min/max*bh), x=216+i*20;return `<rect x="${x}" y="${y0-h}" width="14" height="${h}" rx="4" fill="${d.min<=S.budget?"#C8F169":"#FF9C7A"}"><title>${nice(d.day)}: ${hm(d.min)}</title></rect>`}).join("");
-  const hero=`<svg viewBox="0 0 360 200" role="img" aria-label="Gewonnene Zeit ${hm(saved)}" style="width:100%;height:auto;display:block"><defs><linearGradient id="zg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2B2F55"/><stop offset="1" stop-color="#1A1C2C"/></linearGradient></defs><rect width="360" height="200" fill="url(#zg)"/>
+  const bars=week.map((d,i)=>{const h=Math.max(4,d.min/max*bh), x=216+i*20;return `<rect x="${x}" y="${y0-h}" width="14" height="${h}" rx="4" fill="${d.min<=S.budget?"#C8F169":"#FF9C7A"}"><title>${nice(d.day)}: ${hm(d.min)}</title></rect><text x="${x+7}" y="${y0+16}" text-anchor="middle" font-family="Manrope, sans-serif" font-size="10" fill="#A4A6BD">${"SMDMDFS"[parse(d.day).getDay()]}</text>`}).join("");
+  const hero=`<svg viewBox="0 0 360 160" role="img" aria-label="Gewonnene Zeit ${hm(saved)}" style="width:100%;height:auto;display:block"><defs><linearGradient id="zg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#33406B"/><stop offset="1" stop-color="#1E2030"/></linearGradient></defs><rect width="360" height="160" fill="url(#zg)"/>
     <text x="20" y="40" font-family="Manrope, sans-serif" font-size="12" font-weight="700" fill="#A4A6BD" letter-spacing="1.2">GEWONNENE ZEIT</text>
-    <text x="20" y="84" font-family="Bricolage Grotesque, Manrope, sans-serif" font-size="${hm(saved).length>9?32:40}" font-weight="800" fill="#C8F169">${hm(saved)}</text>
-    <text x="20" y="104" font-family="Manrope, sans-serif" font-size="11.5" fill="#A4A6BD">in ${n} ${n===1?"Tag":"Tagen"}</text><text x="20" y="119" font-family="Manrope, sans-serif" font-size="11.5" fill="#A4A6BD">statt ${hm(S.baseline)} am Tag</text>
+    <text x="20" y="84" font-family="Bricolage Grotesque, Manrope, sans-serif" font-size="${hm(saved).length>9?28:40}" font-weight="800" fill="#C8F169">${hm(saved)}</text>
+    <text x="20" y="106" font-family="Manrope, sans-serif" font-size="12" fill="#A4A6BD">in ${n} ${n===1?"Tag":"Tagen"}</text><text x="20" y="122" font-family="Manrope, sans-serif" font-size="12" fill="#A4A6BD">statt ${hm(S.baseline)} am Tag</text>
     ${bars}${week.length?`<path d="M210 ${y0-S.budget/max*bh}h144" stroke="#F3F1EA" stroke-dasharray="3 4" opacity=".5"/>`:""}</svg>`;
   const diff=prev.length?sum(prev)-sum(week):null, good=week.filter(d=>d.min<=S.budget).length;
-  const eq=equivTop(saved), top=eq[0];
-  const others=ACTS.filter(a=>saved>=a.min&&(!top||a!==top.a)).sort((a,b)=>b.min-a.min);
-  const done=PLANS.map(p=>({p,c:(S.actTotals||{})[p.id]||0})).filter(x=>x.c).sort((a,b)=>b.c-a.c);
+  const apps=S.apps.map(a=>{const ds=S.days.filter(d=>d.apps&&d.apps[a.id]!=null);return {a,ds,tot:ds.reduce((x,d)=>x+(d.apps[a.id]||0),0),over:ds.filter(d=>d.apps[a.id]>a.limit).length}});
+  const worst=apps.filter(x=>x.tot).sort((x,y)=>y.tot-x.tot)[0];
+  const fc=focusStatsCard();
   return `
-  <div class="hero-card" style="background:#1A1C2C">${hero}</div>
-  <div class="scene-chips">
+  <div class="hero-card zt-hero">${hero}</div>
+  <div class="row zt-chips">
     <div class="cp"><i>Diese Woche</i><b style="color:${diff==null?"var(--ink)":diff>=0?"var(--lime)":"var(--coral)"}">${diff==null?hm(sum(week)):(diff>=0?"−":"+")+hm(Math.abs(diff))}</b></div>
     <div class="cp"><i>Im Ziel</i><b>${good} von ${week.length}</b></div>
     <div class="cp"><i>Serie</i><b style="color:var(--amber)">${S.budgetStreak} ${S.budgetStreak===1?"Tag":"Tage"}</b></div>
   </div>
-  <div class="card"><div class="row" style="gap:14px;align-items:center"><span class="eq-big">${top?actIcon(top.a):actIcon(ACTS[0])}</span><div class="grow">
-    <p class="label">${top?"Das sind schon":"Bald schon"}</p><h3 class="hm-title">${top?top.c+" "+esc(top.c===1?SING[top.a.n]||top.a.n:top.a.n):"Dein erster Spaziergang"}</h3>
-    <p class="small muted">${top?"aus Zeit, die du nicht am Handy warst":"Jeder Tag unter deinem Schnitt zählt hier mit."}</p></div></div>
-    ${top?`<button class="btn secondary" id="zeitShare">Teilen</button>`:""}</div>
-  ${others.length?`<div class="sec-h"><span>Oder auch</span></div><div class="fy-row">${others.map(a=>{const c=Math.floor(saved/a.min);return `<div class="fy eqfy"><span class="eq-ic">${actIcon(a)}</span><b class="num" style="font:800 22px var(--display)">${c}</b><span class="small muted">${esc(c===1?SING[a.n]||a.n:a.n)}</span></div>`}).join("")}</div>`:""}
-  ${done.length?`<div class="sec-h"><span>Was du gemacht hast</span></div><div class="card">${done.map(x=>`<div class="row" style="padding:6px 0"><span class="plan-ic">${planIcon(x.p)}</span><div class="grow"><p><b>${esc(x.p.n)}</b></p><p class="small muted">${x.c}× geschafft</p></div><span class="chip good">+${x.c*20} P</span></div>`).join("")}</div>`:""}
+  ${zeitDid()}
+  ${zeitCal()}
+  ${zeitBest()}
+  ${zeitCards(saved)}
   ${S.lastDay?`<div class="card"><button class="rowbtn" id="weekBtn" data-wk="${isoWeek(S.lastDay)}"><span class="plan-ic" style="background:#26233D;color:var(--lilac)"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h6a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4zM20 5h-6a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h6z"/></svg></span><span class="grow"><b>Wochenrückblick</b><span class="small muted">KW ${+isoWeek(S.lastDay).split("-W")[1]} ansehen</span></span><span class="muted">›</span></button></div>`:""}
-  <div class="sec-h"><span>Rückblick</span></div>
-  <div class="card">
-    <div class="row between"><span>Über dem Budget verbracht</span><b class="num" style="color:var(--coral)">${hm(over)}</b></div>
-    <p class="small muted">${over?"Das wären gewesen: "+esc(eqText(equivTop(over)))+".":"Bisher bist du immer im Budget geblieben."}</p>
-  </div>
   <div class="card">
     <p class="label">Hochgerechnet aufs Jahr</p>
-    <div class="row between"><span>Mit deinem alten Schnitt</span><b class="num" style="white-space:nowrap">${Math.round(yearOld)} Tage</b></div>
+    <div class="row between small"><span>Mit deinem alten Schnitt</span><b class="num" style="white-space:nowrap">${Math.round(yearOld)} Tage</b></div>
     <div class="bar"><i style="width:${Math.min(100,yearOld/120*100)}%;background:var(--coral)"></i></div>
-    <div class="row between"><span>Mit deinem jetzigen Schnitt (${hm(avg)})</span><b class="num" style="white-space:nowrap">${Math.round(yearNow)} Tage</b></div>
+    <div class="row between small"><span>Mit deinem jetzigen Schnitt (${hm(avg)})</span><b class="num" style="white-space:nowrap">${Math.round(yearNow)} Tage</b></div>
     <div class="bar"><i style="width:${Math.min(100,yearNow/120*100)}%"></i></div>
-    <p class="small muted">${yearOld>yearNow?"Du gewinnst so rund "+Math.round(yearOld-yearNow)+" ganze Tage pro Jahr zurück, rund um die Uhr gerechnet.":"Noch kein Unterschied. Jeder Tag im Budget verschiebt diese Zahl."}</p>
+    <p class="small muted">${yearOld>yearNow?`Rund <b style="color:var(--lime)">${Math.round(yearOld-yearNow)} ganze Tage</b> pro Jahr zurück, rund um die Uhr gerechnet.`:"Noch kein Unterschied. Jeder Tag im Budget verschiebt diese Zahl."}</p>
+    <p class="small muted">${over?`Über dem Budget verbracht: <b style="color:var(--coral)">${hm(over)}</b>. Das wären gewesen: ${esc(eqText(equivTop(over)))}.`:"Bisher bist du immer im Budget geblieben."}</p>
   </div>
-  ${focusStatsCard()}
-  <div class="card"><p class="label">App-Monster</p>
-  ${S.apps.map(a=>{const ds=S.days.filter(d=>d.apps&&d.apps[a.id]!=null);const tot=ds.reduce((x,d)=>x+(d.apps[a.id]||0),0);const over=ds.filter(d=>d.apps[a.id]>a.limit).length;
-    return `<div class="row" style="padding:6px 0;border-top:1px solid var(--card2)"><svg width="44" height="36" viewBox="-24 -34 48 40" aria-hidden="true" style="${over?"":"opacity:.35"}">${monsterSvg(a.m)}</svg><div class="grow"><p><b>${esc(a.name)}</b> <span class="small muted">· Limit ${a.limit} min</span></p><p class="small muted">${ds.length?`${hm(tot)} in ${ds.length} Tagen · ${over}× ${esc(monName(a,false))} aufgetaucht`:"Noch nicht eingetragen"}</p></div></div>`}).join("")}
-  <p class="small muted">Trag beim Tagesabschluss die Minuten pro App ein, dann siehst du hier, welche App die meiste Zeit frisst.</p></div>
-  <p class="small muted" style="padding:0 4px">Die Umrechnungen sind Faustwerte, zum Beispiel 30 Minuten für einen Spaziergang , 90 Minuten für einen Kinofilm oder 8 Stunden für ein Buch mit 250 Seiten.</p>`;
+  ${fc?`<details class="card zt-fold"><summary><span class="grow"><b>Fokuszeit</b><span class="small muted">insgesamt ${hm(S.focusMin||0)}</span></span><span class="muted zt-chev">›</span></summary>${fc}</details>`:""}
+  <details class="card zt-fold"><summary><svg width="40" height="32" viewBox="-24 -34 48 40" aria-hidden="true">${monsterSvg((worst||apps[0]).a.m)}</svg><span class="grow"><b>App-Monster</b><span class="small muted">${worst?esc(worst.a.name)+" frisst am meisten: "+hm(worst.tot):"Noch keine Minuten pro App eingetragen"}</span></span><span class="muted zt-chev">›</span></summary>
+  ${apps.map(({a,ds,tot,over})=>`<div class="row" style="padding:6px 0;border-top:1px solid var(--card2)"><svg width="44" height="36" viewBox="-24 -34 48 40" aria-hidden="true" style="${over?"":"opacity:.35"}">${monsterSvg(a.m)}</svg><div class="grow"><p><b>${esc(a.name)}</b> <span class="small muted">· Limit ${a.limit} min</span></p><p class="small muted">${ds.length?`${hm(tot)} in ${ds.length} Tagen · ${over}× ${esc(monName(a,false))} aufgetaucht`:"Noch nicht eingetragen"}</p></div></div>`).join("")}
+  <p class="small muted">Trag beim Tagesabschluss die Minuten pro App ein, dann siehst du hier, welche App die meiste Zeit frisst.</p></details>
+  <p class="small muted" style="padding:0 4px">Die Umrechnungen sind Faustwerte, zum Beispiel 30 Minuten für einen Spaziergang, 90 Minuten für einen Kinofilm oder 8 Stunden für ein Buch mit 250 Seiten.</p>`;
 }
 /* Händlerschiff: ganz oben im Tab Bauen, solange es da ist */
 function traderCard(){
@@ -3612,7 +3692,10 @@ function bind(){
   const nb=$("#nightBtn"); if(nb) nb.onclick=nightAsk;
   const pdn=$("#planDone"); if(pdn) pdn.onclick=()=>{const pl=S.plan, p=pl&&PLANS.find(x=>x.id===pl.id); if(!p) return; pl.res=true; const r=planResult(true,pl.id,pl.day); save(); render(); planDoneSheet(p,r)};
   const wrb=$("#weekBtn"); if(wrb) wrb.onclick=()=>weekSheet(wrb.dataset.wk);
-  const zs=$("#zeitShare"); if(zs) zs.onclick=()=>{const e=equivTop(savedTotal())[0]; shareText("Mit OffLand habe ich schon "+hm(savedTotal())+" Handyzeit zurückgewonnen"+(e?", das sind "+e.c+" "+(e.c===1?SING[e.a.n]||e.a.n:e.a.n):"")+".",inviteLink())};
+  document.querySelectorAll("[data-zshare]").forEach(b=>b.onclick=()=>{const a=ACTS[+b.dataset.zshare], c=Math.floor(savedTotal()/a.min); shareText("Mit OffLand habe ich schon "+hm(savedTotal())+" Handyzeit zurückgewonnen, das sind "+c+" "+(c===1?SING[a.n]||a.n:a.n)+".",inviteLink())});
+  const zc=$("#ztCal"); if(zc) zc.onclick=e=>{const d=e.target.closest("[data-zday]"); if(d){zeitSel=d.dataset.zday; render()}};
+  const zo=$("#ztOld"); if(zo) zo.onclick=()=>{zeitPage++; render()};
+  const zn=$("#ztNew"); if(zn) zn.onclick=()=>{zeitPage=Math.max(0,zeitPage-1); render()};
   if($("#bayAlbum")) $("#bayAlbum").onclick=bayAlbumSheet;
   document.querySelectorAll("[data-feed]").forEach(b=>b.onclick=()=>feedSheet(b.dataset.feed));
   const wrr=$("#weekReadyBtn"); if(wrr) wrr.onclick=()=>weekSheet(S.weekReady.wk);
@@ -4291,7 +4374,7 @@ function nameSheet(ev){
     text=r.kind==="mensch"?"Die Familie wächst, weil sich alle auf der Insel wohlfühlen.":artikel(r.art,true,true)+" "+r.art+" ist da.";
   } else { head=r.name+" bearbeiten"; text="Ändere Namen und Aussehen."; }
   const list=r.kind==="mensch"?HUMAN_NAMES:ANIMAL_NAMES;
-  const draft=r.kind==="mensch"?lookIdx(r):{fur:animalVar(r)};
+  const draft=r.kind==="mensch"?lookIdx(r):tierDraft(r);
   sheet(`${ev.type==="rename"?"":`<div class="anim">${animScene(ev)}</div>`}<p class="label" style="color:var(--lime)">${ev.type==="rename"?"Name und Aussehen":ev.type==="birth"?"Nachwuchs":"Neue Bewohner"}</p>
     <h2>${esc(head)}</h2><p class="muted">${esc(text)}</p>
     <label class="field" for="nameIn">Wie soll ${r.kind==="mensch"?"die Person":"das Tier"} heißen?</label>
@@ -4307,15 +4390,16 @@ function nameSheet(ev){
   // Ankunftsbild oben gleich mit dem neuen Aussehen zeigen (ohne die Animation neu zu starten)
   bindLookEditor(r,draft,()=>{
     const a=$("#modalRoot .anim"); if(!a) return;
-    const keep={look:r.look,fur:r.fur};
-    if(r.kind==="mensch") r.look=Object.assign({},draft); else r.fur=draft.fur;
+    const keep={look:r.look,fur:r.fur,gear:r.gear};
+    if(r.kind==="mensch") r.look=Object.assign({},draft); else {r.fur=draft.fur; r.gear=tierGear(draft)}
     a.innerHTML=animScene(ev); a.classList.add("skip");
     if(keep.look===undefined) delete r.look; else r.look=keep.look;
     if(keep.fur===undefined) delete r.fur; else r.fur=keep.fur;
+    if(keep.gear===undefined) delete r.gear; else r.gear=keep.gear;
   });
   $("#nameOk").onclick=()=>{
     const n=inp.value.trim()||r.name; const old=r.name; r.name=n.slice(0,20);
-    if(r.kind==="mensch") r.look=Object.assign({},draft); else if((FUR[r.art]||[]).length>1) r.fur=draft.fur;
+    if(r.kind==="mensch") r.look=Object.assign({},draft); else {if((FUR[r.art]||[]).length>1) r.fur=draft.fur; const g=tierGear(draft); if(g) r.gear=g; else delete r.gear}
     const os=$("#ownSel"); if(os){const nv=os.value||null; if(nv!==(r.owner||null)){r.owner=nv; const mate=r.pair&&S.residents.find(x=>x.id===r.pair); if(mate&&!isSea(mate)) mate.owner=nv; r.sad=false}}
     if(ev.type==="arrival"){log(r.name+(r.kind==="tier"?" ("+r.art+")":"")+" ist auf die Insel gezogen.","good");
       const ow=r.owner?S.residents.find(x=>x.id===r.owner):null;
@@ -4329,9 +4413,9 @@ function nameSheet(ev){
 /* Aussehen wählen: kleine Auswahl mit Live-Vorschau */
 function lookPreview(r,draft){
   const tmp=Object.assign({},r,{sick:null,phone:false,lv:4,lvUp:null,lvFull:true});   // im Editor sieht man immer, wie jemand ganz zurück aussieht
-  if(r.kind==="mensch") tmp.look=draft; else tmp.fur=draft.fur;
+  if(r.kind==="mensch") tmp.look=draft; else {tmp.fur=draft.fur; tmp.gear=tierGear(draft)}
   const adult=r.kind==="mensch"&&stage(r)!=="baby"&&stage(r)!=="kind";
-  const main=`<svg width="76" height="${adult?92:78}" viewBox="${r.kind==="mensch"?(stage(r)==="baby"?"-8.5 -15.5 17 17":stage(r)==="kind"?"-12 -25 24 26":"-13.5 -32.4 27 33.4"):SEA.includes(tmp.art)?figVB(tmp):"-16 -22 32 25"}" aria-hidden="true">${figure(tmp,0,0)}</svg>`;
+  const tier=r.kind!=="mensch", main=`<svg width="${tier?124:76}" height="${tier?104:adult?92:78}" viewBox="${r.kind==="mensch"?(stage(r)==="baby"?"-8.5 -15.5 17 17":stage(r)==="kind"?"-12 -25 24 26":"-13.5 -32.4 27 33.4"):tierVB(tmp.art,124/104)}" aria-hidden="true">${figure(tmp,0,0)}</svg>`;
   if(!adult) return main;
   // Kleine Schatten-Vorschau: so leuchten die Augen, solange die Farbe noch fehlt
   const sh=Object.assign({},tmp,{lv:1,lvFull:false});
@@ -4367,6 +4451,33 @@ function umkleide(r,d){
     <div class="uk-main"><div class="uk-mir"><div class="look-prev" id="lookPrev">${lookPreview(r,d)}</div><button type="button" class="uk-dice" data-dice aria-label="Zufälliger Look">🎲</button></div>
     <div class="uk-body">${body}</div></div></div>`;
 }
+/* Umkleide für Tiere: gleicher Aufbau wie bei Menschen (Leiste links, Spiegel, Kacheln) */
+const TIER_LOOKS=[["Chillig",{specs:1,collar:3,cc:5}],["Rockstar",{specs:1,collar:1,cc:14}],["Verliebt",{specs:3,collar:2,cc:6}],["Schick",{specs:0,collar:4,cc:8}],
+  ["Sportlich",{specs:4,collar:1,cc:1}],["Pilot",{specs:2,collar:3,cc:11}],["Klassisch",{specs:0,collar:2,cc:8}],["Strand",{specs:1,collar:3,cc:15}],["Natur",{specs:0,collar:0,cc:0}]];
+const UK_TIER=[["looks","✨","Looks"],["fell","🎨","Fell"],["hals","🎀","Halsband"],["brille","🕶️","Brille"]];
+/* Enger Ausschnitt ums Tier, damit Brille und Halsband gut zu sehen sind */
+function tierVB(a,ratio){const B=ART_BOX[a]||[-12,-16,12,1], cx=(B[0]+B[2])/2, cy=(B[1]+B[3])/2, w=Math.max(B[2]-B[0],(B[3]-B[1])*ratio)+3, h=w/ratio;
+  return [cx-w/2,cy-h/2,w,h].map(v=>+v.toFixed(1)).join(" ")}
+function ukTier(r,d,ch,s){const g=Object.assign({},d,ch), vb=tierVB(r.art,1/.85);
+  return `<svg width="${s}" height="${Math.round(s*.85)}" viewBox="${vb}" aria-hidden="true">${animalSvg(r.art,g.fur||0)}${gearSvg(r.art,g)}</svg>`}
+function umkleideTier(r,d){
+  const nf=(FUR[r.art]||[{}]).length, col=hasCollar(r.art);
+  const panes=UK_TIER.filter(p=>(p[0]!=="fell"||nf>1)&&(p[0]!=="hals"||col));
+  if(!panes.some(p=>p[0]===LOOK_PANE)) LOOK_PANE="looks";
+  const tiles=(key,names,cur,ch)=>`<div class="uk-grid" role="radiogroup">${names.map((n,i)=>`<button type="button" class="uk-tile${i===cur?" on":""}" data-look="${key}" data-v="${i}" aria-label="${n}" aria-pressed="${i===cur}">${ukTier(r,d,ch(i),62)}<span>${n}</span></button>`).join("")}</div>`;
+  const sw=(label,key,list,sel)=>`<div class="sw-row" role="radiogroup" aria-label="${label}"><span class="small muted">${label}</span>${list.map((c,i)=>`<button type="button" class="sw${i===sel?" on":""}" data-look="${key}" data-v="${i}" style="background:${c}" aria-label="${label} ${i+1}" aria-pressed="${i===sel}"></button>`).join("")}</div>`;
+  const body={
+    looks:`<p class="uk-h">Fertige Looks <span>${TIER_LOOKS.length}</span></p><div class="uk-grid">${TIER_LOOKS.map(([n,l],i)=>`<button type="button" class="uk-tile lk" data-lookset="${i}" aria-label="Look ${n}">${ukTier(r,d,col?l:Object.assign({},l,{collar:0}),62)}<span>${n}</span></button>`).join("")}</div>`,
+    fell:`<p class="uk-h">Fellfarbe</p>${tiles("fur",Array.from({length:nf},(_,i)=>"Farbe "+(i+1)),d.fur||0,i=>({fur:i}))}`,
+    hals:`<p class="uk-h">Halsband</p>${tiles("collar",COLLAR_NAMES,d.collar||0,i=>({collar:i}))}${sw("Farbe","cc",SHIRT,d.cc||0)}`,
+    brille:`<p class="uk-h">Brille</p>${tiles("specs",SPECS_NAMES,d.specs||0,i=>({specs:i}))}`
+  }[LOOK_PANE];
+  return `<div class="uk"><div class="uk-rail" role="tablist">${panes.map(([k,e,n])=>`<button type="button" role="tab" class="uk-r${k===LOOK_PANE?" on":""}" data-pane="${k}" aria-selected="${k===LOOK_PANE}"><b aria-hidden="true">${e}</b><i>${n}</i></button>`).join("")}</div>
+    <div class="uk-main"><div class="uk-mir"><div class="look-prev" id="lookPrev">${lookPreview(r,d)}</div><button type="button" class="uk-dice" data-dice aria-label="Zufälliger Look">🎲</button></div>
+    <div class="uk-body">${body}</div></div></div>`;
+}
+const tierDraft=r=>Object.assign({fur:animalVar(r),collar:0,cc:0,specs:0},r.gear||{});
+function tierGear(d){const g={collar:d.collar||0,cc:d.cc||0,specs:d.specs||0};return g.collar||g.specs?g:null}
 function lookEditor(r,d){
   const row=(label,key,list,sel)=>`<div class="sw-row" role="radiogroup" aria-label="${label}"><span class="small muted">${label}</span>${list.map((c,i)=>`<button type="button" class="sw${i===sel?" on":""}" data-look="${key}" data-v="${i}" style="background:${c}" aria-label="${label} ${i+1}" aria-pressed="${i===sel}"></button>`).join("")}</div>`;
   if(r.kind==="mensch"){
@@ -4380,8 +4491,7 @@ function lookEditor(r,d){
     if(baby) return `<div class="field"><span>Aussehen</span><div class="look"><div class="look-prev" id="lookPrev">${lookPreview(r,d)}</div><div class="look-opts">${row("Haut","skin",SKIN,d.skin)}${row("Haare","hair",HAIR,d.hair)}${row("Strampler","shirt",SHIRT,d.shirt)}</div></div></div>`;
     return `<div class="field"><span>Aussehen</span><div id="lookEd">${umkleide(r,d)}</div></div>`;
   }
-  const n=(FUR[r.art]||[]).length; if(n<2) return "";
-  return `<div class="field"><span>Fellfarbe</span><div class="sw-row" role="radiogroup" aria-label="Fellfarbe">${Array.from({length:n},(_,i)=>`<button type="button" class="sw sw-ic sw-big${i===d.fur?" on":""}" data-look="fur" data-v="${i}" aria-label="Fellfarbe ${i+1}" aria-pressed="${i===d.fur}"><svg width="38" height="30" viewBox="${artVB(r.art,38/30)}" aria-hidden="true">${animalSvg(r.art,i)}</svg></button>`).join("")}</div></div>`;
+  return `<div class="field"><span>Aussehen</span><div id="lookEd">${umkleideTier(r,d)}</div></div>`;
 }
 function lookIc(i,on,k,n,inner,vb){return `<button type="button" class="sw sw-ic${on?" on":""}" data-look="${k}" data-v="${i}" aria-label="${n}" aria-pressed="${on}"><svg width="24" height="24" viewBox="${vb}" aria-hidden="true">${inner}</svg></button>`}
 function lookPatRow(r,d){const c=SHIRT[d.shirt]||"#5B8CD6", sel=(d.pat||0)%PAT_NAMES.length;
@@ -4391,9 +4501,17 @@ function lookBeardRow(d){const hc=HAIR[d.hair]||"#4A3222", sel=(d.beard||0)%BEAR
 function bindLookEditor(r,draft,onChange){
   const ed=$("#lookEd");
   if(ed){
-    const redraw=()=>{const b=ed.querySelector(".uk-body"), y=b?b.scrollTop:0; ed.innerHTML=umkleide(r,draft); const nb=ed.querySelector(".uk-body"); if(nb) nb.scrollTop=y; if(onChange) onChange()};
+    const UK=r.kind==="mensch"?umkleide:umkleideTier;
+    const redraw=()=>{const b=ed.querySelector(".uk-body"), y=b?b.scrollTop:0; ed.innerHTML=UK(r,draft); const nb=ed.querySelector(".uk-body"); if(nb) nb.scrollTop=y; if(onChange) onChange()};
     ed.onclick=e=>{const t=e.target.closest("button"); if(!t||!ed.contains(t)) return;
-      if(t.dataset.pane){LOOK_PANE=t.dataset.pane; ed.innerHTML=umkleide(r,draft); return}
+      if(t.dataset.pane){LOOK_PANE=t.dataset.pane; ed.innerHTML=UK(r,draft); return}
+      if(r.kind!=="mensch"){
+        if(t.dataset.lookset!=null) Object.assign(draft,TIER_LOOKS[+t.dataset.lookset][1]);
+        else if(t.dataset.dice!=null){const R=n=>Math.floor(Math.random()*n); Object.assign(draft,{fur:R((FUR[r.art]||[{}]).length),collar:hasCollar(r.art)&&Math.random()<.7?1+R(COLLAR_NAMES.length-1):0,cc:R(SHIRT.length),specs:Math.random()<.6?1+R(SPECS_NAMES.length-1):0})}
+        else if(t.dataset.look) draft[t.dataset.look]=+t.dataset.v;
+        else return;
+        if(!hasCollar(r.art)) draft.collar=0;
+        redraw(); return}
       if(t.dataset.lookset!=null){Object.assign(draft,JSON.parse(JSON.stringify(LOOKS[+t.dataset.lookset][1]))); if(stage(r)==="kind") draft.beard=0; redraw(); return}
       if(t.dataset.dice!=null){const R=n=>Math.floor(Math.random()*n), kid=stage(r)==="kind";
         Object.assign(draft,{skin:R(SKIN.length),hair:R(HAIR.length),style:R(STYLE_NAMES.length),shirt:R(SHIRT.length),pat:Math.random()<.4?0:R(PAT_NAMES.length),beard:kid||Math.random()<.6?0:R(BEARD_NAMES.length),acc:Math.random()<.5?[]:[1+R(ACC_NAMES.length-1)],accC:R(SHIRT.length)}); redraw(); return}
