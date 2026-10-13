@@ -123,10 +123,10 @@
     function rm(){el&&el.remove();el=null}
     function done(){if(!el)return;
       // Läuft der Anmeldebildschirm dahinter, geht der Ladebildschirm animiert in ihn über (Variante per ?intro=a|b|c testbar)
-      var v=(location.search.match(/intro=([abc])/)||[])[1]||"a", b=document.body;
+      var v=(location.search.match(/intro=([abc])/)||[])[1]||"b", b=document.body;
       if(!b.classList.contains("start")||(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)){el.classList.add("out");setTimeout(rm,850);return}
       if(v==="a"&&morph()){b.classList.add("enter-m");setTimeout(rm,1250);setTimeout(function(){b.classList.remove("enter-m")},3200);return}
-      b.classList.add("enter-"+v);el.classList.add("to-"+v);setTimeout(rm,1400);setTimeout(function(){b.classList.remove("enter-"+v)},2800)}
+      b.classList.add("enter-"+v);el.classList.add("to-"+v);setTimeout(rm,1400);setTimeout(function(){b.classList.remove("enter-"+v)},3200)}
     // A: das Icon verwandelt sich passgenau in die Insel der Anmeldung, der Schriftzug gleitet an seinen Platz
     function morph(){
       var pt=el.querySelector(".sp-portal"),nm=el.querySelector(".sp-name"),hero=document.querySelector("#start .start-hero"),title=document.querySelector("#start .start-title");

@@ -675,3 +675,12 @@ body.enter-m #start .sky-inner>*,body.enter-m #start .start-wrap>:not(.start-her
 body.enter-m #start .sky-inner>:nth-child(1){animation-delay:1.1s!important}
 body.enter-m #start .sky-inner>:nth-child(2){animation-delay:1.2s!important}
 body.enter-m #start .sky-inner>:nth-child(n+3){animation-delay:1.3s!important}
+/* Übergang B: nach der Kamerafahrt ploppen Mr. Bay und Lucifer auf, Funken, dann die Sprechblase */
+body.enter-b #start .st-pop{animation:stPop .55s 1.05s both}
+body.enter-b #start .st-pop2{animation-delay:1.2s}
+body.enter-b #start .st-burst circle{animation:stSpark .9s 1.15s ease-out both}
+body.enter-b #start .start-bub{animation:stDrop .45s 1.45s cubic-bezier(.2,.9,.3,1.3) both}
+body.enter-b #start .sky-top .tagline{animation:stDrop .5s .95s cubic-bezier(.2,.9,.3,1.2) both}
+body.enter-b #start .sky-inner>:nth-child(2){animation-delay:1.1s!important}
+body.enter-b #start .sky-inner>:nth-child(3){animation-delay:1.2s!important}
+body.enter-b #start .sky-inner>:nth-child(n+4){animation-delay:1.3s!important}
