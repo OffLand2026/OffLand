@@ -26,7 +26,7 @@ Niemand muss sich mit E-Mail registrieren. Jedes Gerät bekommt automatisch eine
 
 1. Links **Build → Authentication** → **Jetzt starten**.
 2. Reiter **Anmeldemethode** → **Anonym** → einschalten → **Speichern**.
-3. Reiter **Einstellungen** → **Autorisierte Domains** → **Domain hinzufügen** → `offland2026.github.io`.
+3. Reiter **Einstellungen** → **Autorisierte Domains** → **Domain hinzufügen** → `offlandapp.com` (und für die alte Adresse `offland2026.github.io`).
 
 ## 4. Datenbank anlegen
 
@@ -113,7 +113,7 @@ Im Tab **Freunde** → „Familieninsel gründen“ oder mit einem Familien-Code
 
 ## Warteliste
 
-Die Seite `warteliste/` sammelt E-Mail-Adressen für den Start. Sie ist online unter <https://offland2026.github.io/OffLand/warteliste/>.
+Die Seite `warteliste/` sammelt E-Mail-Adressen für den Start. Sie ist online unter <https://offlandapp.com/warteliste/>.
 
 1. **Regeln aktualisieren:** Firebase-Konsole → Firestore Database → **Regeln** → den kompletten Inhalt von [`firestore.rules`](../firestore.rules) einfügen → **Veröffentlichen**. Ohne diesen Schritt schlägt jede Anmeldung fehl.
 2. **Kontakt eintragen:** In `js/online-config.js` bei `window.OFFLAND_CONTACT` deine E-Mail-Adresse eintragen, damit sich Leute abmelden können.
@@ -129,6 +129,6 @@ Nach dem ersten eingetragenen Tag fragt Mr. Bay einmal pro Gerät, ob OffLand an
 - Mit Zustimmung schreibt die App pro Tag nur Zähler nach `stats/JJJJ-MM-TT`, zum Beispiel `aktiv`, `konto_neu`, `tag`, `tag_gut`, `vorhaben_ok`, `kapitel_3`, `aktiv_ios`, `aktiv_t4_7` (aktiv 4–7 Tage nach dem ersten Start). Keine Namen, keine Minuten, keine Geräte- oder Nutzerkennung.
 - Ohne Zustimmung wird nichts gesendet; bis zur Antwort sammelt die App die Zähler nur auf dem Gerät.
 - Die Regeln dafür stehen in `firestore.rules` (Abschnitt `stats`) und müssen nach einer Änderung in der Konsole veröffentlicht werden.
-- Übersicht mit Diagrammen: <https://offland2026.github.io/OffLand/statistik/> (Beispieldaten: `?demo`).
+- Übersicht mit Diagrammen: <https://offlandapp.com/statistik/> (Beispieldaten: `?demo`).
 - Auswerten im Terminal: `node scripts/statistik.mjs 14` zeigt die letzten 14 Tage (aktive Geräte, neue Konten, eingetragene Tage, Rückkehr nach dem ersten Start, genutzte Funktionen).
 - Für die Datenschutzerklärung: Firebase (Google Ireland, Speicherort EU) verarbeitet dabei eine anonyme Anmeldung des Geräts; gespeichert werden nur Tagessummen.
