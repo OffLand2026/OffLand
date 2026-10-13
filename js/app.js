@@ -2760,7 +2760,7 @@ function viewHeute(){
       <label for="inH" class="sr">Stunden</label><input id="inH" class="tin-n" type="number" min="0" max="24" inputmode="numeric" value="${Math.floor(v0/60)}"><span>h</span>
       <label for="inM" class="sr">Minuten</label><input id="inM" class="tin-n tin-m" type="number" min="0" max="59" step="5" inputmode="numeric" value="${String(v0%60).padStart(2,"0")}"><span>min</span></div>
     <p class="small muted" id="stNote">am Handy · Wert aus den Handy-Einstellungen</p>
-    ${ST&&!S.autoTime?`<button class="st-link" id="stEntry">⚡ Automatisch messen lassen</button>`:""}
+    ${ST&&!S.autoTime&&!S.stNoLink?`<button class="st-link" id="stEntry">⚡ Automatisch messen lassen</button>`:""}
     <div class="tslide"><input id="inR" type="range" min="0" max="${smax}" step="5" value="${Math.min(v0,smax)}" aria-label="Bildschirmzeit einstellen">
       <span class="tgoal" style="left:${(S.budget/smax*100).toFixed(1)}%"><b>Ziel ${hm(S.budget)}</b></span></div>
     <div class="tticks">${[0,1,2,3].map(k=>`<span>${Math.round(smax*k/3/60)} h</span>`).join("")}</div>
@@ -2876,7 +2876,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.46";
+const APP_VERSION="1.47";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -3568,7 +3568,7 @@ function bind(){
   const stS=$("#stSetup"); if(stS) stS.onclick=stSetup;
   const stE=$("#stEntry"); if(stE) stE.onclick=()=>stSetup(true);
   const stA=$("#stApps"); if(stA) stA.onclick=async()=>{try{await ST.pickApps()}catch(e){} await stStatus(); settingsSheet()};
-  const stO=$("#stOff"); if(stO) stO.onclick=async()=>{try{await ST.stop()}catch(e){} S.autoTime=false; save(); await stStatus(); settingsSheet()};
+  const stO=$("#stOff"); if(stO) stO.onclick=async()=>{try{await ST.stop()}catch(e){} S.autoTime=false; S.stNoLink=true; save(); await stStatus(); settingsSheet()};
   ["#inH","#inM"].forEach(id=>{const el=$(id); if(el) el.addEventListener("input",()=>{el.dataset.touched="1"})});
   if(ST&&$("#inH")) stFill();
   const bn=$("#bkNow"); if(bn) bn.onclick=async()=>{bn.disabled=true;bn.textContent="Sichere …";const ok=await backupNow(true);toast(ok?"Insel gesichert":"Sichern hat nicht geklappt");settingsSheet()};
@@ -5348,7 +5348,8 @@ async function stSetup(fromEntry){
     await ST.authorize();
     const r=await ST.pickApps();
     if(r&&r.ok){S.autoTime=true;save();toast("Bildschirmzeit wird jetzt automatisch gemessen")}
-  }catch(e){toast(String(e&&e.message||e).slice(0,120))}
+    else if(fromEntry===true){S.stNoLink=true;save()}
+  }catch(e){if(fromEntry===true){S.stNoLink=true;save()} toast(String(e&&e.message||e).slice(0,120))}
   await stStatus(); if(fromEntry===true) render(); else settingsSheet();
 }
 /* Beim Eintragen: gemessene Zeit des einzutragenden Tages vorausfüllen */
