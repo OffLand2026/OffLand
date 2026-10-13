@@ -46,7 +46,10 @@
 <!-- Ladebildschirm: liegt über allem, bis die App bereit ist. Gleiches Motiv und gleiche Position wie der iOS-Startbildschirm. -->
 <div id="splash" aria-hidden="true">
   <style>
-    #splash{position:fixed;inset:0;z-index:9999;pointer-events:none;overflow:hidden;background:radial-gradient(120vh 90vh at 50% 38%,#26305A 0%,#1B2340 38%,#14151F 78%);transition:opacity .8s ease,transform .8s ease}
+    #splash{position:fixed;inset:0;z-index:9999;pointer-events:none;overflow:hidden;transition:opacity .8s ease,transform .8s ease}
+    #splash::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(120vh 90vh at 50% 38%,#26305A 0%,#1B2340 38%,#14151F 78%);transition:opacity .55s .3s ease}
+    #splash.morph::before{opacity:0}
+    #splash.morph .sp-star,#splash.morph .sp-glow,#splash.morph .sp-tag,#splash.morph .sp-bar{transition:opacity .3s;opacity:0!important}
     #splash.out{opacity:0;transform:scale(1.04)}
     #splash .sp-portal{position:absolute;left:50%;top:45.75%;width:min(22vh,64vw);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:24%;overflow:hidden;box-shadow:0 0 0 1.5px rgba(182,164,255,.25),0 18px 60px rgba(0,0,0,.45),0 0 90px rgba(182,164,255,.18);animation:spFloat 4s ease-in-out infinite}
     #splash .sp-portal svg{width:100%;height:100%;display:block}
@@ -70,6 +73,23 @@
     @keyframes spWave{0%,100%{transform:translateX(0)}50%{transform:translateX(18px)}}
     @keyframes spMoon{0%,100%{opacity:.85}50%{opacity:1}}
     @keyframes spBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+    /* Übergang in den Anmeldebildschirm: A Portal-Zoom, B Kamerafahrt, C Welle */
+    #splash.to-a,#splash.to-b,#splash.to-c{transition:none}
+    #splash.to-a{animation:spOut .55s .45s ease forwards}
+    #splash.to-a .sp-portal{animation:spZoom .95s cubic-bezier(.6,0,.25,1) forwards}
+    #splash.to-a .sp-glow{animation:spOut .3s ease forwards}
+    #splash.to-a .sp-name,#splash.to-a .sp-tag,#splash.to-a .sp-bar{animation:spLift .45s ease-in forwards}
+    @keyframes spZoom{0%{transform:translate(-50%,-50%) scale(1);border-radius:24%}100%{transform:translate(-50%,-50%) scale(7);border-radius:0;opacity:.2}}
+    @keyframes spOut{to{opacity:0}}
+    @keyframes spLift{to{opacity:0;transform:translateY(-30px)}}
+    #splash.to-b{animation:spPan 1.15s cubic-bezier(.65,0,.25,1) forwards}
+    @keyframes spPan{to{transform:translateY(-100%)}}
+    #splash .sp-sea{display:none;position:absolute;left:-10%;right:-10%;bottom:0;height:0;background:#24375A}#splash.to-c .sp-sea{display:block}
+    #splash .sp-sea::before{content:"";position:absolute;left:0;right:0;top:-22px;height:24px;background:radial-gradient(circle at 20px 26px,#24375A 20px,transparent 21px) 0 0/40px 24px repeat-x;animation:spSurf .6s linear infinite}
+    @keyframes spSurf{to{background-position:40px 0}}
+    #splash.to-c .sp-sea{animation:spFlood .8s cubic-bezier(.5,0,.3,1) forwards}
+    #splash.to-c{animation:spOut .5s .75s ease forwards}
+    @keyframes spFlood{to{height:130%}}
     @media (prefers-reduced-motion:reduce){#splash *,#splash{animation:none!important}#splash .sp-tag,#splash .sp-bar{opacity:1}}
   </style>
   <i class="sp-star" style="left:12%;top:14%"></i><i class="sp-star" style="left:28%;top:7%;animation-delay:.8s"></i><i class="sp-star" style="left:71%;top:11%;animation-delay:1.6s"></i>
@@ -95,11 +115,36 @@
   <div class="sp-name">Off<em>Land</em></div>
   <div class="sp-tag">Weniger Handy. Mehr Insel.</div>
   <div class="sp-bar"><i></i></div>
+  <div class="sp-sea"></div>
 </div>
 <script>
   // Ausblenden, sobald die App bereit ist: frühestens nach 2,4 s (damit man ihn sieht), spätestens nach 6 s
   (function(){var t0=Date.now(),el=document.getElementById("splash");
-    function done(){if(!el)return;el.classList.add("out");setTimeout(function(){el&&el.remove();el=null},850)}
+    function rm(){el&&el.remove();el=null}
+    function done(){if(!el)return;
+      // Läuft der Anmeldebildschirm dahinter, geht der Ladebildschirm animiert in ihn über (Variante per ?intro=a|b|c testbar)
+      var v=(location.search.match(/intro=([abc])/)||[])[1]||"b", b=document.body;
+      if(!b.classList.contains("start")||(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)){el.classList.add("out");setTimeout(rm,850);return}
+      if(v==="a"&&morph()){b.classList.add("enter-m");setTimeout(rm,1250);setTimeout(function(){b.classList.remove("enter-m")},3200);return}
+      b.classList.add("enter-"+v);el.classList.add("to-"+v);setTimeout(rm,1400);setTimeout(function(){b.classList.remove("enter-"+v)},3200)}
+    // A: das Icon verwandelt sich passgenau in die Insel der Anmeldung, der Schriftzug gleitet an seinen Platz
+    function morph(){
+      var pt=el.querySelector(".sp-portal"),nm=el.querySelector(".sp-name"),hero=document.querySelector("#start .start-hero"),title=document.querySelector("#start .start-title");
+      if(!pt||!hero||!pt.animate)return false;
+      var a=pt.getBoundingClientRect(),h=hero.getBoundingClientRect();
+      if(h.width<50||h.bottom<0||h.top>innerHeight)return false;
+      var E="cubic-bezier(.75,0,.2,1)",D=900;
+      pt.style.animation="none";pt.style.transform="none";pt.style.aspectRatio="auto";pt.style.zIndex="2";   // Schriftzug gleitet hinter der Insel nach oben
+      pt.style.left=a.left+"px";pt.style.top=a.top+"px";pt.style.width=a.width+"px";pt.style.height=a.height+"px";
+      var sv=pt.querySelector("svg");if(sv)sv.setAttribute("preserveAspectRatio","xMidYMid slice");
+      var r1=getComputedStyle(hero).borderRadius||"0px";
+      pt.animate([{left:a.left+"px",top:a.top+"px",width:a.width+"px",height:a.height+"px",borderRadius:"24%",boxShadow:"0 18px 60px rgba(0,0,0,.45)"},
+        {offset:.75,opacity:1},
+        {left:h.left+"px",top:h.top+"px",width:h.width+"px",height:h.height+"px",borderRadius:r1,boxShadow:"0 0 0 rgba(0,0,0,0)",opacity:0}],{duration:D,easing:E,fill:"forwards"});
+      if(nm&&title){var n=nm.getBoundingClientRect(),t=title.getBoundingClientRect(),sc=parseFloat(getComputedStyle(title).fontSize)/parseFloat(getComputedStyle(nm).fontSize);
+        nm.style.animation="none";
+        nm.animate([{transform:"translateY(-50%)",opacity:1},{offset:.8,opacity:1},{transform:"translate(0,"+((t.top+t.height/2)-(n.top+n.height/2))+"px) translateY(-50%) scale("+sc+")",opacity:0}],{duration:D,easing:E,fill:"forwards"})}
+      el.classList.add("morph");return true}
     (function wait(){if(!el)return;var ok=window.__offlandReady&&(!document.fonts||document.fonts.status==="loaded");
       if(ok&&Date.now()-t0>=2400||Date.now()-t0>6000)return done();requestAnimationFrame(wait)})();
     setTimeout(done,6500);   // auch wenn requestAnimationFrame im Hintergrund pausiert

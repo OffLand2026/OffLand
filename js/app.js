@@ -2875,7 +2875,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.40";
+const APP_VERSION="1.42";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -5756,8 +5756,9 @@ function startHero(){
     <ellipse cx="200" cy="148" rx="150" ry="18" fill="#E9D7A6"/><path d="M70 146c14-40 76-58 130-58s116 18 130 58z" fill="#7FC57A"/>
     <path d="M276 132v-24l18-14 18 14v24z" fill="#F3F1EA"/><path d="M272 110l22-17 22 17" fill="none" stroke="#FF9C7A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><rect x="288" y="116" width="10" height="16" rx="2" fill="#B6A4FF"/>
     ${lights}
-    <g transform="translate(180 150) scale(3)"><g class="bob">${baySvg(true)}</g></g>
-    <g transform="translate(232 152) scale(2.5)"><g class="bob" style="animation-delay:.6s;animation-duration:3.4s">${lucSvg(true)}</g></g>
+    <g transform="translate(180 150) scale(3)"><g class="st-pop"><g class="bob">${baySvg(true)}</g></g></g>
+    <g transform="translate(232 152) scale(2.5)"><g class="st-pop st-pop2"><g class="bob" style="animation-delay:.6s;animation-duration:3.4s">${lucSvg(true)}</g></g></g>
+    <g class="st-burst">${Array.from({length:10},(_,i)=>{const w=i/10*Math.PI*2;return `<circle cx="200" cy="120" r="${i%2?2.2:3}" fill="${["#C8F169","#B6A4FF","#FFD27A"][i%3]}" style="--dx:${Math.round(Math.cos(w)*90)}px;--dy:${Math.round(Math.sin(w)*55)}px"/>`}).join("")}</g>
   </svg>`;
 }
 let START_TALK=null;
@@ -5940,15 +5941,63 @@ function deleteSheet(){
 $("#accBtn").onclick=accountSheet;
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&ACC&&S.setup){PEND_BUDGET=3;comebackCheck();showPending();checkReplies(false)} if(document.hidden&&ACC&&S.setup)backupNow(false)});
 
+/* ---------- Umzug auf die eigene Domain ----------
+   Nach der Umstellung leitet die alte Adresse (github.io) auf die neue Domain um. Der Service Worker
+   merkt das, lädt die App auf der alten Adresse noch einmal aus dem Speicher und hinterlegt das Ziel.
+   Dann packt die App alle Konten und Inseln in die Adresse und öffnet die neue Domain, die sie dort auspackt. */
+const UMZUG_CACHE="offland-umzug";
+const umzugKey=k=>/^(offline-insel|offland-)/.test(k)&&k!=="offland-dev";
+const b64u={enc:u8=>{let s="";for(let i=0;i<u8.length;i+=0x8000)s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000));return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")},
+  dec:t=>{const s=atob(t.replace(/-/g,"+").replace(/_/g,"/")),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u}};
+async function zipBytes(u8,dir){const S=dir?CompressionStream:DecompressionStream;return new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(new S("gzip"))).arrayBuffer())}
+async function umzugPack(){
+  const d={}; for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i); if(umzugKey(k)) d[k]=localStorage.getItem(k)}
+  const raw=new TextEncoder().encode(JSON.stringify({v:1,at:Date.now(),d}));
+  return window.CompressionStream?"z"+b64u.enc(await zipBytes(raw,true)):"p"+b64u.enc(raw);
+}
+async function umzugUnpack(t){
+  const u=b64u.dec(t.slice(1)), raw=t[0]==="z"?await zipBytes(u,false):u;
+  return JSON.parse(new TextDecoder().decode(raw));
+}
+// Neue Domain: mitgebrachte Inseln übernehmen. Vorhandenes wird nie überschrieben, Kontenlisten werden zusammengeführt.
+let UMZUG_DONE=0;
+async function umzugImport(){
+  const m=location.hash.match(/^#umzug=([A-Za-z0-9_-]+)$/); if(!m) return;
+  try{const pkg=await umzugUnpack(m[1]); const d=pkg&&pkg.d||{};
+    for(const k in d){ if(!umzugKey(k)) continue;
+      if(k===PROF_KEY){const have=profiles(), ids=new Set(have.map(x=>x.id)); let add=[]; try{add=JSON.parse(d[k])||[]}catch(e){} storeProfiles(have.concat(add.filter(x=>x&&!ids.has(x.id)))); UMZUG_DONE+=add.filter(x=>x&&!ids.has(x.id)).length; continue}
+      if(localStorage.getItem(k)==null) localStorage.setItem(k,d[k]);
+    }
+    if(!UMZUG_DONE) UMZUG_DONE=-1;
+  }catch(e){UMZUG_DONE=-2}
+  history.replaceState(null,"",location.pathname+location.search);
+}
+// Alte Adresse: Hinweis mit einem Knopf, der alles mitnimmt
+async function umzugCheck(){
+  if(!("caches" in window)) return;
+  let to=null; try{const r=await caches.match("offland-umzug-ziel",{cacheName:UMZUG_CACHE}); to=r&&await r.text()}catch(e){}
+  if(!to) return; try{if(new URL(to).origin===location.origin) return}catch(e){return}
+  const go=async()=>{let pkg="";try{pkg=await umzugPack()}catch(e){} location.href=to.split("#")[0]+(pkg?"#umzug="+pkg:"")};
+  if(!profiles().length) return go();
+  modal(`<p class="label" style="color:var(--lime)">Umzug</p><h2>OffLand ist umgezogen 🏝️</h2>
+    <p class="muted">Ab jetzt findest du OffLand unter <b>${esc(new URL(to).host)}</b>. Nimm deine Inseln mit: ein Tipp, und alles ist drüben, mit allen Bewohnern, Tagen und Punkten.</p>
+    <p class="small muted">Tipp: Hast du OffLand auf dem Home-Bildschirm, leg es danach von der neuen Adresse aus neu dort ab.</p>
+    <button class="btn" id="umzugGo">Inseln mitnehmen</button>`);
+  $("#umzugGo").onclick=async()=>{$("#umzugGo").disabled=true;$("#umzugGo").textContent="Packe Koffer …";await go()};
+}
+
 function boot(){
   migrateOldSave();
   let sid=null; try{sid=sessionStorage.getItem(SESSION_KEY)}catch(e){}
   const p=sid&&profiles().find(x=>x.id===sid);
   if(p) login(p); else showStart();
   initStore();
+  if(UMZUG_DONE>0) toast(UMZUG_DONE===1?"Deine Insel ist umgezogen 🏝️":"Deine "+UMZUG_DONE+" Inseln sind umgezogen 🏝️");
+  else if(UMZUG_DONE===-2) toast("Der Umzug hat nicht geklappt. Öffne bitte nochmal die alte Adresse.");
+  umzugCheck();
 }
 
-boot();
+umzugImport().then(boot,boot);
 })();
 
 /* Offline-Unterstützung */

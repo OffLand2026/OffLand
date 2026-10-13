@@ -69,3 +69,19 @@ test("Erster Start zeigt die Anleitung", async ({ page }) => {
   await page.reload();
   await expect(page.locator("#start")).toContainText("So funktioniert");
 });
+
+test("Umzug: Inseln werden eingepackt und auf der neuen Adresse ausgepackt", async ({ page }) => {
+  await page.goto("/");
+  // Zwei Inseln anlegen, dann einpacken
+  const pkg = await page.evaluate(async () => {
+    localStorage.setItem("offline-insel-profile", JSON.stringify([{ id: "a1", name: "Emily" }, { id: "b2", name: "Franzi" }]));
+    localStorage.setItem("offline-insel-v1:a1", JSON.stringify({ glueck: 77 })); localStorage.setItem("offline-insel-v1:b2", JSON.stringify({ glueck: 55 }));
+    return await T.umzugPack();
+  });
+  // „Neue Domain“: alles leer, eine eigene Insel schon da
+  await page.evaluate(() => { localStorage.clear(); localStorage.setItem("offline-insel-profile", JSON.stringify([{ id: "c3", name: "Neu" }])); });
+  await page.goto("/?neu=1#umzug=" + pkg);
+  await expect(page.locator("#toast, .toast").first()).toContainText("umgezogen");
+  const r = await page.evaluate(() => ({ names: JSON.parse(localStorage.getItem("offline-insel-profile")).map(p => p.name), g: JSON.parse(localStorage.getItem("offline-insel-v1:a1")).glueck, hash: location.hash }));
+  expect(r.names.sort()).toEqual(["Emily", "Franzi", "Neu"]); expect(r.g).toBe(77); expect(r.hash).toBe("");
+});
