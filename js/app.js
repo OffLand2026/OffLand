@@ -1976,7 +1976,7 @@ function partyArt(){
   const an=[{id:"a1",kind:"tier",art:"Ziege",name:"Z"},{id:"a2",kind:"tier",art:"Huhn",name:"H"},{id:"a3",kind:"tier",art:"Hund",name:"D"}];
   return `<g transform="translate(206 128) scale(.95)">${projectSvg("festzelt")}</g>`+garland(110,200,98,10)+garland(200,300,96,12)+
     `<g transform="translate(140 148) scale(1.1)">${itemSvg("sandburg")}</g><g transform="translate(180 146) scale(.9)">${itemSvg("feuer")}</g>`+
-    ppl.map((r,i)=>`<g class="bob" style="animation-delay:${i*.25}s;animation-duration:${1.2+i%2*.4}s">${figure(Object.assign({},r,{lvFull:true,cheer:i%2===0}),[160,196,236,262,288][i],[140,142,141,138,140][i])}</g>`).join("")+
+    ppl.map((r,i)=>`<g class="bob" style="animation-delay:${i*.25}s;animation-duration:${1.2+i%2*.4}s">${figure(Object.assign({},r,{lvFull:true,cheer:i%2===0,look:Object.assign({},r.look,{pat:[0,2,4,6,1][i%5]})}),[160,196,236,262,288][i],[140,142,141,138,140][i])}</g>`).join("")+
     an.map((r,i)=>figure(r,[118,214,306][i],[142,147,146][i])).join("")+
     confetti()+`<g transform="translate(0 70)">${confetti()}</g>`;
 }
@@ -2041,15 +2041,26 @@ function chapterCheck(silent){
   }
 }
 function damalsArt(n){
-  const a=storyIsle("past","96 70 236 118"), g=(x,y,i)=>figure({id:"d"+n+i,name:"x",kind:"mensch",look:{skin:i%5,hair:(i*3)%7,style:[0,1,7,4,11,8][i%6],shirt:i*2%10,acc:[],accC:0}},x,y);
-  const lt=`<g transform="translate(150 132)"><path d="M-8 0h16l-3-40h-10z" fill="#F3F1EA"/><path d="M-7 -12h14M-6 -24h12" stroke="#FF9C7A" stroke-width="4"/><rect x="-6" y="-48" width="12" height="9" rx="2" fill="#FFD27A"/><path d="M-6 -44L-70 -60v28z" fill="#FFE7A3" opacity=".5"/></g>`;
-  const art=[`<g transform="translate(200 146) scale(.9)">${itemSvg("feuer")}</g>`+g(178,140,0)+g(222,140,1),
-    `<g transform="translate(200 146)">${itemSvg("bank")}</g>`+g(190,140,2)+g(210,140,3)+hearts(200,112),
-    lt+g(180,140,4),
-    boat([{id:"bx",kind:"mensch",name:"x"},{id:"by",kind:"mensch",name:"y"}],"")+g(200,140,5)+g(220,140,0),
-    partyArt(),
-    `<path d="M96 140q24-26 48 0" fill="none" stroke="#8A5A3B" stroke-width="4" stroke-linecap="round"/>`+g(120,124,1)+g(200,140,2),
-    partyArt()][n]||"";
+  // Damals-Fotos der Kapitel: alle in voller Farbe, verschiedene Typen, passend zum Kapiteltext
+  const a=storyIsle("past","96 70 236 118");
+  const L=[{skin:1,hair:4,style:18,shirt:5,pat:0},{skin:4,hair:0,style:11,shirt:6,pat:2},{skin:2,hair:2,style:16,shirt:12,pat:3,beard:4},{skin:5,hair:6,style:15,shirt:8,pat:1},
+    {skin:0,hair:5,style:8,shirt:13,pat:0,acc:[6],accC:10},{skin:3,hair:1,style:13,shirt:3,pat:9,beard:1},{skin:1,hair:7,style:10,shirt:11,pat:3,beard:4,acc:[2]}];
+  const NM=["Mo","Ida","Ben","Zoe","Lu","Tom","Opa"];
+  const g=(x,y,i,cheer,sc)=>{const f=figure({id:"d"+n+i,name:NM[i],kind:"mensch",born:-999,lv:4,lvFull:true,cheer:!!cheer,look:Object.assign({acc:[],accC:0,eye:0,beard:0},L[i])},0,0);
+    return `<g transform="translate(${x} ${y})${sc?` scale(${sc})`:""}"><g class="bob" style="animation-delay:${(i*.3)%1.2}s">${f}</g></g>`};
+  const lt=(x)=>`<g transform="translate(${x} 132)"><path d="M-8 0h16l-3-40h-10z" fill="#F3F1EA"/><path d="M-7 -12h14M-6 -24h12" stroke="#FF9C7A" stroke-width="4"/><rect x="-6" y="-48" width="12" height="9" rx="2" fill="#FFD27A"/><path d="M-6 -44L-70 -60v28z" fill="#FFE9A8" opacity=".55"/></g>`;
+  const phone=`<g transform="translate(176 141) rotate(-14)"><rect x="-3" y="-1.6" width="6" height="3.4" rx=".7" fill="#2B3350"/><rect x="-2.4" y="-1.1" width="4.8" height="2.4" rx=".4" fill="#5A6380"/></g><path d="M170 132l2 2M182 131l-2 2M176 129v2.4" stroke="#FFD27A" stroke-width=".9" stroke-linecap="round"/>`;
+  const bub=(x,y)=>`<g transform="translate(${x} ${y})"><rect x="-8" y="-6" width="16" height="10" rx="4" fill="#F3F1EA"/><path d="M-3 4l-2 4 6-4z" fill="#F3F1EA"/><path d="M-4 -1h8M-4 1.6h5" stroke="#9EA3B8" stroke-width="1" stroke-linecap="round"/></g>`;
+  const dock=`<g class="wave fb"><path d="M104 166h64l-10 12h-44z" fill="#FF9C7A"/><path d="M140 166v-36l24 32z" fill="#F3F1EA"/><path d="M136 166v-28l-18 26z" fill="#B6A4FF"/>${g(122,166,4,true,.85)}${g(150,166,5,true,.85)}</g>`;
+  const bridge=`<path d="M96 140q24-26 48 0" fill="none" stroke="#8A5A3B" stroke-width="4" stroke-linecap="round"/><path d="M106 134v6M120 125v15M134 134v6" stroke="#8A5A3B" stroke-width="2"/>`;
+  const art=[
+    phone+g(194,140,0,true)+g(226,140,1),                                                                   // Das stille Dorf: das erste Handy liegt im Sand
+    `<g transform="translate(200 146)">${itemSvg("bank")}</g>`+g(190,140,2)+g(212,140,3)+bub(176,100)+bub(226,98), // Erste Gespräche
+    lt(150)+g(186,140,4,true)+g(210,140,6),                                                                 // Licht am Horizont: erstes Großprojekt
+    dock+g(214,140,3,true)+g(238,140,2),                                                                    // Neue Gesichter: Boot legt an
+    partyArt(),                                                                                              // Das erste Fest
+    bridge+g(120,124,1,true)+g(200,140,2)+g(226,140,5,true),                                                // Die Brücke
+    lt(116)+partyArt()+hearts(170,92)][n]||"";                                                              // OffLand lebt
   return a.open+art+`</svg>`;
 }
 function chapterSheet(n,fresh){
@@ -2864,7 +2875,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.38";
+const APP_VERSION="1.39";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
