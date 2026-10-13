@@ -685,3 +685,30 @@ body.enter-b #start .sky-inner>:nth-child(2){animation-delay:1.1s!important}
 body.enter-b #start .sky-inner>:nth-child(3){animation-delay:1.2s!important}
 body.enter-b #start .sky-inner>:nth-child(n+4){animation-delay:1.3s!important}
 .st-link{background:none;border:0;color:var(--lime);font-family:inherit;font-weight:700;font-size:14px;min-height:44px;cursor:pointer;align-self:center}
+/* Tab Zeit */
+.zt-hero{background:#1E2030}
+.zt-chips{gap:8px}
+.zt-chips .cp{flex:1;min-width:0;background:var(--card);border-radius:16px;padding:9px 11px}
+.zt-chips i{display:block;font-style:normal;font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);font-weight:700}
+.zt-chips b{font:800 17px/1.2 var(--display);white-space:nowrap}
+.zt-did{flex:0 0 auto;min-width:80px;background:var(--card);border-radius:16px;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}
+.zt-did .zt-e{font-size:22px;line-height:1;height:26px;display:flex;align-items:center}
+.zt-did .plan-ic{width:26px;height:26px;background:none;color:var(--lime)}
+.zt-did b{font:800 17px var(--display)}.zt-did i{font-style:normal;font-size:10px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);font-weight:700;max-width:90px}
+.zt-h{align-items:center}
+.zt-nav{display:flex;align-items:center;gap:2px;color:var(--lime);text-transform:none;letter-spacing:0;font-size:13px}
+.zt-arr{background:none;border:0;color:var(--lime);font-family:inherit;font-weight:800;font-size:20px;line-height:1;min-width:36px;min-height:36px;cursor:pointer}
+.zt-arr:disabled{color:var(--muted);opacity:.35;cursor:default}
+.zt-day{border-top:1px solid var(--card2);margin-top:10px;padding-top:10px}
+.zt-card{flex:0 0 150px;height:160px;border:0;border-radius:18px;padding:12px;display:flex;flex-direction:column;justify-content:space-between;text-align:left;color:#14151F;font:inherit;cursor:pointer;scroll-snap-align:start}
+.zt-card .zt-top{display:flex;justify-content:space-between;align-items:flex-start}
+.zt-card .zt-ic{width:34px;height:34px;display:block}.zt-card .zt-ic svg{width:100%;height:100%}
+.zt-card .zt-sh{opacity:.55;font-weight:800}
+.zt-card b{display:block;font:800 26px/1 var(--display)}
+.zt-card span span{font-size:12.5px;font-weight:700;opacity:.85}
+.zt-lock{background:var(--card2);color:var(--muted);cursor:default}
+.zt-fold summary{list-style:none;display:flex;align-items:center;gap:12px;cursor:pointer;min-height:44px}
+.zt-fold summary::-webkit-details-marker{display:none}
+.zt-fold summary .grow{display:flex;flex-direction:column}
+.zt-fold .zt-chev{transition:transform .2s}.zt-fold[open] .zt-chev{transform:rotate(90deg)}
+.zt-fold>.card{background:none;padding:8px 0 0}
