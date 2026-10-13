@@ -110,7 +110,7 @@ Ergebnis ist voraussichtlich **4+**. Laut Datenschutzerklärung ist OffLand ab 1
 
 ## 9. Screenshots
 
-Apple verlangt Screenshots für das **6,9"-iPhone** (1320 × 2868 Pixel). Kleinere iPhones werden daraus automatisch erzeugt. Die fertigen Bilder (1320 × 2868) bekommst du von Claude. Reihenfolge:
+Die App ist nur fürs iPhone freigegeben, iPad-Screenshots braucht es nicht. Apple verlangt Screenshots für das **6,9"-iPhone** (1320 × 2868 Pixel). Kleinere iPhones werden daraus automatisch erzeugt. Die fertigen Bilder (1320 × 2868) bekommst du von Claude. Reihenfolge:
 
 1. Insel mit glücklichen Bewohnern: „Weniger Handy. Mehr Insel.“
 2. Verwandlung vom Smombie zum Menschen: „Jeder gute Tag holt jemanden zurück“
