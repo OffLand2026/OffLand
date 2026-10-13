@@ -640,3 +640,20 @@ body:has(.devbar) #view{padding-bottom:110px}
 .del-why{display:flex;flex-wrap:wrap;gap:6px}
 .del-why .chip{border:none;cursor:pointer;font:inherit;font-size:12.5px;font-weight:700;padding:7px 11px;border-radius:12px;background:var(--card2);color:var(--ink)}
 .del-why .chip.on{background:#3B3570;box-shadow:0 0 0 2px var(--lilac)}
+
+/* Ladebildschirm geht in die Anmeldung über: Elemente bauen sich nacheinander auf */
+@keyframes stDrop{from{opacity:0;transform:translateY(-24px)}to{opacity:1;transform:none}}
+@keyframes stRise{from{opacity:0;transform:scale(1.18)}to{opacity:1;transform:none}}
+@keyframes stUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
+@keyframes stFromBelow{from{transform:translateY(100vh)}to{transform:none}}
+body.enter-a #start .start-title,body.enter-a #start .tagline,body.enter-c #start .start-title,body.enter-c #start .tagline{animation:stDrop .6s .55s cubic-bezier(.2,.9,.3,1.2) both}
+body.enter-a #start .start-hero{animation:stRise .9s .3s cubic-bezier(.2,.8,.2,1) both}
+body.enter-c #start .start-hero{animation:stUp .7s .6s cubic-bezier(.2,.9,.3,1.15) both}
+body.enter-a #start .sky-inner>*,body.enter-a #start .start-wrap>:not(.start-hero),body.enter-c #start .sky-inner>*,body.enter-c #start .start-wrap>:not(.start-hero){animation:stUp .6s cubic-bezier(.2,.9,.3,1.1) both}
+body.enter-b #start{animation:stFromBelow 1.15s cubic-bezier(.65,0,.25,1) both}
+body.enter-b #start .sky-inner>*,body.enter-b #start .start-wrap>:not(.start-hero){animation:stUp .6s cubic-bezier(.2,.9,.3,1.1) both}
+#start .sky-inner>:nth-child(1),#start .start-wrap>:nth-child(2){animation-delay:.75s!important}
+#start .sky-inner>:nth-child(2),#start .start-wrap>:nth-child(3){animation-delay:.87s!important}
+#start .sky-inner>:nth-child(3),#start .start-wrap>:nth-child(4){animation-delay:.97s!important}
+#start .sky-inner>:nth-child(n+4),#start .start-wrap>:nth-child(n+5){animation-delay:1.05s!important}
+body.enter-b #start .sky-inner>:nth-child(1){animation-delay:1s!important}
