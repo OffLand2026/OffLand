@@ -70,6 +70,9 @@
   .delta{font-weight:650}.delta.up{color:var(--good)}.delta.down{color:var(--critical)}
   .demo{background:#fab219;color:#0b0b0b;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700}
   @media (max-width:760px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.grid2{grid-template-columns:1fr}}
+  .chip.from { display: inline-flex; align-items: center; gap: 6px; }
+  .chip.from input { border: none; background: transparent; font: inherit; color: inherit; padding: 0; max-width: 128px; }
+  .chip.from[aria-pressed="true"] input { color: inherit; }
 </style>
 </head>
 <body>
@@ -78,6 +81,7 @@
     <div><h1>OffLand Statistik</h1><p class="sub">Anonyme Tageszähler von Geräten, die zugestimmt haben · keine Namen, keine Bildschirmzeiten</p></div>
     <div class="chips" role="group" aria-label="Zeitraum">
       <button class="chip" data-days="7">7 Tage</button><button class="chip" data-days="14">14 Tage</button><button class="chip" data-days="30">30 Tage</button><button class="chip" data-days="90">90 Tage</button>
+      <label class="chip from" id="fromWrap">Ab <input type="date" id="fromIn" aria-label="Erst ab diesem Datum zählen"></label><button class="chip" id="fromClr" type="button" hidden aria-label="Datum zurücksetzen">✕</button>
     </div>
   </div>
   <p class="status" id="status">Lade …</p>
@@ -96,6 +100,10 @@
     <div class="tile"><div class="lab">Fehlerfreie Gerätetage</div><div class="val" id="kOk">–</div><div class="hint" id="kOkH"></div></div>
     <div class="tile"><div class="lab">Fehler gemeldet</div><div class="val" id="kErr">–</div><div class="hint" id="kErrH"></div></div>
   </section>
+
+  <section class="card"><h2>Neue und gelöschte Konten pro Tag</h2><p class="desc">Nach oben: an dem Tag neu angelegte Konten. Nach unten: gelöschte Konten (gezählt ab Version 1.40)</p>
+    <div class="legend"><span><i style="background:var(--series-1)"></i>Neue Konten</span><span><i style="background:var(--series-2)"></i>Gelöschte Konten</span></div>
+    <div id="cKonten"></div></section>
 
   <section class="grid2">
     <div class="card"><h2>Aktive Geräte pro Tag</h2><p class="desc">Geräte, die OffLand an dem Tag geöffnet haben, nach Plattform</p>
@@ -217,6 +225,30 @@ const niceMax = v => { if (v <= 4) return 4; const p = Math.pow(10, Math.floor(M
 const roundTop = (x, y, w, h, r) => h <= 0 ? "" : (r = Math.min(r, h, w / 2), `M${x} ${y + h}V${y + r}q0-${r} ${r}-${r}h${w - 2 * r}q${r} 0 ${r} ${r}V${y + h}z`);
 const roundRight = (x, y, w, h, r) => w <= 0 ? "" : (r = Math.min(r, w, h / 2), `M${x} ${y}h${w - r}q${r} 0 ${r} ${r}v${h - 2 * r}q0 ${r}-${r} ${r}H${x}z`);
 
+// Säulen pro Tag nach oben (neu) und nach unten (gelöscht), gemeinsame Nulllinie
+function diverge(el, rows, up, down) {
+  const W = Math.max(320, Math.min(1080, el.clientWidth || 520)), H = 200, L = 30, B = 22, T = 8, n = rows.length;
+  const u = rows.map(r => r.c[up.k] || 0), d = rows.map(r => r.c[down.k] || 0);
+  if (!u.some(Boolean) && !d.some(Boolean)) { el.innerHTML = `<div class="empty">Noch keine Daten in diesem Zeitraum.</div>`; return; }
+  const mu = niceMax(Math.max(1, ...u)), md = Math.max(...d) ? niceMax(Math.max(...d)) : 0, span = H - T - B;
+  const zero = T + span * mu / (mu + md), sc = span / (mu + md), y = v => zero - v * sc;
+  const band = (W - L) / n, bw = Math.min(24, band * 0.7);
+  let g = `<line x1="${L}" x2="${W}" y1="${zero}" y2="${zero}" stroke="var(--axis, #999)"/>`;
+  [mu, mu / 2].forEach(v => { g += `<line x1="${L}" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/><text x="${L - 6}" y="${y(v) + 3.5}" text-anchor="end">${fmt(v)}</text>`; });
+  if (md) g += `<line x1="${L}" x2="${W}" y1="${y(-md)}" y2="${y(-md)}" stroke="var(--grid)"/><text x="${L - 6}" y="${y(-md) + 3.5}" text-anchor="end">−${fmt(md)}</text>`;
+  g += `<text x="${L - 6}" y="${zero + 3.5}" text-anchor="end">0</text>`;
+  const every = Math.ceil(n / (W < 420 ? 6 : 10));
+  rows.forEach((r, i) => {
+    const x = L + band * i + (band - bw) / 2;
+    if (u[i]) g += `<path d="${roundTop(x, y(u[i]), bw, zero - y(u[i]) - 1, 4)}" fill="var(${up.c})"/>`;
+    if (d[i]) { const h = d[i] * sc - 1, r0 = Math.min(4, h, bw / 2); g += `<path d="M${x} ${zero + 1}V${zero + 1 + h - r0}q0 ${r0} ${r0} ${r0}h${bw - 2 * r0}q${r0} 0 ${r0}-${r0}V${zero + 1}z" fill="var(${down.c})"/>`; }
+    if ((i % every === 0 && n - 1 - i >= Math.max(2, every)) || i === n - 1) g += `<text x="${x + bw / 2}" y="${H - 6}" text-anchor="middle">${short(r.day)}</text>`;
+    const t = `<b>${short(r.day)}</b>${esc(up.n)}: ${fmt(u[i])}<br>${esc(down.n)}: ${fmt(d[i])}`;
+    g += `<rect class="hit" x="${L + band * i}" y="${T}" width="${band}" height="${H - T - B}" data-tip="${esc(t)}"/>`;
+  });
+  el.innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Neue und gelöschte Konten pro Tag">${g}</svg>`; bindTips(el);
+}
+
 // Gestapelte Säulen pro Tag (eine Achse, 2px Fuge zwischen Segmenten)
 function stacked(el, rows, series) {
   const W = Math.max(320, Math.min(520, el.clientWidth || 520)), H = W < 420 ? 190 : 210, L = 30, B = 22, T = 8, n = rows.length;
@@ -337,6 +369,7 @@ function render(all) {
         return `<tr><td><div class="msg">${esc(e.msg || "–")}</div><code>${esc(e.src || "")}</code><div class="note">${esc(plat)} · Version ${esc(e.v || "?")} · zuletzt ${e.last ? new Date(e.last).toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" }) : "?"}</div>${e.stack ? `<details><summary>Ablauf anzeigen</summary><pre>${esc(e.stack)}</pre></details>` : ""}</td><td class="n">${fmt(e.n || 0)}</td></tr>`; }).join("") + "</tbody></table>";
   hbars($("#cUmf"), [["umfrage_start", "Start beantwortet"], ["umfrage_t7", "Woche 1 beantwortet"], ["umfrage_t21", "Woche 3 beantwortet"], ["umfrage_nein", "Umfrage abgelehnt"]].map(([k, n]) => ({ n, v: sum(k) })), { labelW: 160, color: "--series-3", empty: "Noch keine Umfragen beantwortet." });
 
+  diverge($("#cKonten"), rows, { k: "konto_neu", n: "Neue Konten", c: "--series-1" }, { k: "konto_geloescht", n: "Gelöschte Konten", c: "--series-2" });
   stacked($("#cAktiv"), rows, [{ k: "aktiv_ios", n: "iOS-App", c: "--series-1" }, { k: "aktiv_pwa", n: "Vom Home-Bildschirm", c: "--series-2" }, { k: "aktiv_web", n: "Browser", c: "--series-3" }]);
   stacked($("#cTage"), rows, [{ k: "tag_gut", n: "Im Budget", c: "--good" }, { k: "tag_schlecht", n: "Über dem Budget", c: "--critical" }]);
   hbars($("#cRet"), [["0", "Erster Tag"], ["1", "Tag 1"], ["2_3", "Tag 2–3"], ["4_7", "Tag 4–7"], ["8_14", "Tag 8–14"], ["15_30", "Tag 15–30"], ["31", "Ab Tag 31"]].map(([k, n]) => ({ n, v: sum("aktiv_t" + k) })), { keepZero: true, labelW: 120 });
@@ -357,19 +390,29 @@ function render(all) {
 }
 
 let cur = 14, LAST = null;
+// „Ab Datum“: zeigt nur Tage ab einem Stichtag (z. B. Teststart). Die Daten in Firebase bleiben unverändert; der Stichtag wird nur in diesem Browser gemerkt.
+let FROM = null; try { FROM = localStorage.getItem("offland-stat-from") || null; } catch (e) {}
+const daysSince = f => Math.min(365, Math.max(1, Math.round((new Date(iso(new Date())) - new Date(f)) / 864e5) + 1));
 async function go(days) {
+  if (FROM) days = daysSince(FROM);
   cur = days;
-  document.querySelectorAll("[data-days]").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.days === days)));
+  document.querySelectorAll("[data-days]").forEach(b => b.setAttribute("aria-pressed", String(!FROM && +b.dataset.days === days)));
+  $("#fromIn").value = FROM || ""; $("#fromWrap").setAttribute("aria-pressed", String(!!FROM)); $("#fromClr").hidden = !FROM;
   $("#status").innerHTML = "Lade …";
   try {
     const rows = await load(days);
+    if (FROM) rows.slice(0, rows.length / 2).forEach(r => r.c = {});   // vor dem Stichtag nichts vergleichen
     const any = rows.slice(rows.length / 2).some(r => Object.keys(r.c).length);
     $("#status").innerHTML = demo ? `<span class="demo">Beispieldaten</span> So sieht die Seite aus, wenn Zahlen da sind. <a href="./" style="color:inherit">Echte Zahlen</a>`
-      : any ? `Stand: ${new Date().toLocaleString("de-DE", { dateStyle: "medium", timeStyle: "short" })}` : "Noch keine Zahlen in diesem Zeitraum. Sie erscheinen, sobald Geräte zugestimmt haben und OffLand nutzen.";
+      : any ? `Stand: ${new Date().toLocaleString("de-DE", { dateStyle: "medium", timeStyle: "short" })}${FROM ? ` · gezählt ab ${new Date(FROM).toLocaleDateString("de-DE", { dateStyle: "medium" })}` : ""}` : "Noch keine Zahlen in diesem Zeitraum. Sie erscheinen, sobald Geräte zugestimmt haben und OffLand nutzen.";
     LAST = rows; render(rows);
   } catch (e) { $("#status").textContent = "Konnte die Zahlen nicht laden: " + (e && e.message || e); }
 }
-document.querySelectorAll("[data-days]").forEach(b => b.onclick = () => go(+b.dataset.days));
+const setFrom = f => { FROM = f || null; try { FROM ? localStorage.setItem("offland-stat-from", FROM) : localStorage.removeItem("offland-stat-from"); } catch (e) {} };
+document.querySelectorAll("[data-days]").forEach(b => b.onclick = () => { setFrom(null); go(+b.dataset.days); });
+$("#fromIn").max = iso(new Date());
+$("#fromIn").onchange = () => { const v = $("#fromIn").value; if (v && v <= iso(new Date())) { setFrom(v); go(cur); } };
+$("#fromClr").onclick = () => { setFrom(null); go(14); };
 $("#csvBtn").onclick = () => LAST && csv(LAST.slice(LAST.length / 2));
 let rz = 0; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => LAST && render(LAST), 200); });
 if (demo) $("#demoLink").remove();
