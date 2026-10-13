@@ -5756,8 +5756,9 @@ function startHero(){
     <ellipse cx="200" cy="148" rx="150" ry="18" fill="#E9D7A6"/><path d="M70 146c14-40 76-58 130-58s116 18 130 58z" fill="#7FC57A"/>
     <path d="M276 132v-24l18-14 18 14v24z" fill="#F3F1EA"/><path d="M272 110l22-17 22 17" fill="none" stroke="#FF9C7A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><rect x="288" y="116" width="10" height="16" rx="2" fill="#B6A4FF"/>
     ${lights}
-    <g transform="translate(180 150) scale(3)"><g class="bob">${baySvg(true)}</g></g>
-    <g transform="translate(232 152) scale(2.5)"><g class="bob" style="animation-delay:.6s;animation-duration:3.4s">${lucSvg(true)}</g></g>
+    <g transform="translate(180 150) scale(3)"><g class="st-pop"><g class="bob">${baySvg(true)}</g></g></g>
+    <g transform="translate(232 152) scale(2.5)"><g class="st-pop st-pop2"><g class="bob" style="animation-delay:.6s;animation-duration:3.4s">${lucSvg(true)}</g></g></g>
+    <g class="st-burst">${Array.from({length:10},(_,i)=>{const w=i/10*Math.PI*2;return `<circle cx="200" cy="120" r="${i%2?2.2:3}" fill="${["#C8F169","#B6A4FF","#FFD27A"][i%3]}" style="--dx:${Math.round(Math.cos(w)*90)}px;--dy:${Math.round(Math.sin(w)*55)}px"/>`}).join("")}</g>
   </svg>`;
 }
 let START_TALK=null;
