@@ -2913,7 +2913,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.51";
+const APP_VERSION="1.52";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -6012,7 +6012,7 @@ function startTalk(name){
   clearInterval(START_TALK);
   // Die beiden schicken dich eher raus, als dass sie dich festhalten: kurz eintragen, Handy weg
   const lines=name?[["bay","Hallo "+name+"! Kurz eintragen, dann Handy weg. So mögen wir das."],["luc","Mach's kurz. Draußen passiert mehr als hier."],["bay","Die Insel wächst, wenn du nicht hier bist. Klingt komisch, ist aber so."],["luc","Ich zähl mit, wie lange du bleibst. Je kürzer, desto stolzer bin ich."]]
-    :[["bay","Willkommen auf OffLand! Ich bin Mr. Bay, der Bürgermeister."],["luc","Und ich bin Lucifer. Ich war zuerst hier."],["bay","Hier gewinnst du, wenn du weniger am Handy bist. Auch weniger hier."],["luc","Einmal am Abend vorbeischauen reicht. Den Rest des Tages verschlaf ich eh."],["bay","Den Rest macht das echte Leben. Wir freuen uns nur mit."],["luc","Ich mag Leute, die schnell wieder gehen. Nimm's nicht persönlich."]];
+    :[["bay","Willkommen auf OffLand! Ich bin Mr. Bay, der Bürgermeister."],["luc","Und ich bin Lucifer. Ich war zuerst hier."],["bay","Hier gewinnst du, wenn du weniger am Handy bist. Das gilt auch für OffLand: Du musst nicht ständig reinschauen."],["luc","Einmal am Abend vorbeischauen reicht. Den Rest des Tages verschlaf ich eh."],["bay","Den Rest macht das echte Leben. Wir freuen uns nur mit."],["luc","Ich mag Leute, die schnell wieder gehen. Nimm's nicht persönlich."]];
   let i=0;
   const show=()=>{const b=$("#startBub"); if(!b){clearInterval(START_TALK);return}
     const [who,t]=lines[i++%lines.length];
