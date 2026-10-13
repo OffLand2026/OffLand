@@ -45,3 +45,27 @@ test("Link zum automatischen Messen verschwindet nach dem Ablehnen", async ({ pa
   await expect(page.locator("#closeBtn")).toBeVisible();
   expect(await page.evaluate(() => !!T.S.autoTime)).toBe(false);
 });
+
+test("Start: bisherigen Schnitt automatisch messen, nach 7 Tagen übernommen", async ({ page }) => {
+  await page.goto("/");
+  await page.click("#newAcc"); await page.fill("#accName", "Mia"); await page.click("#accCreate"); await page.click("#storySkip");
+  await page.click('[data-basemode="auto"]');
+  await expect(page.locator("label[for=setBase]")).toContainText("Vorläufige Schätzung");
+  await page.click("#startBtn");
+  await page.click(".st-sim [data-st=ok]");   // Erlaubnis
+  await page.click(".st-sim [data-st=ok]");   // Apps
+  await dismiss(page);
+  expect(await page.evaluate(() => [T.S.autoTime, !!T.S.baseMeasure, T.S.setup])).toEqual([true, true, true]);
+  await page.evaluate(() => { T.S.testmode = true; });
+  await page.evaluate(() => { T.S.budget = 240; });
+  for (const m of [120, 150, 180, 180, 120, 150, 150]) {
+    await page.evaluate(m => T.closeDay(m, [], {}), m);
+    for (let i = 0; i < 15; i++) {   // Fenster wegklicken, bis die Messung erscheint
+      if (await page.locator("#modalRoot", { hasText: "Dein Schnitt" }).count()) break;
+      const ok = await page.$("#modalRoot [data-ok], #modalRoot #nameOk, #modalRoot [data-c=egal], #modalRoot #boatYes");
+      if (!ok) break; await ok.click(); await page.waitForTimeout(60);
+    }
+  }
+  await expect(page.locator("#modalRoot")).toContainText("Dein Schnitt: 2 h 30 min");
+  expect(await page.evaluate(() => T.S.baseline)).toBe(150);
+});

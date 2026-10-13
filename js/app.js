@@ -1490,7 +1490,7 @@ function closeDay(min,quests,appMin){
   S.monsters=monsters;
   S.days.push({day,min,quests,glueck:S.glueck,sunny,pts,apps:appMin,monsters,by:MY_ID||null});
   statsActive(); stat("tag"); stat(diff>=0?"tag_gut":"tag_schlecht"); if([1,3,7,14,30,60,100].includes(S.days.length)) stat("tage_"+S.days.length); statsChange(min);
-  festCheck(day); jubiCheck();
+  festCheck(day); jubiCheck(); baseCheck();
   S.lastDay=day; S.dayCount++;
   S.guests=(S.guests||[]).filter(g=>g.until>S.dayCount);                  // Besuch bleibt zwei Tage
   unlockCheck();
@@ -2752,17 +2752,30 @@ function countUp(el,from,to){
 }
 
 /* ---------- Ansichten ---------- */
+let SETUP_AUTO=false;
 function viewSetup(){
   return `<div class="card">
     <h2>Willkommen${ACC?", "+esc(ACC.name):""}!</h2>
-    <p class="muted">Lege fest, wie viel Bildschirmzeit du dir pro Tag geben willst, und wie viel es bisher im Schnitt war. Deine iPhone- oder Android-Einstellungen unter „Bildschirmzeit“ bzw. „Digital Wellbeing“ zeigen dir den Schnitt.</p>
+    <p class="muted">Lege fest, wie viel Bildschirmzeit du dir pro Tag geben willst, und wie viel es bisher im Schnitt war.</p>
     <label class="field" for="setBudget">Tagesbudget: <span id="setBudgetOut" class="num">${hm(S.budget)}</span>
       <input id="setBudget" type="range" min="30" max="480" step="15" value="${S.budget}"></label>
-    <label class="field" for="setBase">Bisheriger Schnitt pro Tag: <span id="setBaseOut" class="num">${hm(S.baseline)}</span>
+    <div class="field"><span>Bisheriger Schnitt pro Tag</span>
+      <div class="row fr-seg setup-seg" role="radiogroup" aria-label="Bisheriger Schnitt"><button type="button" class="${SETUP_AUTO?"":"on"}" data-basemode="hand" aria-pressed="${!SETUP_AUTO}">Selbst eingeben</button><button type="button" class="${SETUP_AUTO?"on":""}" data-basemode="auto" aria-pressed="${SETUP_AUTO}">Automatisch messen</button></div></div>
+    ${SETUP_AUTO?`<p class="small muted">OffLand misst deine erste Woche mit${ST===ST_SIM?" (in der Web-Version als Simulation)":""}. Danach steht hier dein echter Schnitt. Bis dahin rechnen wir mit dieser Schätzung:</p>`
+      :`<p class="small muted">Du findest ihn auf dem iPhone unter Einstellungen → Bildschirmzeit → „Alle Aktivitäten anzeigen“ (Tagesdurchschnitt), auf Android unter „Digital Wellbeing“.</p>`}
+    <label class="field" for="setBase">${SETUP_AUTO?"Vorläufige Schätzung":"Bisheriger Schnitt"}: <span id="setBaseOut" class="num">${hm(S.baseline)}</span>
       <input id="setBase" type="range" min="30" max="600" step="15" value="${S.baseline}"></label>
     <p class="small muted">Deine ersten Bewohner heißen ${here().map(r=>esc(r.name)).join(", ")}. Umbenennen kannst du sie unter „Bewohner“.</p>
     <button class="btn" id="startBtn">Insel starten</button>
   </div>`;
+}
+/* Erste Woche automatisch gemessen: danach wird der bisherige Schnitt auf den Messwert gesetzt */
+function baseCheck(){
+  const m=S.baseMeasure; if(!m||m.done) return;
+  const ds=S.days.filter(d=>d.day>=m.since); if(ds.length<7) return;
+  const avg=Math.round(ds.slice(0,7).reduce((a,d)=>a+d.min,0)/7/5)*5;
+  m.done=true; m.old=S.baseline; S.baseline=Math.max(30,avg);
+  S.pending.push({type:"baseline",old:m.old,avg:S.baseline}); stat("schnitt_gemessen");   // kommt gleich nach der Tagesbilanz (PEND_ORDER)
 }
 function viewHeute(){
   const [mText,mCls]=mood();
@@ -2900,7 +2913,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.50";
+const APP_VERSION="1.51";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -3630,7 +3643,15 @@ function bind(){
   if(sb) sb.oninput=()=>{S.budget=+sb.value;$("#setBudgetOut").textContent=hm(S.budget)};
   if(sa) sa.oninput=()=>{S.baseline=+sa.value;$("#setBaseOut").textContent=hm(S.baseline)};
   if(sb) sb.onchange=save; if(sa) sa.onchange=save;
-  const st=$("#startBtn"); if(st) st.onclick=()=>{S.setup=true;stat("insel_start");log("Deine Insel ist gegründet. "+nameList(here().map(r=>r.name))+" ziehen ein.","good");save();render();if(famInvite())famJoinSheet(famInvite())};
+  document.querySelectorAll("[data-basemode]").forEach(b=>b.onclick=()=>{SETUP_AUTO=b.dataset.basemode==="auto";render()});
+  const st=$("#startBtn"); if(st) st.onclick=async()=>{
+    if(SETUP_AUTO&&!S.setup){
+      let ok=false; try{await ST.authorize(); const r=await ST.pickApps(); ok=!!(r&&r.ok)}catch(e){}
+      await stStatus();
+      if(ok){S.autoTime=true; S.baseMeasure={since:today()}}
+      else {S.stNoLink=true; toast("Kein Zugriff auf die Bildschirmzeit. Du kannst den Schnitt später in den Einstellungen anpassen.")}
+    }
+    S.setup=true;stat("insel_start");log("Deine Insel ist gegründet. "+nameList(here().map(r=>r.name))+" ziehen ein.","good");save();render();if(famInvite())famJoinSheet(famInvite())};
   const bo=$("#bkOn"); if(bo) bo.onclick=backupEnable;
   const wsb=$("#wishShop"); if(wsb) wsb.onclick=()=>{tab="projekt";bauTab="laden";render();window.scrollTo(0,0)};
   document.querySelectorAll("[data-bau]").forEach(b=>b.onclick=()=>{bauTab=b.dataset.bau;render();const t=$("[data-bau]");if(t&&t.getBoundingClientRect().top<0)t.scrollIntoView({block:"start"})});
@@ -4024,8 +4045,8 @@ function soundFor(ev){
 /* Fenster-Warteschlange: höchstens 3 am Stück, der Rest wartet bis zum nächsten Öffnen oder Eintragen.
    Vorhaben-Nachfrage, Joker und Tagesbilanz kommen immer und zuerst. */
 let PEND_BUDGET=3;
-const PEND_MUST=new Set(["plan","jokerAsk","day","comeback"]);
-const PEND_ORDER={comeback:-1,plan:0,jokerAsk:1,day:2,planAsk:3,unlock:7,chapter:6,umfrage:8,statsAsk:9,musicAsk:2.5};
+const PEND_MUST=new Set(["plan","jokerAsk","day","comeback","baseline"]);
+const PEND_ORDER={comeback:-1,plan:0,jokerAsk:1,day:2,baseline:2.2,planAsk:3,unlock:7,chapter:6,umfrage:8,statsAsk:9,musicAsk:2.5};
 function sortPending(){const o=e=>PEND_ORDER[e.type]!=null?PEND_ORDER[e.type]:5; S.pending=S.pending.map((e,i)=>[e,i]).sort((a,b)=>o(a[0])-o(b[0])||a[1]-b[1]).map(x=>x[0])}
 function showPending(){
   if($("#modalRoot").innerHTML) return;
@@ -4227,6 +4248,15 @@ function showPending(){
       <div class="mstamp big ok" aria-hidden="true"><span>${x.e}</span><small>${esc(festMonth(ev.m))}</small></div>
       <p class="label" style="color:var(--amber)">Monatsfest</p><h2>${esc(x.n)}</h2><p class="muted">${esc(x.t)}</p>
       <p class="small muted">+50 Punkte, +5 % Glück und der Stempel für ${esc(festMonth(ev.m))} ist jetzt in deinem Album.</p><button class="btn" data-ok>Mitfeiern</button>`);
+  }
+  if(ev.type==="baseline"){
+    sheet(`<p class="label" style="color:var(--lime)">Erste Woche gemessen</p><h2>Dein Schnitt: ${hm(ev.avg)} pro Tag</h2>
+      <p class="muted">So viel warst du in deiner ersten Woche mit OffLand im Schnitt am Handy. Geschätzt hattest du ${hm(ev.old)}. Ab jetzt rechnet OffLand mit dem gemessenen Wert.</p>
+      <p class="small muted">Weil man in der ersten Woche oft schon bewusster aufs Handy schaut, kann der Wert etwas niedrig sein. Du kannst ihn anpassen.</p>
+      <label class="field" for="baseAdj">Bisheriger Schnitt: <span id="baseAdjOut" class="num">${hm(S.baseline)}</span><input id="baseAdj" type="range" min="30" max="600" step="15" value="${S.baseline}"></label>
+      <button class="btn" data-ok>Passt so</button>`);
+    const ba=$("#baseAdj"); if(ba) ba.oninput=()=>{S.baseline=+ba.value;$("#baseAdjOut").textContent=hm(S.baseline);save()};
+    return;
   }
   if(ev.type==="jubi"){
     const ds=S.days.slice(0,ev.n), good=ds.filter(d=>d.min<=S.budget).length, saved=ds.reduce((a,d)=>a+Math.max(0,S.baseline-d.min),0);
