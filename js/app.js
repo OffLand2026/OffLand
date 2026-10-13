@@ -1809,7 +1809,7 @@ function figure(r,x,y){
       // Je weiter weg vom Menschsein, desto gebückter, dunkler und schattiger.
       const alt=st==="alt", sd=shadeC(L.shirt,.82), brow=shadeC(alt?"#8A8780":L.hair,.7);
       const tilt=[7,4,2,0,0][t], lean=[18,11,5,1,0][t], drop=[3,2,1,0,0][t];
-      const cheer=t===4&&typeof S!=="undefined"&&S&&S.glueck>=100&&!r.lvFull;   // Arme hoch nur bei 100 % Inselglück
+      const cheer=t===4&&(r.cheer||(typeof S!=="undefined"&&S&&S.glueck>=100&&!r.lvFull));   // Arme hoch nur bei 100 % Inselglück
       const hd=`translate(${(lean*.16).toFixed(2)} ${drop}) rotate(${lean} 0 -13) translate(0 -20) scale(1.24) translate(0 16)`;
       const body=`M-6.4 0q0-13 6.4-13.4q6.4.4 6.4 13.4z`;
       const arms=t===0?`<path d="M-5.4 -10q-1.6 3.4 2.6 4.6M5.4 -10q1.6 3.4-2.6 4.6" stroke="${sd}" stroke-width="2.2" fill="none" stroke-linecap="round"/><g transform="translate(0 -6.4) rotate(12)"><rect x="-2" y="-2.8" width="4" height="5.6" rx=".8" fill="#232637"/></g>`
@@ -1976,7 +1976,7 @@ function partyArt(){
   const an=[{id:"a1",kind:"tier",art:"Ziege",name:"Z"},{id:"a2",kind:"tier",art:"Huhn",name:"H"},{id:"a3",kind:"tier",art:"Hund",name:"D"}];
   return `<g transform="translate(206 128) scale(.95)">${projectSvg("festzelt")}</g>`+garland(110,200,98,10)+garland(200,300,96,12)+
     `<g transform="translate(140 148) scale(1.1)">${itemSvg("sandburg")}</g><g transform="translate(180 146) scale(.9)">${itemSvg("feuer")}</g>`+
-    ppl.map((r,i)=>`<g class="bob" style="animation-delay:${i*.25}s;animation-duration:${1.2+i%2*.4}s">${figure(r,[160,196,236,262,288][i],[140,142,141,138,140][i])}</g>`).join("")+
+    ppl.map((r,i)=>`<g class="bob" style="animation-delay:${i*.25}s;animation-duration:${1.2+i%2*.4}s">${figure(Object.assign({},r,{lvFull:true,cheer:i%2===0}),[160,196,236,262,288][i],[140,142,141,138,140][i])}</g>`).join("")+
     an.map((r,i)=>figure(r,[118,214,306][i],[142,147,146][i])).join("")+
     confetti()+`<g transform="translate(0 70)">${confetti()}</g>`;
 }
@@ -2091,7 +2091,7 @@ function bayAlbumSheet(){
 }
 function storySlides(existing){
   const kids=here().filter(r=>r.kind==="mensch").slice(0,3);
-  const ppl=(xs,y,ph)=>kids.slice(0,xs.length).map((r,i)=>`<g class="bob" style="animation-delay:${i*.3}s">${figure(Object.assign({},r,{sick:null}),xs[i],y)}</g>${ph?phoneIn(xs[i],y):""}`).join("");
+  const ppl=(xs,y,ph)=>kids.slice(0,xs.length).map((r,i)=>`<g class="bob" style="animation-delay:${i*.3}s">${figure(Object.assign({},r,{sick:null},ph?{phone:true}:{phone:false,lvFull:true,cheer:i!==1}),xs[i],y)}</g>${ph?phoneIn(xs[i],y):""}`).join("");   // Damals bunt und fröhlich, später Smombies
   const Z="96 70 236 118", a=storyIsle("past",Z), a2=storyIsle("past"), b=storyIsle("grey",Z), b2=storyIsle("grey","40 40 300 160"), n=storyIsle("now",Z);
   return [
     {who:"bay",mood:"past",art:a.open+partyArt()+`</svg>`,
