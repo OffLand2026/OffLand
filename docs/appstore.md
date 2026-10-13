@@ -121,3 +121,33 @@ Apple verlangt Screenshots für das **6,9"-iPhone** (1320 × 2868 Pixel). Kleine
 7. Freunde: „Zusammen statt allein“
 
 Bild 7 erwähnt im Freunde-Text „einen Monat Plus“. Wenn Plus in der Store-Version ausgeblendet ist, Bild 7 weglassen, sonst kann die Prüfung das bemängeln.
+
+## 10. Antrag auf Family Controls (Bildschirmzeit)
+
+Ohne diese Freigabe darf die App die Bildschirmzeit im App Store nicht nutzen. Beantragen als Account Holder unter **developer.apple.com/contact/request/family-controls-distribution**, und zwar **zweimal**: einmal für `com.offland2026.offland` und einmal für die Erweiterung `com.offland2026.offland.ScreenTimeMonitor`. Das Formular ist auf Englisch.
+
+**App name:** OffLand
+
+**Describe how your app will use the Family Controls framework:**
+
+```
+OffLand is a screen time wellbeing game for individuals and families. Users set a personal daily screen time goal; each evening the app compares the actual screen time to that goal. Staying under the goal makes a small virtual island grow and its residents happier. Going over has gentle in-game consequences. There are no penalties, ads or tracking.
+
+We use Family Controls only with individual authorization (AuthorizationCenter.requestAuthorization(for: .individual)) so that users can measure their own screen time automatically instead of reading it from the Settings app every evening.
+
+How it works:
+1. The user opts in from the app settings and grants Screen Time access.
+2. The user picks which apps and categories should count via FamilyActivityPicker. The selection stays opaque to us.
+3. Our DeviceActivityMonitor extension registers usage thresholds in 15-minute steps for the current day. When a threshold is reached, the extension stores only the highest reached step (e.g. "90 minutes") for that day in the shared App Group.
+4. When the user logs their day, the app pre-fills this value. The user can always correct it.
+
+Data and privacy:
+- We never read which apps or websites were used, only the daily total in 15-minute steps.
+- This value stays on the device. It is never sent to our servers, never shared with third parties and never used for advertising.
+- We do not use ManagedSettings to block or shield apps.
+- The feature is optional. The app works fully with manual entry, and users can turn automatic measuring off at any time.
+
+Bundle IDs: com.offland2026.offland (app) and com.offland2026.offland.ScreenTimeMonitor (DeviceActivityMonitor extension).
+```
+
+Nach der Freigabe: In Certificates, Identifiers & Profiles bei beiden App-IDs die Fähigkeit **Family Controls (Distribution)** aktivieren und den TestFlight-Lauf mit „Bildschirmzeit-Berechtigung einbauen“ starten.
