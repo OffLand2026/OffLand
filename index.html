@@ -2,6 +2,19 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
+<script>
+  // offlandapp.com: Neue Besucher sehen zuerst die Website. Direkt in die App geht es mit Insel auf dem Gerät,
+  // vom Home-Bildschirm, mit Einladungs- oder Umzugslink oder über „Ausprobieren“ auf der Website (?app).
+  (function(){try{
+    if(!/(^|\.)offlandapp\.com$/.test(location.hostname))return;
+    var q=location.search,h=location.hash,ss=sessionStorage;
+    if(/(^|[?&])app\b/.test(q))ss.setItem("offland-app","1");
+    var standalone=(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)||navigator.standalone;
+    var hasIsland=(JSON.parse(localStorage.getItem("offline-insel-profile")||"[]")||[]).length>0;
+    if(standalone||hasIsland||q||h||ss.getItem("offland-app"))return;
+    location.replace("landing/");
+  }catch(e){}})();
+</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#14151F">
 <meta name="description" content="OffLand – Grow your world beyond the screen. Weniger Bildschirmzeit, glücklichere Insel.">
