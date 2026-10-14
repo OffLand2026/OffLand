@@ -132,3 +132,17 @@ Nach dem ersten eingetragenen Tag fragt Mr. Bay einmal pro Gerät, ob OffLand an
 - Übersicht mit Diagrammen: <https://offlandapp.com/statistik/> (Beispieldaten: `?demo`).
 - Auswerten im Terminal: `node scripts/statistik.mjs 14` zeigt die letzten 14 Tage (aktive Geräte, neue Konten, eingetragene Tage, Rückkehr nach dem ersten Start, genutzte Funktionen).
 - Für die Datenschutzerklärung: Firebase (Google Ireland, Speicherort EU) verarbeitet dabei eine anonyme Anmeldung des Geräts; gespeichert werden nur Tagessummen.
+
+## App Check (Schutz vor Missbrauch)
+
+Der Firebase-Schlüssel in `js/online-config.js` ist öffentlich, das ist bei Web-Apps normal. Ohne App Check könnte aber jemand mit diesem Schlüssel die Statistik oder die Fehlerberichte mit Unsinn füllen. App Check lässt nur noch Anfragen von der echten OffLand-Seite bzw. App durch (Prüfung mit Google reCAPTCHA v3, unsichtbar, ohne Bilderrätsel).
+
+1. **reCAPTCHA-Schlüssel anlegen:** <https://www.google.com/recaptcha/admin/create> → Typ **reCAPTCHA v3** (Punktzahl) → Domains `offlandapp.com`, `offland2026.github.io` und `localhost` (für die iPhone-App) → Senden. Du bekommst einen **Websiteschlüssel** und einen **geheimen Schlüssel**.
+2. **In Firebase eintragen:** Firebase-Konsole → **App Check** → Reiter **Apps** → die Web-App → **reCAPTCHA** → den **geheimen Schlüssel** einfügen → Speichern.
+3. **In OffLand eintragen:** den **Websiteschlüssel** (nicht den geheimen!) in `js/online-config.js` bei `window.OFFLAND_APPCHECK_KEY = "…"` einsetzen (oder Claude schicken).
+4. **Ein paar Tage beobachten:** App Check → **APIs** → Cloud Firestore zeigt, wie viele Anfragen geprüft sind. Erst wenn fast alle „Überprüft“ sind und die iPhone-App (TestFlight) weiter funktioniert, auf **Erzwingen** stellen.
+
+Gut zu wissen:
+- Nach dem Erzwingen funktionieren ältere App-Versionen ohne App Check nicht mehr online. Darum erst erzwingen, wenn alle aktualisiert haben (die Web-App aktualisiert sich von selbst).
+- `scripts/statistik.mjs` kann nach dem Erzwingen nicht mehr lesen; die Statistik-Seite <https://offlandapp.com/statistik/> funktioniert weiter.
+- Die Datenschutzerklärung erwähnt reCAPTCHA bereits (Abschnitt Online-Funktionen).

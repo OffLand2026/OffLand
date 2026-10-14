@@ -180,7 +180,9 @@ async function load(days) {
   const cfg = window.OFFLAND_FIREBASE;
   if (!cfg || !cfg.apiKey) throw new Error("Firebase ist nicht eingerichtet.");
   const [A, U, F] = await Promise.all([import(FB + "firebase-app.js"), import(FB + "firebase-auth.js"), import(FB + "firebase-firestore.js")]);
-  const app = A.initializeApp(cfg), auth = U.getAuth(app), db = F.getFirestore(app);
+  const app = A.initializeApp(cfg);
+  if (window.offlandAppCheck) await window.offlandAppCheck(app, FB);
+  const auth = U.getAuth(app), db = F.getFirestore(app);
   await auth.authStateReady(); if (!auth.currentUser) await U.signInAnonymously(auth);
   // Pro Tag ein altes Dokument (bis Version 1.53) plus 10 Teil-Dokumente _s0 … _s9, zusammengezählt
   const ids = d => [d].concat(Array.from({ length: 10 }, (_, s) => d + "_s" + s));

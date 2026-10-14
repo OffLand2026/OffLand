@@ -4,6 +4,7 @@ import SwiftUI
 import Capacitor
 import FamilyControls
 import DeviceActivity
+import WidgetKit
 
 /// Gemeinsamer Speicher von App und Monitor-Erweiterung.
 let offlandGroup = "group.com.offland2026.offland"
@@ -21,7 +22,8 @@ public class ScreenTimePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "pickApps", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "minutes", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "stop", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "showAverage", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "showAverage", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "widget", returnType: CAPPluginReturnPromise)
     ]
 
     private var defaults: UserDefaults? { UserDefaults(suiteName: offlandGroup) }
@@ -112,6 +114,14 @@ public class ScreenTimePlugin: CAPPlugin, CAPBridgedPlugin {
             host = controller
             self.bridge?.viewController?.present(controller, animated: true)
         }
+    }
+
+    /// Werte für das Homescreen-Widget (OffLandWidget) ablegen und neu zeichnen lassen.
+    @objc func widget(_ call: CAPPluginCall) {
+        let json = call.getString("json") ?? "{}"
+        defaults?.set(json, forKey: "widget")
+        WidgetCenter.shared.reloadAllTimelines()
+        call.resolve()
     }
 
     static func startMonitoring(_ selection: FamilyActivitySelection) throws {

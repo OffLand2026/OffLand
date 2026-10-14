@@ -144,7 +144,9 @@ async function connect() {
   if (net) return net;
   const b = "https://www.gstatic.com/firebasejs/" + FB_VER + "/";
   const [A, U, F] = await Promise.all([import(b + "firebase-app.js"), import(b + "firebase-auth.js"), import(b + "firebase-firestore.js")]);
-  const app = A.initializeApp(window.OFFLAND_FIREBASE, "warteliste"), auth = U.getAuth(app), db = F.getFirestore(app);
+  const app = A.initializeApp(window.OFFLAND_FIREBASE, "warteliste");
+  if (window.offlandAppCheck) await window.offlandAppCheck(app, "https://www.gstatic.com/firebasejs/" + FB_VER + "/");
+  const auth = U.getAuth(app), db = F.getFirestore(app);
   await auth.authStateReady(); if (!auth.currentUser) await U.signInAnonymously(auth);
   return net = { db, F };
 }

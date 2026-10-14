@@ -2752,6 +2752,15 @@ function countUp(el,from,to){
 }
 
 /* ---------- Ansichten ---------- */
+/* Homescreen-Widget auf dem iPhone: Glück, Serie, Bewohner. Nur schicken, wenn sich etwas geändert hat. */
+let WIDGET_LAST="";
+function widgetSync(){
+  if(!ST_NATIVE||!S||!S.setup) return;
+  const h=here(), json=JSON.stringify({name:curWorld().name,glueck:Math.round(S.glueck),streak:S.budgetStreak||0,
+    people:h.filter(r=>r.kind==="mensch").length,animals:h.filter(r=>r.kind!=="mensch").length,entered:S.lastDay||""});
+  if(json===WIDGET_LAST) return; WIDGET_LAST=json;
+  try{ST_NATIVE.widget({json}).catch(()=>{})}catch(e){}
+}
 let SETUP_AUTO=false;
 function viewSetup(){
   return `<div class="card">
@@ -2914,7 +2923,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.54";
+const APP_VERSION="1.55";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -3617,6 +3626,7 @@ function devBar(){
   });
 }
 function render(){
+  widgetSync();
   // Im Tab Freunde steht die Familieninsel, dort die eigene Insel oben ausblenden
   $("#scene").hidden=["freunde","bewohner","zeit","projekt","verlauf"].includes(tab);
   renderScene();
@@ -4764,7 +4774,9 @@ async function netInit(){
     if(window.OFFLAND_FAKE_NET) return NET=window.OFFLAND_FAKE_NET;
     const b="https://www.gstatic.com/firebasejs/"+FB_VER+"/";
     const [A,U,F]=await Promise.all([import(b+"firebase-app.js"),import(b+"firebase-auth.js"),import(b+"firebase-firestore.js")]);
-    const app=A.initializeApp(window.OFFLAND_FIREBASE), auth=U.getAuth(app), db=F.getFirestore(app);
+    const app=A.initializeApp(window.OFFLAND_FIREBASE);
+    if(window.offlandAppCheck) await window.offlandAppCheck(app,b);   // Schutz vor Missbrauch, nur wenn ein Schlüssel eingetragen ist
+    const auth=U.getAuth(app), db=F.getFirestore(app);
     await auth.authStateReady(); if(!auth.currentUser) await U.signInAnonymously(auth);
     return NET={uid:auth.currentUser.uid,
       get:async p=>{const d=await F.getDoc(F.doc(db,p));return d.exists()?d.data():null},
