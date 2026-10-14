@@ -2914,7 +2914,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.53";
+const APP_VERSION="1.54";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -4792,9 +4792,10 @@ function weekStats(){
 }
 const netName=()=>(ACC?ACC.name:"Insel").slice(0,20), netAv=()=>ACC?ACC.avatar:"Ziege";
 /* ---------- Anonyme Nutzungsstatistik (nur mit Zustimmung) ----------
-   Gilt pro Gerät, nicht pro Konto. Gesendet werden nur Zähler pro Tag (z. B. „tag_gut +1“) nach stats/JJJJ-MM-TT:
+   Gilt pro Gerät, nicht pro Konto. Gesendet werden nur Zähler pro Tag (z. B. „tag_gut +1“) nach stats/JJJJ-MM-TT_sN (N = 0–9, siehe statsFlush):
    keine Namen, keine Minuten, keine Kennungen (Bildschirmzeit nur als grobe Stufe, siehe statsChange). Bis zur Zustimmung bleibt die Warteschlange auf dem Gerät. */
 const STATS_KEY="offland-stats";
+const STATS_SHARDS=10;
 function statsDev(){try{return JSON.parse(localStorage.getItem(STATS_KEY))||{}}catch(e){return {}}}
 function statsPut(d){try{localStorage.setItem(STATS_KEY,JSON.stringify(d))}catch(e){}}
 function stat(name,n){
@@ -4822,7 +4823,8 @@ function statsFlushSoon(){clearTimeout(statsTimer);statsTimer=setTimeout(statsFl
 async function statsFlush(){
   const d=statsDev(); if(d.consent!==true||!netConfigured()||!d.q||!Object.keys(d.q).length) return;
   const q=d.q; d.q={}; statsPut(d);
-  try{const N=await netInit(); if(!N.inc) throw 0; await N.inc("stats/"+today(),q)}
+  // Auf 10 Dokumente pro Tag verteilt: ein einzelnes Dokument verträgt nur etwa einen Schreibvorgang pro Sekunde
+  try{const N=await netInit(); if(!N.inc) throw 0; await N.inc("stats/"+today()+"_s"+Math.floor(Math.random()*STATS_SHARDS),q)}
   catch(e){const d2=statsDev(); if(d2.consent!==true) return; d2.q=d2.q||{}; for(const k in q) d2.q[k]=(d2.q[k]||0)+q[k]; statsPut(d2)}
 }
 /* ---------- Fehlerberichte (nur mit Zustimmung zur Statistik) ----------
@@ -5178,17 +5180,16 @@ async function loadRanks(force){
     .sort(byAvg);
   let all=RANKC&&RANKC.key===key&&!force?RANKC.all:null;
   let place=null,total=null;
-  if(rankTab==="alle"||S.online.pub){
-    all=(await N.list("weeks/"+wk+"/public",{orderBy:"avg",limit:100})).filter(r=>(r.days||0)>=3);
-    // genauer Platz auch jenseits der ersten 100: zählen, wer im Schnitt weniger hatte
-    const mine=friends.find(r=>r.id===me);
-    if(N.count){
-      total=await N.count("weeks/"+wk+"/public").catch(()=>null);
-      if(mine&&all.some(r=>r.id===me)===false&&S.online.pub&&mine.avg!=null&&(mine.days||0)>=3) place=await N.count("weeks/"+wk+"/public",["avg","<",mine.avg]).then(n=>n+1).catch(()=>null);
-    }
-    if(place==null){const i=all.findIndex(r=>r.id===me); if(i>=0) place=rankPlaces(all)[i]}
-    if(total==null) total=all.length;
+  const mine=friends.find(r=>r.id===me), pubPath="weeks/"+wk+"/public";
+  // Die große Liste (bis 100 Einträge) nur laden, wenn „Alle“ gewählt ist. Den eigenen Platz holen zwei Zählabfragen,
+  // die kosten pro 1000 Einträge nur einen Lesezugriff.
+  if(rankTab==="alle"&&!all) all=(await N.list(pubPath,{orderBy:"avg",limit:100})).filter(r=>(r.days||0)>=3);
+  if((rankTab==="alle"||S.online.pub)&&N.count){
+    total=await N.count(pubPath).catch(()=>null);
+    if(S.online.pub&&mine&&mine.avg!=null&&(mine.days||0)>=3) place=await N.count(pubPath,["avg","<",mine.avg]).then(n=>n+1).catch(()=>null);
   }
+  if(place==null&&all){const i=all.findIndex(r=>r.id===me); if(i>=0) place=rankPlaces(all)[i]}
+  if(total==null&&all) total=all.length;
   return RANKC={key,at:Date.now(),friends,all,place,total,nFriends:fr.length};
 }
 async function fillRanks(force){

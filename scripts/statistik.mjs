@@ -1,5 +1,5 @@
 // Anonyme Nutzungsstatistik auslesen: node scripts/statistik.mjs [Tage]   (Standard: 14)
-// Meldet sich wie die App anonym bei Firebase an und liest die Tageszähler aus stats/JJJJ-MM-TT.
+// Meldet sich wie die App anonym bei Firebase an und liest die Tageszähler aus stats/JJJJ-MM-TT und den Teil-Dokumenten stats/JJJJ-MM-TT_s0 … _s9.
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
@@ -26,11 +26,15 @@ const tok = await idToken();
 const rows = [];
 for (let i = days - 1; i >= 0; i--) {
   const day = iso(new Date(Date.now() - i * 864e5));
-  const r = await fetch(`https://firestore.googleapis.com/v1/projects/${project}/databases/(default)/documents/stats/${day}`, { headers: { Authorization: "Bearer " + tok } });
-  if (r.status === 404) { rows.push({ day, c: {} }); continue; }
-  if (!r.ok) throw new Error(`stats/${day}: ${r.status} ${await r.text()}`);
-  const f = (await r.json()).fields || {}, c = {};
-  for (const k in f) c[k] = +(f[k].integerValue ?? f[k].doubleValue ?? 0);
+  const c = {};
+  // altes Tagesdokument (bis Version 1.53) plus die 10 Teil-Dokumente _s0 … _s9
+  for (const id of [day].concat(Array.from({ length: 10 }, (_, s) => day + "_s" + s))) {
+    const r = await fetch(`https://firestore.googleapis.com/v1/projects/${project}/databases/(default)/documents/stats/${id}`, { headers: { Authorization: "Bearer " + tok } });
+    if (r.status === 404) continue;
+    if (!r.ok) throw new Error(`stats/${id}: ${r.status} ${await r.text()}`);
+    const f = (await r.json()).fields || {};
+    for (const k in f) c[k] = (c[k] || 0) + +(f[k].integerValue ?? f[k].doubleValue ?? 0);
+  }
   rows.push({ day, c });
 }
 

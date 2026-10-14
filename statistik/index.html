@@ -182,7 +182,10 @@ async function load(days) {
   const [A, U, F] = await Promise.all([import(FB + "firebase-app.js"), import(FB + "firebase-auth.js"), import(FB + "firebase-firestore.js")]);
   const app = A.initializeApp(cfg), auth = U.getAuth(app), db = F.getFirestore(app);
   await auth.authStateReady(); if (!auth.currentUser) await U.signInAnonymously(auth);
-  const snaps = await Promise.all(list.map(day => F.getDoc(F.doc(db, "stats/" + day)).catch(() => null)));
+  // Pro Tag ein altes Dokument (bis Version 1.53) plus 10 Teil-Dokumente _s0 … _s9, zusammengezählt
+  const ids = d => [d].concat(Array.from({ length: 10 }, (_, s) => d + "_s" + s));
+  const parts = await Promise.all(list.map(day => Promise.all(ids(day).map(id => F.getDoc(F.doc(db, "stats/" + id)).catch(() => null)))));
+  const snaps = parts.map(ps => { const c = {}; let any = false; ps.forEach(s => { if (s && s.exists()) { any = true; const d = s.data(); for (const k in d) if (typeof d[k] === "number") c[k] = (c[k] || 0) + d[k]; } }); return { exists: () => any, data: () => c }; });
   ERRS = await F.getDocs(F.query(F.collection(db, "errors"), F.orderBy("last", "desc"), F.limit(30))).then(r => r.docs.map(d => d.data())).catch(() => null);
   return list.map((day, i) => ({ day, c: snaps[i] && snaps[i].exists() ? snaps[i].data() : {} }));
 }
