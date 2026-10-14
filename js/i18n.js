@@ -52,7 +52,7 @@
   const NOUN = (t, src) => /^[A-ZÄÖÜ]/.test(src) && /^[A-Z][a-z]/.test(t) ? t[0].toLowerCase() + t.slice(1) : t;
   function core(s) {
     if (exact.has(s)) return exact.get(s);
-    let m = s.match(/^([\s\S]*?\D)(\s+\d+)$/);            // „Farbe der Extras 3“
+    let m = s.match(/^([\s\S]*?[^\d\s×])(\s*×\s*\d+|\s+\d+)$/);   // „Farbe der Extras 3“, „Muschel ×4“
     if (m && exact.has(m[1])) return exact.get(m[1]) + m[2];
     m = s.match(/^([+−\-]?[\d.,]+[×x]?\s*)(\S[\s\S]*)$/);  // „3 Tage“, „+40 Punkte“
     if (m && exact.has(m[2])) return m[1] + NOUN(exact.get(m[2]), m[2]);
