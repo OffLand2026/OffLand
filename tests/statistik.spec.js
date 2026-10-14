@@ -27,7 +27,7 @@ test("Mit Zustimmung werden nur Tageszähler gesendet", async ({ page }) => {
   await answer(page, "stYes");
   await page.waitForFunction(() => window.INCS.length > 0, null, { timeout: 8000 });
   const [path, data] = await page.evaluate(() => window.INCS[0]);
-  expect(path).toMatch(/^stats\/\d{4}-\d{2}-\d{2}$/);
+  expect(path).toMatch(/^stats\/\d{4}-\d{2}-\d{2}_s\d$/);   // auf 10 Teil-Dokumente pro Tag verteilt
   expect(data).toMatchObject({ aktiv: 1, konto_neu: 1, insel_start: 1, intro_skip: 1, tag: 1, tag_gut: 1 });
   for (const v of Object.values(data)) expect(typeof v).toBe("number");
   expect(JSON.stringify(data)).not.toContain("Stat");
