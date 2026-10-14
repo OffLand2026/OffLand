@@ -2765,6 +2765,7 @@ function viewSetup(){
       :`<p class="small muted">Du findest ihn auf dem iPhone unter Einstellungen → Bildschirmzeit → „Alle Aktivitäten anzeigen“ (Tagesdurchschnitt), auf Android unter „Digital Wellbeing“.</p>`}
     <label class="field" for="setBase">${SETUP_AUTO?"Vorläufige Schätzung":"Bisheriger Schnitt"}: <span id="setBaseOut" class="num">${hm(S.baseline)}</span>
       <input id="setBase" type="range" min="30" max="600" step="15" value="${S.baseline}"></label>
+    <button type="button" class="btn secondary" id="stAvg">📱 Tagesdurchschnitt vom ${ST===ST_SIM?"Handy":"iPhone"} anzeigen</button>
     <p class="small muted">Deine ersten Bewohner heißen ${here().map(r=>esc(r.name)).join(", ")}. Umbenennen kannst du sie unter „Bewohner“.</p>
     <button class="btn" id="startBtn">Insel starten</button>
   </div>`;
@@ -2913,7 +2914,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.52";
+const APP_VERSION="1.53";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -3644,6 +3645,11 @@ function bind(){
   if(sa) sa.oninput=()=>{S.baseline=+sa.value;$("#setBaseOut").textContent=hm(S.baseline)};
   if(sb) sb.onchange=save; if(sa) sa.onchange=save;
   document.querySelectorAll("[data-basemode]").forEach(b=>b.onclick=()=>{SETUP_AUTO=b.dataset.basemode==="auto";render()});
+  const sav=$("#stAvg"); if(sav) sav.onclick=async()=>{
+    try{const i=await ST.status(); if(!i||i.status!=="approved") await ST.authorize(); await ST.showAverage(); await stStatus()}
+    catch(e){toast("Ohne Zugriff auf die Bildschirmzeit geht das leider nicht. Den Wert findest du in den Einstellungen unter Bildschirmzeit.")}
+    const b=$("#setBase"); if(b) b.focus();
+  };
   const st=$("#startBtn"); if(st) st.onclick=async()=>{
     if(SETUP_AUTO&&!S.setup){
       let ok=false; try{await ST.authorize(); const r=await ST.pickApps(); ok=!!(r&&r.ok)}catch(e){}
@@ -5522,7 +5528,15 @@ const ST_SIM={
     if(day===today()){const n=new Date(), f=clamp((n.getHours()+n.getMinutes()/60-7)/16,0,1); m*=f}
     return {has:true,minutes:Math.max(0,Math.floor(m/15)*15)};
   },
-  async stop(){S.stSim=Object.assign(S.stSim||{},{monitoring:false}); save()}
+  async stop(){S.stSim=Object.assign(S.stSim||{},{monitoring:false}); save()},
+  async showAverage(){
+    let h=0; for(const c of String(ACC?ACC.name:"Insel")) h=(h*31+c.charCodeAt(0))>>>0;
+    const m=150+(h%30)*7;   // ausgedacht, aber für dieselbe Person immer gleich
+    await stSimAsk(`<p class="label">Simulation · so zeigt es das iPhone</p><h2>Deine Bildschirmzeit</h2>
+      <div style="text-align:center;padding:10px 0"><p class="small muted">Dein Tagesdurchschnitt der letzten 7 Tage</p><p style="font:800 40px var(--display)">${hm(Math.round(m/5)*5)}</p></div>
+      <p class="small muted">Stell den Regler „Bisheriger Schnitt“ auf diesen Wert. Auf dem iPhone zeigt Apple die Zahl nur hier an, OffLand selbst bekommt sie nicht.</p>
+      <button class="btn" data-st="ok">Fertig</button>`);
+  }
 };
 const ST=ST_NATIVE||ST_SIM;
 let stInfo=null;

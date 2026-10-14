@@ -20,7 +20,8 @@ public class ScreenTimePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "authorize", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "pickApps", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "minutes", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "stop", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "stop", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "showAverage", returnType: CAPPluginReturnPromise)
     ]
 
     private var defaults: UserDefaults? { UserDefaults(suiteName: offlandGroup) }
@@ -100,6 +101,19 @@ public class ScreenTimePlugin: CAPPlugin, CAPBridgedPlugin {
         call.resolve()
     }
 
+    /// Zeigt Apples Bericht mit dem Tagesdurchschnitt der letzten 7 Tage (Report-Erweiterung).
+    /// Die Zahl sieht nur die Person, die App bekommt sie nicht. Sie stellt danach den Regler ein.
+    @objc func showAverage(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            var host: UIViewController?
+            let view = ScreenTimeAverageView { host?.dismiss(animated: true); call.resolve() }
+            let controller = UIHostingController(rootView: view)
+            if let sheet = controller.sheetPresentationController { sheet.detents = [.medium()] }
+            host = controller
+            self.bridge?.viewController?.present(controller, animated: true)
+        }
+    }
+
     static func startMonitoring(_ selection: FamilyActivitySelection) throws {
         var events: [DeviceActivityEvent.Name: DeviceActivityEvent] = [:]
         for m in stride(from: stepMinutes, through: maxMinutes, by: stepMinutes) {
@@ -152,6 +166,39 @@ struct ScreenTimePickerView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Fertig") { done(selection) }
+                }
+            }
+        }
+    }
+}
+
+/// Bericht von Apple: Tagesdurchschnitt der letzten 7 Tage, angezeigt von der Erweiterung ScreenTimeReport.
+struct ScreenTimeAverageView: View {
+    let done: () -> Void
+    private var filter: DeviceActivityFilter {
+        let end = Date()
+        let start = Calendar.current.date(byAdding: .day, value: -7, to: Calendar.current.startOfDay(for: end)) ?? end
+        return DeviceActivityFilter(segment: .daily(during: DateInterval(start: start, end: end)))
+    }
+
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 12) {
+                DeviceActivityReport(DeviceActivityReport.Context("average"), filter: filter)
+                    .frame(height: 140)
+                Text("Stell den Regler „Bisheriger Schnitt“ in OffLand auf diesen Wert. Apple zeigt die Zahl nur hier an, OffLand selbst bekommt sie nicht.")
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+                Spacer()
+            }
+            .padding(.top)
+            .navigationTitle("Deine Bildschirmzeit")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Fertig") { done() }
                 }
             }
         }
