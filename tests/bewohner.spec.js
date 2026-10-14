@@ -67,3 +67,52 @@ test("Tab Zeit: Kalender, Tag antippen und Sammelkarten", async ({ page }) => {
   await expect(page.locator(".zt-chips").nth(1)).toContainText("Bester Monat");
   expect(d).toBeTruthy();
 });
+
+// Aussehen aus Foto: Erkennung wird durch ein Ersatz-Modell simuliert, das zum gezeichneten Testbild passt
+const FAKE_MP = `export const FilesetResolver={forVisionTasks:async()=>({})};
+export const ImageSegmenter={createFromOptions:async(fs,o)=>{const tier=o.baseOptions.modelAssetPath.includes("deeplab");
+  return {segment(cv){const w=cv.width,h=cv.height,a=new Uint8Array(w*h),in_=(x,y,cx,cy,rx,ry)=>((x-cx)/rx)**2+((y-cy)/ry)**2<=1;
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++){const X=x*200/w,Y=y*260/h;let c=0;
+      if(tier){if(in_(X,Y,100,140,70,80))c=8}
+      else if(in_(X,Y,100,100,40,50))c=3; else if(in_(X,Y,100,85,52,62)&&Y<120)c=1; else if(Y>=170&&X>40&&X<160)c=4;
+      a[y*w+x]=c}
+    return {categoryMask:{width:w,height:h,getAsUint8Array:()=>a},close(){}}}}}};`;
+async function photoFile(page, kind) {
+  const b64 = await page.evaluate(kind => { const c = document.createElement("canvas"); c.width = 200; c.height = 260; const x = c.getContext("2d");
+    const el = (cx, cy, rx, ry, f) => { x.fillStyle = f; x.beginPath(); x.ellipse(cx, cy, rx, ry, 0, 0, 7); x.fill(); };
+    if (kind === "tier") { x.fillStyle = "#E8E4DA"; x.fillRect(0, 0, 200, 260); el(100, 140, 70, 80, "#1E1E24"); el(100, 170, 22, 30, "#F5F5F5"); }
+    else { x.fillStyle = "#808890"; x.fillRect(0, 0, 200, 260); x.save(); x.beginPath(); x.rect(0, 0, 200, 120); x.clip(); el(100, 85, 52, 62, "#E0B867"); x.restore();
+      el(100, 100, 40, 50, "#F0CDB0"); x.fillStyle = "#5B8CD6"; x.fillRect(40, 170, 120, 90); }
+    return c.toDataURL("image/png").split(",")[1]; }, kind);
+  return { name: "foto.png", mimeType: "image/png", buffer: Buffer.from(b64, "base64") };
+}
+test("Aussehen aus Foto: Mensch und Tier, mit Rückgängig", async ({ page }) => {
+  await page.route("https://cdn.jsdelivr.net/npm/@mediapipe/**", r => r.request().url().endsWith("vision_bundle.mjs")
+    ? r.fulfill({ body: FAKE_MP, contentType: "text/javascript", headers: { "access-control-allow-origin": "*" } }) : r.abort());
+  await newGame(page, "Mia");
+  await page.evaluate(() => { const S = T.S;
+    S.residents.push({ id: "fm", name: "Zora", kind: "mensch", art: "Mensch", status: "da", ret: 0, born: 0, job: "fischer", trait: "ruhig", look: { skin: 5, hair: 0, style: 1, shirt: 8, pat: 0, beard: 0, acc: [] } });
+    S.residents.push({ id: "fk", name: "Lucifer", kind: "tier", art: "Katze", status: "da", ret: 0, born: 0, fur: 0 });
+    S.pending = []; document.getElementById("modalRoot").innerHTML = ""; T.nameSheet({ type: "rename", id: "fm" }); });
+  // Mensch
+  let [fc] = await Promise.all([page.waitForEvent("filechooser"), page.click("#lookEd [data-photo]")]);
+  await fc.setFiles(await photoFile(page, "mensch"));
+  await expect(page.locator("#lookEd .photo-res")).toContainText("Haarfarbe");
+  await expect(page.locator("#lookEd .photo-res")).toContainText("Kurze Haare");
+  // Rückgängig stellt den alten Look wieder her, danach erneut übernehmen und speichern
+  await page.click("#lookEd [data-photo-undo]");
+  await expect(page.locator("#lookEd .photo-res")).toHaveCount(0);
+  [fc] = await Promise.all([page.waitForEvent("filechooser"), page.click("#lookEd [data-photo]")]);
+  await fc.setFiles(await photoFile(page, "mensch"));
+  await expect(page.locator("#lookEd .photo-res")).toBeVisible();
+  await page.click("#nameOk");
+  const look = await page.evaluate(() => T.S.residents.find(x => x.id === "fm").look);
+  expect(look).toMatchObject({ skin: 0, hair: 4, style: 0, shirt: 3, beard: 0 });
+  // Tier: dunkle Katze
+  await page.evaluate(() => { document.getElementById("modalRoot").innerHTML = ""; T.nameSheet({ type: "rename", id: "fk" }); });
+  [fc] = await Promise.all([page.waitForEvent("filechooser"), page.click("#lookEd [data-photo]")]);
+  await fc.setFiles(await photoFile(page, "tier"));
+  await expect(page.locator("#lookEd .photo-res")).toContainText("Fellfarbe");
+  await page.click("#nameOk");
+  expect(await page.evaluate(() => T.S.residents.find(x => x.id === "fk").fur)).toBe(2);
+});
