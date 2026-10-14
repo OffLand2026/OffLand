@@ -98,7 +98,8 @@ test("Aussehen aus Foto: Mensch und Tier, mit Rückgängig", async ({ page }) =>
   let [fc] = await Promise.all([page.waitForEvent("filechooser"), page.click("#lookEd [data-photo]")]);
   await fc.setFiles(await photoFile(page, "mensch"));
   await expect(page.locator("#lookEd .photo-res")).toContainText("Haarfarbe");
-  await expect(page.locator("#lookEd .photo-res")).toContainText("Kurze Haare");
+  await expect(page.locator("#lookEd .photo-res")).toContainText("Kurz");
+  await expect(page.locator("#lookEd .photo-alt button")).toHaveCount(4);
   // Rückgängig stellt den alten Look wieder her, danach erneut übernehmen und speichern
   await page.click("#lookEd [data-photo-undo]");
   await expect(page.locator("#lookEd .photo-res")).toHaveCount(0);

@@ -4485,7 +4485,7 @@ function umkleide(r,d){
   }[LOOK_PANE];
   return `<div class="uk"><div class="uk-rail" role="tablist">${panes.map(([k,e,n])=>`<button type="button" role="tab" class="uk-r${k===LOOK_PANE?" on":""}" data-pane="${k}" aria-selected="${k===LOOK_PANE}"><b aria-hidden="true">${e}</b><i>${n}</i></button>`).join("")}</div>
     <div class="uk-main"><div class="uk-mir"><div class="look-prev" id="lookPrev">${lookPreview(r,d)}</div><button type="button" class="uk-photo" data-photo aria-label="Aussehen aus Foto übernehmen">📷</button><button type="button" class="uk-dice" data-dice aria-label="Zufälliger Look">🎲</button></div>
-    ${photoBanner(r)}<div class="uk-body">${body}</div></div></div>`;
+    ${photoBanner(r,d)}<div class="uk-body">${body}</div></div></div>`;
 }
 /* Umkleide für Tiere: gleicher Aufbau wie bei Menschen (Leiste links, Spiegel, Kacheln) */
 const TIER_LOOKS=[["Chillig",{specs:1,collar:3,cc:5}],["Rockstar",{specs:1,collar:1,cc:14}],["Verliebt",{specs:3,collar:2,cc:6}],["Schick",{specs:0,collar:4,cc:8}],
@@ -4510,7 +4510,7 @@ function umkleideTier(r,d){
   }[LOOK_PANE];
   return `<div class="uk"><div class="uk-rail" role="tablist">${panes.map(([k,e,n])=>`<button type="button" role="tab" class="uk-r${k===LOOK_PANE?" on":""}" data-pane="${k}" aria-selected="${k===LOOK_PANE}"><b aria-hidden="true">${e}</b><i>${n}</i></button>`).join("")}</div>
     <div class="uk-main"><div class="uk-mir"><div class="look-prev" id="lookPrev">${lookPreview(r,d)}</div><button type="button" class="uk-photo" data-photo aria-label="Aussehen aus Foto übernehmen">📷</button><button type="button" class="uk-dice" data-dice aria-label="Zufälliger Look">🎲</button></div>
-    ${photoBanner(r)}<div class="uk-body">${body}</div></div></div>`;
+    ${photoBanner(r,d)}<div class="uk-body">${body}</div></div></div>`;
 }
 const tierDraft=r=>Object.assign({fur:animalVar(r),collar:0,cc:0,specs:0},r.gear||{});
 function tierGear(d){const g={collar:d.collar||0,cc:d.cc||0,specs:d.specs||0};return g.collar||g.specs?g:null}
@@ -4576,10 +4576,20 @@ function photoHuman(P,M){
   // Haare: Flächen, die das Gesicht berühren (bei Gruppenfotos nicht die Haare der Nachbarn)
   const near=(x,y)=>x>=L-fw*.25&&x<=R+fw*.25&&y>=top-fh*.45&&y<=bot;
   const hp=[]; for(const px of maskComps(w,h,(x,y)=>cls(x,y)===1)) if(px.some(j=>near(j%w,(j/w)|0))) for(const j of px){const x=j%w,y=(j/w)|0; if(x>L-fw*1.1&&x<R+fw*1.1&&y>top-fh*1.2&&y<bot+fh*2.6) hp.push([x,y])}
-  if(hp.length<fa*.07) res.style=10;
+  // Frisur aus der Form der Haare: Länge, Pony oder Mittelscheitel, Dutt, Volumen. Dazu passende Alternativen zur Auswahl.
+  if(hp.length<fa*.07){res.style=10; res.alt=[10,6,0,15]}
   else{res.hair=nearC(col(hp),HAIR);
-    const low=hp.filter(([x,y])=>y>bot+fh*.05&&(x<L+fw*.15||x>R-fw*.15)).length;
-    res.style=low>fa*.18?1:0}
+    const side=(y0,y1)=>hp.filter(([x,y])=>y>y0&&y<=y1&&(x<L+fw*.15||x>R-fw*.15)).length;
+    const low=side(bot+fh*.05,1e9), chin=side(bot-fh*.3,bot+fh*.05);
+    const hTop=Math.min(...hp.map(p=>p[1])), topW=hp.filter(([x,y])=>y<hTop+fh*.15).map(p=>p[0]), tw=topW.length?Math.max(...topW)-Math.min(...topW):0;
+    // Volumen nur, wenn die Haare auf beiden Seiten weit abstehen (bei Gruppenfotos liegen sonst die Haare der Nachbarin daneben)
+    const midY=hp.filter(([x,y])=>y>top&&y<bot), ext=Math.min(L-Math.min(L,...midY.map(p=>p[0])),Math.max(R,...midY.map(p=>p[0]))-R);
+    const bun=top-hTop>fh*.62&&tw<fw*.55, wide=ext>fw*.5;
+    if(bun){res.style=2; res.alt=[2,16,7,3]}
+    else if(low>fa*.18){res.style=wide?4:18; res.alt=[res.style,18,1,4,7,11]}
+    else if(chin>fa*.1){res.style=8; res.alt=[8,1,18,4]}
+    else{res.style=0; res.alt=[0,12,13,14]}
+    res.alt=[...new Set(res.alt)].slice(0,4)}
   // Bart: Haar-Pixel mittig am Kinn (lange Haare liegen seitlich daneben)
   const brd=pick(L+fw*.3,R-fw*.3,top+fh*.74,bot+fh*.1,1).length/Math.max(1,fw*.4*fh*.36);
   const mus=pick(L+fw*.32,R-fw*.32,top+fh*.6,top+fh*.72,1).length/Math.max(1,fw*.36*fh*.12);
@@ -4615,26 +4625,31 @@ function photoFur(P,M,art){
 async function photoLook(r,draft,file){
   let P,M; try{P=await photoPx(file)}catch(e){toast("Das Foto konnte nicht gelesen werden.");return false}
   try{M=await mpSegment(r.kind==="mensch"?"mensch":"tier",P.cv)}catch(e){console.warn("Foto-Erkennung:",e);toast("Für die Foto-Erkennung braucht OffLand beim ersten Mal kurz Internet.");return false}
-  const prev=JSON.parse(JSON.stringify(draft)), chips=[];
+  const prev=JSON.parse(JSON.stringify(draft)), chips=[]; let alt=[];
   if(r.kind!=="mensch"){const f=photoFur(P,M,r.art);
     if(!f){toast("Auf dem Foto war kein Tier gut zu erkennen. Am besten von nah und vor ruhigem Hintergrund.");return false}
     draft.fur=f.fur; chips.push(["Fellfarbe",null])}
   else{const f=photoHuman(P,M);
     if(!f){toast("Kein Gesicht gefunden. Am besten ein Foto von vorne bei gutem Licht.");return false}
     const kid=stage(r)==="kind";
+    alt=f.alt||[];
     if(f.skin!=null){draft.skin=f.skin; chips.push(["Hautton",SKIN[f.skin]])} else {chips.push(["Hautton bitte selbst wählen",null]); LOOK_PANE="gesicht"}
     if(f.hair!=null){draft.hair=f.hair; chips.push(["Haarfarbe",HAIR[f.hair]])}
-    if(f.style!=null){draft.style=f.style; chips.push([["Kurze Haare","Lange Haare"][f.style]||STYLE_NAMES[f.style],null])}
+    if(f.style!=null){draft.style=f.style; chips.push([STYLE_NAMES[f.style],null])}
     if(!kid&&f.beard!=null){draft.beard=f.beard; if(f.beard) chips.push([BEARD_NAMES[f.beard],null])}
     const al=accList(draft.acc).filter(a=>a!==2&&a!==3); draft.acc=f.specs?accToggle(al,f.specs):al; if(f.specs) chips.push([ACC_NAMES[f.specs],null]);
-    if(f.shirt!=null){draft.shirt=f.shirt; chips.push([kid?"Shirt":"Oberteil",SHIRT[f.shirt]])}}
+    if(f.shirt!=null){draft.shirt=f.shirt; draft.pat=0; chips.push([kid?"Shirt":"Oberteil",SHIRT[f.shirt]])}}
   if(PHOTO_RES&&PHOTO_RES.url) URL.revokeObjectURL(PHOTO_RES.url);
-  PHOTO_RES={id:r.id,url:URL.createObjectURL(file),chips,prev};
+  PHOTO_RES={id:r.id,url:URL.createObjectURL(file),chips,prev,alt};
   return true;
 }
-function photoBanner(r){
+function photoBanner(r,d){
   if(!PHOTO_RES||PHOTO_RES.id!==r.id) return "";
-  return `<div class="photo-res" role="status"><img src="${PHOTO_RES.url}" alt=""><div><b>Aus deinem Foto</b><span>${PHOTO_RES.chips.map(([n,c])=>`<i>${c?`<em style="background:${c}"></em>`:""}${esc(n)}</i>`).join("")}</span><small>Passt was nicht? Einfach anpassen. Das Foto bleibt auf deinem Handy. <button type="button" class="photo-undo" data-photo-undo>Rückgängig</button></small></div></div>`;
+  // Frisur-Vorschläge als Köpfe, damit man die Haare gut erkennt
+  const head=i=>{const t=Object.assign({},r,{sick:null,phone:false,lv:4,lvUp:null,lvFull:true,look:Object.assign({},d,{style:i})});
+    return `<svg width="40" height="40" viewBox="-10.5 -28 21 21" aria-hidden="true">${figure(t,0,0)}</svg>`};
+  const alt=PHOTO_RES.alt&&PHOTO_RES.alt.length>1?`<div class="photo-alt" role="radiogroup" aria-label="Frisur aus dem Foto">${PHOTO_RES.alt.map(i=>`<button type="button" class="${i===d.style?"on":""}" data-look="style" data-v="${i}" aria-label="${STYLE_NAMES[i]}" aria-pressed="${i===d.style}">${head(i)}</button>`).join("")}</div>`:"";
+  return `<div class="photo-res" role="status"><img src="${PHOTO_RES.url}" alt=""><div><b>Aus deinem Foto</b><span>${PHOTO_RES.chips.map(([n,c])=>`<i>${c?`<em style="background:${c}"></em>`:""}${esc(n)}</i>`).join("")}</span>${alt}<small>Passt was nicht? Einfach anpassen. Das Foto bleibt auf deinem Handy. <button type="button" class="photo-undo" data-photo-undo>Rückgängig</button></small></div></div>`;
 }
 function lookEditor(r,d){
   if(PHOTO_RES&&!$("#lookEd")){URL.revokeObjectURL(PHOTO_RES.url); PHOTO_RES=null}

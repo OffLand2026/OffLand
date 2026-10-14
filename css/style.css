@@ -635,6 +635,9 @@ body:has(.devbar) #view{padding-bottom:110px}
 .photo-res span{display:flex;flex-wrap:wrap;gap:4px}
 .photo-res i{font-style:normal;font-size:10px;font-weight:800;background:#33364F;border-radius:999px;padding:2px 7px;display:inline-flex;align-items:center;gap:4px}
 .photo-res em{width:9px;height:9px;border-radius:50%;display:inline-block;box-shadow:0 0 0 1px rgba(255,255,255,.25)}
+.photo-alt{display:flex;gap:5px}
+.photo-alt button{flex:1;min-width:0;max-width:52px;aspect-ratio:1;border:none;border-radius:11px;background:#3A3D58;padding:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.photo-alt button svg{width:100%;height:100%}.photo-alt button.on{box-shadow:0 0 0 2.5px var(--lime)}
 .photo-undo{border:none;background:transparent;color:var(--lilac);font-size:10px;font-weight:800;padding:0;text-decoration:underline}
 .uk-body{flex:1;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:10px;padding:2px 2px 8px}
 .uk-body::-webkit-scrollbar{display:none}
