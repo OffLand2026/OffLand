@@ -14,6 +14,7 @@ module.exports = defineConfig({
     browserName: "chromium",
     baseURL: `http://localhost:${PORT}/`,
     serviceWorkers: "block",
+    locale: "de-DE",
     trace: "retain-on-failure"
   },
   webServer: {

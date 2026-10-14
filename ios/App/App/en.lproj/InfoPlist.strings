@@ -1,0 +1,3 @@
+/* Texte der iOS-Berechtigungen auf Englisch */
+"NSCameraUsageDescription" = "OffLand only uses the camera when you take a photo to suggest how an islander should look. The photo stays on your iPhone.";
+"NSPhotoLibraryUsageDescription" = "OffLand only reads the photo you pick to suggest how an islander should look. The photo stays on your iPhone.";

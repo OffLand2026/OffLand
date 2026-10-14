@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7D4F0E11C0FFEE0000000004 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 7D4F0E11C0FFEE0000000003 /* InfoPlist.strings */; };
 		7C3F0E11C0FFEE0000000001 /* OffLandWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C3F0E11C0FFEE0000000007 /* OffLandWidget.swift */; };
 		7C3F0E11C0FFEE0000000002 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 7C3F0E11C0FFEE000000000A /* PrivacyInfo.xcprivacy */; };
 		7C3F0E11C0FFEE0000000003 /* OffLandWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7C3F0E11C0FFEE0000000006 /* OffLandWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -83,6 +84,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		7D4F0E11C0FFEE0000000001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		7D4F0E11C0FFEE0000000002 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		7C3F0E11C0FFEE0000000006 /* OffLandWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = OffLandWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C3F0E11C0FFEE0000000007 /* OffLandWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OffLandWidget.swift; sourceTree = "<group>"; };
 		7C3F0E11C0FFEE0000000008 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -220,6 +223,7 @@
 				F4EBC061F4DE67607B6F5F98 /* ScreenTimePlugin.swift */,
 				30611004ECAE9161FB7CEC35 /* App.entitlements */,
 				7A1F0E11C0FFEE0000000001 /* PrivacyInfo.xcprivacy */,
+				7D4F0E11C0FFEE0000000003 /* InfoPlist.strings */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -348,6 +352,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				de,
 				Base,
 			);
 			mainGroup = 504EC2FB1FED79650016851F;
@@ -402,6 +407,7 @@
 				504EC30D1FED79650016851F /* Main.storyboard in Resources */,
 				2FAD9763203C412B000D30F8 /* config.xml in Resources */,
 				7A1F0E11C0FFEE0000000002 /* PrivacyInfo.xcprivacy in Resources */,
+				7D4F0E11C0FFEE0000000004 /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -467,6 +473,15 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
+		7D4F0E11C0FFEE0000000003 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				7D4F0E11C0FFEE0000000001 /* en */,
+				7D4F0E11C0FFEE0000000002 /* de */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
 		504EC30B1FED79650016851F /* Main.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (

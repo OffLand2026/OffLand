@@ -349,7 +349,9 @@ const pad=n=>String(n).padStart(2,"0");
 const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
 const parse=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
 const addDays=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return iso(d)};
-const nice=s=>parse(s).toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"short"});
+const LOC=window.OFFLAND_LOCALE||"de-DE", TR=window.OFFLAND_T||(s=>s);   // Sprache: siehe js/i18n.js
+const langPref=()=>{try{return localStorage.getItem("offland-lang")}catch(e){return null}};
+const nice=s=>parse(s).toLocaleDateString(LOC,{weekday:"short",day:"numeric",month:"short"});
 const hm=m=>{m=Math.round(m);const h=Math.floor(Math.abs(m)/60),r=Math.abs(m)%60;return ((m<0?"−":"")+(h?h+" h ":"")+(r||!h?r+" min":"")).trim()};
 const today=()=>iso(new Date());
 
@@ -947,7 +949,7 @@ function surpriseSheet(ev){
     <p class="label" style="color:var(--amber)">Überraschung</p><h2>${head}</h2><p class="muted">${text}</p><p>${gain}</p>
     <button class="btn" data-ok>Toll!</button>`);
 }
-function monthName(m){const [y,mo]=m.split("-").map(Number);return new Date(y,mo-1,1).toLocaleDateString("de-DE",{month:"long",year:"numeric"})}
+function monthName(m){const [y,mo]=m.split("-").map(Number);return new Date(y,mo-1,1).toLocaleDateString(LOC,{month:"long",year:"numeric"})}
 function makeCapsule(m){
   const ds=S.days.filter(d=>d.day.startsWith(m));
   const saved=ds.reduce((a,d)=>a+Math.max(0,S.baseline-d.min),0);
@@ -1105,9 +1107,9 @@ function weekSheet(wk){
   stat("rueckblick");
   const w=weekData(wk); if(!w) return showPending();
   const eq=equivTop(w.saved), kw=+wk.split("-W")[1], end=addDays(w.mon,6);
-  const sameM=parse(w.mon).getMonth()===parse(end).getMonth(), range=(sameM?parse(w.mon).getDate()+".":parse(w.mon).toLocaleDateString("de-DE",{day:"numeric",month:"short"}))+" – "+parse(end).toLocaleDateString("de-DE",{day:"numeric",month:sameM?"long":"short"});
+  const sameM=parse(w.mon).getMonth()===parse(end).getMonth(), range=(sameM?parse(w.mon).getDate()+".":parse(w.mon).toLocaleDateString(LOC,{day:"numeric",month:"short"}))+" – "+parse(end).toLocaleDateString(LOC,{day:"numeric",month:sameM?"long":"short"});
   const dAvg=w.pavg==null?null:Math.round(w.pavg-w.avg);
-  const wd=parse(w.best.day).toLocaleDateString("de-DE",{weekday:"long"});
+  const wd=parse(w.best.day).toLocaleDateString(LOC,{weekday:"long"});
   const shareTxt="Meine OffLand-Woche: "+w.good+" von "+w.ds.length+" Tagen im Budget"+(w.saved?", "+hm(w.saved)+" weniger am Handy":"")+". 🌴";
   const slides=[
     `<p class="label" style="color:var(--lime)">Deine Inselwoche · KW ${kw}</p><p class="small muted">${range}</p>
@@ -2756,7 +2758,7 @@ function countUp(el,from,to){
 let WIDGET_LAST="";
 function widgetSync(){
   if(!ST_NATIVE||!S||!S.setup) return;
-  const h=here(), json=JSON.stringify({name:curWorld().name,glueck:Math.round(S.glueck),streak:S.budgetStreak||0,
+  const h=here(), json=JSON.stringify({lang:window.OFFLAND_LANG||"de",name:TR(curWorld().name),glueck:Math.round(S.glueck),streak:S.budgetStreak||0,
     people:h.filter(r=>r.kind==="mensch").length,animals:h.filter(r=>r.kind!=="mensch").length,entered:S.lastDay||""});
   if(json===WIDGET_LAST) return; WIDGET_LAST=json;
   try{ST_NATIVE.widget({json}).catch(()=>{})}catch(e){}
@@ -2885,7 +2887,7 @@ function heuteMain(ok,nd,form){
   const cols=week.length>1?`<div class="hm-week" role="img" aria-label="${week.filter(d=>d.min<=S.budget).length} von ${week.length} Tagen im Ziel">
     <div class="hm-plot" style="height:${PH}px"><span class="hm-goal" style="bottom:${hgt(S.budget).toFixed(1)}px"></span>
       ${week.map((d,i)=>`<span class="hm-col${i===week.length-1?" now":""}" title="${nice(d.day)}: ${hm(d.min)}"><i style="height:${hgt(d.min).toFixed(1)}px;background:${d.min<=S.budget?"var(--lime)":"var(--coral)"}"></i></span>`).join("")}</div>
-    <div class="hm-days">${week.map((d,i)=>`<b${i===week.length-1?' class="now"':""}>${parse(d.day).toLocaleDateString("de-DE",{weekday:"narrow"})}</b>`).join("")}</div></div>`:"";
+    <div class="hm-days">${week.map((d,i)=>`<b${i===week.length-1?' class="now"':""}>${parse(d.day).toLocaleDateString(LOC,{weekday:"narrow"})}</b>`).join("")}</div></div>`:"";
   const foot=form||(ok?`<button class="btn" id="goalGo">${nd===today()?"Tag eintragen":"Tag eintragen · "+nice(nd)}</button>`
     :S.vacation?"":`<p class="hm-done"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Heute ist eingetragen. Bis morgen!</p>`);
   return `<div class="card hmain">
@@ -2923,7 +2925,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.57";
+const APP_VERSION="1.59";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -3110,7 +3112,7 @@ function zeitCal(){
       :`<rect x="${20+w*cw}" y="${d*cw}" width="19" height="19" rx="6" fill="#26283B"/>`;
   }
   const lbl=["Mo","","Mi","","Fr","","So"].map((l,d)=>l?`<text x="0" y="${d*cw+14}" font-family="Manrope, sans-serif" font-size="10" fill="#A4A6BD">${l}</text>`:"").join("");
-  const m=s=>parse(s).toLocaleDateString("de-DE",{month:"short"}).replace(".","");
+  const m=s=>parse(s).toLocaleDateString(LOC,{month:"short"}).replace(".","");
   const lastCol=addDays(mon,W*7-1), range=m(mon)===m(lastCol>end?end:lastCol)?m(mon):m(mon)+" – "+m(lastCol>end?end:lastCol);
   const older=first<mon, newer=zeitPage>0;
   const sd=by[zeitSel]||S.days[S.days.length-1];
@@ -3127,7 +3129,7 @@ function zeitBest(){
   const avgBy=f=>{const g={};S.days.forEach(d=>{const k=f(d);(g[k]=g[k]||[]).push(d.min)});return Object.entries(g).filter(([,v])=>v.length>=2).map(([k,v])=>[k,v.reduce((a,b)=>a+b,0)/v.length]).sort((a,b)=>a[1]-b[1])[0]};
   const bm=avgBy(d=>d.day.slice(0,7)), bw=avgBy(d=>(parse(d.day).getDay()+6)%7);
   const WD=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
-  return `<div class="row zt-chips">${bm?`<div class="cp"><i>Bester Monat</i><b>${parse(bm[0]+"-01").toLocaleDateString("de-DE",{month:"long"})}</b></div>`:""}${bw?`<div class="cp"><i>Bester Wochentag</i><b>${WD[bw[0]]}</b></div>`:""}</div>`;
+  return `<div class="row zt-chips">${bm?`<div class="cp"><i>Bester Monat</i><b>${parse(bm[0]+"-01").toLocaleDateString(LOC,{month:"long"})}</b></div>`:""}${bw?`<div class="cp"><i>Bester Wochentag</i><b>${WD[bw[0]]}</b></div>`:""}</div>`;
 }
 function zeitCards(saved){
   const got=ACTS.filter(a=>saved>=a.min).sort((a,b)=>b.min-a.min), next=ACTS.filter(a=>saved<a.min).sort((a,b)=>a.min-b.min)[0];
@@ -3153,7 +3155,7 @@ function viewZeit(){
   const sum=a=>a.reduce((x,d)=>x+d.min,0);
   // Bild: gewonnene Zeit groß, daneben die letzten 7 Tage als Balken mit Wochentag
   const max=Math.max(S.budget*1.4,...week.map(d=>d.min)), bh=72, y0=124;
-  const bars=week.map((d,i)=>{const h=Math.max(4,d.min/max*bh), x=216+i*20;return `<rect x="${x}" y="${y0-h}" width="14" height="${h}" rx="4" fill="${d.min<=S.budget?"#C8F169":"#FF9C7A"}"><title>${nice(d.day)}: ${hm(d.min)}</title></rect><text x="${x+7}" y="${y0+16}" text-anchor="middle" font-family="Manrope, sans-serif" font-size="10" fill="#A4A6BD">${"SMDMDFS"[parse(d.day).getDay()]}</text>`}).join("");
+  const bars=week.map((d,i)=>{const h=Math.max(4,d.min/max*bh), x=216+i*20;return `<rect x="${x}" y="${y0-h}" width="14" height="${h}" rx="4" fill="${d.min<=S.budget?"#C8F169":"#FF9C7A"}"><title>${nice(d.day)}: ${hm(d.min)}</title></rect><text x="${x+7}" y="${y0+16}" text-anchor="middle" font-family="Manrope, sans-serif" font-size="10" fill="#A4A6BD">${(LOC==="de-DE"?"SMDMDFS":"SMTWTFS")[parse(d.day).getDay()]}</text>`}).join("");
   const hero=`<svg viewBox="0 0 360 160" role="img" aria-label="Gewonnene Zeit ${hm(saved)}" style="width:100%;height:auto;display:block"><defs><linearGradient id="zg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#33406B"/><stop offset="1" stop-color="#1E2030"/></linearGradient></defs><rect width="360" height="160" fill="url(#zg)"/>
     <text x="20" y="40" font-family="Manrope, sans-serif" font-size="12" font-weight="700" fill="#A4A6BD" letter-spacing="1.2">GEWONNENE ZEIT</text>
     <text x="20" y="84" font-family="Bricolage Grotesque, Manrope, sans-serif" font-size="${hm(saved).length>9?28:40}" font-weight="800" fill="#C8F169">${hm(saved)}</text>
@@ -3435,7 +3437,7 @@ function albumBoard(cards){
     return `<button type="button" class="alb-pin" data-card="${p.c.id}" style="left:${P[i][0]};top:${P[i][1]};transform:rotate(${P[i][2]}deg)" aria-label="Postkarte ${esc(m.title)}"><i class="alb-tack"></i>${motifSvg(m,true)}</button>`}).join("");
   if(bottle) h+=`<div class="alb-note" style="left:4%;top:62%"><b>Flaschenpost:</b> ${esc(bottle.msg)}</div>`;
   if(find){const f=FINDS.find(x=>x.id===find.id); h+=`<div class="alb-find" style="left:66%;top:60%"><svg width="58" height="44" viewBox="-16 -22 32 24" aria-hidden="true">${findSvg(find.id)}</svg>${find.day>=recent?`<span class="alb-new">NEU</span>`:""}<span class="sr">${esc(f?f.n:"")}</span></div>`}
-  if(stamp){const x=MFEST[+stamp.slice(5)-1]; h+=`<div class="alb-stamp" style="left:48%;top:74%" title="${esc(x.n)}"><span>${x.e}</span><small>${MONTH_N[+stamp.slice(5)-1].slice(0,3).toUpperCase()}</small></div>`}
+  if(stamp){const x=MFEST[+stamp.slice(5)-1]; h+=`<div class="alb-stamp" style="left:48%;top:74%" title="${esc(x.n)}"><span>${x.e}</span><small>${TR(MONTH_N[+stamp.slice(5)-1]).slice(0,3).toUpperCase()}</small></div>`}
   return `<div class="alb-board" role="group" aria-label="Zuletzt angekommen">${h}<span class="alb-label">📌 Zuletzt angekommen</span></div>`;
 }
 function albumVitrine(){
@@ -3461,7 +3463,7 @@ function albumPass(){
   const got=S.stamps||[], y=today().slice(0,4), cur=today().slice(0,7);
   const yr=MFEST.map((x,i)=>{const m=y+"-"+String(i+1).padStart(2,"0");return {m,x,ok:got.includes(m),now:m===cur,past:m<cur}});
   return `<div class="sec-h"><span>Inselpass ${y}</span><span class="num" style="text-transform:none;letter-spacing:0;color:var(--lime)">${yr.filter(z=>z.ok).length} ${yr.filter(z=>z.ok).length===1?"Stempel":"Stempel"}</span></div>
-  <div class="card alb-pass"><div class="alb-stamps">${yr.map((z,i)=>`<div class="alb-st${z.ok?" ok":z.now?" now":z.past?" miss":""}" style="--c:${["#FFB86B","#B9A6FF","#C8F169","#7FD4E8","#FF9C7A"][i%5]};transform:rotate(${[-8,5,-3,7,-6,4][i%6]}deg)" title="${esc(z.x.n)}"><span>${z.ok?z.x.e:z.now?"…":""}</span><small>${MONTH_N[i].slice(0,3).toUpperCase()}</small></div>`).join("")}</div>
+  <div class="card alb-pass"><div class="alb-stamps">${yr.map((z,i)=>`<div class="alb-st${z.ok?" ok":z.now?" now":z.past?" miss":""}" style="--c:${["#FFB86B","#B9A6FF","#C8F169","#7FD4E8","#FF9C7A"][i%5]};transform:rotate(${[-8,5,-3,7,-6,4][i%6]}deg)" title="${esc(z.x.n)}"><span>${z.ok?z.x.e:z.now?"…":""}</span><small>${TR(MONTH_N[i]).slice(0,3).toUpperCase()}</small></div>`).join("")}</div>
     <p class="small muted">Jeden Monat ein Fest-Stempel, wenn deine Insel ihr Monatsziel schafft.${got.length>yr.filter(z=>z.ok).length?` Insgesamt ${got.length} Stempel gesammelt.`:""}</p></div>`;
 }
 function kapselSheet(){
@@ -3487,7 +3489,7 @@ function viewVerlauf(){
   ${albumPass()}
   ${S.chapter!=null?row("bayAlbum","🎩","Mr. Bays Album",`Die Geschichte von OffLand · ${done} / ${CHAPTERS.length} Kapitel`):""}
   ${row("kapselBtn","⏳","Zeitkapseln",S.capsules.length?S.capsules.length+(S.capsules.length===1?" Monatsrückblick":" Monatsrückblicke")+" zum Teilen":"Am Monatsende kommt der erste Rückblick")}
-  ${row("","✍️","Inseltagebuch",S.feed.length?S.feed.length+(S.feed.length===1?" Eintrag · ":" Einträge · ")+esc((S.feed[0]||{}).text||"").slice(0,48)+((S.feed[0]||{}).text&&S.feed[0].text.length>48?"…":""):"Hier erscheint, was auf deiner Insel passiert.",'data-feed="feed"')}
+  ${row("","✍️","Inseltagebuch",S.feed.length?S.feed.length+(S.feed.length===1?" Eintrag · ":" Einträge · ")+esc(TR((S.feed[0]||{}).text||"")).slice(0,48)+((S.feed[0]||{}).text&&TR(S.feed[0].text).length>48?"…":""):"Hier erscheint, was auf deiner Insel passiert.",'data-feed="feed"')}
 `;
 }
 /* Einstellungen: erreichbar über das Profilbild oben rechts */
@@ -3505,6 +3507,7 @@ function settingsHtml(){
     <label class="check" for="alarmToggle"><input type="checkbox" id="alarmToggle" ${S.alarm!==false?"checked":""}> Wecker-Ton, wenn die Fokus-Bootsfahrt geschafft ist</label>
     <label class="check" for="soundToggle"><input type="checkbox" id="soundToggle" ${S.sound!==false?"checked":""}> Töne und Geräusche</label>
     <label class="check" for="musicToggle"><input type="checkbox" id="musicToggle" ${S.music===true?"checked":""}> Leise Inselmusik (klingt nach 3 Minuten aus)</label>
+    <label class="field" for="langSel" style="margin-top:8px"><span data-noi18n>Sprache · Language</span><select id="langSel" data-noi18n>${[["","Automatisch · Auto"],["de","Deutsch"],["en","English"]].map(([v,n])=>`<option value="${v}"${(langPref()||"")===v?" selected":""}>${n}</option>`).join("")}</select></label>
   </div>
   ${netConfigured()?`<div class="card"><p class="label">Online: Freunde und Ranglisten</p>
     <label class="check" for="netToggle"><input type="checkbox" id="netToggle" ${netOn()?"checked":""}> Online sein (Name, Avatar und Wochen-Bildschirmzeit für Freund:innen sichtbar)</label>
@@ -3635,7 +3638,7 @@ function render(){
   $("#streakChip").className="chip "+(S.happyStreak>0?"good":"gone");
   $("#accBtn").innerHTML=ACC?avatarSvg(ACC.avatar,40):"";
   $("#title").textContent=!S.setup?"Deine Insel":tab==="heute"?(ACC?"Hallo "+ACC.name:"Deine Insel"):tab==="bewohner"?"Bewohner":tab==="zeit"?"Deine Zeit":tab==="projekt"?"Bauen":tab==="freunde"?"Freunde":tab==="verlauf"?"Album":"Deine Insel";
-  $("#dateline").textContent="OffLand · "+new Date().toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"short"});
+  $("#dateline").textContent="OffLand · "+new Date().toLocaleDateString(LOC,{weekday:"short",day:"numeric",month:"short"});
   if(TAB_FEATURE[tab]&&!feature(TAB_FEATURE[tab])) tab="heute";
   let nTabs=0;
   document.querySelectorAll("#tabs button").forEach(b=>{const show=!TAB_FEATURE[b.dataset.tab]||feature(TAB_FEATURE[b.dataset.tab]);b.hidden=!show;if(show)nTabs++;b.setAttribute("aria-current",b.dataset.tab===tab?"page":"false")});
@@ -3742,6 +3745,7 @@ function bind(){
   const vt=$("#vacToggle"); if(vt) vt.onchange=()=>setVacation(vt.checked);
   const al=$("#alarmToggle"); if(al) al.onchange=()=>{S.alarm=al.checked;save();if(al.checked)ringAlarm()};
   const so=$("#soundToggle"); if(so) so.onchange=()=>{S.sound=so.checked;save();if(so.checked)sfx("return");else MUSIC.stop(.5)};
+  const ls=$("#langSel"); if(ls) ls.onchange=()=>{try{if(ls.value)localStorage.setItem("offland-lang",ls.value);else localStorage.removeItem("offland-lang")}catch(e){} location.reload()};
   const mu=$("#musicToggle"); if(mu) mu.onchange=()=>{S.music=mu.checked;save();if(mu.checked){musicDone=false;musicStart()}else MUSIC.stop(1)};
   const calmB=$("#calmBtn"); if(calmB) calmB.onclick=calmMinute;
   document.querySelectorAll("[data-lim]").forEach(x=>x.onchange=()=>{const a=S.apps.find(y=>y.id===x.dataset.lim);if(a){a.limit=clamp(+x.value||a.limit,5,600);save()}});
@@ -4484,8 +4488,8 @@ function umkleide(r,d){
     augen:`${sw("Leuchtaugen (als Schatten)","eye",LV_EYES,(d.eye||0)%LV_EYES.length)}<p class="small muted">So leuchten die Augen, solange die Farbe noch fehlt. Unten links im Spiegel siehst du es.</p>`
   }[LOOK_PANE];
   return `<div class="uk"><div class="uk-rail" role="tablist">${panes.map(([k,e,n])=>`<button type="button" role="tab" class="uk-r${k===LOOK_PANE?" on":""}" data-pane="${k}" aria-selected="${k===LOOK_PANE}"><b aria-hidden="true">${e}</b><i>${n}</i></button>`).join("")}</div>
-    <div class="uk-main"><div class="uk-mir"><div class="look-prev" id="lookPrev">${lookPreview(r,d)}</div><button type="button" class="uk-dice" data-dice aria-label="Zufälliger Look">🎲</button></div>
-    <div class="uk-body">${body}</div></div></div>`;
+    <div class="uk-main"><div class="uk-mir"><div class="look-prev" id="lookPrev">${lookPreview(r,d)}</div><button type="button" class="uk-photo" data-photo aria-label="Aussehen aus Foto übernehmen">📷</button><button type="button" class="uk-dice" data-dice aria-label="Zufälliger Look">🎲</button></div>
+    ${photoBanner(r,d)}<div class="uk-body">${body}</div></div></div>`;
 }
 /* Umkleide für Tiere: gleicher Aufbau wie bei Menschen (Leiste links, Spiegel, Kacheln) */
 const TIER_LOOKS=[["Chillig",{specs:1,collar:3,cc:5}],["Rockstar",{specs:1,collar:1,cc:14}],["Verliebt",{specs:3,collar:2,cc:6}],["Schick",{specs:0,collar:4,cc:8}],
@@ -4509,12 +4513,150 @@ function umkleideTier(r,d){
     brille:`<p class="uk-h">Brille</p>${tiles("specs",SPECS_NAMES,d.specs||0,i=>({specs:i}))}`
   }[LOOK_PANE];
   return `<div class="uk"><div class="uk-rail" role="tablist">${panes.map(([k,e,n])=>`<button type="button" role="tab" class="uk-r${k===LOOK_PANE?" on":""}" data-pane="${k}" aria-selected="${k===LOOK_PANE}"><b aria-hidden="true">${e}</b><i>${n}</i></button>`).join("")}</div>
-    <div class="uk-main"><div class="uk-mir"><div class="look-prev" id="lookPrev">${lookPreview(r,d)}</div><button type="button" class="uk-dice" data-dice aria-label="Zufälliger Look">🎲</button></div>
-    <div class="uk-body">${body}</div></div></div>`;
+    <div class="uk-main"><div class="uk-mir"><div class="look-prev" id="lookPrev">${lookPreview(r,d)}</div><button type="button" class="uk-photo" data-photo aria-label="Aussehen aus Foto übernehmen">📷</button><button type="button" class="uk-dice" data-dice aria-label="Zufälliger Look">🎲</button></div>
+    ${photoBanner(r,d)}<div class="uk-body">${body}</div></div></div>`;
 }
 const tierDraft=r=>Object.assign({fur:animalVar(r),collar:0,cc:0,specs:0},r.gear||{});
 function tierGear(d){const g={collar:d.collar||0,cc:d.cc||0,specs:d.specs||0};return g.collar||g.specs?g:null}
+/* Aus Foto: Hautton, Haare, Bart, Brille, Oberteil oder Fellfarbe werden nur auf dem Gerät aus dem Bild gelesen.
+   Das Foto wird nicht hochgeladen und nicht gespeichert, danach kann man im Editor alles anpassen. */
+let PHOTO_RES=null;
+const hexRgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+function rgbLab(c){const f=v=>{v/=255;return v>.04045?Math.pow((v+.055)/1.055,2.4):v/12.92}, [r,g,b]=c.map(f);
+  const x=(r*.4124+g*.3576+b*.1805)/.95047, y=r*.2126+g*.7152+b*.0722, z=(r*.0193+g*.1192+b*.9505)/1.08883, q=t=>t>.008856?Math.cbrt(t):7.787*t+16/116;
+  return [116*q(y)-16,500*(q(x)-q(y)),200*(q(y)-q(z))]}
+const labD=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]);
+const nearC=(c,list)=>{const l=rgbLab(c);let bi=0,bd=1e9;list.forEach((h,i)=>{const d=labD(l,rgbLab(hexRgb(h)));if(d<bd){bd=d;bi=i}});return bi};
+const medC=a=>[0,1,2].map(k=>{const v=a.map(c=>c[k]).sort((x,y)=>x-y);return v[v.length>>1]});
+/* Erkennung mit MediaPipe (läuft im Gerät): Bibliothek und Modelle werden beim ersten Mal geladen, das Foto bleibt lokal */
+const MP_BASE="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21", MP_M="https://storage.googleapis.com/mediapipe-models/image_segmenter/";
+const MP_MODEL={mensch:MP_M+"selfie_multiclass_256x256/float32/1/selfie_multiclass_256x256.tflite",tier:MP_M+"deeplab_v3/float32/1/deeplab_v3.tflite"};
+let MP=null;
+async function mpSegment(kind,cv){
+  if(!MP){const V=await import(MP_BASE+"/vision_bundle.mjs"); MP={V,fs:await V.FilesetResolver.forVisionTasks(MP_BASE+"/wasm"),seg:{}}}
+  if(!MP.seg[kind]) MP.seg[kind]=await MP.V.ImageSegmenter.createFromOptions(MP.fs,{baseOptions:{modelAssetPath:MP_MODEL[kind],delegate:"CPU"},runningMode:"IMAGE",outputCategoryMask:true,outputConfidenceMasks:false});
+  const res=MP.seg[kind].segment(cv), m=res.categoryMask, out={w:m.width,h:m.height,a:m.getAsUint8Array().slice()};
+  if(res.close) res.close(); return out;
+}
+async function photoPx(file){
+  let src;
+  try{src=await createImageBitmap(file,{imageOrientation:"from-image"})}catch(e){
+    src=await new Promise((ok,no)=>{const im=new Image(),u=URL.createObjectURL(file);im.onload=()=>{URL.revokeObjectURL(u);ok(im)};im.onerror=no;im.src=u})}
+  const k=Math.min(1,320/Math.max(src.width,src.height)), w=Math.max(1,Math.round(src.width*k)), h=Math.max(1,Math.round(src.height*k));
+  const cv=document.createElement("canvas"); cv.width=w; cv.height=h; const cx=cv.getContext("2d"); cx.drawImage(src,0,0,w,h);
+  const d=cx.getImageData(0,0,w,h).data.slice(); if(src.close) src.close();
+  // Weißabgleich zur Hälfte: Lampenlicht macht Haut und Haare sonst zu orange
+  const mean=[0,0,0]; for(let i=0;i<d.length;i+=4){mean[0]+=d[i];mean[1]+=d[i+1];mean[2]+=d[i+2]}
+  const g=(mean[0]+mean[1]+mean[2])/3, gain=mean.map(m=>Math.max(.75,Math.min(1.45,1+(g/Math.max(1,m)-1)*.6)));
+  for(let i=0;i<d.length;i+=4) for(let k=0;k<3;k++) d[i+k]=Math.min(255,d[i+k]*gain[k]);
+  const at=(x,y)=>{x=Math.max(0,Math.min(w-1,x|0));y=Math.max(0,Math.min(h-1,y|0));const i=(y*w+x)*4;return [d[i],d[i+1],d[i+2]]};
+  return {w,h,at,cv};
+}
+/* Zusammenhängende Flächen einer Maske (4er-Nachbarschaft) */
+function maskComps(w,h,fn){
+  const seen=new Uint8Array(w*h), comps=[];
+  for(let i=0;i<w*h;i++){ if(seen[i]||!fn(i%w,(i/w)|0)) continue;
+    const st=[i], px=[]; seen[i]=1;
+    while(st.length){const j=st.pop(); px.push(j); const x=j%w,y=(j/w)|0;
+      for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const X=x+dx,Y=y+dy; if(X<0||Y<0||X>=w||Y>=h) continue; const k=Y*w+X; if(!seen[k]&&fn(X,Y)){seen[k]=1;st.push(k)}}}
+    comps.push(px)}
+  return comps;
+}
+/* Mensch (Selfie-Modell: 1 Haare, 2 Körperhaut, 3 Gesichtshaut, 4 Kleidung, 5 Accessoires): größtes Gesicht nehmen, drumherum lesen */
+function photoHuman(P,M){
+  const {w,h,at}=P, cls=(x,y)=>M.a[Math.min(M.h-1,(y*M.h/h)|0)*M.w+Math.min(M.w-1,(x*M.w/w)|0)];
+  let best=null,bs=0;
+  for(const px of maskComps(w,h,(x,y)=>cls(x,y)===3)){ if(px.length<w*h*.004) continue;
+    let sx=0; for(const j of px) sx+=j%w; const sc=px.length*(1.2-Math.abs(sx/px.length/w-.5)); if(sc>bs){bs=sc;best=px}}
+  if(!best) return null;
+  const xs=best.map(j=>j%w).sort((a,b)=>a-b), ys=best.map(j=>(j/w)|0).sort((a,b)=>a-b), q=(a,f)=>a[Math.min(a.length-1,Math.floor(a.length*f))];
+  const L=q(xs,.02), R=q(xs,.98), top=q(ys,.01), bot=q(ys,.99), fw=Math.max(3,R-L), fh=Math.max(3,bot-top), fa=best.length;
+  const pick=(x0,x1,y0,y1,c)=>{const o=[];for(let y=Math.max(0,y0|0);y<Math.min(h,y1);y++)for(let x=Math.max(0,x0|0);x<Math.min(w,x1);x++) if(cls(x,y)===c) o.push([x,y]);return o};
+  const col=pts=>medC(pts.map(([x,y])=>at(x,y)));
+  const res={};
+  // Hautton nur bei ordentlichem Licht: in dunklen oder lampenbeleuchteten Fotos wirkt Haut viel dunkler, dann lieber selbst wählen lassen
+  const sk=pick(L+fw*.2,R-fw*.2,top+fh*.2,top+fh*.8,3), skc=col(sk.length?sk:best.map(j=>[j%w,(j/w)|0]));
+  res.skin=rgbLab(skc)[0]>=58?nearC(skc,SKIN):null;
+  // Haare: Flächen, die das Gesicht berühren (bei Gruppenfotos nicht die Haare der Nachbarn)
+  const near=(x,y)=>x>=L-fw*.25&&x<=R+fw*.25&&y>=top-fh*.45&&y<=bot;
+  const hp=[]; for(const px of maskComps(w,h,(x,y)=>cls(x,y)===1)) if(px.some(j=>near(j%w,(j/w)|0))) for(const j of px){const x=j%w,y=(j/w)|0; if(x>L-fw*1.1&&x<R+fw*1.1&&y>top-fh*1.2&&y<bot+fh*2.6) hp.push([x,y])}
+  // Frisur aus der Form der Haare: Länge, Pony oder Mittelscheitel, Dutt, Volumen. Dazu passende Alternativen zur Auswahl.
+  if(hp.length<fa*.07){res.style=10; res.alt=[10,6,0,15]}
+  else{res.hair=nearC(col(hp),HAIR);
+    const side=(y0,y1)=>hp.filter(([x,y])=>y>y0&&y<=y1&&(x<L+fw*.15||x>R-fw*.15)).length;
+    const low=side(bot+fh*.05,1e9), chin=side(bot-fh*.3,bot+fh*.05);
+    const hTop=Math.min(...hp.map(p=>p[1])), topW=hp.filter(([x,y])=>y<hTop+fh*.15).map(p=>p[0]), tw=topW.length?Math.max(...topW)-Math.min(...topW):0;
+    // Volumen nur, wenn die Haare auf beiden Seiten weit abstehen (bei Gruppenfotos liegen sonst die Haare der Nachbarin daneben)
+    const midY=hp.filter(([x,y])=>y>top&&y<bot), ext=Math.min(L-Math.min(L,...midY.map(p=>p[0])),Math.max(R,...midY.map(p=>p[0]))-R);
+    const bun=top-hTop>fh*.62&&tw<fw*.55, wide=ext>fw*.5;
+    if(bun){res.style=2; res.alt=[2,16,7,3]}
+    else if(low>fa*.18){res.style=wide?4:18; res.alt=[res.style,18,1,4,7,11]}
+    else if(chin>fa*.1){res.style=8; res.alt=[8,1,18,4]}
+    else{res.style=0; res.alt=[0,12,13,14]}
+    res.alt=[...new Set(res.alt)].slice(0,4)}
+  // Bart: Haar-Pixel mittig am Kinn (lange Haare liegen seitlich daneben)
+  const brd=pick(L+fw*.3,R-fw*.3,top+fh*.74,bot+fh*.1,1).length/Math.max(1,fw*.4*fh*.36);
+  const mus=pick(L+fw*.32,R-fw*.32,top+fh*.6,top+fh*.72,1).length/Math.max(1,fw*.36*fh*.12);
+  res.beard=mus<.15?0:brd>.35?4:brd>.18?1:0;
+  // Brille: Accessoire-Pixel auf Augenhöhe
+  const gl=pick(L,R,top+fh*.22,top+fh*.6,5);
+  if(gl.length>fw*fh*.38*.07) res.specs=rgbLab(col(gl))[0]<32&&gl.length>fw*fh*.38*.18?3:2; else res.specs=0;
+  // Oberteil: Kleidung unter dem Kinn
+  const sh=pick(L-fw*.4,R+fw*.4,bot+fh*.1,bot+fh*1.8,4);
+  if(sh.length>fa*.25) res.shirt=nearC(col(sh),SHIRT);
+  return res;
+}
+/* Tier (DeepLab: 3 Vogel, 8 Katze, 10 Kuh, 12 Hund, 13 Pferd, 17 Schaf): Hauptfarben des Tiers mit den Fellvarianten vergleichen */
+function photoFur(P,M,art){
+  const {w,h,at}=P, V=FUR[art]||[{}]; if(V.length<2) return null;
+  const AN=[3,8,10,12,13,17], cls=(x,y)=>M.a[Math.min(M.h-1,(y*M.h/h)|0)*M.w+Math.min(M.w-1,(x*M.w/w)|0)];
+  let px=[]; for(const c of maskComps(w,h,(x,y)=>AN.includes(cls(x,y)))) if(c.length>px.length) px=c;
+  if(px.length<w*h*.03){ // nicht erkannt (z. B. Hase, Ziege): Bildmitte ohne Rand-Hintergrund
+    const border=[];for(let x=0;x<w;x+=2)border.push(at(x,0),at(x,h-1));for(let y=0;y<h;y+=2)border.push(at(0,y),at(w-1,y));const bg=rgbLab(medC(border));
+    px=[]; for(let y=Math.round(h*.2);y<h*.9;y++)for(let x=Math.round(w*.2);x<w*.8;x++) if(labD(rgbLab(at(x,y)),bg)>18) px.push(y*w+x);
+    if(px.length<w*h*.05) return null}
+  const L=px.filter((_,i)=>i%2===0).map(j=>rgbLab(at(j%w,(j/w)|0)));
+  let cen=[L[0],L[L.length>>1],L[L.length-1]].map(c=>c.slice()), cnt=[0,0,0];
+  for(let it=0;it<10;it++){const sum=cen.map(()=>[0,0,0]); cnt=[0,0,0];
+    for(const p of L){let bi=0,bd=1e9; cen.forEach((c,i)=>{const d=labD(p,c);if(d<bd){bd=d;bi=i}}); cnt[bi]++; for(let k=0;k<3;k++) sum[bi][k]+=p[k]}
+    cen=cen.map((c,i)=>cnt[i]?sum[i].map(v=>v/cnt[i]):c)}
+  const ord=[0,1,2].sort((a,b)=>cnt[b]-cnt[a]), main=cen[ord[0]], sec=cen[ord[1]], keys=Object.keys(V.find(v=>Object.keys(v).length)||{});
+  let bi=0,bd=1e9;
+  V.forEach((v,i)=>{const cols=keys.map(k=>rgbLab(hexRgb(v[k]||k)));
+    const d=Math.min(...cols.map(c=>labD(main,c)))+.35*Math.min(...cols.map(c=>labD(sec,c))); if(d<bd){bd=d;bi=i}});
+  return {fur:bi};
+}
+async function photoLook(r,draft,file){
+  let P,M; try{P=await photoPx(file)}catch(e){toast("Das Foto konnte nicht gelesen werden.");return false}
+  try{M=await mpSegment(r.kind==="mensch"?"mensch":"tier",P.cv)}catch(e){console.warn("Foto-Erkennung:",e);toast("Für die Foto-Erkennung braucht OffLand beim ersten Mal kurz Internet.");return false}
+  const prev=JSON.parse(JSON.stringify(draft)), chips=[]; let alt=[];
+  if(r.kind!=="mensch"){const f=photoFur(P,M,r.art);
+    if(!f){toast("Auf dem Foto war kein Tier gut zu erkennen. Am besten von nah und vor ruhigem Hintergrund.");return false}
+    draft.fur=f.fur; chips.push(["Fellfarbe",null])}
+  else{const f=photoHuman(P,M);
+    if(!f){toast("Kein Gesicht gefunden. Am besten ein Foto von vorne bei gutem Licht.");return false}
+    const kid=stage(r)==="kind";
+    alt=f.alt||[];
+    if(f.skin!=null){draft.skin=f.skin; chips.push(["Hautton",SKIN[f.skin]])} else {chips.push(["Hautton bitte selbst wählen",null]); LOOK_PANE="gesicht"}
+    if(f.hair!=null){draft.hair=f.hair; chips.push(["Haarfarbe",HAIR[f.hair]])}
+    if(f.style!=null){draft.style=f.style; chips.push([STYLE_NAMES[f.style],null])}
+    if(!kid&&f.beard!=null){draft.beard=f.beard; if(f.beard) chips.push([BEARD_NAMES[f.beard],null])}
+    const al=accList(draft.acc).filter(a=>a!==2&&a!==3); draft.acc=f.specs?accToggle(al,f.specs):al; if(f.specs) chips.push([ACC_NAMES[f.specs],null]);
+    if(f.shirt!=null){draft.shirt=f.shirt; draft.pat=0; chips.push([kid?"Shirt":"Oberteil",SHIRT[f.shirt]])}}
+  if(PHOTO_RES&&PHOTO_RES.url) URL.revokeObjectURL(PHOTO_RES.url);
+  PHOTO_RES={id:r.id,url:URL.createObjectURL(file),chips,prev,alt};
+  return true;
+}
+function photoBanner(r,d){
+  if(!PHOTO_RES||PHOTO_RES.id!==r.id) return "";
+  // Frisur-Vorschläge als Köpfe, damit man die Haare gut erkennt
+  const head=i=>{const t=Object.assign({},r,{sick:null,phone:false,lv:4,lvUp:null,lvFull:true,look:Object.assign({},d,{style:i})});
+    return `<svg width="40" height="40" viewBox="-10.5 -28 21 21" aria-hidden="true">${figure(t,0,0)}</svg>`};
+  const alt=PHOTO_RES.alt&&PHOTO_RES.alt.length>1?`<div class="photo-alt" role="radiogroup" aria-label="Frisur aus dem Foto">${PHOTO_RES.alt.map(i=>`<button type="button" class="${i===d.style?"on":""}" data-look="style" data-v="${i}" aria-label="${STYLE_NAMES[i]}" aria-pressed="${i===d.style}">${head(i)}</button>`).join("")}</div>`:"";
+  return `<div class="photo-res" role="status"><img src="${PHOTO_RES.url}" alt=""><div><b>Aus deinem Foto</b><span>${PHOTO_RES.chips.map(([n,c])=>`<i>${c?`<em style="background:${c}"></em>`:""}${esc(n)}</i>`).join("")}</span>${alt}<small>Passt was nicht? Einfach anpassen. Das Foto bleibt auf deinem Handy. <button type="button" class="photo-undo" data-photo-undo>Rückgängig</button></small></div></div>`;
+}
 function lookEditor(r,d){
+  if(PHOTO_RES&&!$("#lookEd")){URL.revokeObjectURL(PHOTO_RES.url); PHOTO_RES=null}
   const row=(label,key,list,sel)=>`<div class="sw-row" role="radiogroup" aria-label="${label}"><span class="small muted">${label}</span>${list.map((c,i)=>`<button type="button" class="sw${i===sel?" on":""}" data-look="${key}" data-v="${i}" style="background:${c}" aria-label="${label} ${i+1}" aria-pressed="${i===sel}"></button>`).join("")}</div>`;
   if(r.kind==="mensch"){
     const baby=stage(r)==="baby";   // Babys haben keine Frisur und keine Extras, also nur zeigen, was man bei ihnen sieht
@@ -4541,6 +4683,12 @@ function bindLookEditor(r,draft,onChange){
     const redraw=()=>{const b=ed.querySelector(".uk-body"), y=b?b.scrollTop:0; ed.innerHTML=UK(r,draft); const nb=ed.querySelector(".uk-body"); if(nb) nb.scrollTop=y; if(onChange) onChange()};
     ed.onclick=e=>{const t=e.target.closest("button"); if(!t||!ed.contains(t)) return;
       if(t.dataset.pane){LOOK_PANE=t.dataset.pane; ed.innerHTML=UK(r,draft); return}
+      if(t.dataset.photo!=null){const inp=document.createElement("input"); inp.type="file"; inp.accept="image/*";
+        inp.onchange=async()=>{const f=inp.files&&inp.files[0]; if(!f) return;
+          t.textContent="⏳"; t.disabled=true; if(!MP||!MP.seg[r.kind==="mensch"?"mensch":"tier"]) toast("Foto wird angeschaut … beim ersten Mal dauert es ein paar Sekunden.");
+          const ok=await photoLook(r,draft,f); if(ok&&r.kind!=="mensch"&&!hasCollar(r.art)) draft.collar=0; redraw()};
+        inp.click(); return}
+      if(t.dataset.photoUndo!=null){if(PHOTO_RES){for(const k of Object.keys(draft)) if(!(k in PHOTO_RES.prev)) delete draft[k]; Object.assign(draft,PHOTO_RES.prev); URL.revokeObjectURL(PHOTO_RES.url); PHOTO_RES=null} redraw(); return}
       if(r.kind!=="mensch"){
         if(t.dataset.lookset!=null) Object.assign(draft,TIER_LOOKS[+t.dataset.lookset][1]);
         else if(t.dataset.dice!=null){const R=n=>Math.floor(Math.random()*n); Object.assign(draft,{fur:R((FUR[r.art]||[{}]).length),collar:hasCollar(r.art)&&Math.random()<.7?1+R(COLLAR_NAMES.length-1):0,cc:R(SHIRT.length),specs:Math.random()<.6?1+R(SPECS_NAMES.length-1):0})}
@@ -5210,7 +5358,7 @@ async function fillRanks(force){
   if(!$("#rankBox")||tab!=="freunde") return;                                  // inzwischen woanders
   const me=S.online.pid, fi=R.friends.findIndex(r=>r.id===me), mine=R.friends[fi]||{};
   const ai=R.all?R.all.findIndex(r=>r.id===me):-1, pl=R.all?rankPlaces(R.all):[];
-  const pubHint=!S.online.pub?"":R.place!=null?`<p class="small"><b>Platz ${R.place.toLocaleString("de-DE")}</b> <span class="muted">von ${Math.max(R.total||0,R.place).toLocaleString("de-DE")} in der Rangliste für alle</span></p>`
+  const pubHint=!S.online.pub?"":R.place!=null?`<p class="small"><b>Platz ${R.place.toLocaleString(LOC)}</b> <span class="muted">von ${Math.max(R.total||0,R.place).toLocaleString(LOC)} in der Rangliste für alle</span></p>`
     :mine.avg!=null&&(mine.days||0)<3?`<p class="small muted">Ab 3 eingetragenen Tagen diese Woche bist du in der Rangliste für alle dabei (noch ${3-(mine.days||0)}).</p>`:"";
   const simHint=S.testmode&&S.lastDay&&S.lastDay>today()?`<p class="small muted">Testmodus: Simulierte Tage liegen in der Zukunft und zählen nicht für die Ranglisten. Es zählen nur echte Tage dieser Woche.</p>`:"";
   // Duell: Herausforderung von jemandem annehmen, dann Rennen zeigen
@@ -5237,7 +5385,7 @@ async function fillRanks(force){
   const fh=$("#frHero"); if(fh) fh.innerHTML=regattaSvg(regList.map(r=>r.id===me?Object.assign({},r,{me:true,avatar:netAv()}):r),regPl);
   const hint=$("#rankHint"); if(hint) hint.innerHTML=(rankTab==="freunde"&&!R.nFriends?`<p class="small muted">Noch allein auf dem Wasser. Lade jemanden ein, dann segelt ihr gegeneinander.</p>`:"")+pubHint+simHint;
   const set=(id,t)=>{const e=$(id); if(e) e.textContent=t};
-  if(rankTab==="alle") set("#chPl",R.place!=null?R.place.toLocaleString("de-DE")+" von "+Math.max(R.total||0,R.place).toLocaleString("de-DE"):"–");
+  if(rankTab==="alle") set("#chPl",R.place!=null?R.place.toLocaleString(LOC)+" von "+Math.max(R.total||0,R.place).toLocaleString(LOC):"–");
   else set("#chPl",R.nFriends?(fi+1)+" von "+nF:"–");
   const top=rankTab==="alle"&&R.all&&R.all[0]?R.all[0]:lead;
   set("#chLead",!top||mine.avg==null||top.avg==null?"–":top.id===me||mine.avg<=top.avg?"Du führst":"−"+hm(mine.avg-top.avg));
@@ -5393,7 +5541,7 @@ function supportSheet(prefill){
 function ticketHtml(t){
   const cat=(SUPPORT_CATS.find(c=>c[0]===t.cat)||["",""])[1];
   return `<div style="background:var(--ground);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:6px">
-    <div class="row between"><span class="small muted">${esc(cat)} · ${new Date(t.at).toLocaleDateString("de-DE")}</span><span class="small" style="font-weight:700;color:${t.reply?"var(--lime)":"var(--muted)"}">${t.reply?"beantwortet":"offen"}</span></div>
+    <div class="row between"><span class="small muted">${esc(cat)} · ${new Date(t.at).toLocaleDateString(LOC)}</span><span class="small" style="font-weight:700;color:${t.reply?"var(--lime)":"var(--muted)"}">${t.reply?"beantwortet":"offen"}</span></div>
     <p class="small">„${esc(t.text)}${t.text.length>=140?"…":""}“</p>
     ${t.reply?`<div style="border-left:3px solid var(--lime);padding-left:10px"><p class="small" style="font-weight:700;color:var(--lime)">OffLand-Team</p><p class="small" style="white-space:pre-wrap">${esc(t.reply)}</p></div>`:""}</div>`;
 }
@@ -5637,7 +5785,7 @@ function backupCard(){
     <p class="small muted">Sichert deine Insel verschlüsselt online, damit sie bei einem neuen Handy nicht verloren geht. Du bekommst einen Wiederherstellungs-Code. Ohne ihn kann niemand das Backup öffnen, auch wir nicht.</p>
     <button class="btn secondary" id="bkOn">Backup einschalten</button></div>`;
   return `<div class="card"><p class="label">Online-Backup</p>
-    <p class="small muted">Wird automatisch nach jedem Tag gesichert. ${b.at?"Zuletzt: "+new Date(b.at).toLocaleString("de-DE",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"Noch nicht gesichert."}</p>
+    <p class="small muted">Wird automatisch nach jedem Tag gesichert. ${b.at?"Zuletzt: "+new Date(b.at).toLocaleString(LOC,{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"Noch nicht gesichert."}</p>
     <div style="background:var(--ground);border-radius:16px;padding:12px;text-align:center"><span class="small muted">Dein Wiederherstellungs-Code</span><br><b class="num" style="font-size:22px;letter-spacing:.08em">${fmtCode(b.code)}</b></div>
     <p class="small" style="color:var(--amber)">Schreib dir den Code auf oder mach einen Screenshot. Ohne ihn lässt sich die Insel nicht zurückholen.</p>
     <div class="row"><button class="btn secondary grow" id="bkCopy">Code kopieren</button><button class="btn secondary grow" id="bkNow">Jetzt sichern</button></div>
@@ -5903,7 +6051,7 @@ function wowText(min){
   const n=m?Math.min(Math.floor(min/m),m>=270?9:1):1;
   return "Genug Zeit, um "+f(n)+"!";
 }
-function wrapText(c,t,max){
+function wrapText(c,t,max){t=TR(t);
   const out=[]; let line="";
   for(const w of t.split(" ")){const tr=line?line+" "+w:w; if(c.measureText(tr).width>max&&line){out.push(line);line=w}else line=tr}
   return out.concat(line?[line]:[]);
@@ -6126,7 +6274,7 @@ function pinPrompt(p,onOk){
 
 function accountSheet(){
   if(!ACC) return;
-  modal(`<div class="row">${avatarSvg(ACC.avatar,56)}<div class="grow"><p class="label">Konto</p><h2>${esc(ACC.name)}</h2><p class="small muted">${ACC.pin?"Mit PIN geschützt":"Ohne PIN"} · seit ${new Date(ACC.created).toLocaleDateString("de-DE")}</p></div></div>
+  modal(`<div class="row">${avatarSvg(ACC.avatar,56)}<div class="grow"><p class="label">Konto</p><h2>${esc(ACC.name)}</h2><p class="small muted">${ACC.pin?"Mit PIN geschützt":"Ohne PIN"} · seit ${new Date(ACC.created).toLocaleDateString(LOC)}</p></div></div>
     ${plusActive()?`<p class="small" style="color:var(--amber);font-weight:700">★ OffLand Plus bis ${nice(S.plus.until)}</p>`:""}
     <button class="btn secondary" id="accSettings">⚙︎ Einstellungen</button>
     <button class="btn secondary" id="accSupport">Hilfe und Support</button>

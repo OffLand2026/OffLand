@@ -10,6 +10,8 @@ struct IslandData: Codable {
     var people: Int = 0
     var animals: Int = 0
     var entered: String = ""      // zuletzt eingetragener Tag, JJJJ-MM-TT
+    var lang: String? = nil       // Sprache der App: "de" oder "en"
+    var en: Bool { !(lang ?? (Locale.preferredLanguages.first ?? "de")).hasPrefix("de") }
 
     static func load() -> IslandData {
         guard let raw = UserDefaults(suiteName: "group.com.offland2026.offland")?.string(forKey: "widget"),
@@ -79,17 +81,17 @@ struct OffLandWidgetView: View {
             ZStack(alignment: .bottomLeading) {
                 IslandScene(glueck: d.glueck, date: entry.date)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("\(d.glueck) % Glück").font(.system(size: 13, weight: .heavy, design: .rounded)).foregroundColor(.white)
-                    Text("🔥 \(d.streak) \(d.streak == 1 ? "Tag" : "Tage")").font(.system(size: 11, weight: .bold)).foregroundColor(.white.opacity(0.9))
+                    Text(d.en ? "\(d.glueck) % happy" : "\(d.glueck) % Glück").font(.system(size: 13, weight: .heavy, design: .rounded)).foregroundColor(.white)
+                    Text("🔥 \(d.streak) " + (d.en ? (d.streak == 1 ? "day" : "days") : (d.streak == 1 ? "Tag" : "Tage"))).font(.system(size: 11, weight: .bold)).foregroundColor(.white.opacity(0.9))
                 }
                 .padding(8).background(Color.black.opacity(0.35)).cornerRadius(10).padding(8)
             }
             if family != .systemSmall {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(d.name).font(.system(size: 15, weight: .heavy, design: .rounded)).lineLimit(1)
-                    Text("\(d.people) Menschen · \(d.animals) Tiere").font(.caption).foregroundColor(.secondary)
+                    Text(d.en ? "\(d.people) people · \(d.animals) animals" : "\(d.people) Menschen · \(d.animals) Tiere").font(.caption).foregroundColor(.secondary)
                     Spacer()
-                    Text(open ? "Heute noch eintragen" : "Handy weg, Insel wächst")
+                    Text(open ? (d.en ? "Log today" : "Heute noch eintragen") : (d.en ? "Phone away, island grows" : "Handy weg, Insel wächst"))
                         .font(.system(size: 12, weight: .bold)).foregroundColor(open ? .orange : lime)
                 }
                 .padding(12).frame(maxWidth: .infinity, alignment: .leading)
@@ -109,8 +111,8 @@ struct OffLandWidget: Widget {
         StaticConfiguration(kind: "OffLandWidget", provider: IslandProvider()) { entry in
             OffLandWidgetView(entry: entry)
         }
-        .configurationDisplayName("Deine Insel")
-        .description("Glück und Serie deiner OffLand-Insel auf einen Blick.")
+        .configurationDisplayName((Locale.preferredLanguages.first ?? "de").hasPrefix("de") ? "Deine Insel" : "Your island")
+        .description((Locale.preferredLanguages.first ?? "de").hasPrefix("de") ? "Glück und Serie deiner OffLand-Insel auf einen Blick." : "Your OffLand island's happiness and streak at a glance.")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
