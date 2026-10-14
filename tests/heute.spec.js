@@ -57,12 +57,12 @@ test("Start: bisherigen Schnitt automatisch messen, nach 7 Tagen übernommen", a
   await dismiss(page);
   expect(await page.evaluate(() => [T.S.autoTime, !!T.S.baseMeasure, T.S.setup])).toEqual([true, true, true]);
   await page.evaluate(() => { T.S.testmode = true; });
-  await page.evaluate(() => { T.S.budget = 240; });
+  await page.evaluate(() => { T.S.budget = 240; T.S.music = false; });   // Musik-Frage würde sich sonst dazwischenschieben
   for (const m of [120, 150, 180, 180, 120, 150, 150]) {
     await page.evaluate(m => T.closeDay(m, [], {}), m);
-    for (let i = 0; i < 15; i++) {   // Fenster wegklicken, bis die Messung erscheint
+    for (let i = 0; i < 30; i++) {   // Fenster wegklicken, bis die Messung erscheint (auch zufällige Ereignisse mit anderen Knöpfen)
       if (await page.locator("#modalRoot", { hasText: "Dein Schnitt" }).count()) break;
-      const ok = await page.$("#modalRoot [data-ok], #modalRoot #nameOk, #modalRoot [data-c=egal], #modalRoot #boatYes");
+      const ok = await page.$("#modalRoot [data-ok], #modalRoot #nameOk, #modalRoot [data-c=egal], #modalRoot #boatYes, #modalRoot .sheet .btn");
       if (!ok) break; await ok.click(); await page.waitForTimeout(60);
     }
   }

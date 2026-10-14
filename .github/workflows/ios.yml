@@ -90,7 +90,7 @@ jobs:
       - name: Bildschirmzeit-Berechtigung einbauen
         if: inputs.screentime
         run: |
-          for f in ios/App/App/App.entitlements ios/App/ScreenTimeMonitor/ScreenTimeMonitor.entitlements; do
+          for f in ios/App/App/App.entitlements ios/App/ScreenTimeMonitor/ScreenTimeMonitor.entitlements ios/App/ScreenTimeReport/ScreenTimeReport.entitlements; do
             /usr/libexec/PlistBuddy -c "Add :com.apple.developer.family-controls bool true" "$f"
           done
       - name: API-Schlüssel ablegen

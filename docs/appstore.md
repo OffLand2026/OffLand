@@ -124,7 +124,7 @@ Bild 7 erwähnt im Freunde-Text „einen Monat Plus“. Wenn Plus in der Store-V
 
 ## 10. Antrag auf Family Controls (Bildschirmzeit)
 
-Ohne diese Freigabe darf die App die Bildschirmzeit im App Store nicht nutzen. Beantragen als Account Holder unter **developer.apple.com/contact/request/family-controls-distribution**, und zwar **zweimal**: einmal für `com.offland2026.offland` und einmal für die Erweiterung `com.offland2026.offland.ScreenTimeMonitor`. Das Formular ist auf Englisch.
+Ohne diese Freigabe darf die App die Bildschirmzeit im App Store nicht nutzen. Beantragen als Account Holder unter **developer.apple.com/contact/request/family-controls-distribution**, und zwar **dreimal**: für `com.offland2026.offland`, für die Erweiterung `com.offland2026.offland.ScreenTimeMonitor` und für die Erweiterung `com.offland2026.offland.ScreenTimeReport`. Das Formular ist auf Englisch.
 
 **App name:** OffLand
 
@@ -140,6 +140,7 @@ How it works:
 2. The user picks which apps and categories should count via FamilyActivityPicker. The selection stays opaque to us.
 3. Our DeviceActivityMonitor extension registers usage thresholds in 15-minute steps for the current day. When a threshold is reached, the extension stores only the highest reached step (e.g. "90 minutes") for that day in the shared App Group.
 4. When the user logs their day, the app pre-fills this value. The user can always correct it.
+5. During setup, the user can open a DeviceActivityReport (our report extension) that shows their own daily average of the last 7 days, so they can set their starting value. The value is only displayed to the user inside the sandboxed report; the app itself never receives it.
 
 Data and privacy:
 - We never read which apps or websites were used, only the daily total in 15-minute steps.
@@ -147,7 +148,7 @@ Data and privacy:
 - We do not use ManagedSettings to block or shield apps.
 - The feature is optional. The app works fully with manual entry, and users can turn automatic measuring off at any time.
 
-Bundle IDs: com.offland2026.offland (app) and com.offland2026.offland.ScreenTimeMonitor (DeviceActivityMonitor extension).
+Bundle IDs: com.offland2026.offland (app), com.offland2026.offland.ScreenTimeMonitor (DeviceActivityMonitor extension) and com.offland2026.offland.ScreenTimeReport (DeviceActivityReport extension).
 ```
 
-Nach der Freigabe: In Certificates, Identifiers & Profiles bei beiden App-IDs die Fähigkeit **Family Controls (Distribution)** aktivieren und den TestFlight-Lauf mit „Bildschirmzeit-Berechtigung einbauen“ starten.
+Nach der Freigabe: In Certificates, Identifiers & Profiles bei allen drei App-IDs die Fähigkeit **Family Controls (Distribution)** aktivieren und den TestFlight-Lauf mit „Bildschirmzeit-Berechtigung einbauen“ starten.
