@@ -15,7 +15,7 @@ window.OFFLAND_CONTACT = "support@offlandapp.com";
 
 /* Schutz vor Missbrauch (Firebase App Check mit reCAPTCHA Enterprise, bei Google heute „Fraud Defense“).
    Anleitung: docs/online.md → „App Check“. Steht hier null, ist App Check aus. Der Schlüssel ist nicht geheim. */
-window.OFFLAND_APPCHECK_KEY = null;
+window.OFFLAND_APPCHECK_KEY = "6LdtXO4tAAAAAO8gHgTYLdiCbjhTZkZRjw_-AKij";
 
 // Wird von App, Statistik-Seite und Warteliste direkt nach initializeApp aufgerufen, vor dem ersten Firestore-Zugriff.
 window.offlandAppCheck = async function (app, base) {
