@@ -6,6 +6,10 @@ import FamilyControls
 import DeviceActivity
 import WidgetKit
 
+/// Sprache der nativen Texte: Englisch, wenn das iPhone nicht auf Deutsch steht
+let offlandEN = !(Locale.preferredLanguages.first ?? "de").hasPrefix("de")
+func L(_ de: String, _ en: String) -> String { offlandEN ? en : de }
+
 /// Gemeinsamer Speicher von App und Monitor-Erweiterung.
 let offlandGroup = "group.com.offland2026.offland"
 
@@ -52,7 +56,7 @@ public class ScreenTimePlugin: CAPPlugin, CAPBridgedPlugin {
                 try await AuthorizationCenter.shared.requestAuthorization(for: .individual)
                 call.resolve(["status": "approved"])
             } catch {
-                call.reject("Bildschirmzeit wurde nicht erlaubt: \(error.localizedDescription)")
+                call.reject(L("Bildschirmzeit wurde nicht erlaubt: ", "Screen Time was not allowed: ") + error.localizedDescription)
             }
         }
     }
@@ -78,7 +82,7 @@ public class ScreenTimePlugin: CAPPlugin, CAPBridgedPlugin {
                     self.defaults?.set(true, forKey: "monitoring")
                     call.resolve(["ok": true])
                 } catch {
-                    call.reject("Messen konnte nicht gestartet werden: \(error.localizedDescription)")
+                    call.reject(L("Messen konnte nicht gestartet werden: ", "Could not start measuring: ") + error.localizedDescription)
                 }
             }
             let controller = UIHostingController(rootView: view)
@@ -162,20 +166,20 @@ struct ScreenTimePickerView: View {
     var body: some View {
         NavigationView {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Wähl am besten oben „Alle Apps und Kategorien“. OffLand sieht dabei nicht, welche Apps du nutzt, sondern bekommt nur die Zeit in 15-Minuten-Schritten.")
+                Text(L("Wähl am besten oben „Alle Apps und Kategorien“. OffLand sieht dabei nicht, welche Apps du nutzt, sondern bekommt nur die Zeit in 15-Minuten-Schritten.", "Best choose “All Apps & Categories” at the top. OffLand never sees which apps you use, it only gets the time in 15-minute steps."))
                     .font(.footnote)
                     .foregroundColor(.secondary)
                     .padding()
                 FamilyActivityPicker(selection: $selection)
             }
-            .navigationTitle("Was zählt?")
+            .navigationTitle(L("Was zählt?", "What counts?"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Abbrechen") { done(nil) }
+                    Button(L("Abbrechen", "Cancel")) { done(nil) }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Fertig") { done(selection) }
+                    Button(L("Fertig", "Done")) { done(selection) }
                 }
             }
         }
@@ -196,7 +200,7 @@ struct ScreenTimeAverageView: View {
             VStack(spacing: 12) {
                 DeviceActivityReport(DeviceActivityReport.Context("average"), filter: filter)
                     .frame(height: 140)
-                Text("Stell den Regler „Bisheriger Schnitt“ in OffLand auf diesen Wert. Apple zeigt die Zahl nur hier an, OffLand selbst bekommt sie nicht.")
+                Text(L("Stell den Regler „Bisheriger Schnitt“ in OffLand auf diesen Wert. Apple zeigt die Zahl nur hier an, OffLand selbst bekommt sie nicht.", "Set the “Previous average” slider in OffLand to this value. Apple only shows the number here, OffLand itself never receives it."))
                     .font(.footnote)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -204,11 +208,11 @@ struct ScreenTimeAverageView: View {
                 Spacer()
             }
             .padding(.top)
-            .navigationTitle("Deine Bildschirmzeit")
+            .navigationTitle(L("Deine Bildschirmzeit", "Your screen time"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Fertig") { done() }
+                    Button(L("Fertig", "Done")) { done() }
                 }
             }
         }

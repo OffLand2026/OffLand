@@ -349,7 +349,9 @@ const pad=n=>String(n).padStart(2,"0");
 const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
 const parse=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
 const addDays=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return iso(d)};
-const nice=s=>parse(s).toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"short"});
+const LOC=window.OFFLAND_LOCALE||"de-DE", TR=window.OFFLAND_T||(s=>s);   // Sprache: siehe js/i18n.js
+const langPref=()=>{try{return localStorage.getItem("offland-lang")}catch(e){return null}};
+const nice=s=>parse(s).toLocaleDateString(LOC,{weekday:"short",day:"numeric",month:"short"});
 const hm=m=>{m=Math.round(m);const h=Math.floor(Math.abs(m)/60),r=Math.abs(m)%60;return ((m<0?"−":"")+(h?h+" h ":"")+(r||!h?r+" min":"")).trim()};
 const today=()=>iso(new Date());
 
@@ -947,7 +949,7 @@ function surpriseSheet(ev){
     <p class="label" style="color:var(--amber)">Überraschung</p><h2>${head}</h2><p class="muted">${text}</p><p>${gain}</p>
     <button class="btn" data-ok>Toll!</button>`);
 }
-function monthName(m){const [y,mo]=m.split("-").map(Number);return new Date(y,mo-1,1).toLocaleDateString("de-DE",{month:"long",year:"numeric"})}
+function monthName(m){const [y,mo]=m.split("-").map(Number);return new Date(y,mo-1,1).toLocaleDateString(LOC,{month:"long",year:"numeric"})}
 function makeCapsule(m){
   const ds=S.days.filter(d=>d.day.startsWith(m));
   const saved=ds.reduce((a,d)=>a+Math.max(0,S.baseline-d.min),0);
@@ -1105,9 +1107,9 @@ function weekSheet(wk){
   stat("rueckblick");
   const w=weekData(wk); if(!w) return showPending();
   const eq=equivTop(w.saved), kw=+wk.split("-W")[1], end=addDays(w.mon,6);
-  const sameM=parse(w.mon).getMonth()===parse(end).getMonth(), range=(sameM?parse(w.mon).getDate()+".":parse(w.mon).toLocaleDateString("de-DE",{day:"numeric",month:"short"}))+" – "+parse(end).toLocaleDateString("de-DE",{day:"numeric",month:sameM?"long":"short"});
+  const sameM=parse(w.mon).getMonth()===parse(end).getMonth(), range=(sameM?parse(w.mon).getDate()+".":parse(w.mon).toLocaleDateString(LOC,{day:"numeric",month:"short"}))+" – "+parse(end).toLocaleDateString(LOC,{day:"numeric",month:sameM?"long":"short"});
   const dAvg=w.pavg==null?null:Math.round(w.pavg-w.avg);
-  const wd=parse(w.best.day).toLocaleDateString("de-DE",{weekday:"long"});
+  const wd=parse(w.best.day).toLocaleDateString(LOC,{weekday:"long"});
   const shareTxt="Meine OffLand-Woche: "+w.good+" von "+w.ds.length+" Tagen im Budget"+(w.saved?", "+hm(w.saved)+" weniger am Handy":"")+". 🌴";
   const slides=[
     `<p class="label" style="color:var(--lime)">Deine Inselwoche · KW ${kw}</p><p class="small muted">${range}</p>
@@ -2756,7 +2758,7 @@ function countUp(el,from,to){
 let WIDGET_LAST="";
 function widgetSync(){
   if(!ST_NATIVE||!S||!S.setup) return;
-  const h=here(), json=JSON.stringify({name:curWorld().name,glueck:Math.round(S.glueck),streak:S.budgetStreak||0,
+  const h=here(), json=JSON.stringify({lang:window.OFFLAND_LANG||"de",name:TR(curWorld().name),glueck:Math.round(S.glueck),streak:S.budgetStreak||0,
     people:h.filter(r=>r.kind==="mensch").length,animals:h.filter(r=>r.kind!=="mensch").length,entered:S.lastDay||""});
   if(json===WIDGET_LAST) return; WIDGET_LAST=json;
   try{ST_NATIVE.widget({json}).catch(()=>{})}catch(e){}
@@ -2885,7 +2887,7 @@ function heuteMain(ok,nd,form){
   const cols=week.length>1?`<div class="hm-week" role="img" aria-label="${week.filter(d=>d.min<=S.budget).length} von ${week.length} Tagen im Ziel">
     <div class="hm-plot" style="height:${PH}px"><span class="hm-goal" style="bottom:${hgt(S.budget).toFixed(1)}px"></span>
       ${week.map((d,i)=>`<span class="hm-col${i===week.length-1?" now":""}" title="${nice(d.day)}: ${hm(d.min)}"><i style="height:${hgt(d.min).toFixed(1)}px;background:${d.min<=S.budget?"var(--lime)":"var(--coral)"}"></i></span>`).join("")}</div>
-    <div class="hm-days">${week.map((d,i)=>`<b${i===week.length-1?' class="now"':""}>${parse(d.day).toLocaleDateString("de-DE",{weekday:"narrow"})}</b>`).join("")}</div></div>`:"";
+    <div class="hm-days">${week.map((d,i)=>`<b${i===week.length-1?' class="now"':""}>${parse(d.day).toLocaleDateString(LOC,{weekday:"narrow"})}</b>`).join("")}</div></div>`:"";
   const foot=form||(ok?`<button class="btn" id="goalGo">${nd===today()?"Tag eintragen":"Tag eintragen · "+nice(nd)}</button>`
     :S.vacation?"":`<p class="hm-done"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Heute ist eingetragen. Bis morgen!</p>`);
   return `<div class="card hmain">
@@ -2923,7 +2925,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.58";
+const APP_VERSION="1.59";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -3110,7 +3112,7 @@ function zeitCal(){
       :`<rect x="${20+w*cw}" y="${d*cw}" width="19" height="19" rx="6" fill="#26283B"/>`;
   }
   const lbl=["Mo","","Mi","","Fr","","So"].map((l,d)=>l?`<text x="0" y="${d*cw+14}" font-family="Manrope, sans-serif" font-size="10" fill="#A4A6BD">${l}</text>`:"").join("");
-  const m=s=>parse(s).toLocaleDateString("de-DE",{month:"short"}).replace(".","");
+  const m=s=>parse(s).toLocaleDateString(LOC,{month:"short"}).replace(".","");
   const lastCol=addDays(mon,W*7-1), range=m(mon)===m(lastCol>end?end:lastCol)?m(mon):m(mon)+" – "+m(lastCol>end?end:lastCol);
   const older=first<mon, newer=zeitPage>0;
   const sd=by[zeitSel]||S.days[S.days.length-1];
@@ -3127,7 +3129,7 @@ function zeitBest(){
   const avgBy=f=>{const g={};S.days.forEach(d=>{const k=f(d);(g[k]=g[k]||[]).push(d.min)});return Object.entries(g).filter(([,v])=>v.length>=2).map(([k,v])=>[k,v.reduce((a,b)=>a+b,0)/v.length]).sort((a,b)=>a[1]-b[1])[0]};
   const bm=avgBy(d=>d.day.slice(0,7)), bw=avgBy(d=>(parse(d.day).getDay()+6)%7);
   const WD=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
-  return `<div class="row zt-chips">${bm?`<div class="cp"><i>Bester Monat</i><b>${parse(bm[0]+"-01").toLocaleDateString("de-DE",{month:"long"})}</b></div>`:""}${bw?`<div class="cp"><i>Bester Wochentag</i><b>${WD[bw[0]]}</b></div>`:""}</div>`;
+  return `<div class="row zt-chips">${bm?`<div class="cp"><i>Bester Monat</i><b>${parse(bm[0]+"-01").toLocaleDateString(LOC,{month:"long"})}</b></div>`:""}${bw?`<div class="cp"><i>Bester Wochentag</i><b>${WD[bw[0]]}</b></div>`:""}</div>`;
 }
 function zeitCards(saved){
   const got=ACTS.filter(a=>saved>=a.min).sort((a,b)=>b.min-a.min), next=ACTS.filter(a=>saved<a.min).sort((a,b)=>a.min-b.min)[0];
@@ -3153,7 +3155,7 @@ function viewZeit(){
   const sum=a=>a.reduce((x,d)=>x+d.min,0);
   // Bild: gewonnene Zeit groß, daneben die letzten 7 Tage als Balken mit Wochentag
   const max=Math.max(S.budget*1.4,...week.map(d=>d.min)), bh=72, y0=124;
-  const bars=week.map((d,i)=>{const h=Math.max(4,d.min/max*bh), x=216+i*20;return `<rect x="${x}" y="${y0-h}" width="14" height="${h}" rx="4" fill="${d.min<=S.budget?"#C8F169":"#FF9C7A"}"><title>${nice(d.day)}: ${hm(d.min)}</title></rect><text x="${x+7}" y="${y0+16}" text-anchor="middle" font-family="Manrope, sans-serif" font-size="10" fill="#A4A6BD">${"SMDMDFS"[parse(d.day).getDay()]}</text>`}).join("");
+  const bars=week.map((d,i)=>{const h=Math.max(4,d.min/max*bh), x=216+i*20;return `<rect x="${x}" y="${y0-h}" width="14" height="${h}" rx="4" fill="${d.min<=S.budget?"#C8F169":"#FF9C7A"}"><title>${nice(d.day)}: ${hm(d.min)}</title></rect><text x="${x+7}" y="${y0+16}" text-anchor="middle" font-family="Manrope, sans-serif" font-size="10" fill="#A4A6BD">${(LOC==="de-DE"?"SMDMDFS":"SMTWTFS")[parse(d.day).getDay()]}</text>`}).join("");
   const hero=`<svg viewBox="0 0 360 160" role="img" aria-label="Gewonnene Zeit ${hm(saved)}" style="width:100%;height:auto;display:block"><defs><linearGradient id="zg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#33406B"/><stop offset="1" stop-color="#1E2030"/></linearGradient></defs><rect width="360" height="160" fill="url(#zg)"/>
     <text x="20" y="40" font-family="Manrope, sans-serif" font-size="12" font-weight="700" fill="#A4A6BD" letter-spacing="1.2">GEWONNENE ZEIT</text>
     <text x="20" y="84" font-family="Bricolage Grotesque, Manrope, sans-serif" font-size="${hm(saved).length>9?28:40}" font-weight="800" fill="#C8F169">${hm(saved)}</text>
@@ -3435,7 +3437,7 @@ function albumBoard(cards){
     return `<button type="button" class="alb-pin" data-card="${p.c.id}" style="left:${P[i][0]};top:${P[i][1]};transform:rotate(${P[i][2]}deg)" aria-label="Postkarte ${esc(m.title)}"><i class="alb-tack"></i>${motifSvg(m,true)}</button>`}).join("");
   if(bottle) h+=`<div class="alb-note" style="left:4%;top:62%"><b>Flaschenpost:</b> ${esc(bottle.msg)}</div>`;
   if(find){const f=FINDS.find(x=>x.id===find.id); h+=`<div class="alb-find" style="left:66%;top:60%"><svg width="58" height="44" viewBox="-16 -22 32 24" aria-hidden="true">${findSvg(find.id)}</svg>${find.day>=recent?`<span class="alb-new">NEU</span>`:""}<span class="sr">${esc(f?f.n:"")}</span></div>`}
-  if(stamp){const x=MFEST[+stamp.slice(5)-1]; h+=`<div class="alb-stamp" style="left:48%;top:74%" title="${esc(x.n)}"><span>${x.e}</span><small>${MONTH_N[+stamp.slice(5)-1].slice(0,3).toUpperCase()}</small></div>`}
+  if(stamp){const x=MFEST[+stamp.slice(5)-1]; h+=`<div class="alb-stamp" style="left:48%;top:74%" title="${esc(x.n)}"><span>${x.e}</span><small>${TR(MONTH_N[+stamp.slice(5)-1]).slice(0,3).toUpperCase()}</small></div>`}
   return `<div class="alb-board" role="group" aria-label="Zuletzt angekommen">${h}<span class="alb-label">📌 Zuletzt angekommen</span></div>`;
 }
 function albumVitrine(){
@@ -3461,7 +3463,7 @@ function albumPass(){
   const got=S.stamps||[], y=today().slice(0,4), cur=today().slice(0,7);
   const yr=MFEST.map((x,i)=>{const m=y+"-"+String(i+1).padStart(2,"0");return {m,x,ok:got.includes(m),now:m===cur,past:m<cur}});
   return `<div class="sec-h"><span>Inselpass ${y}</span><span class="num" style="text-transform:none;letter-spacing:0;color:var(--lime)">${yr.filter(z=>z.ok).length} ${yr.filter(z=>z.ok).length===1?"Stempel":"Stempel"}</span></div>
-  <div class="card alb-pass"><div class="alb-stamps">${yr.map((z,i)=>`<div class="alb-st${z.ok?" ok":z.now?" now":z.past?" miss":""}" style="--c:${["#FFB86B","#B9A6FF","#C8F169","#7FD4E8","#FF9C7A"][i%5]};transform:rotate(${[-8,5,-3,7,-6,4][i%6]}deg)" title="${esc(z.x.n)}"><span>${z.ok?z.x.e:z.now?"…":""}</span><small>${MONTH_N[i].slice(0,3).toUpperCase()}</small></div>`).join("")}</div>
+  <div class="card alb-pass"><div class="alb-stamps">${yr.map((z,i)=>`<div class="alb-st${z.ok?" ok":z.now?" now":z.past?" miss":""}" style="--c:${["#FFB86B","#B9A6FF","#C8F169","#7FD4E8","#FF9C7A"][i%5]};transform:rotate(${[-8,5,-3,7,-6,4][i%6]}deg)" title="${esc(z.x.n)}"><span>${z.ok?z.x.e:z.now?"…":""}</span><small>${TR(MONTH_N[i]).slice(0,3).toUpperCase()}</small></div>`).join("")}</div>
     <p class="small muted">Jeden Monat ein Fest-Stempel, wenn deine Insel ihr Monatsziel schafft.${got.length>yr.filter(z=>z.ok).length?` Insgesamt ${got.length} Stempel gesammelt.`:""}</p></div>`;
 }
 function kapselSheet(){
@@ -3487,7 +3489,7 @@ function viewVerlauf(){
   ${albumPass()}
   ${S.chapter!=null?row("bayAlbum","🎩","Mr. Bays Album",`Die Geschichte von OffLand · ${done} / ${CHAPTERS.length} Kapitel`):""}
   ${row("kapselBtn","⏳","Zeitkapseln",S.capsules.length?S.capsules.length+(S.capsules.length===1?" Monatsrückblick":" Monatsrückblicke")+" zum Teilen":"Am Monatsende kommt der erste Rückblick")}
-  ${row("","✍️","Inseltagebuch",S.feed.length?S.feed.length+(S.feed.length===1?" Eintrag · ":" Einträge · ")+esc((S.feed[0]||{}).text||"").slice(0,48)+((S.feed[0]||{}).text&&S.feed[0].text.length>48?"…":""):"Hier erscheint, was auf deiner Insel passiert.",'data-feed="feed"')}
+  ${row("","✍️","Inseltagebuch",S.feed.length?S.feed.length+(S.feed.length===1?" Eintrag · ":" Einträge · ")+esc(TR((S.feed[0]||{}).text||"")).slice(0,48)+((S.feed[0]||{}).text&&TR(S.feed[0].text).length>48?"…":""):"Hier erscheint, was auf deiner Insel passiert.",'data-feed="feed"')}
 `;
 }
 /* Einstellungen: erreichbar über das Profilbild oben rechts */
@@ -3505,6 +3507,7 @@ function settingsHtml(){
     <label class="check" for="alarmToggle"><input type="checkbox" id="alarmToggle" ${S.alarm!==false?"checked":""}> Wecker-Ton, wenn die Fokus-Bootsfahrt geschafft ist</label>
     <label class="check" for="soundToggle"><input type="checkbox" id="soundToggle" ${S.sound!==false?"checked":""}> Töne und Geräusche</label>
     <label class="check" for="musicToggle"><input type="checkbox" id="musicToggle" ${S.music===true?"checked":""}> Leise Inselmusik (klingt nach 3 Minuten aus)</label>
+    <label class="field" for="langSel" style="margin-top:8px"><span data-noi18n>Sprache · Language</span><select id="langSel" data-noi18n>${[["","Automatisch · Auto"],["de","Deutsch"],["en","English"]].map(([v,n])=>`<option value="${v}"${(langPref()||"")===v?" selected":""}>${n}</option>`).join("")}</select></label>
   </div>
   ${netConfigured()?`<div class="card"><p class="label">Online: Freunde und Ranglisten</p>
     <label class="check" for="netToggle"><input type="checkbox" id="netToggle" ${netOn()?"checked":""}> Online sein (Name, Avatar und Wochen-Bildschirmzeit für Freund:innen sichtbar)</label>
@@ -3635,7 +3638,7 @@ function render(){
   $("#streakChip").className="chip "+(S.happyStreak>0?"good":"gone");
   $("#accBtn").innerHTML=ACC?avatarSvg(ACC.avatar,40):"";
   $("#title").textContent=!S.setup?"Deine Insel":tab==="heute"?(ACC?"Hallo "+ACC.name:"Deine Insel"):tab==="bewohner"?"Bewohner":tab==="zeit"?"Deine Zeit":tab==="projekt"?"Bauen":tab==="freunde"?"Freunde":tab==="verlauf"?"Album":"Deine Insel";
-  $("#dateline").textContent="OffLand · "+new Date().toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"short"});
+  $("#dateline").textContent="OffLand · "+new Date().toLocaleDateString(LOC,{weekday:"short",day:"numeric",month:"short"});
   if(TAB_FEATURE[tab]&&!feature(TAB_FEATURE[tab])) tab="heute";
   let nTabs=0;
   document.querySelectorAll("#tabs button").forEach(b=>{const show=!TAB_FEATURE[b.dataset.tab]||feature(TAB_FEATURE[b.dataset.tab]);b.hidden=!show;if(show)nTabs++;b.setAttribute("aria-current",b.dataset.tab===tab?"page":"false")});
@@ -3742,6 +3745,7 @@ function bind(){
   const vt=$("#vacToggle"); if(vt) vt.onchange=()=>setVacation(vt.checked);
   const al=$("#alarmToggle"); if(al) al.onchange=()=>{S.alarm=al.checked;save();if(al.checked)ringAlarm()};
   const so=$("#soundToggle"); if(so) so.onchange=()=>{S.sound=so.checked;save();if(so.checked)sfx("return");else MUSIC.stop(.5)};
+  const ls=$("#langSel"); if(ls) ls.onchange=()=>{try{if(ls.value)localStorage.setItem("offland-lang",ls.value);else localStorage.removeItem("offland-lang")}catch(e){} location.reload()};
   const mu=$("#musicToggle"); if(mu) mu.onchange=()=>{S.music=mu.checked;save();if(mu.checked){musicDone=false;musicStart()}else MUSIC.stop(1)};
   const calmB=$("#calmBtn"); if(calmB) calmB.onclick=calmMinute;
   document.querySelectorAll("[data-lim]").forEach(x=>x.onchange=()=>{const a=S.apps.find(y=>y.id===x.dataset.lim);if(a){a.limit=clamp(+x.value||a.limit,5,600);save()}});
@@ -5354,7 +5358,7 @@ async function fillRanks(force){
   if(!$("#rankBox")||tab!=="freunde") return;                                  // inzwischen woanders
   const me=S.online.pid, fi=R.friends.findIndex(r=>r.id===me), mine=R.friends[fi]||{};
   const ai=R.all?R.all.findIndex(r=>r.id===me):-1, pl=R.all?rankPlaces(R.all):[];
-  const pubHint=!S.online.pub?"":R.place!=null?`<p class="small"><b>Platz ${R.place.toLocaleString("de-DE")}</b> <span class="muted">von ${Math.max(R.total||0,R.place).toLocaleString("de-DE")} in der Rangliste für alle</span></p>`
+  const pubHint=!S.online.pub?"":R.place!=null?`<p class="small"><b>Platz ${R.place.toLocaleString(LOC)}</b> <span class="muted">von ${Math.max(R.total||0,R.place).toLocaleString(LOC)} in der Rangliste für alle</span></p>`
     :mine.avg!=null&&(mine.days||0)<3?`<p class="small muted">Ab 3 eingetragenen Tagen diese Woche bist du in der Rangliste für alle dabei (noch ${3-(mine.days||0)}).</p>`:"";
   const simHint=S.testmode&&S.lastDay&&S.lastDay>today()?`<p class="small muted">Testmodus: Simulierte Tage liegen in der Zukunft und zählen nicht für die Ranglisten. Es zählen nur echte Tage dieser Woche.</p>`:"";
   // Duell: Herausforderung von jemandem annehmen, dann Rennen zeigen
@@ -5381,7 +5385,7 @@ async function fillRanks(force){
   const fh=$("#frHero"); if(fh) fh.innerHTML=regattaSvg(regList.map(r=>r.id===me?Object.assign({},r,{me:true,avatar:netAv()}):r),regPl);
   const hint=$("#rankHint"); if(hint) hint.innerHTML=(rankTab==="freunde"&&!R.nFriends?`<p class="small muted">Noch allein auf dem Wasser. Lade jemanden ein, dann segelt ihr gegeneinander.</p>`:"")+pubHint+simHint;
   const set=(id,t)=>{const e=$(id); if(e) e.textContent=t};
-  if(rankTab==="alle") set("#chPl",R.place!=null?R.place.toLocaleString("de-DE")+" von "+Math.max(R.total||0,R.place).toLocaleString("de-DE"):"–");
+  if(rankTab==="alle") set("#chPl",R.place!=null?R.place.toLocaleString(LOC)+" von "+Math.max(R.total||0,R.place).toLocaleString(LOC):"–");
   else set("#chPl",R.nFriends?(fi+1)+" von "+nF:"–");
   const top=rankTab==="alle"&&R.all&&R.all[0]?R.all[0]:lead;
   set("#chLead",!top||mine.avg==null||top.avg==null?"–":top.id===me||mine.avg<=top.avg?"Du führst":"−"+hm(mine.avg-top.avg));
@@ -5537,7 +5541,7 @@ function supportSheet(prefill){
 function ticketHtml(t){
   const cat=(SUPPORT_CATS.find(c=>c[0]===t.cat)||["",""])[1];
   return `<div style="background:var(--ground);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:6px">
-    <div class="row between"><span class="small muted">${esc(cat)} · ${new Date(t.at).toLocaleDateString("de-DE")}</span><span class="small" style="font-weight:700;color:${t.reply?"var(--lime)":"var(--muted)"}">${t.reply?"beantwortet":"offen"}</span></div>
+    <div class="row between"><span class="small muted">${esc(cat)} · ${new Date(t.at).toLocaleDateString(LOC)}</span><span class="small" style="font-weight:700;color:${t.reply?"var(--lime)":"var(--muted)"}">${t.reply?"beantwortet":"offen"}</span></div>
     <p class="small">„${esc(t.text)}${t.text.length>=140?"…":""}“</p>
     ${t.reply?`<div style="border-left:3px solid var(--lime);padding-left:10px"><p class="small" style="font-weight:700;color:var(--lime)">OffLand-Team</p><p class="small" style="white-space:pre-wrap">${esc(t.reply)}</p></div>`:""}</div>`;
 }
@@ -5781,7 +5785,7 @@ function backupCard(){
     <p class="small muted">Sichert deine Insel verschlüsselt online, damit sie bei einem neuen Handy nicht verloren geht. Du bekommst einen Wiederherstellungs-Code. Ohne ihn kann niemand das Backup öffnen, auch wir nicht.</p>
     <button class="btn secondary" id="bkOn">Backup einschalten</button></div>`;
   return `<div class="card"><p class="label">Online-Backup</p>
-    <p class="small muted">Wird automatisch nach jedem Tag gesichert. ${b.at?"Zuletzt: "+new Date(b.at).toLocaleString("de-DE",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"Noch nicht gesichert."}</p>
+    <p class="small muted">Wird automatisch nach jedem Tag gesichert. ${b.at?"Zuletzt: "+new Date(b.at).toLocaleString(LOC,{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"Noch nicht gesichert."}</p>
     <div style="background:var(--ground);border-radius:16px;padding:12px;text-align:center"><span class="small muted">Dein Wiederherstellungs-Code</span><br><b class="num" style="font-size:22px;letter-spacing:.08em">${fmtCode(b.code)}</b></div>
     <p class="small" style="color:var(--amber)">Schreib dir den Code auf oder mach einen Screenshot. Ohne ihn lässt sich die Insel nicht zurückholen.</p>
     <div class="row"><button class="btn secondary grow" id="bkCopy">Code kopieren</button><button class="btn secondary grow" id="bkNow">Jetzt sichern</button></div>
@@ -6047,7 +6051,7 @@ function wowText(min){
   const n=m?Math.min(Math.floor(min/m),m>=270?9:1):1;
   return "Genug Zeit, um "+f(n)+"!";
 }
-function wrapText(c,t,max){
+function wrapText(c,t,max){t=TR(t);
   const out=[]; let line="";
   for(const w of t.split(" ")){const tr=line?line+" "+w:w; if(c.measureText(tr).width>max&&line){out.push(line);line=w}else line=tr}
   return out.concat(line?[line]:[]);
@@ -6270,7 +6274,7 @@ function pinPrompt(p,onOk){
 
 function accountSheet(){
   if(!ACC) return;
-  modal(`<div class="row">${avatarSvg(ACC.avatar,56)}<div class="grow"><p class="label">Konto</p><h2>${esc(ACC.name)}</h2><p class="small muted">${ACC.pin?"Mit PIN geschützt":"Ohne PIN"} · seit ${new Date(ACC.created).toLocaleDateString("de-DE")}</p></div></div>
+  modal(`<div class="row">${avatarSvg(ACC.avatar,56)}<div class="grow"><p class="label">Konto</p><h2>${esc(ACC.name)}</h2><p class="small muted">${ACC.pin?"Mit PIN geschützt":"Ohne PIN"} · seit ${new Date(ACC.created).toLocaleDateString(LOC)}</p></div></div>
     ${plusActive()?`<p class="small" style="color:var(--amber);font-weight:700">★ OffLand Plus bis ${nice(S.plus.until)}</p>`:""}
     <button class="btn secondary" id="accSettings">⚙︎ Einstellungen</button>
     <button class="btn secondary" id="accSupport">Hilfe und Support</button>

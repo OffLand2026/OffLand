@@ -39,7 +39,7 @@ struct AverageView: View {
 
     var body: some View {
         VStack(spacing: 6) {
-            Text("Dein Tagesdurchschnitt der letzten 7 Tage")
+            Text((Locale.preferredLanguages.first ?? "de").hasPrefix("de") ? "Dein Tagesdurchschnitt der letzten 7 Tage" : "Your daily average over the last 7 days")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             Text(text)
