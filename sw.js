@@ -1,5 +1,5 @@
 /* Service Worker: macht OffLand auch ohne Internet spielbar. */
-const CACHE = "offland-v153";
+const CACHE = "offland-v154";
 const MOVE = "offland-umzug";   // merkt sich die neue Domain, wenn die alte Adresse umleitet (siehe Umzug in app.js)
 const ASSETS = [
   "./",

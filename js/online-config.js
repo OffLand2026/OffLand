@@ -13,8 +13,8 @@ window.OFFLAND_FIREBASE = {
 // Kontakt-E-Mail für Abmeldungen von der Warteliste (warteliste/index.html), z. B. "hallo@offland.app".
 window.OFFLAND_CONTACT = "support@offlandapp.com";
 
-/* Schutz vor Missbrauch (Firebase App Check mit reCAPTCHA v3). Anleitung: docs/online.md → „App Check“.
-   Steht hier null, ist App Check aus. Der Website-Schlüssel ist nicht geheim. */
+/* Schutz vor Missbrauch (Firebase App Check mit reCAPTCHA Enterprise, bei Google heute „Fraud Defense“).
+   Anleitung: docs/online.md → „App Check“. Steht hier null, ist App Check aus. Der Schlüssel ist nicht geheim. */
 window.OFFLAND_APPCHECK_KEY = null;
 
 // Wird von App, Statistik-Seite und Warteliste direkt nach initializeApp aufgerufen, vor dem ersten Firestore-Zugriff.
@@ -22,6 +22,6 @@ window.offlandAppCheck = async function (app, base) {
   if (!window.OFFLAND_APPCHECK_KEY) return;
   try {
     const C = await import(base + "firebase-app-check.js");
-    C.initializeAppCheck(app, { provider: new C.ReCaptchaV3Provider(window.OFFLAND_APPCHECK_KEY), isTokenAutoRefreshEnabled: true });
+    C.initializeAppCheck(app, { provider: new C.ReCaptchaEnterpriseProvider(window.OFFLAND_APPCHECK_KEY), isTokenAutoRefreshEnabled: true });
   } catch (e) { console.warn("App Check:", e); }
 };
