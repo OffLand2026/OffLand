@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7C3F0E11C0FFEE0000000001 /* OffLandWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C3F0E11C0FFEE0000000007 /* OffLandWidget.swift */; };
+		7C3F0E11C0FFEE0000000002 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 7C3F0E11C0FFEE000000000A /* PrivacyInfo.xcprivacy */; };
+		7C3F0E11C0FFEE0000000003 /* OffLandWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7C3F0E11C0FFEE0000000006 /* OffLandWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		7B2F0E11C0FFEE0000000001 /* ReportExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2F0E11C0FFEE0000000007 /* ReportExtension.swift */; };
 		7B2F0E11C0FFEE0000000002 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 7B2F0E11C0FFEE000000000A /* PrivacyInfo.xcprivacy */; };
 		7B2F0E11C0FFEE0000000003 /* ScreenTimeReport.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = 7B2F0E11C0FFEE0000000006 /* ScreenTimeReport.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -30,6 +33,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		7C3F0E11C0FFEE0000000004 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7C3F0E11C0FFEE000000000C;
+			remoteInfo = OffLandWidget;
+		};
 		7B2F0E11C0FFEE0000000004 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
@@ -65,6 +75,7 @@
 			dstSubfolderSpec = 13;
 			files = (
 				5449B3CD967FC54F4C28BD28 /* ScreenTimeMonitor.appex in Embed Foundation Extensions */,
+				7C3F0E11C0FFEE0000000003 /* OffLandWidget.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -72,6 +83,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		7C3F0E11C0FFEE0000000006 /* OffLandWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = OffLandWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		7C3F0E11C0FFEE0000000007 /* OffLandWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OffLandWidget.swift; sourceTree = "<group>"; };
+		7C3F0E11C0FFEE0000000008 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		7C3F0E11C0FFEE0000000009 /* OffLandWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = OffLandWidget.entitlements; sourceTree = "<group>"; };
+		7C3F0E11C0FFEE000000000A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		7B2F0E11C0FFEE0000000006 /* ScreenTimeReport.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.extensionkit-extension"; includeInIndex = 0; path = ScreenTimeReport.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		7B2F0E11C0FFEE0000000007 /* ReportExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportExtension.swift; sourceTree = "<group>"; };
 		7B2F0E11C0FFEE0000000008 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -102,6 +118,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		7C3F0E11C0FFEE000000000E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7B2F0E11C0FFEE000000000E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -129,6 +152,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		7C3F0E11C0FFEE000000000B /* OffLandWidget */ = {
+			isa = PBXGroup;
+			children = (
+				7C3F0E11C0FFEE0000000007 /* OffLandWidget.swift */,
+				7C3F0E11C0FFEE0000000008 /* Info.plist */,
+				7C3F0E11C0FFEE0000000009 /* OffLandWidget.entitlements */,
+				7C3F0E11C0FFEE000000000A /* PrivacyInfo.xcprivacy */,
+			);
+			path = OffLandWidget;
+			sourceTree = "<group>";
+		};
 		07AAE61E46FAC3EDC0BD562D /* iOS */ = {
 			isa = PBXGroup;
 			children = (
@@ -155,6 +189,7 @@
 				4DD612009C778B7844F28A62 /* Frameworks */,
 				C16401C760B7C3F2C13C7244 /* ScreenTimeMonitor */,
 				7B2F0E11C0FFEE000000000B /* ScreenTimeReport */,
+				7C3F0E11C0FFEE000000000B /* OffLandWidget */,
 			);
 			sourceTree = "<group>";
 		};
@@ -164,6 +199,7 @@
 				504EC3041FED79650016851F /* App.app */,
 				05C27B882CD940604DC61C7C /* ScreenTimeMonitor.appex */,
 				7B2F0E11C0FFEE0000000006 /* ScreenTimeReport.appex */,
+				7C3F0E11C0FFEE0000000006 /* OffLandWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -214,6 +250,23 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		7C3F0E11C0FFEE000000000C /* OffLandWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7C3F0E11C0FFEE0000000010 /* Build configuration list for PBXNativeTarget "OffLandWidget" */;
+			buildPhases = (
+				7C3F0E11C0FFEE000000000D /* Sources */,
+				7C3F0E11C0FFEE000000000E /* Frameworks */,
+				7C3F0E11C0FFEE000000000F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = OffLandWidget;
+			productName = OffLandWidget;
+			productReference = 7C3F0E11C0FFEE0000000006 /* OffLandWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		7B2F0E11C0FFEE000000000C /* ScreenTimeReport */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 7B2F0E11C0FFEE0000000010 /* Build configuration list for PBXNativeTarget "ScreenTimeReport" */;
@@ -246,6 +299,7 @@
 			dependencies = (
 				6DF4DFC4856A7D380475F0ED /* PBXTargetDependency */,
 				7B2F0E11C0FFEE0000000013 /* PBXTargetDependency */,
+				7C3F0E11C0FFEE0000000013 /* PBXTargetDependency */,
 			);
 			name = App;
 			packageProductDependencies = (
@@ -307,11 +361,20 @@
 				504EC3031FED79650016851F /* App */,
 				E788BB6087EE646EF2122CFE /* ScreenTimeMonitor */,
 				7B2F0E11C0FFEE000000000C /* ScreenTimeReport */,
+				7C3F0E11C0FFEE000000000C /* OffLandWidget */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		7C3F0E11C0FFEE000000000F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7C3F0E11C0FFEE0000000002 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7B2F0E11C0FFEE000000000F /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -345,6 +408,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		7C3F0E11C0FFEE000000000D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7C3F0E11C0FFEE0000000001 /* OffLandWidget.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7B2F0E11C0FFEE000000000D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -375,6 +446,12 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		7C3F0E11C0FFEE0000000013 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = OffLandWidget;
+			target = 7C3F0E11C0FFEE000000000C /* OffLandWidget */;
+			targetProxy = 7C3F0E11C0FFEE0000000004 /* PBXContainerItemProxy */;
+		};
 		7B2F0E11C0FFEE0000000013 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = ScreenTimeReport;
@@ -409,6 +486,55 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		7C3F0E11C0FFEE0000000011 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = OffLandWidget/OffLandWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = OffLandWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.offland2026.offland.Widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		7C3F0E11C0FFEE0000000012 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = OffLandWidget/OffLandWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = OffLandWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.offland2026.offland.Widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		7B2F0E11C0FFEE0000000011 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -667,6 +793,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		7C3F0E11C0FFEE0000000010 /* Build configuration list for PBXNativeTarget "OffLandWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7C3F0E11C0FFEE0000000012 /* Release */,
+				7C3F0E11C0FFEE0000000011 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		7B2F0E11C0FFEE0000000010 /* Build configuration list for PBXNativeTarget "ScreenTimeReport" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
