@@ -1197,6 +1197,7 @@ function startBoat(dur,cat,task){
   stat("boot"); S.boat={start:Date.now(),dur,crew:crew?crew.id:null,left:0,cat:cat||"ruhe",task:task||""}; save();
   if(S.alarm!==false){const keep=S.sound;S.sound=true;audio();S.sound=keep}   // Ton jetzt freischalten, solange getippt wurde
   alarmSchedule(S.boat);
+  if(S.shield&&S.shield.mode==="focus"&&ST&&ST.shieldFocus) ST.shieldFocus({on:true}).catch(()=>{});
   const el=document.documentElement;
   if(el.requestFullscreen&&!document.fullscreenElement) el.requestFullscreen().catch(()=>{});
   render();
@@ -1205,6 +1206,7 @@ function boatLeft(){if(!S.boat)return 0;return Math.max(0,S.boat.start+S.boat.du
 function finishBoat(){
   if(!S.boat) return;
   const b=S.boat; S.boat=null;
+  if(S.shield&&S.shield.mode==="focus"&&ST&&ST.shieldFocus) ST.shieldFocus({on:false}).catch(()=>{});
   const late=Date.now()-(b.start+b.dur*60000)>5000;          // in der iPhone-App hat dann schon die Mitteilung geklingelt
   if(!document.hidden&&!(FA&&late)) ringAlarm();
   alarmCancel();
@@ -1295,7 +1297,7 @@ function renderFocus(){
     modal(`<h2>Bootsfahrt abbrechen?</h2><p class="muted">Das Boot kehrt ohne Fang zurück. Punkte und Baumaterial gibt es nur, wenn du durchhältst.</p>
       <div class="row"><button class="btn grow" id="stopNo">Weiterfahren</button><button class="btn secondary grow" id="stopYes">Abbrechen</button></div>`);
     $("#stopNo").onclick=closeModal;
-    $("#stopYes").onclick=()=>{S.boat=null;alarmCancel();log("Bootsfahrt abgebrochen.","info");save();closeModal();render()};
+    $("#stopYes").onclick=()=>{S.boat=null;alarmCancel();if(S.shield&&S.shield.mode==="focus"&&ST&&ST.shieldFocus)ST.shieldFocus({on:false}).catch(()=>{});log("Bootsfahrt abgebrochen.","info");save();closeModal();render()};
     $("#stopNo").focus();
   };
   updateFocus();
@@ -2758,8 +2760,9 @@ function countUp(el,from,to){
 let WIDGET_LAST="";
 function widgetSync(){
   if(!ST_NATIVE||!S||!S.setup) return;
-  const h=here(), json=JSON.stringify({lang:window.OFFLAND_LANG||"de",name:TR(curWorld().name),glueck:Math.round(S.glueck),streak:S.budgetStreak||0,
+  const h=here(), json=JSON.stringify({lang:window.OFFLAND_LANG||"de",budget:S.budget||180,name:TR(curWorld().name),glueck:Math.round(S.glueck),streak:S.budgetStreak||0,
     people:h.filter(r=>r.kind==="mensch").length,animals:h.filter(r=>r.kind!=="mensch").length,entered:S.lastDay||""});
+  shieldSync();
   if(json===WIDGET_LAST) return; WIDGET_LAST=json;
   try{ST_NATIVE.widget({json}).catch(()=>{})}catch(e){}
 }
@@ -2877,6 +2880,7 @@ function heuteMain(ok,nd,form){
   const col=!last||good?"var(--lime)":"var(--coral)", diff=last?Math.abs(S.budget-last.min):0;
   const pl=S.plan&&!S.plan.res&&S.plan.day>today()?PLANS.find(x=>x.id===S.plan.id):null;   // Vorhaben für heute hat eine eigene Karte
   const pills=[last&&last.pts>0&&last.day===S.lastDay?`<span class="hm-pill pts">+${last.pts} Punkte</span>`:"",S.budgetStreak>1?`<span class="hm-pill" title="${S.budgetStreak} Tage in Folge im Ziel">🔥 ${S.budgetStreak}</span>`:"",
+    shieldStatsCache&&shieldStatsCache.day===today()&&shieldStatsCache.resisted>0?`<span class="hm-pill" title="Heute ${shieldStatsCache.resisted}× der Insel zuliebe eine App nicht geöffnet">🛡️ ${shieldStatsCache.resisted}</span>`:"",
     last?`<span class="hm-pill${S.jokerWk===isoWeek(today())?" off":""}" title="${S.jokerWk===isoWeek(today())?"Joker diese Woche genutzt":"Joker bereit"}">🃏</span>`:""].join("");
   // Balken: verbrauchte Zeit bis zum Budget (bei mehr: voll, Rest rot)
   const used=last?Math.min(1,last.min/S.budget):0;
@@ -2925,7 +2929,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.59";
+const APP_VERSION="1.60";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -3515,6 +3519,7 @@ function settingsHtml(){
     <p class="small muted">Ausschalten löscht alle Online-Daten dieses Kontos und trennt die Online-Freundschaften.</p>`:""}
   </div>`:""}
   ${stCard()}
+  ${shieldCard()}
   ${netConfigured()?backupCard():""}
   ${netConfigured()?`<div class="card"><p class="label">Anonyme Statistik</p>
     <label class="check" for="statsToggle"><input type="checkbox" id="statsToggle" ${statsDev().consent===true?"checked":""}> Anonym mitzählen, welche Funktionen genutzt werden</label>
@@ -3629,7 +3634,7 @@ function devBar(){
   });
 }
 function render(){
-  widgetSync();
+  widgetSync(); shieldRefresh();
   // Im Tab Freunde steht die Familieninsel, dort die eigene Insel oben ausblenden
   $("#scene").hidden=["freunde","bewohner","zeit","projekt","verlauf"].includes(tab);
   renderScene();
@@ -3677,6 +3682,7 @@ function bind(){
   const stS=$("#stSetup"); if(stS) stS.onclick=stSetup;
   const stE=$("#stEntry"); if(stE) stE.onclick=()=>stSetup(true);
   const stA=$("#stApps"); if(stA) stA.onclick=async()=>{try{await ST.pickApps()}catch(e){} await stStatus(); settingsSheet()};
+  bindShieldCard();
   const stO=$("#stOff"); if(stO) stO.onclick=async()=>{try{await ST.stop()}catch(e){} S.autoTime=false; S.stNoLink=true; save(); await stStatus(); settingsSheet()};
   ["#inH","#inM"].forEach(id=>{const el=$(id); if(el) el.addEventListener("input",()=>{el.dataset.touched="1"})});
   if(ST&&$("#inH")) stFill();
@@ -5732,6 +5738,104 @@ async function stFill(){
   const h=$("#inH"), m=$("#inM"), note=$("#stNote"); if(!h||!r||!r.has) return;
   if(!h.dataset.touched&&!m.dataset.touched){h.value=Math.floor(r.minutes/60);m.value=r.minutes%60;liveUpdate()}
   if(note) note.innerHTML=`<b style="color:var(--lime)">Automatisch gemessen${i.simulated?" (Simulation)":""}:</b> mindestens ${hm(r.minutes)}${day===today()?" bis jetzt":""}. Apple meldet die Zeit in 15-Minuten-Schritten, darum kann es bis zu 14 Minuten mehr gewesen sein.`;
+}
+
+/* ---------- Insel-Schutz: beim Öffnen gewählter Apps steht erst die Insel in der Tür ----------
+   iPhone-App: Apples Bildschirmzeit-Sperre („Shield“) mit eigenen Texten (ios/App/Shared/IslandShield.swift,
+   Erweiterungen ShieldConfig und ShieldAction). In der Web-Version simuliert, mit einer Vorschau. */
+const SHIELD_MODES=[["off","Aus"],["always","Immer"],["evening","Abends ab 21 Uhr"],["focus","Bei Fokus-Bootsfahrt"]];
+const SHIELD_SIM_APPS=[["insta","Instagram",1],["tiktok","TikTok",1],["yt","YouTube",1],["snap","Snapchat",0],["safari","Safari",0],["games","Spiele",0]];
+Object.assign(ST_SIM,{
+  async shieldPick(){
+    const cur=(S.shield&&S.shield.sim)||null;
+    const sel=await stSimAsk(`<p class="label">Simulation · Auswahl wie auf dem iPhone</p><h2>Was bewacht die Insel?</h2>
+      <p class="small muted">Wähl die Apps, bei denen du oft ohne nachzudenken landest. OffLand sieht nicht, welche Apps du wählst.</p>
+      <div style="display:flex;flex-direction:column;gap:8px">${SHIELD_SIM_APPS.map(([v,n,on])=>`<label class="field" style="flex-direction:row;align-items:center;gap:10px;min-height:44px"><input type="checkbox" value="${v}"${(cur?cur.includes(v):on)?" checked":""}> ${n}</label>`).join("")}</div>
+      <button class="btn" data-st="ok">Fertig</button><button class="btn ghost" data-st="no">Abbrechen</button>`);
+    if(!sel) return {ok:false};
+    S.shield=Object.assign(S.shield||{},{sim:sel}); save(); return {ok:true,count:sel.length};
+  },
+  async shieldSet({mode,unlock}){S.shield=Object.assign(S.shield||{},{mode,unlock:unlock||(S.shield&&S.shield.unlock)||5}); save(); return {mode}},
+  async shieldFocus(){return {}},
+  async shieldInfo(){},
+  async shieldStats({day}={}){const d=day||today(), t=(S.shield&&S.shield.simDay===d&&S.shield.simCnt)||{res:0,open:0};
+    return {day:d,resisted:t.res,opened:t.open,mode:(S.shield&&S.shield.mode)||"off",unlock:(S.shield&&S.shield.unlock)||5,count:((S.shield&&S.shield.sim)||[]).length}}
+});
+function shieldSimCount(kind){const d=today(); S.shield=S.shield||{}; if(S.shield.simDay!==d){S.shield.simDay=d;S.shield.simCnt={res:0,open:0}} S.shield.simCnt[kind]++; save()}
+let shieldStatsCache=null, shieldStatsAt=0;
+async function shieldRefresh(force){
+  if(!ST||!ST.shieldStats||!S.shield||!S.shield.mode||S.shield.mode==="off") return null;
+  if(!force&&Date.now()-shieldStatsAt<60000) return shieldStatsCache;
+  shieldStatsAt=Date.now();
+  try{shieldStatsCache=await ST.shieldStats({})}catch(e){return null}
+  // Belohnung: jedes Widerstehen +1 Punkt, höchstens 20 am Tag
+  const st=shieldStatsCache; if(!st) return null;
+  const aw=S.shield.award&&S.shield.award.day===st.day?S.shield.award:{day:st.day,n:0}, give=Math.min(20,st.resisted)-aw.n;
+  if(give>0){aw.n+=give; S.shield.award=aw; S.points+=give; save(); toast(`🛡️ ${give}× widerstanden: +${give} Punkte`); render()}
+  return st;
+}
+function shieldNames(){const a=adults().map(r=>r.name); return a.length?a:here().filter(r=>r.kind==="mensch").map(r=>r.name)}
+/* Gleiche Texte wie im iPhone-Schutz (IslandShield.message), hier für die Vorschau */
+function shieldMsg(res,open,app){
+  const names=shieldNames(), tries=res+open, n=names.length?names[tries%names.length]:"Jemand auf deiner Insel", a=app||"Instagram";
+  const T=[`${n} hat dir am Strand einen Platz freigehalten.`,`${n} fragt, ob du kurz zum Steg kommst.`,`Lucifer hat gesehen, dass du ${a} öffnen wolltest.`,
+    `${n} baut gerade eine Sandburg. Hilfst du mit?`,"Auf deiner Insel geht gleich die Sonne unter.",`${n} wartet am Lagerfeuer auf dich.`];
+  const title=T[tries%T.length];
+  const sub=tries===0?"Kurz durchatmen. Deine Insel ist nur einen Tipp entfernt.":title.includes("Lucifer")?"Er sagt nichts. Er guckt nur.":`Du warst heute schon ${tries+1}× kurz davor. ${res}× hast du widerstanden.`;
+  return {title,sub};
+}
+const SHIELD_ICON=`<svg viewBox="0 0 150 150" width="120" height="120" aria-hidden="true"><defs><clipPath id="shR"><rect width="150" height="150" rx="34"/></clipPath><linearGradient id="shSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5B4A8E"/><stop offset="1" stop-color="#C77B8A"/></linearGradient></defs>
+  <g clip-path="url(#shR)"><rect width="150" height="150" fill="url(#shSky)"/><circle cx="112" cy="40" r="15" fill="#FFB38A"/><rect y="98" width="150" height="52" fill="#2C4770"/><path d="M8 104 Q75 70 142 104z" fill="#E8D7A6"/><path d="M22 100 Q75 74 128 100" fill="#7FC57A"/>
+  <rect x="34" y="62" width="9" height="30" fill="#F3F1EA"/><rect x="34" y="70" width="9" height="4" fill="#E5484D"/><path d="M32 62h13l-6.5-9z" fill="#E5484D"/>
+  <g transform="translate(86 84)"><circle cy="-10" r="7" fill="#F3D2B8"/><path d="M-7 -12a7 7 0 0 1 14 0q-7-4-14 0z" fill="#4A3222"/><path d="M-7 4q0-10 7-10t7 10z" fill="#5BC0A8"/><path d="M7 -2 l8 -10" stroke="#F3D2B8" stroke-width="3" stroke-linecap="round"/></g>
+  <g transform="translate(110 94)"><ellipse rx="7" ry="4" fill="#1E1F2B"/><circle cx="-5" cy="-3" r="3.4" fill="#1E1F2B"/><path d="M-8 -5l1-4 2 3zM-4 -6l2-4 .5 3.5z" fill="#1E1F2B"/></g></g></svg>`;
+async function shieldPreview(){
+  let st={resisted:0,opened:0}; try{if(ST.shieldStats) st=(await ST.shieldStats({}))||st}catch(e){}
+  const m=shieldMsg(st.resisted||0,st.opened||0), mins=(S.shield&&S.shield.unlock)||5;
+  const d=document.createElement("div"); d.className="shield-prev"; d.setAttribute("role","dialog"); d.setAttribute("aria-modal","true");
+  d.innerHTML=`<p class="shield-tag">Vorschau · so erscheint es beim Öffnen von Instagram</p>${SHIELD_ICON}<h2>${esc(m.title)}</h2><p>${esc(m.sub)}</p><div class="grow"></div>
+    <button class="btn" data-sh="res">Zurück zur Insel</button><button class="shield-sec" data-sh="open">Trotzdem öffnen · ${mins} Min.</button>`;
+  document.body.appendChild(d); d.querySelector("[data-sh=res]").focus();
+  d.querySelectorAll("[data-sh]").forEach(b=>b.onclick=()=>{const k=b.dataset.sh; d.remove();
+    if(ST===ST_SIM){shieldSimCount(k)}
+    const names=shieldNames(), n=names.length?names[((st.resisted||0)+1)%names.length]:"Deine Insel";
+    toast(k==="res"?`💛 ${n} freut sich!`:`Okay, ${mins} Minuten. ${n} wartet.`);
+    if(ST===ST_SIM) shieldRefresh(true).then(()=>{if($("#shieldCard"))settingsSheet()});
+  });
+}
+function shieldSync(){
+  if(!ST_NATIVE||!S||!S.setup) return;
+  const json=JSON.stringify({lang:window.OFFLAND_LANG||"de",names:shieldNames().slice(0,12),pet:"Lucifer"});
+  if(json===shieldSync.last) return; shieldSync.last=json;
+  try{ST_NATIVE.shieldInfo({json}).catch(()=>{})}catch(e){}
+}
+function shieldCard(){
+  if(!ST||!ST.shieldPick) return "";
+  const sh=S.shield||{}, mode=sh.mode||"off", st=shieldStatsCache, cnt=st?st.count:(sh.sim||[]).length, sim=ST===ST_SIM;
+  const allowed=(sim?ST_SIM.now():stInfo||{}).status==="approved";
+  return `<div class="card" id="shieldCard"><p class="label">Insel-Schutz</p>
+    <p class="small muted">Öffnest du eine gewählte App, steht erst deine Insel in der Tür: Ein Bewohner wartet auf dich. Du kannst zurück zur Insel oder die App trotzdem kurz öffnen. Nichts wird verboten.</p>
+    ${sim?`<p class="small" style="color:var(--amber)">In der Web-Version eine Vorschau. Richtig funktioniert der Insel-Schutz in der iPhone-App.</p>`:""}
+    ${!allowed?`<button class="btn secondary" id="shAllow">Einrichten</button>`:`
+    <div class="row between"><span class="small"><b>${cnt?cnt+(cnt===1?" App gewählt":" Apps gewählt"):"Noch keine Apps gewählt"}</b></span><button class="btn secondary" id="shPick" style="width:auto;padding:8px 14px">Apps wählen</button></div>
+    <p class="small muted" style="margin-top:10px">Wann</p>
+    <div class="row fr-seg shield-seg" role="radiogroup" aria-label="Wann der Insel-Schutz gilt">${SHIELD_MODES.map(([k,n])=>`<button type="button" class="${mode===k?"on":""}" data-shmode="${k}" aria-pressed="${mode===k}">${n}</button>`).join("")}</div>
+    ${mode!=="off"?`<p class="small muted" style="margin-top:10px">„Trotzdem öffnen“ gibt frei für</p>
+    <div class="row fr-seg" role="radiogroup" aria-label="Freigabe">${[1,5,15].map(m=>`<button type="button" class="${(sh.unlock||5)===m?"on":""}" data-shunlock="${m}" aria-pressed="${(sh.unlock||5)===m}">${m} min</button>`).join("")}</div>`:""}
+    ${st&&(st.resisted||st.opened)?`<p class="small" style="margin-top:10px">Heute <b style="color:var(--lime)">${st.resisted}× widerstanden</b> · ${st.opened}× trotzdem geöffnet</p>`:""}
+    <button class="btn ghost" id="shPrev" style="margin-top:10px">Vorschau ansehen</button>`}
+  </div>`;
+}
+function bindShieldCard(){
+  const re=()=>shieldRefresh(true).then(()=>settingsSheet());
+  const a=$("#shAllow"); if(a) a.onclick=async()=>{try{await ST.authorize();await stStatus();const r=await ST.shieldPick();if(r&&r.ok&&(!S.shield||!S.shield.mode||S.shield.mode==="off")){S.shield=Object.assign(S.shield||{},{mode:"always"});await ST.shieldSet({mode:"always",unlock:S.shield.unlock||5})}save()}catch(e){toast(String(e&&e.message||e).slice(0,120))} re()};
+  const p=$("#shPick"); if(p) p.onclick=async()=>{try{const r=await ST.shieldPick();if(r&&r.ok&&S.shield&&S.shield.mode&&S.shield.mode!=="off") await ST.shieldSet({mode:S.shield.mode,unlock:S.shield.unlock||5})}catch(e){} re()};
+  document.querySelectorAll("[data-shmode]").forEach(b=>b.onclick=async()=>{const mode=b.dataset.shmode; S.shield=Object.assign(S.shield||{},{mode}); save();
+    try{await ST.shieldSet({mode,unlock:S.shield.unlock||5});if(mode==="focus") await ST.shieldFocus({on:!!S.boat})}catch(e){}
+    toast(mode==="off"?"Insel-Schutz aus":"Insel-Schutz: "+SHIELD_MODES.find(x=>x[0]===mode)[1]); re()});
+  document.querySelectorAll("[data-shunlock]").forEach(b=>b.onclick=async()=>{const unlock=+b.dataset.shunlock; S.shield=Object.assign(S.shield||{},{unlock}); save();
+    try{await ST.shieldSet({mode:S.shield.mode||"off",unlock})}catch(e){} re()});
+  const v=$("#shPrev"); if(v) v.onclick=shieldPreview;
 }
 
 /* ---------- Online-Backup: verschlüsselt, nur mit Wiederherstellungs-Code lesbar ----------
