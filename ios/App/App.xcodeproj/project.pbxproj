@@ -7,6 +7,17 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7A6F0E11C0FFEE0000000003 /* IslandShield.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A6F0E11C0FFEE0000000001 /* IslandShield.swift */; };
+		7A6F0E11C0FFEE0000000004 /* IslandShield.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A6F0E11C0FFEE0000000001 /* IslandShield.swift */; };
+		7E4F0E11C0FFEE0000000001 /* ShieldConfigurationExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E4F0E11C0FFEE0000000007 /* ShieldConfigurationExtension.swift */; };
+		7E4F0E11C0FFEE0000000002 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 7E4F0E11C0FFEE000000000A /* PrivacyInfo.xcprivacy */; };
+		7E4F0E11C0FFEE0000000003 /* ShieldConfig.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7E4F0E11C0FFEE0000000006 /* ShieldConfig.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		7E4F0E11C0FFEE0000000014 /* IslandShield.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A6F0E11C0FFEE0000000001 /* IslandShield.swift */; };
+		7E4F0E11C0FFEE0000000016 /* ShieldIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 7E4F0E11C0FFEE0000000015 /* ShieldIcon.png */; };
+		7F5F0E11C0FFEE0000000001 /* ShieldActionExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F5F0E11C0FFEE0000000007 /* ShieldActionExtension.swift */; };
+		7F5F0E11C0FFEE0000000002 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 7F5F0E11C0FFEE000000000A /* PrivacyInfo.xcprivacy */; };
+		7F5F0E11C0FFEE0000000003 /* ShieldAction.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7F5F0E11C0FFEE0000000006 /* ShieldAction.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		7F5F0E11C0FFEE0000000014 /* IslandShield.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A6F0E11C0FFEE0000000001 /* IslandShield.swift */; };
 		7D4F0E11C0FFEE0000000004 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 7D4F0E11C0FFEE0000000003 /* InfoPlist.strings */; };
 		7C3F0E11C0FFEE0000000001 /* OffLandWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C3F0E11C0FFEE0000000007 /* OffLandWidget.swift */; };
 		7C3F0E11C0FFEE0000000002 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 7C3F0E11C0FFEE000000000A /* PrivacyInfo.xcprivacy */; };
@@ -34,6 +45,20 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		7E4F0E11C0FFEE0000000004 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7E4F0E11C0FFEE000000000C;
+			remoteInfo = ShieldConfig;
+		};
+		7F5F0E11C0FFEE0000000004 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7F5F0E11C0FFEE000000000C;
+			remoteInfo = ShieldAction;
+		};
 		7C3F0E11C0FFEE0000000004 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
@@ -77,6 +102,8 @@
 			files = (
 				5449B3CD967FC54F4C28BD28 /* ScreenTimeMonitor.appex in Embed Foundation Extensions */,
 				7C3F0E11C0FFEE0000000003 /* OffLandWidget.appex in Embed Foundation Extensions */,
+				7E4F0E11C0FFEE0000000003 /* ShieldConfig.appex in Embed Foundation Extensions */,
+				7F5F0E11C0FFEE0000000003 /* ShieldAction.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -84,6 +111,18 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		7A6F0E11C0FFEE0000000001 /* IslandShield.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandShield.swift; sourceTree = "<group>"; };
+		7E4F0E11C0FFEE0000000015 /* ShieldIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ShieldIcon.png; sourceTree = "<group>"; };
+		7E4F0E11C0FFEE0000000006 /* ShieldConfig.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ShieldConfig.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		7E4F0E11C0FFEE0000000007 /* ShieldConfigurationExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldConfigurationExtension.swift; sourceTree = "<group>"; };
+		7E4F0E11C0FFEE0000000008 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		7E4F0E11C0FFEE0000000009 /* ShieldConfig.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ShieldConfig.entitlements; sourceTree = "<group>"; };
+		7E4F0E11C0FFEE000000000A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		7F5F0E11C0FFEE0000000006 /* ShieldAction.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ShieldAction.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		7F5F0E11C0FFEE0000000007 /* ShieldActionExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldActionExtension.swift; sourceTree = "<group>"; };
+		7F5F0E11C0FFEE0000000008 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		7F5F0E11C0FFEE0000000009 /* ShieldAction.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ShieldAction.entitlements; sourceTree = "<group>"; };
+		7F5F0E11C0FFEE000000000A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		7D4F0E11C0FFEE0000000001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		7D4F0E11C0FFEE0000000002 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		7C3F0E11C0FFEE0000000006 /* OffLandWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = OffLandWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -121,6 +160,20 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		7E4F0E11C0FFEE000000000E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7F5F0E11C0FFEE000000000E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7C3F0E11C0FFEE000000000E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -155,6 +208,37 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		7A6F0E11C0FFEE0000000002 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				7A6F0E11C0FFEE0000000001 /* IslandShield.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		7E4F0E11C0FFEE000000000B /* ShieldConfig */ = {
+			isa = PBXGroup;
+			children = (
+				7E4F0E11C0FFEE0000000007 /* ShieldConfigurationExtension.swift */,
+				7E4F0E11C0FFEE0000000015 /* ShieldIcon.png */,
+				7E4F0E11C0FFEE0000000008 /* Info.plist */,
+				7E4F0E11C0FFEE0000000009 /* ShieldConfig.entitlements */,
+				7E4F0E11C0FFEE000000000A /* PrivacyInfo.xcprivacy */,
+			);
+			path = ShieldConfig;
+			sourceTree = "<group>";
+		};
+		7F5F0E11C0FFEE000000000B /* ShieldAction */ = {
+			isa = PBXGroup;
+			children = (
+				7F5F0E11C0FFEE0000000007 /* ShieldActionExtension.swift */,
+				7F5F0E11C0FFEE0000000008 /* Info.plist */,
+				7F5F0E11C0FFEE0000000009 /* ShieldAction.entitlements */,
+				7F5F0E11C0FFEE000000000A /* PrivacyInfo.xcprivacy */,
+			);
+			path = ShieldAction;
+			sourceTree = "<group>";
+		};
 		7C3F0E11C0FFEE000000000B /* OffLandWidget */ = {
 			isa = PBXGroup;
 			children = (
@@ -193,6 +277,9 @@
 				C16401C760B7C3F2C13C7244 /* ScreenTimeMonitor */,
 				7B2F0E11C0FFEE000000000B /* ScreenTimeReport */,
 				7C3F0E11C0FFEE000000000B /* OffLandWidget */,
+				7A6F0E11C0FFEE0000000002 /* Shared */,
+				7E4F0E11C0FFEE000000000B /* ShieldConfig */,
+				7F5F0E11C0FFEE000000000B /* ShieldAction */,
 			);
 			sourceTree = "<group>";
 		};
@@ -203,6 +290,8 @@
 				05C27B882CD940604DC61C7C /* ScreenTimeMonitor.appex */,
 				7B2F0E11C0FFEE0000000006 /* ScreenTimeReport.appex */,
 				7C3F0E11C0FFEE0000000006 /* OffLandWidget.appex */,
+				7E4F0E11C0FFEE0000000006 /* ShieldConfig.appex */,
+				7F5F0E11C0FFEE0000000006 /* ShieldAction.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -254,6 +343,40 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		7E4F0E11C0FFEE000000000C /* ShieldConfig */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7E4F0E11C0FFEE0000000010 /* Build configuration list for PBXNativeTarget "ShieldConfig" */;
+			buildPhases = (
+				7E4F0E11C0FFEE000000000D /* Sources */,
+				7E4F0E11C0FFEE000000000E /* Frameworks */,
+				7E4F0E11C0FFEE000000000F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ShieldConfig;
+			productName = ShieldConfig;
+			productReference = 7E4F0E11C0FFEE0000000006 /* ShieldConfig.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		7F5F0E11C0FFEE000000000C /* ShieldAction */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7F5F0E11C0FFEE0000000010 /* Build configuration list for PBXNativeTarget "ShieldAction" */;
+			buildPhases = (
+				7F5F0E11C0FFEE000000000D /* Sources */,
+				7F5F0E11C0FFEE000000000E /* Frameworks */,
+				7F5F0E11C0FFEE000000000F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ShieldAction;
+			productName = ShieldAction;
+			productReference = 7F5F0E11C0FFEE0000000006 /* ShieldAction.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		7C3F0E11C0FFEE000000000C /* OffLandWidget */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 7C3F0E11C0FFEE0000000010 /* Build configuration list for PBXNativeTarget "OffLandWidget" */;
@@ -304,6 +427,8 @@
 				6DF4DFC4856A7D380475F0ED /* PBXTargetDependency */,
 				7B2F0E11C0FFEE0000000013 /* PBXTargetDependency */,
 				7C3F0E11C0FFEE0000000013 /* PBXTargetDependency */,
+				7E4F0E11C0FFEE0000000013 /* PBXTargetDependency */,
+				7F5F0E11C0FFEE0000000013 /* PBXTargetDependency */,
 			);
 			name = App;
 			packageProductDependencies = (
@@ -367,11 +492,30 @@
 				E788BB6087EE646EF2122CFE /* ScreenTimeMonitor */,
 				7B2F0E11C0FFEE000000000C /* ScreenTimeReport */,
 				7C3F0E11C0FFEE000000000C /* OffLandWidget */,
+				7E4F0E11C0FFEE000000000C /* ShieldConfig */,
+				7F5F0E11C0FFEE000000000C /* ShieldAction */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		7E4F0E11C0FFEE000000000F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7E4F0E11C0FFEE0000000002 /* PrivacyInfo.xcprivacy in Resources */,
+				7E4F0E11C0FFEE0000000016 /* ShieldIcon.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7F5F0E11C0FFEE000000000F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7F5F0E11C0FFEE0000000002 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7C3F0E11C0FFEE000000000F /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -414,6 +558,24 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		7E4F0E11C0FFEE000000000D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7E4F0E11C0FFEE0000000001 /* ShieldConfigurationExtension.swift in Sources */,
+				7E4F0E11C0FFEE0000000014 /* IslandShield.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7F5F0E11C0FFEE000000000D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7F5F0E11C0FFEE0000000001 /* ShieldActionExtension.swift in Sources */,
+				7F5F0E11C0FFEE0000000014 /* IslandShield.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7C3F0E11C0FFEE000000000D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -438,6 +600,7 @@
 				9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */,
 				A89161ED8D41F7B078CEE5B5 /* MainViewController.swift in Sources */,
 				4C9AB555D110DB711D085BCD /* ScreenTimePlugin.swift in Sources */,
+				7A6F0E11C0FFEE0000000003 /* IslandShield.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -446,12 +609,25 @@
 			buildActionMask = 2147483647;
 			files = (
 				7A8AEB44AA8EA040B4AA497A /* MonitorExtension.swift in Sources */,
+				7A6F0E11C0FFEE0000000004 /* IslandShield.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		7E4F0E11C0FFEE0000000013 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = ShieldConfig;
+			target = 7E4F0E11C0FFEE000000000C /* ShieldConfig */;
+			targetProxy = 7E4F0E11C0FFEE0000000004 /* PBXContainerItemProxy */;
+		};
+		7F5F0E11C0FFEE0000000013 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = ShieldAction;
+			target = 7F5F0E11C0FFEE000000000C /* ShieldAction */;
+			targetProxy = 7F5F0E11C0FFEE0000000004 /* PBXContainerItemProxy */;
+		};
 		7C3F0E11C0FFEE0000000013 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = OffLandWidget;
@@ -501,6 +677,104 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		7E4F0E11C0FFEE0000000011 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ShieldConfig/ShieldConfig.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ShieldConfig/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.offland2026.offland.ShieldConfig;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		7E4F0E11C0FFEE0000000012 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ShieldConfig/ShieldConfig.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ShieldConfig/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.offland2026.offland.ShieldConfig;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		7F5F0E11C0FFEE0000000011 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ShieldAction/ShieldAction.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ShieldAction/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.offland2026.offland.ShieldAction;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		7F5F0E11C0FFEE0000000012 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ShieldAction/ShieldAction.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ShieldAction/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.offland2026.offland.ShieldAction;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		7C3F0E11C0FFEE0000000011 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -808,6 +1082,24 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		7E4F0E11C0FFEE0000000010 /* Build configuration list for PBXNativeTarget "ShieldConfig" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7E4F0E11C0FFEE0000000012 /* Release */,
+				7E4F0E11C0FFEE0000000011 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7F5F0E11C0FFEE0000000010 /* Build configuration list for PBXNativeTarget "ShieldAction" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7F5F0E11C0FFEE0000000012 /* Release */,
+				7F5F0E11C0FFEE0000000011 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		7C3F0E11C0FFEE0000000010 /* Build configuration list for PBXNativeTarget "OffLandWidget" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

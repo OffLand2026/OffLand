@@ -5,6 +5,7 @@ import Capacitor
 import FamilyControls
 import DeviceActivity
 import WidgetKit
+import UserNotifications
 
 /// Sprache der nativen Texte: Englisch, wenn das iPhone nicht auf Deutsch steht
 let offlandEN = !(Locale.preferredLanguages.first ?? "de").hasPrefix("de")
@@ -27,10 +28,16 @@ public class ScreenTimePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "minutes", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "stop", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "showAverage", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "widget", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "widget", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "shieldPick", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "shieldSet", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "shieldFocus", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "shieldInfo", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "shieldStats", returnType: CAPPluginReturnPromise)
     ]
 
     private var defaults: UserDefaults? { UserDefaults(suiteName: offlandGroup) }
+    static let daily = DeviceActivityName("offland.daily")
     static let stepMinutes = 15
     static let maxMinutes = 12 * 60
 
@@ -102,7 +109,7 @@ public class ScreenTimePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func stop(_ call: CAPPluginCall) {
-        DeviceActivityCenter().stopMonitoring()
+        DeviceActivityCenter().stopMonitoring([ScreenTimePlugin.daily])
         defaults?.set(false, forKey: "monitoring")
         call.resolve()
     }
@@ -128,6 +135,69 @@ public class ScreenTimePlugin: CAPPlugin, CAPBridgedPlugin {
         call.resolve()
     }
 
+    // MARK: Insel-Schutz (Shared/IslandShield.swift, Erweiterungen ShieldConfig und ShieldAction)
+
+    /// Apps wählen, die die Insel bewacht
+    @objc func shieldPick(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            var host: UIViewController?
+            let view = ScreenTimePickerView(
+                selection: IslandShield.selection() ?? FamilyActivitySelection(),
+                title: L("Was bewacht die Insel?", "What does the island guard?"),
+                hint: L("Wähl die Apps, bei denen du oft ohne nachzudenken landest, zum Beispiel Instagram oder TikTok. Beim Öffnen steht dann erst deine Insel in der Tür. OffLand sieht nicht, welche Apps du wählst.", "Pick the apps you tend to open without thinking, like Instagram or TikTok. When you open one, your island stands in the doorway first. OffLand never sees which apps you choose.")
+            ) { selection in
+                host?.dismiss(animated: true)
+                guard let selection = selection else { call.resolve(["ok": false]); return }
+                IslandShield.save(selection)
+                IslandShield.refresh()
+                call.resolve(["ok": true, "count": IslandShield.count(of: selection)])
+            }
+            let controller = UIHostingController(rootView: view)
+            host = controller
+            self.bridge?.viewController?.present(controller, animated: true)
+        }
+    }
+
+    /// Modus ("off", "always", "evening", "focus") und Freigabe-Minuten für „Trotzdem öffnen“
+    @objc func shieldSet(_ call: CAPPluginCall) {
+        let mode = call.getString("mode") ?? IslandShield.mode
+        defaults?.set(mode, forKey: "shieldMode")
+        if let u = call.getInt("unlock") { defaults?.set(u, forKey: "shieldUnlock") }
+        IslandShield.scheduleEvening(mode == "evening")
+        DeviceActivityCenter().stopMonitoring([IslandShield.relock])
+        IslandShield.refresh()
+        if mode != "off" {
+            UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
+        }
+        call.resolve(["mode": mode, "active": IslandShield.shouldShield()])
+    }
+
+    /// Fokus-Bootsfahrt läuft oder ist vorbei (für den Modus "focus")
+    @objc func shieldFocus(_ call: CAPPluginCall) {
+        defaults?.set(call.getBool("on") ?? false, forKey: "shieldFocusOn")
+        IslandShield.refresh()
+        call.resolve(["active": IslandShield.shouldShield()])
+    }
+
+    /// Namen der Bewohner und Sprache für die Texte im Schutz
+    @objc func shieldInfo(_ call: CAPPluginCall) {
+        defaults?.set(call.getString("json") ?? "{}", forKey: "shieldInfo")
+        call.resolve()
+    }
+
+    @objc func shieldStats(_ call: CAPPluginCall) {
+        let day = call.getString("day") ?? IslandShield.dayKey()
+        call.resolve([
+            "day": day,
+            "resisted": IslandShield.today("res", day: day),
+            "opened": IslandShield.today("open", day: day),
+            "mode": IslandShield.mode,
+            "unlock": IslandShield.unlockMinutes,
+            "count": IslandShield.count(of: IslandShield.selection()),
+            "active": IslandShield.shouldShield()
+        ])
+    }
+
     static func startMonitoring(_ selection: FamilyActivitySelection) throws {
         var events: [DeviceActivityEvent.Name: DeviceActivityEvent] = [:]
         for m in stride(from: stepMinutes, through: maxMinutes, by: stepMinutes) {
@@ -144,8 +214,8 @@ public class ScreenTimePlugin: CAPPlugin, CAPBridgedPlugin {
             repeats: true
         )
         let center = DeviceActivityCenter()
-        center.stopMonitoring()
-        try center.startMonitoring(DeviceActivityName("offland.daily"), during: schedule, events: events)
+        center.stopMonitoring([daily])
+        try center.startMonitoring(daily, during: schedule, events: events)
     }
 
     static func dayKey(_ date: Date) -> String {
@@ -161,18 +231,20 @@ public class ScreenTimePlugin: CAPPlugin, CAPBridgedPlugin {
 /// Apples Auswahl, welche Apps und Kategorien zählen sollen.
 struct ScreenTimePickerView: View {
     @State var selection: FamilyActivitySelection
+    var title: String = L("Was zählt?", "What counts?")
+    var hint: String = L("Wähl am besten oben „Alle Apps und Kategorien“. OffLand sieht dabei nicht, welche Apps du nutzt, sondern bekommt nur die Zeit in 15-Minuten-Schritten.", "Best choose “All Apps & Categories” at the top. OffLand never sees which apps you use, it only gets the time in 15-minute steps.")
     let done: (FamilyActivitySelection?) -> Void
 
     var body: some View {
         NavigationView {
             VStack(alignment: .leading, spacing: 0) {
-                Text(L("Wähl am besten oben „Alle Apps und Kategorien“. OffLand sieht dabei nicht, welche Apps du nutzt, sondern bekommt nur die Zeit in 15-Minuten-Schritten.", "Best choose “All Apps & Categories” at the top. OffLand never sees which apps you use, it only gets the time in 15-minute steps."))
+                Text(hint)
                     .font(.footnote)
                     .foregroundColor(.secondary)
                     .padding()
                 FamilyActivityPicker(selection: $selection)
             }
-            .navigationTitle(L("Was zählt?", "What counts?"))
+            .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

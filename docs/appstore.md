@@ -124,7 +124,7 @@ Bild 7 erwähnt im Freunde-Text „einen Monat Plus“. Wenn Plus in der Store-V
 
 ## 10. Antrag auf Family Controls (Bildschirmzeit)
 
-Ohne diese Freigabe darf die App die Bildschirmzeit im App Store nicht nutzen. Beantragen als Account Holder unter **developer.apple.com/contact/request/family-controls-distribution**, und zwar **dreimal**: für `com.offland2026.offland`, für die Erweiterung `com.offland2026.offland.ScreenTimeMonitor` und für die Erweiterung `com.offland2026.offland.ScreenTimeReport`. Das Formular ist auf Englisch.
+Ohne diese Freigabe darf die App die Bildschirmzeit im App Store nicht nutzen. Beantragen als Account Holder unter **developer.apple.com/contact/request/family-controls-distribution**, und zwar **fünfmal**: für `com.offland2026.offland` und die Erweiterungen `com.offland2026.offland.ScreenTimeMonitor`, `com.offland2026.offland.ScreenTimeReport`, `com.offland2026.offland.ShieldConfig` und `com.offland2026.offland.ShieldAction`. Wer die ersten drei schon beantragt hat, beantragt die beiden Shield-Erweiterungen nach und schreibt dazu, dass der Insel-Schutz (Punkt 6 unten) neu ist. Das Formular ist auf Englisch.
 
 **App name:** OffLand
 
@@ -141,14 +141,15 @@ How it works:
 3. Our DeviceActivityMonitor extension registers usage thresholds in 15-minute steps for the current day. When a threshold is reached, the extension stores only the highest reached step (e.g. "90 minutes") for that day in the shared App Group.
 4. When the user logs their day, the app pre-fills this value. The user can always correct it.
 5. During setup, the user can open a DeviceActivityReport (our report extension) that shows their own daily average of the last 7 days, so they can set their starting value. The value is only displayed to the user inside the sandboxed report; the app itself never receives it.
+6. Optional "Island guard": the user picks apps they tend to open on autopilot (e.g. social media). When they open one, ManagedSettings shows a shield with their own island and a resident waiting for them (ShieldConfiguration extension). "Back to the island" closes the app; "Open anyway" lifts the shield for a few minutes of use (ShieldAction extension, re-applied via DeviceActivity). Users choose when it applies (always, evenings from 9 pm, or during a focus session) and can turn it off at any time. We only count how often the user chose each button, on the device.
 
 Data and privacy:
 - We never read which apps or websites were used, only the daily total in 15-minute steps.
 - This value stays on the device. It is never sent to our servers, never shared with third parties and never used for advertising.
-- We do not use ManagedSettings to block or shield apps.
+- ManagedSettings is only used for the optional island guard the user sets up themselves. Nothing is ever blocked without an "open anyway" option.
 - The feature is optional. The app works fully with manual entry, and users can turn automatic measuring off at any time.
 
-Bundle IDs: com.offland2026.offland (app), com.offland2026.offland.ScreenTimeMonitor (DeviceActivityMonitor extension) and com.offland2026.offland.ScreenTimeReport (DeviceActivityReport extension).
+Bundle IDs: com.offland2026.offland (app), com.offland2026.offland.ScreenTimeMonitor (DeviceActivityMonitor extension), com.offland2026.offland.ScreenTimeReport (DeviceActivityReport extension), com.offland2026.offland.ShieldConfig (ShieldConfiguration extension) and com.offland2026.offland.ShieldAction (ShieldAction extension).
 ```
 
-Nach der Freigabe: In Certificates, Identifiers & Profiles bei allen drei App-IDs die Fähigkeit **Family Controls (Distribution)** aktivieren und den TestFlight-Lauf mit „Bildschirmzeit-Berechtigung einbauen“ starten.
+Nach der Freigabe: In Certificates, Identifiers & Profiles bei allen fünf App-IDs die Fähigkeit **Family Controls (Distribution)** aktivieren und den TestFlight-Lauf mit „Bildschirmzeit-Berechtigung einbauen“ starten.

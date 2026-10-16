@@ -775,3 +775,14 @@ body.enter-b #start .sky-inner>:nth-child(n+4){animation-delay:1.3s!important}
 .alb-st.miss{opacity:.45}
 .alb-row{background:var(--card);border-radius:22px;min-height:64px;flex-direction:row;align-items:center;gap:12px;text-align:left;padding:12px 16px}
 .alb-ric{font-size:26px;width:36px;text-align:center}
+
+/* Insel-Schutz: Vorschau wie Apples Sperre, Auswahl im Einstellungs-Karte */
+.shield-seg{flex-wrap:wrap}.shield-seg button{flex:1 1 40%}
+.shield-prev{position:fixed;inset:0;z-index:450;background:#14151F;display:flex;flex-direction:column;align-items:center;text-align:center;
+  padding:calc(70px + env(safe-area-inset-top,0px)) max(28px,env(safe-area-inset-left,0px)) calc(34px + env(safe-area-inset-bottom,0px))}
+.shield-prev svg{border-radius:28px;box-shadow:0 14px 40px rgba(0,0,0,.5);margin-top:44px}
+.shield-prev h2{font:800 25px/1.18 var(--display);letter-spacing:-.4px;margin:24px 0 0;max-width:340px;text-wrap:balance}
+.shield-prev p{color:var(--muted);font-size:15px;line-height:1.45;margin:10px 0 0;max-width:330px}
+.shield-prev .grow{flex:1}.shield-prev .btn{width:100%;max-width:380px}
+.shield-tag{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;font-weight:800;color:#6E7190!important}
+.shield-sec{background:none;border:0;color:var(--muted);font:700 15px var(--body);margin-top:14px;padding:8px;cursor:pointer}
