@@ -28,13 +28,17 @@ walk.fullAncestor(ast, (n, anc) => {
   ps.forEach(p => seen.add(p)); htmlRuns(ps.map(parts).join(""));
 });
 walk.full(ast, n => { if (!seen.has(n) && (n.type === "TemplateLiteral" || (n.type === "Literal" && typeof n.value === "string"))) htmlRuns(parts(n)); });
+// Anzeigenamen in Datenlisten ({n:"gesellig"}, {pp:"gelesen"}) sehen aus wie IDs, darum hier ohne Filter
+const SHOWN = new Set(["n", "fx", "pp"]), shown = new Set();
+walk.full(ast, n => { if (n.type === "Property" && SHOWN.has(n.key.name) && n.value.type === "Literal" && typeof n.value.value === "string" && /[a-zäöüß]{3}/i.test(n.value.value)) shown.add(n.value.value.trim()); });
 const html = fs.readFileSync("index.html", "utf8").replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<!--[\s\S]*?-->/g, "");
 htmlRuns(html);
 
 const ctx = { window: {} }; vm.runInNewContext(fs.readFileSync("js/i18n-en.js", "utf8"), ctx);
 const D = ctx.window.OFFLAND_EN;
 // Namen und Wörter, die auf Englisch gleich bleiben, stehen absichtlich nicht im Wörterbuch
-const KEEP = /^(Mr\. Bay|Lucifer|OffLand|TikTok|YouTube|Instagram|WhatsApp|Netflix|Spotify|DJ|OK|PIN|Bob|Surfer|Hipster|Undercut|Spikes|Twists|Krümel|Möhre|Pünktchen|Ö-ö-ö!)$/;
+const KEEP = /^(Mr\. Bay|Lucifer|OffLand|TikTok|YouTube|Instagram|WhatsApp|Netflix|Spotify|DJ|OK|PIN|Bob|Surfer|Hipster|Undercut|Spikes|Twists|Krümel|Möhre|Pünktchen|Ö-ö-ö!|Flamingos|Sauna|Hobby)$/;
 const missing = [...out].filter(s => !(s in D) && !KEEP.test(s) && GER.test(s));
+for (const s of shown) if (!(s in D) && !KEEP.test(s) && !missing.includes(s)) missing.push(s);
 console.log(JSON.stringify(missing, null, 1));
 console.error(`${out.size} Texte gefunden, ${Object.keys(D).length} im Wörterbuch, ${missing.length} fehlen (mit typisch deutschen Wörtern).`);
