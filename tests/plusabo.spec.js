@@ -94,6 +94,33 @@ test("Insel-Schutz Pro: eigene Zeitpläne nur mit Plus", async ({ page }) => {
   expect(await page.evaluate(() => T.S.shield.wins.length)).toBe(2);
 });
 
+test("Weltreise und Zeit-Statistik gehören zu Plus", async ({ page }) => {
+  await newGame(page, "Mia");
+  await ohnePlus(page);
+  // Neue Insel entdeckt: Aufbrechen führt zur Paywall
+  await page.evaluate(() => { T.S.found = 1; T.S.pending = [{ type: "discovery", world: 1 }]; T.showPending(); });
+  await expect(page.locator("#modalRoot")).toContainText("Die Weltreise gehört zu OffLand Plus");
+  await page.click("#discGo");
+  await expect(page.locator("#plusPw")).toBeVisible();
+  await page.click("#pwClose");
+  expect(await page.evaluate(() => T.S.world || 0)).toBe(0);
+  // Zeit-Tab: Inseljahr nur als Vorschau
+  await page.evaluate(() => { document.getElementById("modalRoot").innerHTML = ""; T.S.allFeatures = true; T.render(); });
+  await page.click('[data-tab="zeit"]');
+  await expect(page.locator(".plus-lock")).toBeVisible();
+  await expect(page.locator("#view")).not.toContainText("Hochgerechnet aufs Jahr");
+  await page.click('.plus-lock [data-pluspw="zeit"]');
+  await expect(page.locator("#plusPw")).toBeVisible();
+  await page.click("#pwBuy");                                    // Probezeit (Simulation)
+  await page.evaluate(() => { document.getElementById("modalRoot").innerHTML = ""; T.render(); });
+  await expect(page.locator(".plus-lock")).toHaveCount(0);
+  await expect(page.locator("#view")).toContainText("Hochgerechnet aufs Jahr");
+  // mit Plus geht die Reise los
+  await page.evaluate(() => { T.S.pending = [{ type: "discovery", world: 1 }]; T.showPending(); });
+  await page.click("#discGo");
+  await expect.poll(() => page.evaluate(() => T.S.world)).toBe(1);
+});
+
 test("Ende der geschenkten Plus-Woche: einmal Bescheid, dann Paywall", async ({ page }) => {
   await newGame(page, "Mia");
   await page.evaluate(() => { T.S.plusTrial = T.addDays(T.today(), -8); T.S.plus = { until: T.addDays(T.today(), -1) }; T.S.plusSub = null; T.S.pending = []; document.getElementById("modalRoot").innerHTML = ""; T.save(); });
@@ -141,5 +168,31 @@ test.describe("Ohne App Store (Webseite heute)", () => {
     await page.click('#lookEd [data-pane="extras"]');
     await expect(page.locator('#lookEd [data-look="acc"][data-v="8"]')).toHaveCount(0);
     await expect(page.locator("#lookEd .uk-star")).toHaveCount(0);
+    // vor dem Start der Abos bleibt alles frei: Zeit-Statistik und Weltreise
+    await page.evaluate(() => { document.getElementById("modalRoot").innerHTML = ""; T.S.allFeatures = true; T.render(); });
+    await page.click('[data-tab="zeit"]');
+    await expect(page.locator(".plus-lock")).toHaveCount(0);
+    await page.evaluate(() => { T.S.found = 1; T.S.pending = [{ type: "discovery", world: 1 }]; T.showPending(); });
+    await expect(page.locator("#discGo")).toHaveText("Jetzt aufbrechen");
+  });
+  test("Entwickler: Plus anzeigen, freischalten und entfernen", async ({ page }) => {
+    await newGame(page, "Mia");
+    await page.evaluate(() => { T.S.pending = []; document.getElementById("modalRoot").innerHTML = ""; T.settingsSheet(); });
+    await expect(page.locator("#plusCard")).toHaveCount(0);
+    await expect(page.locator("#devPlus")).toContainText("kein Plus");
+    // Plus anzeigen: Simulation an, Paywall und Plus-Karte sind da
+    await page.check("#devPlusSim");
+    await expect(page.locator("#plusCard")).toContainText("Plus ansehen");
+    await page.click("#plusMore");
+    await expect(page.locator("#plusPw")).toBeVisible();
+    await page.click("#pwClose");
+    // freischalten und entfernen
+    await page.click("#devPlusOn");
+    await expect(page.locator("#devPlus")).toContainText("aktiv bis");
+    expect(await page.evaluate(() => T.plusActive())).toBe(true);
+    await page.click("#devPlusOff");
+    await expect(page.locator("#devPlus")).toContainText("kein Plus");
+    await page.uncheck("#devPlusSim");
+    await expect(page.locator("#plusCard")).toHaveCount(0);
   });
 });
