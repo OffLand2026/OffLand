@@ -4544,7 +4544,7 @@ function umkleide(r,d){
     bart:`<p class="uk-h">Bart</p>${tiles("beard",BEARD_NAMES,(d.beard||0)%BEARD_NAMES.length,i=>({beard:i}))}`,
     shirt:sw(kid?"Shirt":"Oberteil","shirt",SHIRT,d.shirt),
     muster:`<p class="uk-h">Muster</p>${tiles("pat",PAT_NAMES,(d.pat||0)%PAT_NAMES.length,i=>({pat:i}))}`,
-    extras:`<p class="uk-h">Extras <span>mehrere möglich</span></p><div class="uk-grid">${ACC_NAMES.map((n,i)=>{const on=i?al.includes(i):!al.length, pl=ACC_PLUS.has(i);return `<button type="button" class="uk-tile${on?" on":""}${pl?" uk-plus":""}" data-look="acc" data-v="${i}" aria-label="${n}${pl&&!plusActive()?" (Plus)":""}" aria-pressed="${on}">${ukFig(r,d,{acc:i?accToggle(al.filter(x=>x!==i),i):[]},62)}<span>${n}</span>${pl?`<i class="uk-star" aria-hidden="true">★</i>`:""}</button>`}).join("")}</div>${sw("Farbe der Extras","accC",SHIRT,d.accC)}`,
+    extras:`<p class="uk-h">Extras <span>mehrere möglich</span></p><div class="uk-grid">${ACC_NAMES.map((n,i)=>{const on=i?al.includes(i):!al.length, pl=ACC_PLUS.has(i); if(pl&&!plusShown()) return "";return `<button type="button" class="uk-tile${on?" on":""}${pl?" uk-plus":""}" data-look="acc" data-v="${i}" aria-label="${n}${pl&&!plusActive()?" (Plus)":""}" aria-pressed="${on}">${ukFig(r,d,{acc:i?accToggle(al.filter(x=>x!==i),i):[]},62)}<span>${n}</span>${pl?`<i class="uk-star" aria-hidden="true">★</i>`:""}</button>`}).join("")}</div>${sw("Farbe der Extras","accC",SHIRT,d.accC)}`,
     augen:`${sw("Leuchtaugen (als Schatten)","eye",LV_EYES,(d.eye||0)%LV_EYES.length)}<p class="small muted">So leuchten die Augen, solange die Farbe noch fehlt. Unten links im Spiegel siehst du es.</p>`
   }[LOOK_PANE];
   return `<div class="uk"><div class="uk-rail" role="tablist">${panes.map(([k,e,n])=>`<button type="button" role="tab" class="uk-r${k===LOOK_PANE?" on":""}" data-pane="${k}" aria-selected="${k===LOOK_PANE}"><b aria-hidden="true">${e}</b><i>${n}</i></button>`).join("")}</div>
@@ -4569,9 +4569,9 @@ function umkleideTier(r,d){
   const sw=(label,key,list,sel)=>`<div class="sw-row" role="radiogroup" aria-label="${label}"><span class="small muted">${label}</span>${list.map((c,i)=>`<button type="button" class="sw${i===sel?" on":""}" data-look="${key}" data-v="${i}" style="background:${c}" aria-label="${label} ${i+1}" aria-pressed="${i===sel}"></button>`).join("")}</div>`;
   const body={
     looks:`<p class="uk-h">Fertige Looks <span>${TIER_LOOKS.length}</span></p><div class="uk-grid">${TIER_LOOKS.map(([n,l],i)=>`<button type="button" class="uk-tile lk" data-lookset="${i}" aria-label="Look ${n}">${ukTier(r,d,col?l:Object.assign({},l,{collar:0}),62)}<span>${n}</span></button>`).join("")}</div>`,
-    fell:`<p class="uk-h">Fellfarbe</p>${tiles("fur",Array.from({length:nf},(_,i)=>"Farbe "+(i+1)).concat(["Gold"]),d.fur===99?nf:d.fur||0,i=>({fur:i===nf?99:i}),i=>i===nf?99:i)}`,
-    hals:`<p class="uk-h">Halsband</p>${tiles("collar",COLLAR_NAMES,d.collar||0,i=>({collar:i}))}${sw("Farbe","cc",SHIRT,d.cc||0)}`,
-    brille:`<p class="uk-h">Brille</p>${tiles("specs",SPECS_NAMES,d.specs||0,i=>({specs:i}))}`
+    fell:`<p class="uk-h">Fellfarbe</p>${tiles("fur",Array.from({length:nf},(_,i)=>"Farbe "+(i+1)).concat(plusShown()?["Gold"]:[]),d.fur===99?nf:d.fur||0,i=>({fur:i===nf?99:i}),i=>i===nf?99:i)}`,
+    hals:`<p class="uk-h">Halsband</p>${tiles("collar",plusShown()?COLLAR_NAMES:COLLAR_NAMES.slice(0,COLLAR_FREE),d.collar||0,i=>({collar:i}))}${sw("Farbe","cc",SHIRT,d.cc||0)}`,
+    brille:`<p class="uk-h">Brille</p>${tiles("specs",plusShown()?SPECS_NAMES:SPECS_NAMES.slice(0,SPECS_FREE),d.specs||0,i=>({specs:i}))}`
   }[LOOK_PANE];
   return `<div class="uk"><div class="uk-rail" role="tablist">${panes.map(([k,e,n])=>`<button type="button" role="tab" class="uk-r${k===LOOK_PANE?" on":""}" data-pane="${k}" aria-selected="${k===LOOK_PANE}"><b aria-hidden="true">${e}</b><i>${n}</i></button>`).join("")}</div>
     <div class="uk-main"><div class="uk-mir"><div class="look-prev" id="lookPrev">${lookPreview(r,d)}</div><button type="button" class="uk-photo" data-photo aria-label="Aussehen aus Foto übernehmen">📷</button><button type="button" class="uk-dice" data-dice aria-label="Zufälliger Look">🎲</button></div>
@@ -4861,7 +4861,7 @@ function grantPlus(days){S.plus={until:addDays(plusGift()?S.plus.until:today(),d
 /* Plus-Woche zum Start: neue Inseln bekommen 7 Tage Plus geschenkt, ohne Abo und ohne Zahlungsdaten */
 const PLUS_TRIAL=7;
 function plusTrialStart(){
-  if(S.plus||S.plusTrial) return;
+  if(S.plus||S.plusTrial||!plusAvailable()) return;
   grantPlus(PLUS_TRIAL-1); S.plusTrial=today();                                    // heute zählt mit: 7 Tage inklusive heute
   S.pending.unshift({type:"plusStart"});
 }
@@ -4887,7 +4887,7 @@ function plusStartSheet(){
 }
 /* Ende der geschenkten Plus-Woche: einmal freundlich Bescheid geben */
 function plusEndCheck(){
-  if(!S.plusTrial||S.plusEndSeen||plusActive()||!S.plus||S.plus.until>=today()) return;
+  if(!S.plusTrial||S.plusEndSeen||plusActive()||!S.plus||S.plus.until>=today()||!plusAvailable()) return;
   S.plusEndSeen=today(); S.pending.push({type:"plusEnd"});
 }
 function plusEndSheet(){
@@ -4917,6 +4917,12 @@ const PS_SIM={
   async manage(){S.plusSubSim=null; return {shown:true,cancelled:true}}
 };
 const plusStore=()=>PS_NATIVE||(storeSimOn()?PS_SIM:null);
+/* Schalter: Plus (Plus-Woche, Paywall, Plus-Karte, gesperrte Plus-Teile) erscheint erst, wenn der App Store
+   die Abos wirklich liefert. Bis dahin sieht niemand Plus, und es schaltet sich später ohne Update frei. */
+let PLUS_LIVE=(()=>{try{return localStorage.getItem("offland-plus-live")==="1"}catch(e){return false}})();
+function plusLiveSet(v){PLUS_LIVE=!!v; try{v?localStorage.setItem("offland-plus-live","1"):localStorage.removeItem("offland-plus-live")}catch(e){}}
+const plusAvailable=()=>storeSimOn()||(!!PS_NATIVE&&PLUS_LIVE);
+const plusShown=()=>plusAvailable()||plusActive();
 function plusApply(e){
   if(e&&e.active){
     const until=e.until?String(e.until).slice(0,10):addDays(today(),30);
@@ -4927,6 +4933,7 @@ function plusApply(e){
 }
 async function plusSync(){
   const st=plusStore(); if(!st) return;
+  try{const r=await st.products({ids:PLUS_PLANS.map(p=>p.id)}); plusLiveSet(r&&r.products&&r.products.length)}catch(e){}
   try{plusApply(await st.status())}catch(e){}
 }
 if(PS_NATIVE){try{PS_NATIVE.addListener("change",e=>{if(!S) return; plusApply(e); render()})}catch(e){}}
@@ -4939,7 +4946,7 @@ const PLUS_TERMS="https://www.apple.com/legal/internet-services/itunes/dev/stdeu
 /* Die Paywall: eigene Ebene über allem (auch über offenen Fenstern), Schließen ist immer sichtbar */
 let PW_PRODUCTS=null;
 async function plusPaywall(from){
-  if($("#plusPw")) return;
+  if($("#plusPw")||!plusAvailable()) return;
   stat("paywall_"+(from||"x"));
   const st=plusStore();
   if(st){try{const r=await st.products({ids:PLUS_PLANS.map(p=>p.id)}); if(r&&r.products&&r.products.length) PW_PRODUCTS=r.products}catch(e){}}   // jedes Mal neu: Probezeit gibt es nur einmal
@@ -5024,14 +5031,15 @@ function plusWelcome(p){
 }
 /* Plus-Karte in den Einstellungen */
 function plusCard(){
+  if(!plusShown()) return "";
   const on=plusActive(), sub=plusSubOn()?S.plusSub:null, st=plusStore();
   return `<div class="card plus-card" id="plusCard"><div class="row between"><p class="label" style="color:var(--amber)">★ OffLand Plus</p>${on?`<span class="chip plus">aktiv</span>`:""}</div>
     ${on?`<p class="small">${sub?(sub.trial?"Probezeit bis ":"Abo läuft bis ")+nice(sub.until)+(sub.family?" · Familie":""):"Geschenkt bis "+nice(plusUntil())}</p>
       <p class="small muted" style="margin-top:8px">Inselstil</p>
       <div class="row fr-seg" role="radiogroup" aria-label="Inselstil">${[["","Klassisch"],["lagune","Goldene Lagune"]].map(([k,n])=>`<button type="button" class="${(S.isleStyle||"")===k?"on":""}" data-isle="${k}" aria-pressed="${(S.isleStyle||"")===k}">${n}</button>`).join("")}</div>
-      ${sub&&st?`<button class="btn ghost" id="plusManage" style="margin-top:8px">Abo verwalten oder kündigen</button>`:!sub?`<button class="btn secondary" id="plusMore" style="margin-top:8px">Plus verlängern</button>`:""}`
+      ${sub&&st?`<button class="btn ghost" id="plusManage" style="margin-top:8px">Abo verwalten oder kündigen</button>`:!sub&&plusAvailable()?`<button class="btn secondary" id="plusMore" style="margin-top:8px">Plus verlängern</button>`:""}`
     :`<p class="small muted">Insel-Schutz Pro, Goldene Lagune, Plus-Looks und mehr. Alles Wichtige bleibt gratis.</p>
-      <button class="btn secondary" id="plusMore" style="margin-top:6px">Plus ansehen</button>`}
+      ${plusAvailable()?`<button class="btn secondary" id="plusMore" style="margin-top:6px">Plus ansehen</button>`:""}`}
   </div>`;
 }
 function bindPlusCard(){
@@ -5132,7 +5140,7 @@ function friendsSheet(){
     <p class="err" id="frErr" role="alert"></p>
     <button class="btn secondary" id="frRedeem">Code einlösen</button>
     ${S.buddies.length?`<p class="label">Gemeinsame Ziele</p>${buddyRows()}`:""}
-    <p class="small muted">OffLand Plus bringt Insel-Schutz Pro, die Goldene Lagune, Plus-Looks und +10 % Punkte am Tag. Den Monat gibt es geschenkt, danach gibt es Plus als Abo in der iPhone-App.</p>
+    <p class="small muted">${plusAvailable()?"OffLand Plus bringt Insel-Schutz Pro, die Goldene Lagune, Plus-Looks und +10 % Punkte am Tag. Den Monat gibt es geschenkt, danach gibt es Plus als Abo in der iPhone-App.":"OffLand Plus bringt +10 % Punkte am Tag und einen goldenen Rahmen beim Teilen."}</p>
     ${netConfigured()?`<button class="btn secondary" id="frRank">Freunde und Ranglisten</button>`:""}
     <button class="btn ghost" id="frClose">Schließen</button>`);
   $("#frShare").onclick=()=>shareText("Spiel mit mir OffLand! Weniger Handy, mehr Insel. Mit meinem Code "+code+" bekommen wir ein gemeinsames Ziel, und wer noch kein Plus bekommen hat, einen Monat gratis.",inviteLink());
@@ -6073,7 +6081,7 @@ function shieldCard(){
     ${!allowed?`<button class="btn secondary" id="shAllow">Einrichten</button>`:`
     <div class="row between"><span class="small"><b>${cnt?cnt+(cnt===1?" App gewählt":" Apps gewählt"):"Noch keine Apps gewählt"}</b></span><button class="btn secondary" id="shPick" style="width:auto;padding:8px 14px">Apps wählen</button></div>
     <p class="small muted" style="margin-top:10px">Wann</p>
-    <div class="row fr-seg shield-seg" role="radiogroup" aria-label="Wann der Insel-Schutz gilt">${SHIELD_MODES.map(([k,n])=>`<button type="button" class="${mode===k?"on":""}" data-shmode="${k}" aria-pressed="${mode===k}">${n}</button>`).join("")}</div>
+    <div class="row fr-seg shield-seg" role="radiogroup" aria-label="Wann der Insel-Schutz gilt">${SHIELD_MODES.filter(([k])=>k!=="plan"||plusShown()).map(([k,n])=>`<button type="button" class="${mode===k?"on":""}" data-shmode="${k}" aria-pressed="${mode===k}">${n}</button>`).join("")}</div>
     ${mode==="plan"?`<div class="sh-wins">${shWins().map(([a,b],i)=>`<div class="sh-win"><select data-shw="${i}" data-k="0" aria-label="Zeitplan ${i+1} von">${Array.from({length:48},(_,k)=>k*30).map(m=>`<option value="${m}"${m===a?" selected":""}>${hhmm(m)}</option>`).join("")}</select><span aria-hidden="true">–</span>
       <select data-shw="${i}" data-k="1" aria-label="Zeitplan ${i+1} bis">${Array.from({length:48},(_,k)=>k*30+30).map(m=>`<option value="${m}"${m===(b||1440)?" selected":""}>${m===1440?"24:00":hhmm(m)}</option>`).join("")}</select>
       <button type="button" class="iconbtn" data-shdel="${i}" aria-label="Zeitplan ${i+1} löschen">✕</button></div>`).join("")||`<p class="small muted">Noch kein Zeitplan.</p>`}

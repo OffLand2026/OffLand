@@ -124,3 +124,22 @@ test.describe("Englisch", () => {
     await expect(page.locator("#plusCard")).toContainText("Golden Lagoon");
   });
 });
+
+test.describe("Ohne App Store (Webseite heute)", () => {
+  test.beforeEach(async ({ page }) => { await page.addInitScript(() => { Object.defineProperty(Navigator.prototype, "webdriver", { get: () => false }); localStorage.setItem("offland-intro", "1"); }); });
+  test("Plus bleibt unsichtbar: keine Plus-Woche, keine Paywall, keine Plus-Teile", async ({ page }) => {
+    await newGame(page, "Mia");
+    expect(await page.evaluate(() => T.S.plus)).toBe(null);
+    expect(await page.evaluate(() => T.S.pending.some(e => e.type === "plusStart"))).toBe(false);
+    await page.evaluate(() => { T.S.pending = []; document.getElementById("modalRoot").innerHTML = ""; T.settingsSheet(); });
+    await expect(page.locator("#plusCard")).toHaveCount(0);
+    await page.click("#shAllow"); await page.click(".st-sim [data-st=ok]"); await page.click(".st-sim [data-st=ok]");
+    await expect(page.locator('#shieldCard [data-shmode="plan"]')).toHaveCount(0);
+    await page.evaluate(() => { document.getElementById("modalRoot").innerHTML = ""; T.plusPaywall("test"); });
+    await expect(page.locator("#plusPw")).toHaveCount(0);
+    await page.evaluate(() => { const r = T.S.residents.find(x => x.kind === "mensch"); T.nameSheet({ type: "rename", id: r.id }); });
+    await page.click('#lookEd [data-pane="extras"]');
+    await expect(page.locator('#lookEd [data-look="acc"][data-v="8"]')).toHaveCount(0);
+    await expect(page.locator("#lookEd .uk-star")).toHaveCount(0);
+  });
+});

@@ -1487,6 +1487,7 @@ window.OFFLAND_EN={
 "Nützliches": "Useful stuff",
 "Oasenbrunnen": "Oasis well",
 "Oberteil": "Top",
+"OffLand Plus bringt +10 % Punkte am Tag und einen goldenen Rahmen beim Teilen.": "OffLand Plus brings +10 % points a day and a golden frame when you share.",
 "OffLand Plus bringt Insel-Schutz Pro, die Goldene Lagune, Plus-Looks und +10 % Punkte am Tag. Den Monat gibt es geschenkt, danach gibt es Plus als Abo in der iPhone-App.": "OffLand Plus brings Island Guard Pro, the Golden Lagoon, Plus looks and +10 % points a day. The month is a gift; after that, Plus is a subscription in the iPhone app.",
 "OffLand Plus ist eine Vorschau: +10 % Punkte pro Tag und ein goldener Rahmen beim Teilen. Später läuft es über ein Abo im App Store.": "OffLand Plus is a preview: +10 % points per day and a golden frame when sharing. Later, it'll be a subscription in the App Store.",
 "OffLand Plus ist gerade nicht erreichbar. Versuch es später noch mal.": "OffLand Plus isn't available right now. Please try again later.",
