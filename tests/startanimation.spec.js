@@ -11,7 +11,7 @@ test("Startanimation: volle Fassung überspringbar, danach kurz", async ({ page 
   await expect(page.locator("#start")).toBeVisible();
   // Zweiter Start: Schnelldurchlauf ohne Knopf
   await page.goto("/");
-  await expect(page.locator("#splash")).toHaveAttribute("style", /--k:\s*\.34/);
+  await expect(page.locator("#splash")).toHaveAttribute("style", /--k:\s*\.75/);
   await expect(page.locator("#splash .sp-skip")).toBeHidden();
   await expect(page.locator("#splash")).toHaveCount(0, { timeout: 8000 });
 });
