@@ -23,10 +23,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - name: Website zusammenstellen
         run: |
           mkdir _site
-          cp -r index.html manifest.webmanifest sw.js css js icons warteliste statistik _site/
+          cp -r index.html manifest.webmanifest sw.js css js icons warteliste statistik impressum datenschutz landing _site/
+      - name: App und Styles verkleinern
+        run: |
+          npx --yes esbuild@0.24.0 js/app.js --minify --outfile=_site/js/app.js --allow-overwrite --log-level=warning
+          npx --yes esbuild@0.24.0 css/style.css --minify --outfile=_site/css/style.css --allow-overwrite --log-level=warning
+          ls -l _site/js/app.js _site/css/style.css
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site

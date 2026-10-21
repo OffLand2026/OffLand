@@ -7,6 +7,26 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7A6F0E11C0FFEE0000000003 /* IslandShield.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A6F0E11C0FFEE0000000001 /* IslandShield.swift */; };
+		7A6F0E11C0FFEE0000000004 /* IslandShield.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A6F0E11C0FFEE0000000001 /* IslandShield.swift */; };
+		7E4F0E11C0FFEE0000000001 /* ShieldConfigurationExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E4F0E11C0FFEE0000000007 /* ShieldConfigurationExtension.swift */; };
+		7E4F0E11C0FFEE0000000002 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 7E4F0E11C0FFEE000000000A /* PrivacyInfo.xcprivacy */; };
+		7E4F0E11C0FFEE0000000003 /* ShieldConfig.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7E4F0E11C0FFEE0000000006 /* ShieldConfig.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		7E4F0E11C0FFEE0000000014 /* IslandShield.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A6F0E11C0FFEE0000000001 /* IslandShield.swift */; };
+		7E4F0E11C0FFEE0000000016 /* ShieldIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 7E4F0E11C0FFEE0000000015 /* ShieldIcon.png */; };
+		7F5F0E11C0FFEE0000000001 /* ShieldActionExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F5F0E11C0FFEE0000000007 /* ShieldActionExtension.swift */; };
+		7F5F0E11C0FFEE0000000002 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 7F5F0E11C0FFEE000000000A /* PrivacyInfo.xcprivacy */; };
+		7F5F0E11C0FFEE0000000003 /* ShieldAction.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7F5F0E11C0FFEE0000000006 /* ShieldAction.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		7F5F0E11C0FFEE0000000014 /* IslandShield.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A6F0E11C0FFEE0000000001 /* IslandShield.swift */; };
+		7D4F0E11C0FFEE0000000004 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 7D4F0E11C0FFEE0000000003 /* InfoPlist.strings */; };
+		7C3F0E11C0FFEE0000000001 /* OffLandWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C3F0E11C0FFEE0000000007 /* OffLandWidget.swift */; };
+		7C3F0E11C0FFEE0000000002 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 7C3F0E11C0FFEE000000000A /* PrivacyInfo.xcprivacy */; };
+		7C3F0E11C0FFEE0000000003 /* OffLandWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7C3F0E11C0FFEE0000000006 /* OffLandWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		7B2F0E11C0FFEE0000000001 /* ReportExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2F0E11C0FFEE0000000007 /* ReportExtension.swift */; };
+		7B2F0E11C0FFEE0000000002 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 7B2F0E11C0FFEE000000000A /* PrivacyInfo.xcprivacy */; };
+		7B2F0E11C0FFEE0000000003 /* ScreenTimeReport.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = 7B2F0E11C0FFEE0000000006 /* ScreenTimeReport.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		7A1F0E11C0FFEE0000000002 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 7A1F0E11C0FFEE0000000001 /* PrivacyInfo.xcprivacy */; };
+		7A1F0E11C0FFEE0000000004 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 7A1F0E11C0FFEE0000000003 /* PrivacyInfo.xcprivacy */; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
 		4C9AB555D110DB711D085BCD /* ScreenTimePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4EBC061F4DE67607B6F5F98 /* ScreenTimePlugin.swift */; };
 		4D22ABE92AF431CB00220026 /* CapApp-SPM in Frameworks */ = {isa = PBXBuildFile; productRef = 4D22ABE82AF431CB00220026 /* CapApp-SPM */; };
@@ -25,6 +45,34 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		7E4F0E11C0FFEE0000000004 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7E4F0E11C0FFEE000000000C;
+			remoteInfo = ShieldConfig;
+		};
+		7F5F0E11C0FFEE0000000004 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7F5F0E11C0FFEE000000000C;
+			remoteInfo = ShieldAction;
+		};
+		7C3F0E11C0FFEE0000000004 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7C3F0E11C0FFEE000000000C;
+			remoteInfo = OffLandWidget;
+		};
+		7B2F0E11C0FFEE0000000004 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7B2F0E11C0FFEE000000000C;
+			remoteInfo = ScreenTimeReport;
+		};
 		5B669F3245BE7F07A577F638 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
@@ -35,6 +83,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		7B2F0E11C0FFEE0000000005 /* Embed ExtensionKit Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(EXTENSIONS_FOLDER_PATH)";
+			dstSubfolderSpec = 16;
+			files = (
+				7B2F0E11C0FFEE0000000003 /* ScreenTimeReport.appex in Embed ExtensionKit Extensions */,
+			);
+			name = "Embed ExtensionKit Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CE891E4DEE3B6D58DF2B7DA6 /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -42,6 +101,9 @@
 			dstSubfolderSpec = 13;
 			files = (
 				5449B3CD967FC54F4C28BD28 /* ScreenTimeMonitor.appex in Embed Foundation Extensions */,
+				7C3F0E11C0FFEE0000000003 /* OffLandWidget.appex in Embed Foundation Extensions */,
+				7E4F0E11C0FFEE0000000003 /* ShieldConfig.appex in Embed Foundation Extensions */,
+				7F5F0E11C0FFEE0000000003 /* ShieldAction.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -49,6 +111,32 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		7A6F0E11C0FFEE0000000001 /* IslandShield.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandShield.swift; sourceTree = "<group>"; };
+		7E4F0E11C0FFEE0000000015 /* ShieldIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ShieldIcon.png; sourceTree = "<group>"; };
+		7E4F0E11C0FFEE0000000006 /* ShieldConfig.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ShieldConfig.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		7E4F0E11C0FFEE0000000007 /* ShieldConfigurationExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldConfigurationExtension.swift; sourceTree = "<group>"; };
+		7E4F0E11C0FFEE0000000008 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		7E4F0E11C0FFEE0000000009 /* ShieldConfig.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ShieldConfig.entitlements; sourceTree = "<group>"; };
+		7E4F0E11C0FFEE000000000A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		7F5F0E11C0FFEE0000000006 /* ShieldAction.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ShieldAction.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		7F5F0E11C0FFEE0000000007 /* ShieldActionExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldActionExtension.swift; sourceTree = "<group>"; };
+		7F5F0E11C0FFEE0000000008 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		7F5F0E11C0FFEE0000000009 /* ShieldAction.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ShieldAction.entitlements; sourceTree = "<group>"; };
+		7F5F0E11C0FFEE000000000A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		7D4F0E11C0FFEE0000000001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		7D4F0E11C0FFEE0000000002 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		7C3F0E11C0FFEE0000000006 /* OffLandWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = OffLandWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		7C3F0E11C0FFEE0000000007 /* OffLandWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OffLandWidget.swift; sourceTree = "<group>"; };
+		7C3F0E11C0FFEE0000000008 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		7C3F0E11C0FFEE0000000009 /* OffLandWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = OffLandWidget.entitlements; sourceTree = "<group>"; };
+		7C3F0E11C0FFEE000000000A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		7B2F0E11C0FFEE0000000006 /* ScreenTimeReport.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.extensionkit-extension"; includeInIndex = 0; path = ScreenTimeReport.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		7B2F0E11C0FFEE0000000007 /* ReportExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportExtension.swift; sourceTree = "<group>"; };
+		7B2F0E11C0FFEE0000000008 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		7B2F0E11C0FFEE0000000009 /* ScreenTimeReport.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ScreenTimeReport.entitlements; sourceTree = "<group>"; };
+		7B2F0E11C0FFEE000000000A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		7A1F0E11C0FFEE0000000001 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		7A1F0E11C0FFEE0000000003 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		035C9D87DA31E0C679AA1470 /* MainViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
 		05C27B882CD940604DC61C7C /* ScreenTimeMonitor.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ScreenTimeMonitor.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		11A698A798117C64C7102885 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
@@ -72,6 +160,34 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		7E4F0E11C0FFEE000000000E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7F5F0E11C0FFEE000000000E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7C3F0E11C0FFEE000000000E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7B2F0E11C0FFEE000000000E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		504EC3011FED79650016851F /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -92,6 +208,48 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		7A6F0E11C0FFEE0000000002 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				7A6F0E11C0FFEE0000000001 /* IslandShield.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		7E4F0E11C0FFEE000000000B /* ShieldConfig */ = {
+			isa = PBXGroup;
+			children = (
+				7E4F0E11C0FFEE0000000007 /* ShieldConfigurationExtension.swift */,
+				7E4F0E11C0FFEE0000000015 /* ShieldIcon.png */,
+				7E4F0E11C0FFEE0000000008 /* Info.plist */,
+				7E4F0E11C0FFEE0000000009 /* ShieldConfig.entitlements */,
+				7E4F0E11C0FFEE000000000A /* PrivacyInfo.xcprivacy */,
+			);
+			path = ShieldConfig;
+			sourceTree = "<group>";
+		};
+		7F5F0E11C0FFEE000000000B /* ShieldAction */ = {
+			isa = PBXGroup;
+			children = (
+				7F5F0E11C0FFEE0000000007 /* ShieldActionExtension.swift */,
+				7F5F0E11C0FFEE0000000008 /* Info.plist */,
+				7F5F0E11C0FFEE0000000009 /* ShieldAction.entitlements */,
+				7F5F0E11C0FFEE000000000A /* PrivacyInfo.xcprivacy */,
+			);
+			path = ShieldAction;
+			sourceTree = "<group>";
+		};
+		7C3F0E11C0FFEE000000000B /* OffLandWidget */ = {
+			isa = PBXGroup;
+			children = (
+				7C3F0E11C0FFEE0000000007 /* OffLandWidget.swift */,
+				7C3F0E11C0FFEE0000000008 /* Info.plist */,
+				7C3F0E11C0FFEE0000000009 /* OffLandWidget.entitlements */,
+				7C3F0E11C0FFEE000000000A /* PrivacyInfo.xcprivacy */,
+			);
+			path = OffLandWidget;
+			sourceTree = "<group>";
+		};
 		07AAE61E46FAC3EDC0BD562D /* iOS */ = {
 			isa = PBXGroup;
 			children = (
@@ -117,6 +275,11 @@
 				504EC3051FED79650016851F /* Products */,
 				4DD612009C778B7844F28A62 /* Frameworks */,
 				C16401C760B7C3F2C13C7244 /* ScreenTimeMonitor */,
+				7B2F0E11C0FFEE000000000B /* ScreenTimeReport */,
+				7C3F0E11C0FFEE000000000B /* OffLandWidget */,
+				7A6F0E11C0FFEE0000000002 /* Shared */,
+				7E4F0E11C0FFEE000000000B /* ShieldConfig */,
+				7F5F0E11C0FFEE000000000B /* ShieldAction */,
 			);
 			sourceTree = "<group>";
 		};
@@ -125,6 +288,10 @@
 			children = (
 				504EC3041FED79650016851F /* App.app */,
 				05C27B882CD940604DC61C7C /* ScreenTimeMonitor.appex */,
+				7B2F0E11C0FFEE0000000006 /* ScreenTimeReport.appex */,
+				7C3F0E11C0FFEE0000000006 /* OffLandWidget.appex */,
+				7E4F0E11C0FFEE0000000006 /* ShieldConfig.appex */,
+				7F5F0E11C0FFEE0000000006 /* ShieldAction.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -144,6 +311,8 @@
 				035C9D87DA31E0C679AA1470 /* MainViewController.swift */,
 				F4EBC061F4DE67607B6F5F98 /* ScreenTimePlugin.swift */,
 				30611004ECAE9161FB7CEC35 /* App.entitlements */,
+				7A1F0E11C0FFEE0000000001 /* PrivacyInfo.xcprivacy */,
+				7D4F0E11C0FFEE0000000003 /* InfoPlist.strings */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -154,14 +323,94 @@
 				78E27C96AAE66A5CAC86CBE7 /* MonitorExtension.swift */,
 				FB95950511687FBF385C4C21 /* Info.plist */,
 				6D22AEA4D91DBCE5FD346922 /* ScreenTimeMonitor.entitlements */,
+				7A1F0E11C0FFEE0000000003 /* PrivacyInfo.xcprivacy */,
 			);
 			name = ScreenTimeMonitor;
 			path = ScreenTimeMonitor;
 			sourceTree = "<group>";
 		};
+		7B2F0E11C0FFEE000000000B /* ScreenTimeReport */ = {
+			isa = PBXGroup;
+			children = (
+				7B2F0E11C0FFEE0000000007 /* ReportExtension.swift */,
+				7B2F0E11C0FFEE0000000008 /* Info.plist */,
+				7B2F0E11C0FFEE0000000009 /* ScreenTimeReport.entitlements */,
+				7B2F0E11C0FFEE000000000A /* PrivacyInfo.xcprivacy */,
+			);
+			path = ScreenTimeReport;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		7E4F0E11C0FFEE000000000C /* ShieldConfig */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7E4F0E11C0FFEE0000000010 /* Build configuration list for PBXNativeTarget "ShieldConfig" */;
+			buildPhases = (
+				7E4F0E11C0FFEE000000000D /* Sources */,
+				7E4F0E11C0FFEE000000000E /* Frameworks */,
+				7E4F0E11C0FFEE000000000F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ShieldConfig;
+			productName = ShieldConfig;
+			productReference = 7E4F0E11C0FFEE0000000006 /* ShieldConfig.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		7F5F0E11C0FFEE000000000C /* ShieldAction */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7F5F0E11C0FFEE0000000010 /* Build configuration list for PBXNativeTarget "ShieldAction" */;
+			buildPhases = (
+				7F5F0E11C0FFEE000000000D /* Sources */,
+				7F5F0E11C0FFEE000000000E /* Frameworks */,
+				7F5F0E11C0FFEE000000000F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ShieldAction;
+			productName = ShieldAction;
+			productReference = 7F5F0E11C0FFEE0000000006 /* ShieldAction.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		7C3F0E11C0FFEE000000000C /* OffLandWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7C3F0E11C0FFEE0000000010 /* Build configuration list for PBXNativeTarget "OffLandWidget" */;
+			buildPhases = (
+				7C3F0E11C0FFEE000000000D /* Sources */,
+				7C3F0E11C0FFEE000000000E /* Frameworks */,
+				7C3F0E11C0FFEE000000000F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = OffLandWidget;
+			productName = OffLandWidget;
+			productReference = 7C3F0E11C0FFEE0000000006 /* OffLandWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		7B2F0E11C0FFEE000000000C /* ScreenTimeReport */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7B2F0E11C0FFEE0000000010 /* Build configuration list for PBXNativeTarget "ScreenTimeReport" */;
+			buildPhases = (
+				7B2F0E11C0FFEE000000000D /* Sources */,
+				7B2F0E11C0FFEE000000000E /* Frameworks */,
+				7B2F0E11C0FFEE000000000F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ScreenTimeReport;
+			productName = ScreenTimeReport;
+			productReference = 7B2F0E11C0FFEE0000000006 /* ScreenTimeReport.appex */;
+			productType = "com.apple.product-type.extensionkit-extension";
+		};
 		504EC3031FED79650016851F /* App */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 504EC3161FED79650016851F /* Build configuration list for PBXNativeTarget "App" */;
@@ -170,11 +419,16 @@
 				504EC3011FED79650016851F /* Frameworks */,
 				504EC3021FED79650016851F /* Resources */,
 				CE891E4DEE3B6D58DF2B7DA6 /* Embed Foundation Extensions */,
+				7B2F0E11C0FFEE0000000005 /* Embed ExtensionKit Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				6DF4DFC4856A7D380475F0ED /* PBXTargetDependency */,
+				7B2F0E11C0FFEE0000000013 /* PBXTargetDependency */,
+				7C3F0E11C0FFEE0000000013 /* PBXTargetDependency */,
+				7E4F0E11C0FFEE0000000013 /* PBXTargetDependency */,
+				7F5F0E11C0FFEE0000000013 /* PBXTargetDependency */,
 			);
 			name = App;
 			packageProductDependencies = (
@@ -223,6 +477,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				de,
 				Base,
 			);
 			mainGroup = 504EC2FB1FED79650016851F;
@@ -235,15 +490,53 @@
 			targets = (
 				504EC3031FED79650016851F /* App */,
 				E788BB6087EE646EF2122CFE /* ScreenTimeMonitor */,
+				7B2F0E11C0FFEE000000000C /* ScreenTimeReport */,
+				7C3F0E11C0FFEE000000000C /* OffLandWidget */,
+				7E4F0E11C0FFEE000000000C /* ShieldConfig */,
+				7F5F0E11C0FFEE000000000C /* ShieldAction */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		7E4F0E11C0FFEE000000000F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7E4F0E11C0FFEE0000000002 /* PrivacyInfo.xcprivacy in Resources */,
+				7E4F0E11C0FFEE0000000016 /* ShieldIcon.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7F5F0E11C0FFEE000000000F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7F5F0E11C0FFEE0000000002 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7C3F0E11C0FFEE000000000F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7C3F0E11C0FFEE0000000002 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7B2F0E11C0FFEE000000000F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7B2F0E11C0FFEE0000000002 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		42E666EC9C09AD1B0B1280F9 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7A1F0E11C0FFEE0000000004 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -257,12 +550,48 @@
 				50379B232058CBB4000EE86E /* capacitor.config.json in Resources */,
 				504EC30D1FED79650016851F /* Main.storyboard in Resources */,
 				2FAD9763203C412B000D30F8 /* config.xml in Resources */,
+				7A1F0E11C0FFEE0000000002 /* PrivacyInfo.xcprivacy in Resources */,
+				7D4F0E11C0FFEE0000000004 /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		7E4F0E11C0FFEE000000000D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7E4F0E11C0FFEE0000000001 /* ShieldConfigurationExtension.swift in Sources */,
+				7E4F0E11C0FFEE0000000014 /* IslandShield.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7F5F0E11C0FFEE000000000D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7F5F0E11C0FFEE0000000001 /* ShieldActionExtension.swift in Sources */,
+				7F5F0E11C0FFEE0000000014 /* IslandShield.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7C3F0E11C0FFEE000000000D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7C3F0E11C0FFEE0000000001 /* OffLandWidget.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7B2F0E11C0FFEE000000000D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7B2F0E11C0FFEE0000000001 /* ReportExtension.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		504EC3001FED79650016851F /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -271,6 +600,7 @@
 				9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */,
 				A89161ED8D41F7B078CEE5B5 /* MainViewController.swift in Sources */,
 				4C9AB555D110DB711D085BCD /* ScreenTimePlugin.swift in Sources */,
+				7A6F0E11C0FFEE0000000003 /* IslandShield.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -279,12 +609,37 @@
 			buildActionMask = 2147483647;
 			files = (
 				7A8AEB44AA8EA040B4AA497A /* MonitorExtension.swift in Sources */,
+				7A6F0E11C0FFEE0000000004 /* IslandShield.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		7E4F0E11C0FFEE0000000013 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = ShieldConfig;
+			target = 7E4F0E11C0FFEE000000000C /* ShieldConfig */;
+			targetProxy = 7E4F0E11C0FFEE0000000004 /* PBXContainerItemProxy */;
+		};
+		7F5F0E11C0FFEE0000000013 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = ShieldAction;
+			target = 7F5F0E11C0FFEE000000000C /* ShieldAction */;
+			targetProxy = 7F5F0E11C0FFEE0000000004 /* PBXContainerItemProxy */;
+		};
+		7C3F0E11C0FFEE0000000013 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = OffLandWidget;
+			target = 7C3F0E11C0FFEE000000000C /* OffLandWidget */;
+			targetProxy = 7C3F0E11C0FFEE0000000004 /* PBXContainerItemProxy */;
+		};
+		7B2F0E11C0FFEE0000000013 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = ScreenTimeReport;
+			target = 7B2F0E11C0FFEE000000000C /* ScreenTimeReport */;
+			targetProxy = 7B2F0E11C0FFEE0000000004 /* PBXContainerItemProxy */;
+		};
 		6DF4DFC4856A7D380475F0ED /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = ScreenTimeMonitor;
@@ -294,6 +649,15 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
+		7D4F0E11C0FFEE0000000003 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				7D4F0E11C0FFEE0000000001 /* en */,
+				7D4F0E11C0FFEE0000000002 /* de */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
 		504EC30B1FED79650016851F /* Main.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -313,6 +677,202 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		7E4F0E11C0FFEE0000000011 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ShieldConfig/ShieldConfig.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ShieldConfig/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.offland2026.offland.ShieldConfig;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		7E4F0E11C0FFEE0000000012 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ShieldConfig/ShieldConfig.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ShieldConfig/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.offland2026.offland.ShieldConfig;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		7F5F0E11C0FFEE0000000011 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ShieldAction/ShieldAction.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ShieldAction/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.offland2026.offland.ShieldAction;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		7F5F0E11C0FFEE0000000012 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ShieldAction/ShieldAction.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ShieldAction/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.offland2026.offland.ShieldAction;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		7C3F0E11C0FFEE0000000011 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = OffLandWidget/OffLandWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = OffLandWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.offland2026.offland.Widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		7C3F0E11C0FFEE0000000012 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = OffLandWidget/OffLandWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = OffLandWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.offland2026.offland.Widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		7B2F0E11C0FFEE0000000011 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ScreenTimeReport/ScreenTimeReport.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ScreenTimeReport/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.offland2026.offland.ScreenTimeReport;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		7B2F0E11C0FFEE0000000012 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ScreenTimeReport/ScreenTimeReport.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ScreenTimeReport/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.offland2026.offland.ScreenTimeReport;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		504EC3141FED79650016851F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 958DCC722DB07C7200EA8C5F /* debug.xcconfig */;
@@ -442,7 +1002,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -464,7 +1024,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -489,7 +1049,7 @@
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -514,7 +1074,7 @@
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -522,6 +1082,42 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		7E4F0E11C0FFEE0000000010 /* Build configuration list for PBXNativeTarget "ShieldConfig" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7E4F0E11C0FFEE0000000012 /* Release */,
+				7E4F0E11C0FFEE0000000011 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7F5F0E11C0FFEE0000000010 /* Build configuration list for PBXNativeTarget "ShieldAction" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7F5F0E11C0FFEE0000000012 /* Release */,
+				7F5F0E11C0FFEE0000000011 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7C3F0E11C0FFEE0000000010 /* Build configuration list for PBXNativeTarget "OffLandWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7C3F0E11C0FFEE0000000012 /* Release */,
+				7C3F0E11C0FFEE0000000011 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7B2F0E11C0FFEE0000000010 /* Build configuration list for PBXNativeTarget "ScreenTimeReport" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7B2F0E11C0FFEE0000000012 /* Release */,
+				7B2F0E11C0FFEE0000000011 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		504EC2FF1FED79650016851F /* Build configuration list for PBXProject "App" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

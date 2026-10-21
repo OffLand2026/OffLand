@@ -161,7 +161,33 @@ const SHOP=[
   {id:"a_huskys",world:"alaska",like:"stall",n:"Huskyhütte",cost:720,cat:"nutzen",fx:"+3 Plätze für neue Bewohner."},
   {id:"a_schneemann",world:"alaska",n:"Schneemann",cost:160,cat:"deko",fx:"Trägt einen roten Schal."},
   {id:"a_laternen",world:"alaska",n:"Schneelaternen",cost:220,cat:"deko",fx:"Leuchten warm im Schnee."},
-  {id:"a_eisskulptur",world:"alaska",n:"Eisskulptur",cost:260,cat:"deko",fx:"Ein Eisbär aus Eis."}
+  {id:"a_eisskulptur",world:"alaska",n:"Eisskulptur",cost:260,cat:"deko",fx:"Ein Eisbär aus Eis."},
+  /* mehr Auswahl auf den neuen Inseln */
+  {id:"t_bar",world:"tropen",like:"bank",n:"Strandbar",cost:180,cat:"nutzen",fx:"Bewohner verstehen sich jeden Tag ein bisschen besser."},
+  {id:"t_papagei",world:"tropen",like:"vogelhaus",n:"Papageienstange",cost:200,cat:"nutzen",fx:"Zugvögel kommen doppelt so oft vorbei."},
+  {id:"t_muschelweg",world:"tropen",n:"Muschelpfad",cost:140,cat:"deko",fx:"Knirscht leise unter den Füßen."},
+  {id:"t_steg",world:"tropen",n:"Bambussteg",cost:240,cat:"deko",fx:"Bis ganz vorne ans türkise Wasser."},
+  {id:"t_nest",world:"tropen",n:"Schildkrötennest",cost:220,cat:"deko",fx:"Bald schlüpfen hier die Kleinen."},
+  {id:"t_lagune",world:"tropen",n:"Lagunenbecken",cost:340,cat:"deko",fx:"Warmes Wasser zum Füßebaumeln."},
+  {id:"f_bank",world:"fjord",like:"bank",n:"Holzbank am Fjord",cost:220,cat:"nutzen",fx:"Bewohner verstehen sich jeden Tag ein bisschen besser."},
+  {id:"f_sauna",world:"fjord",like:"picknick",n:"Sauna",cost:300,cat:"nutzen",fx:"Freundschaften wachsen noch schneller."},
+  {id:"f_nistkasten",world:"fjord",like:"vogelhaus",n:"Nistkasten",cost:200,cat:"nutzen",fx:"Zugvögel kommen doppelt so oft vorbei."},
+  {id:"f_heide",world:"fjord",like:"blumen",n:"Heidekraut",cost:300,cat:"nutzen",fx:"+1 % Glück an jedem guten Tag."},
+  {id:"f_troll",world:"fjord",n:"Kleiner Troll",cost:140,cat:"deko",fx:"Guckt freundlich, meistens."},
+  {id:"f_boot",world:"fjord",n:"Wikingerboot",cost:280,cat:"deko",fx:"Ein kleines Modell mit rot-weißem Segel."},
+  {id:"o_kissen",world:"oase",like:"bank",n:"Kissenrunde",cost:240,cat:"nutzen",fx:"Bewohner verstehen sich jeden Tag ein bisschen besser."},
+  {id:"o_taube",world:"oase",like:"vogelhaus",n:"Taubenturm",cost:260,cat:"nutzen",fx:"Zugvögel kommen doppelt so oft vorbei."},
+  {id:"o_blumen",world:"oase",like:"blumen",n:"Wüstenblumen",cost:340,cat:"nutzen",fx:"+1 % Glück an jedem guten Tag."},
+  {id:"o_spiel",world:"oase",like:"spielplatz",n:"Sandspielplatz",cost:560,cat:"nutzen",fx:"Familien bekommen öfter Nachwuchs."},
+  {id:"o_sterne",world:"oase",like:"sternwarte",n:"Sternenzelt",cost:600,cat:"nutzen",fx:"Polarlichter bleiben einen Tag länger."},
+  {id:"o_mosaik",world:"oase",n:"Mosaikbrunnen",cost:300,cat:"deko",fx:"Blaue Kacheln, plätscherndes Wasser."},
+  {id:"o_sanduhr",world:"oase",n:"Große Sanduhr",cost:180,cat:"deko",fx:"Erinnert daran, wie schnell Zeit vergeht."},
+  {id:"a_fellbank",world:"alaska",like:"bank",n:"Fellbank",cost:280,cat:"nutzen",fx:"Bewohner verstehen sich jeden Tag ein bisschen besser."},
+  {id:"a_futterhaus",world:"alaska",like:"vogelhaus",n:"Futterhaus",cost:280,cat:"nutzen",fx:"Zugvögel kommen doppelt so oft vorbei."},
+  {id:"a_rodel",world:"alaska",like:"schaukel",n:"Rodelhang",cost:380,cat:"nutzen",fx:"+1 % Glück an guten Tagen, wenn Kinder auf der Insel sind."},
+  {id:"a_nordlicht",world:"alaska",like:"sternwarte",n:"Nordlichthütte",cost:640,cat:"nutzen",fx:"Polarlichter bleiben einen Tag länger."},
+  {id:"a_iglu",world:"alaska",n:"Iglu",cost:360,cat:"deko",fx:"Drinnen ist es erstaunlich gemütlich."},
+  {id:"a_robben",world:"alaska",n:"Robbenfelsen",cost:300,cat:"deko",fx:"Zwei Robben dösen in der Sonne."}
 ];
 /* Seltene Dinge vom Händlerschiff */
 const RARE=[
@@ -250,7 +276,7 @@ function chestSvg(open,anim){
     ${[[-9,-30,0],[0,-36,.15],[9,-31,.3],[-4,-40,.45],[6,-42,.6]].map(([x,y,d])=>`<g class="coin-up" style="animation-delay:${2.1+d}s"><circle cx="${x}" cy="${y}" r="2.2" fill="#FFE7A3" stroke="#E0A93C" stroke-width=".7"/></g>`).join("")}`;
 }
 function grantItem(id){if(S.items.includes(id)) return false; S.items.push(id); S.itemW=S.itemW||{}; S.itemW[id]=curWorldId(); return true}
-function itemHome(id){const d=itemDef(id); if(d&&d.world) return d.world; if(d&&SHOP.includes(d)) return "heimat"; return (S.itemW&&S.itemW[id])||"heimat"}
+function itemHome(id){if(S.moved&&S.moved[id]) return S.moved[id]; const d=itemDef(id); if(d&&d.world) return d.world; if(d&&SHOP.includes(d)) return "heimat"; return (S.itemW&&S.itemW[id])||"heimat"}
 const curWorldId=()=>(typeof WORLDS!=="undefined"?WORLDS[S.world||0].id:"heimat");
 const hereItems=()=>S.items.filter(id=>itemHome(id)===curWorldId());
 const shopHere=it=>it.cat==="vorrat"||(it.world||"heimat")===curWorldId();
@@ -259,7 +285,8 @@ const adults=()=>here().filter(r=>r.kind==="mensch"&&r.job);
 const jobOn=id=>adults().some(r=>r.job===id&&!r.retired&&!r.sick);
 const jobName=id=>(JOBS.find(j=>j.id===id)||{}).n||"";
 const traitName=id=>(TRAITS.find(t=>t.id===id)||{}).n||"";
-const price=it=>Math.round(it.cost*(jobOn("tischler")?0.9:1)*(has("o_markt")?0.9:1));
+const worldPrice=it=>{if(!it||it.consumable||!it.world) return 1; const i=WORLDS.findIndex(w=>w.id===it.world); return 1+.1*Math.max(0,i)};   // Tropen ×1,1 … Eis ×1,4
+const price=it=>Math.round(it.cost*worldPrice(it)*(jobOn("tischler")?0.9:1)*(has("o_markt")?0.9:1)/5)*5;
 function pickJob(){
   const pool=JOBS.filter(j=>!j.need||S.built.includes(j.need));
   const taken=new Set(S.residents.filter(r=>r.status==="da").map(r=>r.job));
@@ -322,7 +349,9 @@ const pad=n=>String(n).padStart(2,"0");
 const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
 const parse=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
 const addDays=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return iso(d)};
-const nice=s=>parse(s).toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"short"});
+const LOC=window.OFFLAND_LOCALE||"de-DE", TR=window.OFFLAND_T||(s=>s);   // Sprache: siehe js/i18n.js
+const langPref=()=>{try{return localStorage.getItem("offland-lang")}catch(e){return null}};
+const nice=s=>parse(s).toLocaleDateString(LOC,{weekday:"short",day:"numeric",month:"short"});
 const hm=m=>{m=Math.round(m);const h=Math.floor(Math.abs(m)/60),r=Math.abs(m)%60;return ((m<0?"−":"")+(h?h+" h ":"")+(r||!h?r+" min":"")).trim()};
 const today=()=>iso(new Date());
 
@@ -338,6 +367,7 @@ const FEATURES=[
   {id:"monster",day:3,name:"App-Monster",text:"Trag beim Tagesabschluss die Zeit pro App ein. Wer ein Limit sprengt, lockt ein Monster an.",tab:"heute",ic:'<circle cx="12" cy="11" r="7"/><circle cx="9.5" cy="10" r="1"/><circle cx="14.5" cy="10" r="1"/>'},
   {id:"freunde",day:3,name:"Freunde und Ranglisten",text:"Lade Freund:innen ein, vergleicht euch jede Woche und bekommt einmalig zusammen einen Monat Plus.",tab:"freunde",ic:'<path d="M8 4h8v5a4 4 0 0 1-8 0zM12 13v4M8 20h8"/>'},
   {id:"album",day:4,name:"Album",text:"Postkarten, Strandgut, Zeitkapseln und dein Inseltagebuch.",tab:"verlauf",ic:'<path d="M4 5h7v15H4zM13 5h7v15h-7z"/>'},
+  {id:"fest",day:6,name:"Monatsfest",text:"Jeden Monat ein neues Fest. Bleib an genug Tagen im Budget, dann feiert die Insel und du bekommst den Monatsstempel fürs Album.",tab:"heute",ic:'<path d="M5 21V5l7 4 7-4v16"/><path d="M5 13l7 4 7-4"/>'},
   {id:"reise",day:5,name:"Weltreise",text:"Die Karte im Tab Bauen zeigt, welche Inselwelten auf euch warten.",tab:"projekt",ic:'<circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4a12 12 0 0 1 0 16M12 4a12 12 0 0 0 0 16"/>'}
 ];
 const TAB_FEATURE={zeit:"zeit",freunde:"freunde",verlauf:"album"};
@@ -349,6 +379,54 @@ function feature(id){
   return S.dayCount>=f.day;
 }
 const nextFeature=()=>S.allFeatures?null:FEATURES.find(f=>!feature(f.id));
+/* ---------- Gegen das Nachlassen: Monatsfest, Jubiläum, Comeback ---------- */
+const MONTH_N=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+const MFEST=[
+  {n:"Neujahrsfeuer",e:"🎆",t:"Ein Feuerwerk über der Lagune für einen guten Start ins Jahr."},
+  {n:"Karneval der Tiere",e:"🎭",t:"Alle Tiere verkleiden sich. Die Ziege geht als Ziege, wie jedes Jahr."},
+  {n:"Frühlingserwachen",e:"🌱",t:"Die ersten Knospen. Alle pflanzen etwas Neues auf der Insel."},
+  {n:"Blütenfest",e:"🌸",t:"Die ganze Insel blüht, und abends gibt es Blütentee am Strand."},
+  {n:"Maifest",e:"🌼",t:"Ein Maibaum mit bunten Bändern und Tanz bis zum Sonnenuntergang."},
+  {n:"Mittsommer",e:"☀️",t:"Der längste Tag des Jahres. Niemand will ins Bett."},
+  {n:"Sandburgenfest",e:"🏖️",t:"Der große Sandburgen-Wettbewerb. Die Jury ist bestechlich (mit Muscheln)."},
+  {n:"Sternschnuppennacht",e:"🌠",t:"Alle liegen am Strand und zählen Sternschnuppen."},
+  {n:"Erntefest",e:"🍎",t:"Körbe voller Äpfel und ein langer Tisch für alle."},
+  {n:"Kürbisfest",e:"🎃",t:"Geschnitzte Kürbisse leuchten am Steg. Ein bisschen gruselig, sehr gemütlich."},
+  {n:"Laternenumzug",e:"🏮",t:"Mit Laternen einmal um die ganze Insel, und alle singen schief."},
+  {n:"Lichterfest",e:"✨",t:"Lichterketten an jedem Haus und heißer Kakao für alle."}];
+const curMonth=()=>today().slice(0,7);
+const festOf=m=>MFEST[+m.slice(5,7)-1];
+const festMonth=m=>MONTH_N[+m.slice(5,7)-1];
+/* Ziel für den laufenden Monat, beim ersten Mal festgelegt: wer spät im Monat startet, braucht weniger Tage */
+function festGoal(){
+  const m=curMonth();
+  if(!S.mfest||S.mfest.m!==m){const d=parse(today()), left=new Date(d.getFullYear(),d.getMonth()+1,0).getDate()-d.getDate()+1;
+    S.mfest={m,need:Math.max(3,Math.min(12,Math.floor(left*.5))),done:false}}
+  return S.mfest;
+}
+const festHave=m=>S.days.filter(d=>d.day.slice(0,7)===m&&d.min<=S.budget).length;
+function festCheck(day){
+  if(!feature("fest")||day.slice(0,7)!==curMonth()) return;
+  const f=festGoal(); if(f.done||festHave(f.m)<f.need) return;
+  f.done=true; (S.stamps=S.stamps||[]).push(f.m);
+  S.points+=50; glAdd(5); stat("monatsfest");
+  S.pending.push({type:"mfest",m:f.m}); log(festOf(f.m).n+"! Der Monatsstempel für "+festMonth(f.m)+" ist im Album.","good");
+}
+function festCard(){
+  if(!feature("fest")||!S.setup) return "";
+  const f=festGoal(), x=festOf(f.m), have=Math.min(f.need,festHave(f.m));
+  return `<div class="fy"><p class="k" style="color:var(--amber)">${esc(festMonth(f.m))}: ${esc(x.n)}</p><b>${f.done?"Gefeiert! Stempel im Album":have+" / "+f.need+" Tage im Budget"}</b>
+    ${f.done?`<p class="small muted">Nächsten Monat wartet ein neues Fest.</p>`:`<div class="bar" style="margin:6px 0 4px"><i style="width:${have/f.need*100}%;background:var(--amber)"></i></div><p class="small muted">Belohnung: Fest, +50 Punkte und Stempel ${x.e}</p>`}</div>`;
+}
+/* Jubiläum: an runden Tagen zeigt die Insel, was in der Zeit passiert ist */
+const JUBI=[30,60,100,180,365];
+function jubiCheck(){const n=S.days.length; if(JUBI.includes(n)){S.points+=n; S.pending.push({type:"jubi",n}); stat("jubilaeum_"+n)}}
+/* Comeback: nach ein paar Tagen Pause freundlich empfangen, statt mit einem Berg zum Nachtragen */
+function comebackCheck(){
+  if(!S.setup||S.vacation||S.testmode||!S.lastDay||S.comeback===S.lastDay) return;
+  const miss=Math.round((parse(today())-parse(S.lastDay))/864e5)-1; if(miss<3) return;
+  S.comeback=S.lastDay; S.pending.unshift({type:"comeback",miss}); stat("comeback"); save();
+}
 function unlockCheck(){
   if(S.allFeatures) return;
   const ids=FEATURES.filter(f=>f.day===S.dayCount).map(f=>f.id);
@@ -369,8 +447,8 @@ function newGame(){
     glueck:60, happyStreak:0, unhappyStreak:0, dayCount:0,
     lastDay:null, material:0, projectIdx:0, built:[],
     residents:[
-      {id:p1,name:h1,kind:"mensch",art:"Mensch",pair:p2,status:"da",ret:0,born:0,phone:true},
-      {id:p2,name:h2,kind:"mensch",art:"Mensch",pair:p1,status:"da",ret:0,born:0,phone:true},
+      {id:p1,name:h1,kind:"mensch",art:"Mensch",pair:p2,status:"da",ret:0,born:0,phone:true,lv:1},
+      {id:p2,name:h2,kind:"mensch",art:"Mensch",pair:p1,status:"da",ret:0,born:0,phone:true,lv:1},
       {id:z1,name:a1,kind:"tier",art:"Ziege",pair:z2,status:"da",ret:0,born:0},
       {id:z2,name:a2,kind:"tier",art:"Ziege",pair:z1,status:"da",ret:0,born:0}
     ],
@@ -379,11 +457,13 @@ function newGame(){
   };
 }
 function migrate(st){
+  // Verwandlung Smombie → Mensch: alte Spielstände bekommen eine Stufe passend zum Inselglück
+  (st.residents||[]).forEach(r=>{if(r.kind==="mensch"&&r.lv==null){const g=st.glueck||60;r.lv=r.phone?1:g>=80?4:g>=60?3:g>=40?2:1}});
   if(!st.postcards)st.postcards=[];
   if(st.points==null)st.points=0; if(!st.items)st.items=[]; if(!st.sun)st.sun=0;
   if(!st.rel)st.rel={}; if(st.conflict===undefined)st.conflict=null;
   if(!st.arrC)st.arrC=0; if(!st.birthC)st.birthC=0;
-  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,focusLog:[],alarm:true,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null},family:null,plan:null,planLog:[],weekReady:null,storySeen:false,chapter:null,fests:0,freed:0,duelOff:null,jokerWk:null,lastSurprise:0,surprises:[],duel:null,duelLog:[],lineLog:[],seenArts:[],umfrage:{},bilanz:{}};
+  const D={apps:DEFAULT_APPS.map(x=>Object.assign({},x)),monsters:[],budgetStreak:0,aurora:0,birds:0,trader:null,wish:null,chronicle:[],finds:[],capsules:[],night:null,boat:null,focusLog:[],alarm:true,activities:{},actTotals:{},path:0,repair:null,vacation:null,builtLog:[],lastMonth:null,fish:0,focusMin:0,tea:0,memorials:[],natDeath:true,sound:true,world:0,found:0,code:null,plus:null,buddies:[],invitedBy:null,online:{on:false,pub:false,pid:null},tickets:[],backup:{on:false,code:null,at:null},family:null,plan:null,planLog:[],weekReady:null,storySeen:false,chapter:null,fests:0,freed:0,duelOff:null,jokerWk:null,lastSurprise:0,surprises:[],duel:null,duelLog:[],lineLog:[],seenArts:[],umfrage:{},bilanz:{},guests:[]};
   if(st.plusFriend===undefined) st.plusFriend=(st.buddies||[]).length?"alt":null;   // Plus-Monat fürs Einladen gibt es nur einmal
   if(st.allFeatures===undefined) st.allFeatures=(st.dayCount||0)>=1;          // wer schon gespielt hat, behält alles
   for(const k in D){ if(st[k]===undefined) st[k]=D[k]; }
@@ -457,6 +537,17 @@ function capacity(){
   return c;
 }
 const has=b=>S.built.includes(b);
+/* Verwandlung: 0 Smombie (am Handy) · 1 Schatten · 2 schaut auf · 3 fast zurück · 4 Mensch */
+const LV_NAMES=["Smombie","Schatten","schaut auf","fast zurück","strahlt"];
+// Höchste Stufe hängt am Inselglück: ganz Mensch (und Jubel) erst ab 80 %
+function lvCap(){const g=typeof S!=="undefined"&&S?S.glueck:100;return g>=80?4:g>=60?3:g>=40?2:1}
+function lvOf(r){
+  if(!r||r.kind!=="mensch") return 4;
+  if(r.phone) return 0;
+  if(r.lvFull) return 4;   // Editor-Vorschau
+  const st=stage(r), v=Math.min(r.lv==null?4:r.lv,lvCap());
+  return st==="baby"?4:st==="kind"?Math.max(2,v):Math.max(1,Math.min(4,v));
+}
 function mood(){return S.glueck>=80?["aufblühend","good"]:S.glueck>=40?["zufrieden","ok"]:["unglücklich","bad"]}
 function savedTotal(){return S.days.reduce((a,d)=>a+Math.max(0,S.baseline-d.min),0)}
 function nextDay(){return S.lastDay?addDays(S.lastDay,1):today()}
@@ -475,7 +566,7 @@ function arrival(){
     if(blocked.length){const art=pick(blocked); (S.seenArts=S.seenArts||[]).push(art);
       log(artikel(art,true)+" "+art+" war zu Besuch. Für ein Zuhause war kein Platz, aber in der Sammlung ist die Art jetzt dabei.","good");
       chron([],artikel(art,true)+" "+art+" hat die Insel besucht.");
-      S.pending.push({type:"guest",art}); return}
+      S.guests=(S.guests||[]).concat({id:uid(),art,until:S.dayCount+2}).slice(-2); S.pending.push({type:"guest",art}); return}
   }
   if(full&&!petRoom()) {log("Jemand wollte einziehen, aber es ist kein Platz frei. Ein Großprojekt schafft neuen Platz.","info");return}
   const humans=here().filter(r=>r.kind==="mensch").length, animals=here().length-humans;
@@ -483,7 +574,7 @@ function arrival(){
   const used=S.residents.map(r=>r.name);
   if(isHuman){
     const single=here().find(r=>r.kind==="mensch"&&!r.pair);
-    const r={id:uid(),name:freeName(HUMAN_NAMES,used),kind:"mensch",art:"Mensch",pair:null,status:"da",ret:0,born:S.dayCount,job:pickJob(),trait:pick(TRAITS).id,phone:Math.random()<1/3};   // jeder Dritte bringt sein Handy vom Festland mit
+    const r={id:uid(),name:freeName(HUMAN_NAMES,used),kind:"mensch",art:"Mensch",pair:null,status:"da",ret:0,born:S.dayCount,job:pickJob(),trait:pick(TRAITS).id,phone:Math.random()<1/3,lv:S.glueck>80?2:1};   // vom Festland kommen alle als Schatten, eine sehr glückliche Insel färbt schneller ab   // jeder Dritte bringt sein Handy vom Festland mit
     if(single&&Math.random()<.5){r.pair=single.id;single.pair=r.id;r.pairSince=single.pairSince=S.dayCount}
     else{const pal=adults().filter(x=>x.id!==r.id); if(pal.length) addRel(r.id,pick(pal).id,25)}
     S.residents.push(r); S.pending.push({type:"arrival",id:r.id,partner:single?single.id:null});
@@ -515,7 +606,7 @@ function birth(){
   if(!pairs.length) return false;
   const a=pick(pairs), b=S.residents.find(x=>x.id===a.pair);
   const used=S.residents.map(r=>r.name);
-  const kid={id:uid(),name:freeName(a.kind==="mensch"?HUMAN_NAMES:ANIMAL_NAMES,used),kind:a.kind,art:a.art,pair:null,parents:[a.id,b.id],status:"da",ret:0,born:S.dayCount};
+  const kid={id:uid(),name:freeName(a.kind==="mensch"?HUMAN_NAMES:ANIMAL_NAMES,used),kind:a.kind,art:a.art,pair:null,parents:[a.id,b.id],status:"da",ret:0,born:S.dayCount,lv:4};   // Inselkinder kennen kein Handy
   if(kid.kind==="mensch") kid.trait=pick(TRAITS).id;
   S.residents.push(kid); S.pending.push({type:"birth",id:kid.id,parents:[a.id,b.id]});
   return true;
@@ -541,7 +632,7 @@ const kidsOf=(...ids)=>S.residents.filter(k=>k.parents&&k.status!=="verstorben"&
 function breakup(a,b){
   a.pair=null;b.pair=null;a.married=b.married=false;
   a.ex=(a.ex||[]).concat(b.id);b.ex=(b.ex||[]).concat(a.id);
-  S.rel[rk(a.id,b.id)]=-10; S.glueck=clamp(S.glueck-4,0,100);
+  S.rel[rk(a.id,b.id)]=-10; glAdd(-(4));
   const kids=kidsOf(a.id,b.id).filter(k=>k.status==="da"), pets=here().filter(p=>p.kind==="tier"&&(p.owner===a.id||p.owner===b.id));
   log(a.name+" und "+b.name+" haben sich getrennt."+(kids.length?" "+nameList(kids.map(k=>k.name))+" "+vb(kids,"lebt","leben")+" jetzt abwechselnd bei beiden.":""),"bad");
   chron([a.id,b.id],a.name+" und "+b.name+" haben sich getrennt.");
@@ -560,7 +651,7 @@ function coupleDay(good){
     const c=S.crisis, a=S.residents.find(r=>r.id===c.a), b=S.residents.find(r=>r.id===c.b); S.crisis=null;
     if(!a||!b||a.pair!==b.id||c.day===S.lastDay) return;
     const ok=c.state==="abend"?good:Math.random()<(good?.55:.2);
-    if(ok){addRel(a.id,b.id,c.state==="abend"?45:25);S.glueck=clamp(S.glueck+(c.state==="abend"?3:1),0,100);
+    if(ok){addRel(a.id,b.id,c.state==="abend"?45:25);glAdd((c.state==="abend"?3:1));
       log(a.name+" und "+b.name+" haben sich wieder zusammengerauft.","good");S.pending.push({type:"crisisResult",a:a.id,b:b.id,ok:true,abend:c.state==="abend"})}
     else{addRel(a.id,b.id,-25);
       if(relOf(a.id,b.id)<=-35) breakup(a,b);
@@ -578,7 +669,7 @@ function coupleDay(good){
   // Hochzeit für lange, sehr glückliche Paare
   if(good){
     const c=couples().find(([a,b])=>!a.married&&relOf(a.id,b.id)>=70&&S.dayCount-(a.pairSince||0)>=14);
-    if(c&&Math.random()<.18){const [a,b]=c;a.married=b.married=true;S.glueck=clamp(S.glueck+5,0,100);S.points+=40;
+    if(c&&Math.random()<.18){const [a,b]=c;a.married=b.married=true;glAdd(5);S.points+=40;
       log(a.name+" und "+b.name+" haben geheiratet! +5 % Glück, +40 Punkte.","good");chron([a.id,b.id],"Hochzeit: "+a.name+" und "+b.name+".");
       S.pending.push({type:"wedding",a:a.id,b:b.id})}
   }
@@ -651,7 +742,7 @@ function fulfillWish(){
   const w=S.wish; if(!w) return; const r=S.residents.find(x=>x.id===w.rid); S.wish=null; S.lastWishEnd=S.dayCount;
   if(!r) return;
   const pts=w.pts||30, gl=w.gl||6;
-  r.happyUntil=S.dayCount+7; S.points+=pts; S.glueck=clamp(S.glueck+gl,0,100);
+  r.happyUntil=S.dayCount+7; S.points+=pts; glAdd(gl);
   S.wishCount=(S.wishCount||0)+1; stat("wunsch_"+(w.type||"item"));
   log(r.name+"s Wunsch ist erfüllt: "+wishText(w)+". +"+pts+" Punkte, +"+gl+" % Glück.","good");
   chron([r.id],r.name+"s Wunsch ist erfüllt: "+wishText(w)+".");
@@ -690,8 +781,8 @@ function social(good){
     const a=S.residents.find(r=>r.id===S.conflict.a), b=S.residents.find(r=>r.id===S.conflict.b);
     const ok=good||(jobOn("koch")&&Math.random()<.5);
     if(a&&b){
-      if(ok){addRel(a.id,b.id,35);S.glueck=clamp(S.glueck+4,0,100);log(a.name+" und "+b.name+" haben sich am handyfreien Abend ausgesprochen und vertragen sich wieder.","good")}
-      else{addRel(a.id,b.id,-25);S.glueck=clamp(S.glueck-3,0,100);log("Der Klärungsabend ist ausgefallen. "+a.name+" und "+b.name+" reden nicht mehr miteinander.","bad")}
+      if(ok){addRel(a.id,b.id,35);glAdd(4);log(a.name+" und "+b.name+" haben sich am handyfreien Abend ausgesprochen und vertragen sich wieder.","good")}
+      else{addRel(a.id,b.id,-25);glAdd(-(3));log("Der Klärungsabend ist ausgefallen. "+a.name+" und "+b.name+" reden nicht mehr miteinander.","bad")}
       S.pending.push({type:"conflictResult",a:a.id,b:b.id,ok});
       escalate(a,b);
     }
@@ -742,7 +833,7 @@ function resolveConflict(choice){
   } else {
     S.conflict=null;
     if(Math.random()<.4){addRel(a.id,b.id,10);log(a.name+" und "+b.name+" haben sich von selbst wieder eingekriegt.","good")}
-    else{addRel(a.id,b.id,-30);S.glueck=clamp(S.glueck-3,0,100);log("Der Streit zwischen "+a.name+" und "+b.name+" schwelt weiter.","bad");escalate(a,b)}
+    else{addRel(a.id,b.id,-30);glAdd(-(3));log("Der Streit zwischen "+a.name+" und "+b.name+" schwelt weiter.","bad");escalate(a,b)}
   }
   save();
 }
@@ -766,7 +857,7 @@ function extras(day,diff,quests,dreamt){
   });
   // Geburtstag: alle 30 Inseltage feiert jemand (höchstens ein Fest pro Tag)
   const bday=here().find(r=>r.kind==="mensch"&&!r.sick&&S.dayCount-(r.born||0)>0&&(S.dayCount-(r.born||0))%30===0);
-  if(bday){const n=(S.dayCount-(bday.born||0))/30;S.points+=15;S.glueck=clamp(S.glueck+3,0,100);bday.happyUntil=Math.max(bday.happyUntil||0,S.dayCount+1);
+  if(bday){const n=(S.dayCount-(bday.born||0))/30;S.points+=15;glAdd(3);bday.happyUntil=Math.max(bday.happyUntil||0,S.dayCount+1);
     log(bday.name+" feiert den "+n+". Inselgeburtstag! +15 Punkte, +3 % Glück.","good");chron([bday.id],bday.name+" hat den "+n+". Inselgeburtstag gefeiert.");S.pending.push({type:"birthday",id:bday.id,n})}
   // Wünsche
   wishCheck();
@@ -775,7 +866,7 @@ function extras(day,diff,quests,dreamt){
   const chance=.35+(dreamt?.2:0)+(owns("teleskop")?.15:0);
   if(Math.random()<chance){
     const f=wpickF(FINDS);
-    if(f.pts) S.points+=f.pts; if(f.mat) S.material+=f.mat; if(f.glueck) S.glueck=clamp(S.glueck+f.glueck,0,100);
+    if(f.pts) S.points+=f.pts; if(f.mat) S.material+=f.mat; if(f.glueck) glAdd(f.glueck);
     const msg=f.id==="flaschenpost"?pick(BOTTLE):null;
     S.finds.push({id:f.id,day,msg});
     S.pending.push({type:"strandgut",find:f.id,msg});
@@ -790,7 +881,7 @@ function extras(day,diff,quests,dreamt){
   if(good&&S.budgetStreak>0&&S.budgetStreak%(has("f_nordlicht")?5:7)===0){
     S.aurora=owns("sternwarte")?4:3; S.pending.push({type:"visitor",kind:"aurora"}); log("Polarlicht über der Insel! 7 Tage am Stück im Budget.","good"); chron([],"Polarlicht nach "+S.budgetStreak+" Tagen im Budget.");
   } else if(good&&S.glueck>=60&&!S.birds&&Math.random()<(owns("vogelhaus")?.2:.1)){
-    S.birds=2; S.glueck=clamp(S.glueck+3,0,100); S.pending.push({type:"visitor",kind:"birds"}); log("Ein Schwarm Zugvögel rastet auf der Insel. +3 % Glück.","good");
+    S.birds=2; glAdd(3); S.pending.push({type:"visitor",kind:"birds"}); log("Ein Schwarm Zugvögel rastet auf der Insel. +3 % Glück.","good");
   } else if(!S.trader&&Math.random()<.12){
     const offer=RARE.filter(x=>!owns(x.id));
     if(offer.length){S.trader={until:addDays(day,2),items:shuffle(offer).slice(0,2).map(x=>x.id)};S.pending.push({type:"visitor",kind:"trader"});log("Ein Händlerschiff hat angelegt. Es bleibt 2 Tage.","info")}
@@ -800,7 +891,7 @@ function extras(day,diff,quests,dreamt){
   // Inselfest nach einer guten Woche
   if(S.dayCount%7===0){
     const g=S.days.slice(-7).filter(d=>d.min<=S.budget).length;
-    if(g>=(has("festzelt")?4:5)){S.fests=(S.fests||0)+1;const fp=has("festzelt")?50:30;S.glueck=clamp(S.glueck+5,0,100);S.points+=fp;S.pending.push({type:"fest",good:g});log("Inselfest! "+g+" von 7 Tagen im Budget. +5 % Glück, +"+fp+" Punkte.","good");chron([],"Inselfest nach "+g+" guten Tagen.")}
+    if(g>=(has("festzelt")?4:5)){S.fests=(S.fests||0)+1;const fp=has("festzelt")?50:30;glAdd(5);S.points+=fp;S.pending.push({type:"fest",good:g});log("Inselfest! "+g+" von 7 Tagen im Budget. +5 % Glück, +"+fp+" Punkte.","good");chron([],"Inselfest nach "+g+" guten Tagen.")}
   }
   // Monats-Zeitkapsel
   const mon=day.slice(0,7);
@@ -820,13 +911,13 @@ function surprise(day){
     else {ev.tea=1;ev.pts=30;S.tea++;S.points+=30}
     log("Überraschung: Eine Schatztruhe ist am Strand angespült worden!","good"); chron([],"Eine Schatztruhe wurde am Strand gefunden.");
   } else if(k==="schildkroete"){
-    ev.pts=20; S.points+=20; S.glueck=clamp(S.glueck+4,0,100);
+    ev.pts=20; S.points+=20; glAdd(4);
     log("Überraschung: Eine Meeresschildkröte hat am Strand Eier gelegt. +4 % Glück, +20 Punkte.","good"); chron([],"Eine Meeresschildkröte hat am Strand Eier gelegt.");
   } else if(k==="sternschnuppe"){
     ev.mat=120; S.material+=120;
     log("Überraschung: Sternschnuppenregen! Alle haben sich etwas gewünscht. +2 h Baumaterial.","good"); chron([],"Sternschnuppenregen über der Insel.");
   } else {
-    S.glueck=clamp(S.glueck+3,0,100); here().forEach(r=>{if(r.kind==="mensch") r.happyUntil=Math.max(r.happyUntil||0,S.dayCount+1)});
+    glAdd(3); here().forEach(r=>{if(r.kind==="mensch") r.happyUntil=Math.max(r.happyUntil||0,S.dayCount+1)});
     log("Überraschung: Glühwürmchen-Nacht! Alle sitzen draußen und staunen. +3 % Glück.","good"); chron([],"Glühwürmchen-Nacht auf der Insel.");
   }
   S.surprises.push({k,day}); if(S.surprises.length>100) S.surprises.shift();
@@ -858,7 +949,7 @@ function surpriseSheet(ev){
     <p class="label" style="color:var(--amber)">Überraschung</p><h2>${head}</h2><p class="muted">${text}</p><p>${gain}</p>
     <button class="btn" data-ok>Toll!</button>`);
 }
-function monthName(m){const [y,mo]=m.split("-").map(Number);return new Date(y,mo-1,1).toLocaleDateString("de-DE",{month:"long",year:"numeric"})}
+function monthName(m){const [y,mo]=m.split("-").map(Number);return new Date(y,mo-1,1).toLocaleDateString(LOC,{month:"long",year:"numeric"})}
 function makeCapsule(m){
   const ds=S.days.filter(d=>d.day.startsWith(m));
   const saved=ds.reduce((a,d)=>a+Math.max(0,S.baseline-d.min),0);
@@ -927,11 +1018,11 @@ function doActivity(id){
   if(S.activities[k].includes(id)) return;
   S.activities[k].push(id); S.actTotals[id]=(S.actTotals[id]||0)+1;
   const a=ACTIVITIES.find(x=>x.id===id);
-  if(id==="spaziergang"){S.path++;S.glueck=clamp(S.glueck+1,0,100)}
-  if(id==="lesen"){S.glueck=clamp(S.glueck+1,0,100)}
-  if(id==="sport"){S.glueck=clamp(S.glueck+2,0,100)}
+  if(id==="spaziergang"){S.path++;glAdd(1)}
+  if(id==="lesen"){glAdd(1)}
+  if(id==="sport"){glAdd(2)}
   if(id==="kochen"){S.points+=15}
-  if(id==="freunde"){const ad=adults();for(let i=0;i<3&&ad.length>1;i++){const x=pick(ad),y=pick(ad);if(x.id!==y.id)addRel(x.id,y.id,5)}S.glueck=clamp(S.glueck+1,0,100)}
+  if(id==="freunde"){const ad=adults();for(let i=0;i<3&&ad.length>1;i++){const x=pick(ad),y=pick(ad);if(x.id!==y.id)addRel(x.id,y.id,5)}glAdd(1)}
   log("Echte Aktivität: "+a.n+". "+a.fx+".","good"); toast(a.n+" eingetragen");
   save(); render();
 }
@@ -967,7 +1058,7 @@ function planResult(ok,id,day){
   const p=PLANS.find(x=>x.id===id); if(!p) return null;
   S.planLog.push({day,id,ok}); if(S.planLog.length>300) S.planLog.shift(); stat(ok?"vorhaben_ok":"vorhaben_nein");
   if(!ok){log("Vorhaben „"+p.n+"“ hat diesmal nicht geklappt. Morgen ist ein neuer Versuch.","info"); return null}
-  S.points+=20; S.glueck=clamp(S.glueck+2,0,100); S.actTotals[id]=(S.actTotals[id]||0)+1;
+  S.points+=20; glAdd(2); S.actTotals[id]=(S.actTotals[id]||0)+1;
   if(S.wish&&S.wish.type==="plan"&&S.wish.plan===id) fulfillWish();
   const ad=adults(), r=ad.length?pick(ad):null;
   if(r){r.planWith={id,dc:S.dayCount}; chron([r.id],r.name+" hat heute auch "+p.pp+", genau wie du.")}
@@ -1051,9 +1142,9 @@ function weekSheet(wk){
   stat("rueckblick");
   const w=weekData(wk); if(!w) return showPending();
   const eq=equivTop(w.saved), kw=+wk.split("-W")[1], end=addDays(w.mon,6);
-  const sameM=parse(w.mon).getMonth()===parse(end).getMonth(), range=(sameM?parse(w.mon).getDate()+".":parse(w.mon).toLocaleDateString("de-DE",{day:"numeric",month:"short"}))+" – "+parse(end).toLocaleDateString("de-DE",{day:"numeric",month:sameM?"long":"short"});
+  const sameM=parse(w.mon).getMonth()===parse(end).getMonth(), range=(sameM?parse(w.mon).getDate()+".":parse(w.mon).toLocaleDateString(LOC,{day:"numeric",month:"short"}))+" – "+parse(end).toLocaleDateString(LOC,{day:"numeric",month:sameM?"long":"short"});
   const dAvg=w.pavg==null?null:Math.round(w.pavg-w.avg);
-  const wd=parse(w.best.day).toLocaleDateString("de-DE",{weekday:"long"});
+  const wd=parse(w.best.day).toLocaleDateString(LOC,{weekday:"long"});
   const shareTxt="Meine OffLand-Woche: "+w.good+" von "+w.ds.length+" Tagen im Budget"+(w.saved?", "+hm(w.saved)+" weniger am Handy":"")+". 🌴";
   const slides=[
     `<p class="label" style="color:var(--lime)">Deine Inselwoche · KW ${kw}</p><p class="small muted">${range}</p>
@@ -1141,6 +1232,7 @@ function startBoat(dur,cat,task){
   stat("boot"); S.boat={start:Date.now(),dur,crew:crew?crew.id:null,left:0,cat:cat||"ruhe",task:task||""}; save();
   if(S.alarm!==false){const keep=S.sound;S.sound=true;audio();S.sound=keep}   // Ton jetzt freischalten, solange getippt wurde
   alarmSchedule(S.boat);
+  if(S.shield&&S.shield.mode==="focus"&&ST&&ST.shieldFocus) ST.shieldFocus({on:true}).catch(()=>{});
   const el=document.documentElement;
   if(el.requestFullscreen&&!document.fullscreenElement) el.requestFullscreen().catch(()=>{});
   render();
@@ -1149,6 +1241,7 @@ function boatLeft(){if(!S.boat)return 0;return Math.max(0,S.boat.start+S.boat.du
 function finishBoat(){
   if(!S.boat) return;
   const b=S.boat; S.boat=null;
+  if(S.shield&&S.shield.mode==="focus"&&ST&&ST.shieldFocus) ST.shieldFocus({on:false}).catch(()=>{});
   const late=Date.now()-(b.start+b.dur*60000)>5000;          // in der iPhone-App hat dann schon die Mitteilung geklingelt
   if(!document.hidden&&!(FA&&late)) ringAlarm();
   alarmCancel();
@@ -1158,7 +1251,7 @@ function finishBoat(){
 function boatHonest(ok,dur,crewId,cat,task,done){
   if(ok){
     S.focusLog=[{day:today(),at:Date.now(),cat:cat||"ruhe",task:task||"",min:dur,done:!!done}].concat(S.focusLog||[]).slice(0,300);
-    if(done){S.points+=Math.round(dur/5);S.glueck=clamp(S.glueck+2,0,100)}const fish=Math.max(1,Math.round(dur/10))*(has("floss")?2:1)*(has("a_eisfischen")?2:1), pts=Math.round(dur*(owns("angel")?1.2:1)*(has("f_wikinger")?1.2:1));S.fish+=fish;S.points+=pts;S.material+=dur;S.focusMin+=dur;
+    if(done){S.points+=Math.round(dur/5);glAdd(2)}const fish=Math.max(1,Math.round(dur/10))*(has("floss")?2:1)*(has("a_eisfischen")?2:1), pts=Math.round(dur*(owns("angel")?1.2:1)*(has("f_wikinger")?1.2:1));S.fish+=fish;S.points+=pts;S.material+=dur;S.focusMin+=dur;
     log("Fokus-Bootsfahrt: "+dur+" Minuten "+(cat?focusCat(cat)[1]:"ohne Handy")+(task?" ("+task+")":"")+". "+fish+" Fische, +"+(pts+(done?Math.round(dur/5):0))+" Punkte"+(done?", Vorhaben geschafft!":"."),"good");
     if(S.wish&&S.wish.type==="boot"&&dur>=S.wish.need) fulfillWish()}
   else log("Die Bootsfahrt kam leer zurück. Beim nächsten Mal klappt es.","bad");
@@ -1239,7 +1332,7 @@ function renderFocus(){
     modal(`<h2>Bootsfahrt abbrechen?</h2><p class="muted">Das Boot kehrt ohne Fang zurück. Punkte und Baumaterial gibt es nur, wenn du durchhältst.</p>
       <div class="row"><button class="btn grow" id="stopNo">Weiterfahren</button><button class="btn secondary grow" id="stopYes">Abbrechen</button></div>`);
     $("#stopNo").onclick=closeModal;
-    $("#stopYes").onclick=()=>{S.boat=null;alarmCancel();log("Bootsfahrt abgebrochen.","info");save();closeModal();render()};
+    $("#stopYes").onclick=()=>{S.boat=null;alarmCancel();if(S.shield&&S.shield.mode==="focus"&&ST&&ST.shieldFocus)ST.shieldFocus({on:false}).catch(()=>{});log("Bootsfahrt abgebrochen.","info");save();closeModal();render()};
     $("#stopNo").focus();
   };
   updateFocus();
@@ -1259,6 +1352,13 @@ function updateFocus(){
   set("fSun",lerp(40,320,p),340-Math.sin(p*Math.PI)*110);
 }
 function sleeping(){const h=new Date().getHours();return !!(S.night&&S.night.after===S.lastDay&&(h>=20||h<9))}
+function nightAsk(){
+  sheet(`<p class="label" style="color:var(--lilac)">Gute Nacht, Insel</p><h2>Noch eine Inselminute, bevor das Handy schlafen geht?</h2>
+    <p class="muted">Eine Minute Meeresrauschen hilft dem Kopf, zur Ruhe zu kommen. Danach schläft es sich oft leichter ein.</p>
+    <button class="btn" id="ngCalm">Ja, eine Minute Meer</button><button class="btn ghost" id="ngNo" data-ok>Nein danke, gute Nacht</button>`);
+  $("#ngCalm").onclick=()=>{closeModal();goodNight();calmMinute()};
+  $("#ngNo").onclick=()=>{closeModal();goodNight();showPending()};
+}
 function goodNight(){stat("nacht");S.night={after:S.lastDay,at:Date.now()};log("Gute Nacht, Insel. Das Handy ruht bis morgen.","info");
   if(S.wish&&S.wish.type==="nacht"){fulfillWish();save();render();showPending();return}
   save();render();toast("Gute Nacht! Morgen gibt es Traumpunkte.")}
@@ -1372,6 +1472,16 @@ async function joinFamily(code){
 }
 async function leaveFamily(){try{localStorage.removeItem(FAM_KEY)}catch(e){} await connectStore(); toast("Zurück auf deiner eigenen Insel.")}
 
+/* ---------- Glück: oben wird es zäh, und oben verliert man schneller ----------
+   Gewinne zählen unter 50 % voll, bis 80 % zu 60 %, bis 90 % zu 35 %, darüber zu 20 %.
+   Verluste ab 80 % wiegen 1,3-fach. So ist 100 % ein echtes Ziel, das man halten muss. */
+function glGainRate(g){return g<50?1:g<80?.6:g<90?.35:.2}
+function glAdd(n){
+  let g=S.glueck;
+  if(n>0){let rest=n; while(rest>0){const step=Math.min(1,rest); g+=step*glGainRate(g); rest-=step}}
+  else if(n<0) g+=n*(g>=80?1.3:1);
+  S.glueck=clamp(Math.round(g),0,100); return S.glueck;
+}
 /* ---------- Tag abschließen ---------- */
 function closeDay(min,quests,appMin){
   appMin=appMin||{}; ENTRY_OPEN=false;
@@ -1402,7 +1512,8 @@ function closeDay(min,quests,appMin){
   let repaired=0;
   if(S.repair){ if(diff>=0){repaired=S.repair.amount;delta+=repaired} S.repair=null; }
   const before=S.glueck;
-  S.glueck=clamp(S.glueck+delta,0,100);
+  glAdd(delta);
+  if(before>=95&&diff<S.budget*.25) glAdd(-1);   // ganz oben bleibt nur, wer richtig gute Tage hat
   if(diff<0) S.repair={amount:Math.max(2,Math.round((before-S.glueck)/2))};
   const saved=Math.max(0,S.baseline-min);
   S.material+=saved;
@@ -1417,8 +1528,10 @@ function closeDay(min,quests,appMin){
   S.points+=pts;
   S.monsters=monsters;
   S.days.push({day,min,quests,glueck:S.glueck,sunny,pts,apps:appMin,monsters,by:MY_ID||null});
-  statsActive(); stat("tag"); stat(diff>=0?"tag_gut":"tag_schlecht"); if([1,3,7,14,30,60,100].includes(S.days.length)) stat("tage_"+S.days.length);
+  statsActive(); stat("tag"); stat(diff>=0?"tag_gut":"tag_schlecht"); if([1,3,7,14,30,60,100].includes(S.days.length)) stat("tage_"+S.days.length); statsChange(min);
+  festCheck(day); jubiCheck(); baseCheck();
   S.lastDay=day; S.dayCount++;
+  S.guests=(S.guests||[]).filter(g=>g.until>S.dayCount);                  // Besuch bleibt zwei Tage
   unlockCheck();
   // Joker: einmal pro Woche bricht ein schlechter Tag die Serie nicht
   // Joker möglich? Dann fragt die Insel gleich nach (vor der Tagesbilanz)
@@ -1436,7 +1549,16 @@ function closeDay(min,quests,appMin){
   let freed=null, hooked=null;
   const onPhone=here().filter(r=>r.kind==="mensch"&&r.phone);
   if(diff>=0&&onPhone.length){freed=pick(onPhone);freed.phone=false;S.freed=(S.freed||0)+1;log(freed.name+" hat das Handy weggelegt und redet wieder mit allen.","good");chron([freed.id],freed.name+" hat das Handy weggelegt.");if(S.wish&&S.wish.type==="frei") fulfillWish()}
-  else if(diff<0){const c=here().filter(r=>r.kind==="mensch"&&!r.phone&&stage(r)!=="baby");if(c.length&&Math.random()<.5){hooked=pick(c);hooked.phone=true;log(hooked.name+" hängt wieder am Handy.","bad")}}
+  else if(diff<0){const c=here().filter(r=>r.kind==="mensch"&&!r.phone&&stage(r)!=="baby"&&stage(r)!=="kind");if(c.length&&Math.random()<.5){hooked=pick(c);hooked.phone=true;hooked.lv=0;log(hooked.name+" hängt wieder am Handy.","bad")}}
+  // Verwandlung: gute Tage bringen Farbe zurück, schlechte nehmen sie
+  const back=[];
+  here().filter(r=>r.kind==="mensch").forEach(r=>{const st=stage(r); if(st==="baby") return;
+    const v=r.lv==null?4:r.lv, lo=st==="kind"?2:1;
+    const cap=Math.max(lo,lvCap()), was=Math.min(v,cap);
+    if(diff>=0){r.lv=Math.min(cap,was+1); if(was<4&&r.lv===4&&!r.phone){r.lvUp=S.dayCount;back.push(r.name)}}
+    else r.lv=Math.max(lo,was-1);
+  });
+  if(back.length) log(nameList(back)+" "+(back.length>1?"sind":"ist")+" wieder ganz Mensch. Die Farbe ist zurück!","good");
   if(!S.testmode) S.pending.push({type:"day",day,min,before,after:S.glueck,saved,pts,sunny,repaired,dreamt,monsters,joker:0,freed:freed&&freed.name,hooked:hooked&&hooked.name});
   if(!S.testmode) S.pending.push({type:"planAsk",day,good:diff>=0});
   if(!S.testmode&&parse(day).getDay()===0&&S.days.filter(d=>isoWeek(d.day)===isoWeek(day)).length>=2){S.pending.push({type:"week",wk:isoWeek(day)});S.weekReady={wk:isoWeek(day),until:addDays(day,3)}}
@@ -1510,6 +1632,7 @@ function closeDay(min,quests,appMin){
   chapterCheck();
   bilanzCheck();
   umfrageCheck();
+  if(S.music===undefined&&S.sound!==false&&!S.pending.some(e=>e.type==="musicAsk")) S.pending.push({type:"musicAsk"});   // kommt gleich nach der Tagesbilanz
   if(netConfigured()&&statsDev().consent===undefined&&!S.pending.some(e=>e.type==="statsAsk")) S.pending.push({type:"statsAsk"});   // steht hinten an: kommt beim nächsten Öffnen mit der Freischaltung
   sortPending(); PEND_BUDGET=3;
   save(); render(); showPending();
@@ -1524,8 +1647,16 @@ function checkDiscovery(){
   chron([],"Am Horizont wurde eine neue Insel entdeckt: "+nw.name+".");
   S.pending.push({type:"discovery",world:S.found});
 }
-function travel(){
+/* Umzugskiste: bis zu zwei Lieblingsstücke ziehen mit auf die neue Insel */
+const KISTE_MAX=2;
+const kisteCost=id=>{const d=itemDef(id); return Math.max(50,Math.round((d?price(d):100)*.5/5)*5)};
+function travel(picks){
   if(!((S.found||0)>(S.world||0))) return;
+  picks=(Array.isArray(picks)?picks:[]).filter(id=>hereItems().includes(id)).slice(0,KISTE_MAX);
+  const cost=picks.reduce((a,id)=>a+kisteCost(id),0); if(cost>S.points) picks=[];
+  const toId=WORLDS[(S.world||0)+1].id;
+  if(picks.length){S.points-=cost; S.moved=S.moved||{}; picks.forEach(id=>{S.moved[id]=toId}); stat("umzugskiste");
+    log("Umzugskiste gepackt: "+nameList(picks.map(itemName))+" "+(picks.length>1?"kommen":"kommt")+" mit. −"+cost+" Punkte.","good")}
   const from=curWorld(); S.world=(S.world||0)+1; S.projectIdx=0; islandView=0; stat("welt_"+S.world);
   if(S.wish&&(!S.wish.type||S.wish.type==="item")){S.wish=null;S.lastWishEnd=S.dayCount}
   const W=curWorld(); S.points+=100;
@@ -1573,7 +1704,7 @@ function viewReise(){
   return `<div class="card"><div class="row between"><p class="label">Weltreise</p><span class="small muted">Welt ${w+1} von ${WORLDS.length}</span></div>
     ${worldMapSvg()}
     <p><b>${esc(W.name)}</b> · <span class="muted">${esc(W.text)}</span></p>
-    ${(S.found||0)>w?`<p class="small" style="color:var(--lime);font-weight:700">Neue Insel entdeckt: ${esc(next.name)}!</p><button class="btn" id="travelBtn">Nach ${esc(next.name)} aufbrechen</button><p class="small muted" style="margin-top:-4px">Alle Bewohner und Tiere kommen mit. Gegenstände aus dem Laden bleiben hier, auf der neuen Insel gibt es passende neue.</p>`
+    ${(S.found||0)>w?`<p class="small" style="color:var(--lime);font-weight:700">Neue Insel entdeckt: ${esc(next.name)}!</p><button class="btn" id="travelBtn">Nach ${esc(next.name)} aufbrechen</button><p class="small muted" style="margin-top:-4px">Alle Bewohner und Tiere kommen mit. Gegenstände aus dem Laden bleiben hier, bis zu ${KISTE_MAX} Lieblingsstücke dürfen in der Umzugskiste mit.</p>`
       :next?`<div class="bar"><i style="width:${built/curProjects().length*100}%;background:var(--amber)"></i></div><p class="small muted">${built} von ${curProjects().length} Großprojekten hier gebaut. Sind alle fertig, wird eine neue Insel am Horizont entdeckt.</p>`
       :`<p class="small" style="color:var(--lime);font-weight:700">Ihr habt das Ende der Welt erreicht. Was für eine Reise!</p>`}
   </div>`;
@@ -1603,12 +1734,54 @@ function hairSvg(style,c){
     case 10: return {back:"",front:`<path d="M-3 -19.8q1.6-.8 3.2-.4" stroke="#FFFFFF" stroke-width=".7" fill="none" opacity=".35" stroke-linecap="round"/>`};
     case 11: return {back:`<g stroke="${c}" stroke-width="2.3" stroke-linecap="round" fill="none"><path d="M-4.4 -16.4q-2.4 1.4-2.2 6.4"/><path d="M4.4 -16.4q2.4 1.4 2.2 6.4"/></g><path d="M-6.9 -13.6l1.2.5M-6.8 -11.6l1.2.4M6.9 -13.6l-1.2.5M6.8 -11.6l-1.2.4" stroke="#14151F" stroke-width=".35" opacity=".25"/>`,front:`<path d="M-5.3 -16.4a5.3 5.5 0 0 1 10.6 0q-2.6-1.6-5.3-1.6t-5.3 1.6z" fill="${c}"/><circle cx="-6.5" cy="-10.6" r=".95" fill="#E07AB8"/><circle cx="6.5" cy="-10.6" r=".95" fill="#E07AB8"/>`};
     case 12: return {back:"",front:`<path d="M-5.4 -16.2a5.4 5.6 0 0 1 10.8 0q-1.6-.6-3.4-2.6q-3 2.2-7.4 2.6z" fill="${c}"/>`};
+    case 13: return {back:"",front:`<path d="M-5.3 -16.4a5.3 5.5 0 0 1 10.6 0q-2-.8-3-1.8q-3.2 1.4-7.6 1.8z" fill="${c}"/><path d="M-3.6 -20.2q1.4-4 6.6-3q-1.2 1.4-.4 3q-3-1.2-6.2 0z" fill="${c}"/>`};
+    case 14: return {back:"",front:`<path d="M-5 -17.6a5 4 0 0 1 10 0q-5-1.2-10 0z" fill="${c}" opacity=".4"/><path d="M-4.8 -18.4q.4-4.2 5.4-4q4.8.4 5 4.6q-1.4-1.2-3-1.2q-3.8-.2-7.4.6z" fill="${c}"/>`};
+    case 15: return {back:"",front:`<path d="M-5.2 -16.6l.3-3.2 1.3 1.1.8-3.2 1.5 1.7 1.3-2.8 1.3 2.8 1.5-1.7.8 3.2 1.3-1.1.3 3.2q-5.2-1.8-10.4 0z" fill="${c}"/>`};
+    case 16: return {back:`<circle cx="0" cy="-22" r="2" fill="${c}"/>`,front:`<path d="M-5.3 -16.4a5.3 5.5 0 0 1 10.6 0q-5.3-1.8-10.6 0z" fill="${c}"/><path d="M-1.6 -20.6h3.2" stroke="${shadeC(c,.6)}" stroke-width=".6" stroke-linecap="round"/>`};
+    case 17: return {back:"",front:`<path d="M-5.3 -16.4a5.3 5.5 0 0 1 10.6 0q-5.3-1.6-10.6 0z" fill="${c}"/><g fill="${c}"><ellipse cx="-3.6" cy="-20.4" rx="1.1" ry="1.7"/><ellipse cx="-1.2" cy="-21.6" rx="1.1" ry="1.8"/><ellipse cx="1.3" cy="-21.6" rx="1.1" ry="1.8"/><ellipse cx="3.7" cy="-20.3" rx="1.1" ry="1.7"/></g>`};
+    case 18: return {back:`<path d="M-5.8 -16.5a5.8 6 0 0 1 11.6 0v4q-1.2.8-2.4 0v-2.4h-6.8v2.4q-1.2.8-2.4 0z" fill="${c}"/>`,front:`<path d="M-5.6 -15.6a5.6 5.8 0 0 1 11.2 0q-1.6-.4-3.2-2q-1.4-.8-2.4-2.4q-1 1.6-2.4 2.4q-1.6 1.6-3.2 2z" fill="${c}"/>`};
     default: return {back:"",front:`<path d="M-5 -17.6a5 4 0 0 1 10 0q-5-1.2-10 0z" fill="${c}"/>`};
   }
 }
-const STYLE_NAMES=["Kurz","Lang","Dutt","Zopf","Locken","Mütze","Stoppeln","Pferdeschwanz","Bob","Iro","Glatze","Zwei Zöpfe","Seitenscheitel"];
+/* Bart (Farbe wie die Haare) und Muster auf dem Oberteil */
+const BEARD_NAMES=["Kein Bart","Dreitagebart","Schnurrbart","Kinnbart","Vollbart"];
+function beardSvg(b,c){
+  const jaw=`M-4.9 -15.4q.2 5.6 4.9 5.6t4.9-5.6q-.9 1.6-2.2 1.9q-1.1-1.1-2.7-1.1t-2.7 1.1q-1.3-.3-2.2-1.9z`;
+  return ["",`<path d="${jaw}" fill="${c}" opacity=".32"/>`,
+    `<path d="M-2.5 -14.5q1.2-1.1 2.5-.5q1.3-.6 2.5.5q-1.3.6-2.5.1q-1.2.5-2.5-.1z" fill="${c}"/>`,
+    `<path d="M-1.5 -12.6q1.5.6 3 0l-.5 1.9q-1 .8-2 0z" fill="${c}"/><path d="M-2.3 -14.4q1.1-.9 2.3-.4q1.2-.5 2.3.4q-1.2.4-2.3.1q-1.1.3-2.3-.1z" fill="${c}"/>`,
+    `<path d="${jaw}" fill="${c}"/>`][b]||"";
+}
+const PAT_NAMES=["Uni","Streifen","Punkte","Karo","Blitz","Stern","Herz","Palme","Initiale","Welle"];
+function patSvg(p,c,name){
+  const v=parseInt(c.slice(1),16), light=((v>>16)*.3+(v>>8&255)*.59+(v&255)*.11)>150, k=light?shadeC(c,.62):"#F3F1EA", o=light?1:.75;
+  switch(p){
+    case 1: return `<g stroke="${k}" stroke-width="1.1" opacity="${o}"><path d="M-8 -10.4h16M-8 -7.4h16M-8 -4.4h16M-8 -1.4h16"/></g>`;
+    case 2: return `<g fill="${k}" opacity="${o}">${[[-3.4,-9.6],[1.2,-10.4],[3.8,-6.6],[-1,-6],[-4.4,-3],[0.8,-2.4],[4.4,-1.6]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r=".75"/>`).join("")}</g>`;
+    case 3: return `<g stroke="${k}" stroke-width=".7" opacity="${o*.8}"><path d="M-8 -9.6h16M-8 -6h16M-8 -2.4h16M-3.6 -14v14M0 -14v14M3.6 -14v14"/></g>`;
+    case 4: return `<path d="M.8 -10.6l-3 4.4h2l-1.2 4.2 3.6-5h-2.1z" fill="${k}" opacity="${o}"/>`;
+    case 5: return `<path d="M0 -10.2l1.1 2.3 2.5.3-1.8 1.7.5 2.5-2.3-1.2-2.3 1.2.5-2.5-1.8-1.7 2.5-.3z" fill="${k}" opacity="${o}"/>`;
+    case 6: return `<path d="M0 -3.8q-3.6-2.4-3.6-4.6q0-1.8 1.8-1.8q1.2 0 1.8 1.2q.6-1.2 1.8-1.2q1.8 0 1.8 1.8q0 2.2-3.6 4.6z" fill="${light?"#E5484D":"#FF8FB1"}"/>`;
+    case 7: return `<g fill="${k}" opacity="${o}"><path d="M-.3 -2.2q.8-3.4 .2-6.6h.6q.8 3.2 0 6.6z"/><path d="M.2 -8.8q-2.4-1.2-4 .2q2.2-.2 4-.2zM.2 -8.8q2.4-1.4 4 0q-2.2-.2-4 0zM.2 -8.8q-1.6-2.2-3.4-1.8q1.8.6 3.4 1.8zM.2 -8.8q1.6-2.2 3.4-1.8q-1.8.6-3.4 1.8z"/></g>`;
+    case 8: return `<text x="0" y="-3.6" text-anchor="middle" font-size="6.4" font-weight="800" font-family="Bricolage Grotesque, Manrope, sans-serif" fill="${k}" opacity="${o}">${esc(((name||"?").trim()[0]||"?").toUpperCase())}</text>`;
+    case 9: return `<path d="M-8 -6.6q2-1.6 4 0t4 0 4 0 4 0M-8 -3.2q2-1.6 4 0t4 0 4 0 4 0" stroke="${k}" stroke-width="1" fill="none" opacity="${o}"/>`;
+    default: return "";
+  }
+}
+const STYLE_NAMES=["Kurz","Lang","Dutt","Zopf","Locken","Mütze","Stoppeln","Pferdeschwanz","Bob","Iro","Glatze","Zwei Zöpfe","Seitenscheitel","Tolle","Undercut","Spikes","Männerdutt","Twists","Surfer"];
 /* Extras: Schal, Brille, Sonnenbrille, Bommelmütze, Kappe, Blume, Stirnband */
 const ACC_NAMES=["Nichts","Schal","Brille","Sonnenbrille","Bommelmütze","Kappe","Blume","Stirnband"];
+const TOP_NAMES=["Hoodie","Offene Jacke","Hemd","Bomberjacke"];
+const shadeC=(c,f)=>{const v=parseInt(c.slice(1),16);return "#"+[v>>16,v>>8&255,v&255].map(x=>Math.round(x*f).toString(16).padStart(2,"0")).join("")};
+/* Oberkörper der Erwachsenen: Grundform + Details je Oberteil (u = Verschiebung nach oben) */
+function topSvg(t,c,u){
+  const d=shadeC(c,.78);
+  return `<path d="M-6 ${-2.6+u}c0-6 2.4-8.6 6-8.6s6 2.6 6 8.6z" fill="${c}"/>`+[
+    `<path d="M-3 ${-5.6+u}h6l-.6 2.6h-4.8z" fill="${d}"/><path d="M-1 ${-11+u}v3.4M1 ${-11+u}v3.4" stroke="#F3F1EA" stroke-width=".45" stroke-linecap="round"/><path d="M-3.6 ${-11.2+u}q3.6 2.6 7.2 0" fill="none" stroke="${d}" stroke-width="1"/>`,
+    `<path d="M-1.6 ${-11.2+u}v8.6h3.2v-8.6z" fill="#F3F1EA"/><path d="M-1.6 ${-11.2+u}l-1.4 8.6M1.6 ${-11.2+u}l1.4 8.6" stroke="${d}" stroke-width=".7"/>`,
+    `<path d="M-2 ${-11.2+u}l2 1.6 2-1.6" fill="none" stroke="#F3F1EA" stroke-width=".8"/><circle cx="0" cy="${-7.6+u}" r=".4" fill="${d}"/><circle cx="0" cy="${-5.4+u}" r=".4" fill="${d}"/>`,
+    `<path d="M-6 ${-3.4+u}h12" stroke="${d}" stroke-width="1.6"/><path d="M-.2 ${-11.2+u}v7.8" stroke="${d}" stroke-width=".5"/><path d="M-3 ${-11.2+u}q3 1.4 6 0" fill="none" stroke="${d}" stroke-width=".9"/>`][t%4];
+}
 /* Mehrere Extras auf einmal: gespeichert als Liste (früher eine einzelne Zahl).
    Brillen schließen sich gegenseitig aus, ebenso alles, was oben auf dem Kopf sitzt. */
 const ACC_GROUPS=[[2,3],[4,5,7]];
@@ -1635,13 +1808,13 @@ function lookIdx(r){
   const h=hsh(r.id||r.name), o=r.look||{};
   const pickI=(k,v)=>o[k]!=null?o[k]:v;
   const a=(h>>>18)%14;     // etwa die Hälfte trägt von sich aus ein Extra
-  return {skin:pickI("skin",h%SKIN.length),hair:pickI("hair",(h>>>3)%7),style:pickI("style",(h>>>6)%7),shirt:pickI("shirt",(h>>>9)%8),
+  return {skin:pickI("skin",h%SKIN.length),hair:pickI("hair",(h>>>3)%7),style:pickI("style",(h>>>6)%7),shirt:pickI("shirt",(h>>>9)%8),top:pickI("top",(h>>>26)%TOP_NAMES.length),eye:pickI("eye",(h>>>13)%5),beard:pickI("beard",0),pat:pickI("pat",(()=>{const q=(h>>>20)%18;return q<9?0:q-8})()),
     acc:pickI("acc",o.skin!=null?0:(a<7?0:a-6)),accC:pickI("accC",(h>>>22)%SHIRT.length)};
 }
 function looks(r){
   const h=hsh(r.id||r.name), i=lookIdx(r);
   return {skin:SKIN[i.skin],hair:r.retired?"#D9D6CE":HAIR[i.hair]||HAIR[0],style:i.style,
-    shirt:SHIRT[i.shirt]||SHIRT[0],pants:PANTS[(h>>>12)%PANTS.length],cap:SHIRT[(h>>>15)%8],acc:accList(i.acc),accC:SHIRT[i.accC]||SHIRT[0]};
+    shirt:SHIRT[i.shirt]||SHIRT[0],pants:PANTS[(h>>>12)%PANTS.length],cap:SHIRT[(h>>>15)%8],acc:accList(i.acc),accC:SHIRT[i.accC]||SHIRT[0],top:i.top%TOP_NAMES.length,beard:i.beard||0,pat:i.pat||0};
 }
 /* Lebensphase für die Figur: Baby, Kind, erwachsen, Rente */
 function stage(r){
@@ -1649,6 +1822,7 @@ function stage(r){
   if(r.parents&&!r.job){const age=typeof S!=="undefined"&&S?S.dayCount-(r.born||0):5;return age<3?"baby":"kind"}
   return "erw";
 }
+const tierScale=r=>(r.parents?0.7:1)*(r.art==="Wal"?1.6:["Elch","Kamel","Eisbär"].includes(r.art)?1.1:1);   // große Tiere werden größer gezeichnet
 function figure(r,x,y){
   if(r.kind==="mensch"){
     const L=looks(r), st=stage(r), kid=st==="baby"?0.6:st==="kind"?0.74:1;
@@ -1657,14 +1831,44 @@ function figure(r,x,y){
     const hat=L.acc.includes(4)||L.acc.includes(5), hcl=hat?`<clipPath id="hatclip"><rect x="-20" y="-17.6" width="40" height="40"/></clipPath>`:"";
     const hair=hat?{back:hcl+(hair0.back&&L.style===2?`<g clip-path="url(#hatclip)">${hair0.back}</g>`:hair0.back),front:hair0.front?`<g clip-path="url(#hatclip)">${hair0.front}</g>`:""}:hair0;
     if(r.sick) return `<g transform="translate(${x} ${y}) scale(${kid})"><title>${esc(r.name)} (krank: ${esc(r.sick.kind)})</title><rect x="-9" y="-6" width="18" height="6" rx="2" fill="#8A5A3B"/><rect x="-8" y="-9" width="16" height="5" rx="2" fill="#9CC8EE"/><circle cx="-6" cy="-10" r="4" fill="${L.skin}"/><path d="M-9.6 -11a4 4 0 0 1 6.6-2.6" stroke="${L.hair}" stroke-width="2" fill="none"/><path d="M-7.4 -10.4h1.2M-5 -10.4h1.2" stroke="#14151F" stroke-width=".6"/><circle cx="-8" cy="-9" r="1" fill="#E5484D" opacity=".7"/><text x="2" y="-12" font-size="6" fill="#F3F1EA" font-family="Manrope, sans-serif">z</text></g>`;
-    const sad=typeof S!=="undefined"&&S.glueck<40;
+    const sad=typeof S!=="undefined"&&S.glueck<40, t=lvOf(r);
     if(st==="baby") return `<g transform="translate(${x} ${y}) scale(${kid})"><title>${esc(r.name)} (Baby)</title>
       <ellipse cx="0" cy="-5" rx="5.6" ry="5.4" fill="${L.shirt}"/><path d="M-3.4 -1v1.4M3.4 -1v1.4" stroke="${L.skin}" stroke-width="2.4" stroke-linecap="round"/>
       <circle cx="0" cy="-14" r="5.4" fill="${L.skin}"/><path d="M-1 -19.2q1-2.4 2.6-1.6q-1.6.2-1.4 1.8" stroke="${L.hair}" stroke-width="1" fill="none" stroke-linecap="round"/>
       <circle cx="-1.9" cy="-14" r=".75" fill="#14151F"/><circle cx="1.9" cy="-14" r=".75" fill="#14151F"/><circle cx="-3.4" cy="-12.4" r="1.1" fill="#FF9C7A" opacity=".4"/><circle cx="3.4" cy="-12.4" r="1.1" fill="#FF9C7A" opacity=".4"/>
       <circle cx="0" cy="-11.4" r="1.4" fill="#9CC8EE"/><circle cx="0" cy="-11.4" r=".6" fill="#F3F1EA"/></g>`;
-    const mouth=sad?`<path d="M-1.4 -12.6q1.4-1 2.8 0" stroke="#5A3A2A" stroke-width=".7" fill="none" stroke-linecap="round"/>`:`<path d="M-1.6 -13.3q1.6 1.3 3.2 0" stroke="#5A3A2A" stroke-width=".7" fill="none" stroke-linecap="round"/>`;
-    return `<g transform="translate(${x} ${y}) scale(${kid})"><title>${esc(r.name)}</title>
+    const mouth=t<=2?`<path d="M-1.2 -13.1h2.4" stroke="#5A3A2A" stroke-width=".65" stroke-linecap="round"/>`:sad?`<path d="M-1.4 -12.6q1.4-1 2.8 0" stroke="#5A3A2A" stroke-width=".7" fill="none" stroke-linecap="round"/>`:`<path d="M-1.6 -13.3q1.6 1.3 3.2 0" stroke="#5A3A2A" stroke-width=".7" fill="none" stroke-linecap="round"/>`;
+    if(st!=="kind"){
+      // Erwachsene im Stil "Schattenwesen × aufrichtender Zombie": Glockenkörper, kurze Beine, großer Kopf.
+      // Je weiter weg vom Menschsein, desto gebückter, dunkler und schattiger.
+      const alt=st==="alt", sd=shadeC(L.shirt,.82), brow=shadeC(alt?"#8A8780":L.hair,.7);
+      const tilt=[7,4,2,0,0][t], lean=[18,11,5,1,0][t], drop=[3,2,1,0,0][t];
+      const cheer=t===4&&(r.cheer||(typeof S!=="undefined"&&S&&S.glueck>=100&&!r.lvFull));   // Arme hoch nur bei 100 % Inselglück
+      const hd=`translate(${(lean*.16).toFixed(2)} ${drop}) rotate(${lean} 0 -13) translate(0 -20) scale(1.24) translate(0 16)`;
+      const body=`M-6.4 0q0-13 6.4-13.4q6.4.4 6.4 13.4z`;
+      const arms=t===0?`<path d="M-5.4 -10q-1.6 3.4 2.6 4.6M5.4 -10q1.6 3.4-2.6 4.6" stroke="${sd}" stroke-width="2.2" fill="none" stroke-linecap="round"/><g transform="translate(0 -6.4) rotate(12)"><rect x="-2" y="-2.8" width="4" height="5.6" rx=".8" fill="#232637"/></g>`
+        :cheer?`<path d="M-5.6 -10l-4.4-6M5.6 -10l4.4-6" stroke="${sd}" stroke-width="2.3" stroke-linecap="round"/><circle cx="-10.4" cy="-16.6" r="1.2" fill="${L.skin}"/><circle cx="10.4" cy="-16.6" r="1.2" fill="${L.skin}"/>`
+        :`<path d="M-5.6 -10q-1.6 ${Math.max(1,4-t)} -1 ${Math.max(4,7-t)}M5.6 -10q1.6 ${Math.max(1,4-t)} 1 ${Math.max(4,7-t)}" stroke="${sd}" stroke-width="2.2" fill="none" stroke-linecap="round"/><circle cx="-6.6" cy="${-10+Math.max(4,7-t)}" r="1.05" fill="${L.skin}"/><circle cx="6.6" cy="${-10+Math.max(4,7-t)}" r="1.05" fill="${L.skin}"/>`;
+      const head=`${hair.back}<circle cx="0" cy="-16" r="5" fill="${L.skin}"/>${hair.front}`;
+      const face=t<=2?(t===2?`<path d="M-1.2 -13.1h2.4" stroke="#2A1E1A" stroke-width=".5" stroke-linecap="round"/>`:"")
+        :`<circle cx="-1.8" cy="-16.3" r=".7" fill="#14151F"/><circle cx="1.8" cy="-16.3" r=".7" fill="#14151F"/><circle cx="-1.55" cy="-16.55" r=".23" fill="#fff"/><circle cx="2.05" cy="-16.55" r=".23" fill="#fff"/>
+          ${sad?`<path d="M-2.8 -18.4l1.5.5M2.8 -18.4l-1.5.5" stroke="${brow}" stroke-width=".5" stroke-linecap="round"/>`:`<path d="M-2.7 -18.1l1.5-.25M1.2 -18.35l1.5.25" stroke="${brow}" stroke-width=".5" stroke-linecap="round"/>`}
+          <circle cx="-3.2" cy="-14" r=".9" fill="#FF9C7A" opacity=".5"/><circle cx="3.2" cy="-14" r=".9" fill="#FF9C7A" opacity=".5"/>
+          ${sad?`<path d="M-1.3 -13.2q1.3-.9 2.6 0" stroke="#5A3A2A" stroke-width=".6" fill="none" stroke-linecap="round"/>`:`<path d="M-1.45 -14q1.45 ${cheer?1.6:1.1} 2.9 0" stroke="#5A3A2A" stroke-width=".6" fill="${cheer?"#7A2032":"none"}" stroke-linecap="round"/>`}`;
+      // heller Umriss, damit man die Schatten auch im Dunkeln erkennt (wird mit der Farbe dünner)
+      const rim=t<3?`<g class="lv-rim" style="--rw:${[.55,.55,.37][t]}px"><path d="${body}"/><g transform="${hd}">${hair.back}<circle cx="0" cy="-16" r="5"/>${hair.front}</g></g>`:"";
+      const eyeC=LV_EYES[lookIdx(r).eye%LV_EYES.length];
+      const glow=t===0?`<g transform="${hd}"><path d="M-2.9 -15.6h1.9M1 -15.6h1.9" stroke="#9CDCFF" stroke-width=".9" filter="url(#lvGlow)"/><ellipse cx="0" cy="-12.8" rx="5.2" ry="3.4" fill="#9CDCFF" opacity=".38" filter="url(#lvGlow)"/></g>
+          <g transform="translate(0 -6.4) rotate(12)"><rect x="-1.4" y="-2.2" width="2.8" height="4" rx=".3" fill="#CFF3FF" filter="url(#lvGlow)"/></g>`
+        :t===1?`<g transform="${hd}" filter="url(#lvGlow)"><path d="M-3.05 -16.3a1.15 1.15 0 0 0 2.3 0zM.75 -16.3a1.15 1.15 0 0 0 2.3 0z" fill="${eyeC}"/></g>`
+        :t===2?`<g transform="${hd}"><g filter="url(#lvGlow)" opacity=".75"><circle cx="-1.9" cy="-16.4" r=".95" fill="${eyeC}"/><circle cx="1.9" cy="-16.4" r=".95" fill="${eyeC}"/></g><circle cx="-1.9" cy="-16.4" r=".48" fill="#14151F"/><circle cx="1.9" cy="-16.4" r=".48" fill="#14151F"/></g>`:"";
+      return `<g transform="translate(${x} ${y})"><title>${esc(r.name)}${r.phone?" (am Handy)":t<4?` (${LV_NAMES[t]})`:""}</title><ellipse cx="0" cy=".4" rx="7" ry="1.2" fill="#000" opacity="${t<2?.3:.18}"/><g transform="rotate(${tilt})">${t<4?`<g filter="url(#lv${t})">`:""}
+        ${alt?`<path d="M8.4 0v-8q0-1.8-1.8-1.8" stroke="#8A5A3B" stroke-width="1.1" fill="none" stroke-linecap="round"/>`:""}
+        <path d="M-2.4 -1v1.6M2.4 -1v1.6" stroke="${L.pants}" stroke-width="2" stroke-linecap="round"/><path d="${body}" fill="${L.shirt}"/>${L.pat?`<g clip-path="url(#lvBody)">${patSvg(L.pat,L.shirt,r.name)}</g>`:""}<g transform="translate(0 -2.2)">${acc.body}</g>${arms}
+        <g transform="${hd}">${head}${beardSvg(L.beard,L.hair)}${face}${acc.head}
+          ${r.retired?`<path d="M-3.6 -16.4h2.6M1 -16.4h2.6M-1 -16.4h2" stroke="#3A3D58" stroke-width=".5" fill="none"/><circle cx="-1.8" cy="-16.3" r="1.5" fill="none" stroke="#3A3D58" stroke-width=".5"/><circle cx="1.8" cy="-16.3" r="1.5" fill="none" stroke="#3A3D58" stroke-width=".5"/>`:""}</g>${t<4?"</g>":""}${rim}${glow}</g>${cheer?LV_SPARK_BIG:""}</g>`;
+    }
+    return `<g transform="translate(${x} ${y}) scale(${kid})"${t<4?` filter="url(#lv${t})"`:""}><title>${esc(r.name)}</title>
       <path d="M-2.4 -3.4v3.2M2.4 -3.4v3.2" stroke="${L.pants}" stroke-width="2.4" stroke-linecap="round"/>
       <path d="M-6 -2.6c0-6 2.4-8.6 6-8.6s6 2.6 6 8.6z" fill="${L.shirt}"/>${acc.body}
       ${st==="kind"?`<g transform="translate(0 -12) scale(1.18) translate(0 12)">`:""}${hair.back}<circle cx="0" cy="-16" r="5" fill="${L.skin}"/>${hair.front}
@@ -1673,9 +1877,12 @@ function figure(r,x,y){
       ${r.retired?`<path d="M-3.6 -16.4h2.6M1 -16.4h2.6M-1 -16.4h2" stroke="#3A3D58" stroke-width=".5" fill="none"/><circle cx="-1.8" cy="-16" r="1.5" fill="none" stroke="#3A3D58" stroke-width=".5"/><circle cx="1.8" cy="-16" r="1.5" fill="none" stroke="#3A3D58" stroke-width=".5"/>`:""}${st==="kind"?"</g>":""}
       ${st==="alt"?`<path d="M7.4 0v-9.4q0-1.8-1.8-1.8" stroke="#8A5A3B" stroke-width="1.1" fill="none" stroke-linecap="round"/>`:""}${r.phone?PHONE_FIG:""}</g>`;
   }
-  const s=(r.parents?0.7:1)*(r.art==="Wal"?1.6:["Elch","Kamel","Eisbär"].includes(r.art)?1.1:1);
-  return `<g transform="translate(${x} ${y}) scale(${s})"><title>${esc(r.name)} (${esc(r.art)})</title>${animalSvg(r.art,animalVar(r))}</g>`;
+  const s=tierScale(r);
+  return `<g transform="translate(${x} ${y}) scale(${s})"><title>${esc(r.name)} (${esc(r.art)})</title>${animalSvg(r.art,animalVar(r))}${gearSvg(r.art,r.gear)}</g>`;
 }
+const LV_EYES=["#7FE8FF","#FFD45A","#B8F25A","#FF8FB1","#C9A6FF"];
+const LV_SPARK_BIG=[[-9,-26],[9,-24],[-8,-6],[8.6,-31]].map(([x,y])=>`<path d="M${x} ${y-1.6}l.5 1.1 1.1.5-1.1.5-.5 1.1-.5-1.1-1.1-.5 1.1-.5z" fill="#FFE680"/>`).join("");
+const LV_SPARK=`<g fill="#FFD27A"><path d="M-7 -24l.5 1.3 1.3.5-1.3.5-.5 1.3-.5-1.3-1.3-.5 1.3-.5z"/><path d="M7.4 -21l.4 1 1 .4-1 .4-.4 1-.4-1-1-.4 1-.4z"/><path d="M-8.2 -13l.3.8.8.3-.8.3-.3.8-.3-.8-.8-.3.8-.3z" opacity=".8"/></g>`;
 /* ---------- Geschichte: Mr. Bay (Bürgermeister) und Lucifer (Inselkatze) ---------- */
 const PHONE_FIG=`<circle cx="0" cy="-14.6" r="6.4" fill="#7FB6FF" opacity=".22"/><path d="M-3 -7.6q3 1.6 6 0" stroke="#F0C2A0" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".9"/><rect x="-1.9" y="-11.2" width="3.8" height="5.8" rx=".9" fill="#2B3350"/><rect x="-1.4" y="-10.6" width="2.8" height="4.4" rx=".5" fill="#9CC8EE"/>`;
 function baySvg(anim){
@@ -1803,7 +2010,7 @@ function partyArt(){
   const an=[{id:"a1",kind:"tier",art:"Ziege",name:"Z"},{id:"a2",kind:"tier",art:"Huhn",name:"H"},{id:"a3",kind:"tier",art:"Hund",name:"D"}];
   return `<g transform="translate(206 128) scale(.95)">${projectSvg("festzelt")}</g>`+garland(110,200,98,10)+garland(200,300,96,12)+
     `<g transform="translate(140 148) scale(1.1)">${itemSvg("sandburg")}</g><g transform="translate(180 146) scale(.9)">${itemSvg("feuer")}</g>`+
-    ppl.map((r,i)=>`<g class="bob" style="animation-delay:${i*.25}s;animation-duration:${1.2+i%2*.4}s">${figure(r,[160,196,236,262,288][i],[140,142,141,138,140][i])}</g>`).join("")+
+    ppl.map((r,i)=>`<g class="bob" style="animation-delay:${i*.25}s;animation-duration:${1.2+i%2*.4}s">${figure(Object.assign({},r,{lvFull:true,cheer:i%2===0,look:Object.assign({},r.look,{pat:[0,2,4,6,1][i%5]})}),[160,196,236,262,288][i],[140,142,141,138,140][i])}</g>`).join("")+
     an.map((r,i)=>figure(r,[118,214,306][i],[142,147,146][i])).join("")+
     confetti()+`<g transform="translate(0 70)">${confetti()}</g>`;
 }
@@ -1868,15 +2075,26 @@ function chapterCheck(silent){
   }
 }
 function damalsArt(n){
-  const a=storyIsle("past","96 70 236 118"), g=(x,y,i)=>figure({id:"d"+n+i,name:"x",kind:"mensch",look:{skin:i%5,hair:(i*3)%7,style:[0,1,7,4,11,8][i%6],shirt:i*2%10,acc:[],accC:0}},x,y);
-  const lt=`<g transform="translate(150 132)"><path d="M-8 0h16l-3-40h-10z" fill="#F3F1EA"/><path d="M-7 -12h14M-6 -24h12" stroke="#FF9C7A" stroke-width="4"/><rect x="-6" y="-48" width="12" height="9" rx="2" fill="#FFD27A"/><path d="M-6 -44L-70 -60v28z" fill="#FFE7A3" opacity=".5"/></g>`;
-  const art=[`<g transform="translate(200 146) scale(.9)">${itemSvg("feuer")}</g>`+g(178,140,0)+g(222,140,1),
-    `<g transform="translate(200 146)">${itemSvg("bank")}</g>`+g(190,140,2)+g(210,140,3)+hearts(200,112),
-    lt+g(180,140,4),
-    boat([{id:"bx",kind:"mensch",name:"x"},{id:"by",kind:"mensch",name:"y"}],"")+g(200,140,5)+g(220,140,0),
-    partyArt(),
-    `<path d="M96 140q24-26 48 0" fill="none" stroke="#8A5A3B" stroke-width="4" stroke-linecap="round"/>`+g(120,124,1)+g(200,140,2),
-    partyArt()][n]||"";
+  // Damals-Fotos der Kapitel: alle in voller Farbe, verschiedene Typen, passend zum Kapiteltext
+  const a=storyIsle("past","96 70 236 118");
+  const L=[{skin:1,hair:4,style:18,shirt:5,pat:0},{skin:4,hair:0,style:11,shirt:6,pat:2},{skin:2,hair:2,style:16,shirt:12,pat:3,beard:4},{skin:5,hair:6,style:15,shirt:8,pat:1},
+    {skin:0,hair:5,style:8,shirt:13,pat:0,acc:[6],accC:10},{skin:3,hair:1,style:13,shirt:3,pat:9,beard:1},{skin:1,hair:7,style:10,shirt:11,pat:3,beard:4,acc:[2]}];
+  const NM=["Mo","Ida","Ben","Zoe","Lu","Tom","Opa"];
+  const g=(x,y,i,cheer,sc)=>{const f=figure({id:"d"+n+i,name:NM[i],kind:"mensch",born:-999,lv:4,lvFull:true,cheer:!!cheer,look:Object.assign({acc:[],accC:0,eye:0,beard:0},L[i])},0,0);
+    return `<g transform="translate(${x} ${y})${sc?` scale(${sc})`:""}"><g class="bob" style="animation-delay:${(i*.3)%1.2}s">${f}</g></g>`};
+  const lt=(x)=>`<g transform="translate(${x} 132)"><path d="M-8 0h16l-3-40h-10z" fill="#F3F1EA"/><path d="M-7 -12h14M-6 -24h12" stroke="#FF9C7A" stroke-width="4"/><rect x="-6" y="-48" width="12" height="9" rx="2" fill="#FFD27A"/><path d="M-6 -44L-70 -60v28z" fill="#FFE9A8" opacity=".55"/></g>`;
+  const phone=`<g transform="translate(176 141) rotate(-14)"><rect x="-3" y="-1.6" width="6" height="3.4" rx=".7" fill="#2B3350"/><rect x="-2.4" y="-1.1" width="4.8" height="2.4" rx=".4" fill="#5A6380"/></g><path d="M170 132l2 2M182 131l-2 2M176 129v2.4" stroke="#FFD27A" stroke-width=".9" stroke-linecap="round"/>`;
+  const bub=(x,y)=>`<g transform="translate(${x} ${y})"><rect x="-8" y="-6" width="16" height="10" rx="4" fill="#F3F1EA"/><path d="M-3 4l-2 4 6-4z" fill="#F3F1EA"/><path d="M-4 -1h8M-4 1.6h5" stroke="#9EA3B8" stroke-width="1" stroke-linecap="round"/></g>`;
+  const dock=`<g class="wave fb"><path d="M104 166h64l-10 12h-44z" fill="#FF9C7A"/><path d="M140 166v-36l24 32z" fill="#F3F1EA"/><path d="M136 166v-28l-18 26z" fill="#B6A4FF"/>${g(122,166,4,true,.85)}${g(150,166,5,true,.85)}</g>`;
+  const bridge=`<path d="M96 140q24-26 48 0" fill="none" stroke="#8A5A3B" stroke-width="4" stroke-linecap="round"/><path d="M106 134v6M120 125v15M134 134v6" stroke="#8A5A3B" stroke-width="2"/>`;
+  const art=[
+    phone+g(194,140,0,true)+g(226,140,1),                                                                   // Das stille Dorf: das erste Handy liegt im Sand
+    `<g transform="translate(200 146)">${itemSvg("bank")}</g>`+g(190,140,2)+g(212,140,3)+bub(176,100)+bub(226,98), // Erste Gespräche
+    lt(150)+g(186,140,4,true)+g(210,140,6),                                                                 // Licht am Horizont: erstes Großprojekt
+    dock+g(214,140,3,true)+g(238,140,2),                                                                    // Neue Gesichter: Boot legt an
+    partyArt(),                                                                                              // Das erste Fest
+    bridge+g(120,124,1,true)+g(200,140,2)+g(226,140,5,true),                                                // Die Brücke
+    lt(116)+partyArt()+hearts(170,92)][n]||"";                                                              // OffLand lebt
   return a.open+art+`</svg>`;
 }
 function chapterSheet(n,fresh){
@@ -1889,13 +2107,6 @@ function chapterSheet(n,fresh){
     ${fresh&&!next?`<p class="small muted">Das war die ganze Geschichte von OffLand. Danke, dass du dabei warst.</p>`:""}
     <button class="btn" data-ok>${fresh?"Ins Album kleben":"Schließen"}</button>`);
   if(fresh) sfx("chapter"); speak([["bay",c.bay],["luc",c.luc]],fresh?1:.1);
-}
-function viewBayAlbum(){
-  if(S.chapter==null) return "";
-  const done=Math.min(S.chapter,CHAPTERS.length), last=done-1, c=CHAPTERS[Math.max(0,last)];
-  return `<button class="card bay-cover" id="bayAlbum"><div class="row between"><p class="label">Mr. Bays Album</p><span class="small muted num">${done} / ${CHAPTERS.length} Kapitel</span></div>
-    <div class="bay-stack">${done?`<div class="story-art past">${c.world?worldPhoto(c.world,c.k):damalsArt(last)}</div>`:`<div class="lock">?</div>`}</div>
-    <p class="row between"><span class="small muted">${done?`Zuletzt: <b style="color:var(--ink)">${esc(c.n)}</b>`:"Noch leer. Das erste Foto kommt bald."}</span><span class="bay-open">Durchblättern ›</span></p></button>`;
 }
 function bayAlbumSheet(){
   stat("album");
@@ -1918,7 +2129,7 @@ function bayAlbumSheet(){
 }
 function storySlides(existing){
   const kids=here().filter(r=>r.kind==="mensch").slice(0,3);
-  const ppl=(xs,y,ph)=>kids.slice(0,xs.length).map((r,i)=>`<g class="bob" style="animation-delay:${i*.3}s">${figure(Object.assign({},r,{sick:null}),xs[i],y)}</g>${ph?phoneIn(xs[i],y):""}`).join("");
+  const ppl=(xs,y,ph)=>kids.slice(0,xs.length).map((r,i)=>`<g class="bob" style="animation-delay:${i*.3}s">${figure(Object.assign({},r,{sick:null},ph?{phone:true}:{phone:false,lvFull:true,cheer:i!==1}),xs[i],y)}</g>${ph?phoneIn(xs[i],y):""}`).join("");   // Damals bunt und fröhlich, später Smombies
   const Z="96 70 236 118", a=storyIsle("past",Z), a2=storyIsle("past"), b=storyIsle("grey",Z), b2=storyIsle("grey","40 40 300 160"), n=storyIsle("now",Z);
   return [
     {who:"bay",mood:"past",art:a.open+partyArt()+`</svg>`,
@@ -1961,7 +2172,8 @@ function artVB(a,ratio){
   return [cx-w/2,cy-h/2,w,h].map(v=>+v.toFixed(1)).join(" ");
 }
 function figVB(r){
-  if(r.kind==="mensch"||!ART_BOX[r.art]) return "-13 -24 26 27";
+  if(r.kind==="mensch") return stage(r)==="kind"||stage(r)==="baby"||r.sick?"-13 -24 26 27":"-13 -29.4 26 30";
+  if(!ART_BOX[r.art]) return "-13 -24 26 27";
   const s=(r.parents?0.7:1)*(r.art==="Wal"?1.6:["Elch","Kamel","Eisbär"].includes(r.art)?1.1:1), [x0,y0,x1,y1]=ART_BOX[r.art];
   const cx=(x0+x1)/2*s, cy=(y0+y1)/2*s, d=Math.max(Math.max(x1-x0,y1-y0)+4,26)*s;   // Kreis: etwas Rand rundum, kleine Tiere nicht riesig
   return [cx-d/2,cy-d/2,d,d].map(v=>+v.toFixed(1)).join(" ");
@@ -2017,6 +2229,44 @@ function animalShape(art){
   case "Eisbär": return `<path d="M-6 -7v7M-2 -7v7M6 -7v7M10 -7v7" stroke="#F3F1EA" stroke-width="3.2" stroke-linecap="round"/><ellipse cx="2" cy="-9" rx="10" ry="6" fill="#F3F1EA"/><path d="M-8 -10q-6-1-8 3q2 2 6 1z" fill="#F3F1EA"/><circle cx="-8" cy="-12" r="4.2" fill="#F3F1EA"/><circle cx="-7" cy="-16" r="1.6" fill="#F3F1EA" stroke="#D9D4C6" stroke-width=".5"/><circle cx="-15.6" cy="-7.6" r="1" fill="#14151F"/>${E(-10.6,-12)}<path d="M-4 -4q6 2 12 0" stroke="#D9D4C6" stroke-width="1" fill="none"/>`;
   default: return `<ellipse cx="0" cy="-5" rx="8" ry="5" fill="#F3F1EA"/><circle cx="-8" cy="-10" r="3.6" fill="#F3F1EA"/>${E(-9,-10.5)}`;
   }
+}
+/* Ausstattung der Tiere: Halsband und Brille. e = Auge (Brille), e2 = zweites Auge,
+   n = Halsband als Strecke quer über den Hals, f = 1 wenn das Tier nach rechts schaut */
+const GEAR={Huhn:{e:[-5.6,-11.6],n:[-4.6,-8.2,-2.4,-10.2]},Ziege:{e:[-9.6,-14.4],n:[-8.84,-10.3,-5.16,-13.1]},Schaf:{e:[-8.4,-9.2],n:[-6,-5.8,-5,-11.2]},
+  Esel:{e:[-10.6,-15.6],n:[-9.55,-11.75,-5.65,-14.85]},Katze:{e:[-5.4,-10.6],e2:[-2.8,-10.6],n:[-3.8,-6,-0.6,-8.6]},Hund:{e:[-7,-12.6],n:[-4.8,-7.4,-2.2,-10.2]},
+  Meerschweinchen:{e:[-7.4,-7.2],n:[-4.2,-3.4,-3.4,-9.4]},Hase:{e:[-5.8,-9.4],n:[-4.4,-5.6,-1.6,-7.8]},Robbe:{e:[3.6,-9.6],f:1},Delfin:{e:[-9.4,-8.4]},Wal:{e:[-10.4,-6.6]},
+  Papagei:{e:[-3,-18],n:[-3.6,-14.4,3.4,-13.8]},Elch:{e:[-11,-19.6],n:[-8.84,-15.16,-5.16,-18.84]},Kamel:{e:[-12,-23],n:[-10.9,-16.9,-7.1,-18.1]},"Eisbär":{e:[-10.6,-12],n:[-4.9,-8,-3.9,-14]}};
+const COLLAR_NAMES=["Ohne","Halsband","Glöckchen","Halstuch","Fliege"], SPECS_NAMES=["Ohne","Sonnenbrille","Pilotenbrille","Herzbrille","Sportbrille"];
+const hasCollar=art=>!!(GEAR[art]&&GEAR[art].n);
+function gearSvg(art,g){
+  const G=GEAR[art]; if(!G||!g) return "";
+  let s="";
+  const f=v=>(+v).toFixed(2);
+  if(g.collar&&G.n){
+    const [x1,y1,x2,y2]=G.n, c=SHIRT[g.cc||0]||SHIRT[0], mx=(x1+x2)/2, my=(y1+y2)/2, L=Math.hypot(x2-x1,y2-y1)||1, ux=(x2-x1)/L, uy=(y2-y1)/L;
+    let nx=-uy, ny=ux; if(ny<0||(Math.abs(ny)<.3&&nx>0)){nx=-nx;ny=-ny}
+    const P=(k,j=0)=>`${f(mx+nx*k+ux*j)} ${f(my+ny*k+uy*j)}`, C=k=>`cx="${f(mx+nx*k)}" cy="${f(my+ny*k)}"`;
+    if(g.collar===3) s+=`<path d="M${x1} ${y1}L${x2} ${y2}L${P(2.8)}z" fill="${c}" stroke="${c}" stroke-width=".8" stroke-linejoin="round"/><circle ${C(1)} r=".35" fill="#F3F1EA" opacity=".8"/>`;
+    else s+=`<path d="M${x1} ${y1}L${x2} ${y2}" stroke="${c}" stroke-width="1.5" stroke-linecap="round"/>`;
+    if(g.collar===1) s+=`<circle ${C(.9)} r=".55" fill="#FFD27A"/>`;
+    if(g.collar===2) s+=`<circle ${C(1.3)} r="1" fill="#FFD27A" stroke="#C9A35A" stroke-width=".3"/><circle ${C(1.7)} r=".25" fill="#8A5A3B"/>`;
+    if(g.collar===4) s+=`<path d="M${P(.2)}L${P(1.2,-1.6)}L${P(-.8,-1.6)}zM${P(.2)}L${P(1.2,1.6)}L${P(-.8,1.6)}z" fill="${c}" stroke="${c}" stroke-width=".5" stroke-linejoin="round"/><circle ${C(.2)} r=".5" fill="${c}" stroke="#14151F" stroke-opacity=".3" stroke-width=".25"/>`;
+  }
+  if(g.specs){
+    const back=G.f?-1:1, eyes=G.e2?[G.e,G.e2]:[G.e], ey=G.e[1];
+    const outer=back>0?eyes.reduce((a,e)=>e[0]>a[0]?e:a):eyes.reduce((a,e)=>e[0]<a[0]?e:a);
+    const armC=g.specs===2?"#E0B04A":g.specs===3?"#C93E78":g.specs===4?"#8FB34F":"#14151F";
+    const arm=`<path d="M${f(outer[0]+1.5*back)} ${f(outer[1]-.3)}L${f(outer[0]+3.6*back)} ${f(outer[1]-.9)}" stroke="${armC}" stroke-width=".45" stroke-linecap="round"/>`;
+    const lens=([x,y])=>{switch(g.specs){
+      case 2: return `<path d="M${f(x-1.7)} ${f(y-1)}h3.4q.2 2.4-1.7 2.6q-1.9-.2-1.7-2.6z" fill="#2C4770" stroke="#E0B04A" stroke-width=".35"/>`;
+      case 3: return `<path d="M${f(x)} ${f(y+1.3)}l-1.6-1.6a.9 .9 0 0 1 1.6-1.1a.9 .9 0 0 1 1.6 1.1z" fill="#FF6FA8" stroke="#C93E78" stroke-width=".3"/>`;
+      default: return `<ellipse cx="${f(x)}" cy="${f(y)}" rx="1.65" ry="1.3" fill="#14151F" stroke="#3A3D58" stroke-width=".3"/><path d="M${f(x-.9)} ${f(y-.5)}l.6-.4" stroke="#F3F1EA" stroke-width=".35" stroke-linecap="round" opacity=".7"/>`;
+    }};
+    if(g.specs===4){const xs=eyes.map(e=>e[0]), a=Math.min(...xs)-1.9, w=Math.max(...xs)+1.9-a;
+      s+=arm+`<path d="M${f(a)} ${f(ey-.9)}h${f(w)}v1.5q${f(-w/2)} 1 ${f(-w)} 0z" fill="#C8F169" stroke="#8FB34F" stroke-width=".3"/><path d="M${f(a+.5)} ${f(ey-.5)}h${f(w*.45)}" stroke="#F3F1EA" stroke-width=".3" opacity=".8"/>`;}
+    else s+=arm+(eyes.length>1?`<path d="M${f(eyes[0][0]+1.5)} ${f(ey-.3)}H${f(eyes[1][0]-1.5)}" stroke="#14151F" stroke-width=".4"/>`:"")+eyes.map(lens).join("");
+  }
+  return s;
 }
 function skyNow(){
   const h=new Date().getHours();
@@ -2124,8 +2374,8 @@ function worldStructs(W,cx,two,three){
 
 /* Gekaufte Gegenstände automatisch verteilen: Jeder Gegenstand nimmt den freien Platz,
    der am weitesten von den schon platzierten entfernt ist, und weicht Gebäuden und Bäumen aus. */
-const ITEM_W={truhe:28,pokal:22,goldanker:26,siegerbanner:22,t_kanu:30,t_kokos:26,t_haengematte:30,t_orchidee:26,t_tiki:20,t_huette:32,t_surf:22,t_flamingo:22,f_kanu:30,f_schaukel:26,f_beeren:28,f_feuerschale:18,f_scheune:34,f_moos:24,f_wimpel:34,f_runen:14,o_teppich:34,o_dattel:28,o_tee:26,o_wasser:28,o_zelt:34,o_kaktus:26,o_laternen:16,a_eisloch:26,a_kakao:24,a_feuerkorb:16,a_eisbahn:38,a_huskys:44,a_schneemann:16,a_laternen:16,a_eisskulptur:18,teich:36,picknick:34,garten:32,sandburg:30,schaukel:30,spielplatz:28,haengematte:28,stall:28,blumen:28,palme:26,bank:26,feuer:22,brunnen:24,sternwarte:26,bienen:22,schirm:30,vogelhaus:20,zwerg:12,laternen:12,glocke:18,teleskop:28,muschelweg:34,regenbogen:34};
-const ITEM_H={truhe:24,pokal:26,goldanker:28,siegerbanner:34,t_kokos:22,t_haengematte:28,t_tiki:26,t_huette:30,t_surf:28,t_flamingo:24,f_schaukel:36,f_scheune:28,f_wimpel:22,f_runen:22,o_dattel:36,o_tee:22,o_zelt:28,o_laternen:26,a_kakao:24,a_feuerkorb:28,a_huskys:16,a_schneemann:26,a_laternen:24,a_eisskulptur:16,palme:30,laternen:28,vogelhaus:30,schirm:26,glocke:28,sternwarte:30,schaukel:26,haengematte:20,spielplatz:22,stall:22,bienen:24,teleskop:24,feuer:24};
+const ITEM_W={t_bar:30,t_papagei:18,t_muschelweg:30,t_steg:34,t_nest:30,t_lagune:36,f_bank:28,f_sauna:28,f_nistkasten:14,f_heide:28,f_troll:14,f_boot:32,o_kissen:32,o_taube:20,o_blumen:28,o_spiel:32,o_sterne:30,o_mosaik:26,o_sanduhr:12,a_fellbank:28,a_futterhaus:18,a_rodel:30,a_nordlicht:32,a_iglu:28,a_robben:32,truhe:28,pokal:22,goldanker:26,siegerbanner:22,t_kanu:30,t_kokos:26,t_haengematte:30,t_orchidee:26,t_tiki:20,t_huette:32,t_surf:22,t_flamingo:22,f_kanu:30,f_schaukel:26,f_beeren:28,f_feuerschale:18,f_scheune:34,f_moos:24,f_wimpel:34,f_runen:14,o_teppich:34,o_dattel:28,o_tee:26,o_wasser:28,o_zelt:34,o_kaktus:26,o_laternen:16,a_eisloch:26,a_kakao:24,a_feuerkorb:16,a_eisbahn:38,a_huskys:44,a_schneemann:16,a_laternen:16,a_eisskulptur:18,teich:36,picknick:34,garten:32,sandburg:30,schaukel:30,spielplatz:28,haengematte:28,stall:28,blumen:28,palme:26,bank:26,feuer:22,brunnen:24,sternwarte:26,bienen:22,schirm:30,vogelhaus:20,zwerg:12,laternen:12,glocke:18,teleskop:28,muschelweg:34,regenbogen:34};
+const ITEM_H={t_bar:20,t_papagei:30,t_muschelweg:8,t_steg:16,t_nest:10,t_lagune:10,f_bank:12,f_sauna:28,f_nistkasten:28,f_heide:14,f_troll:18,f_boot:22,o_kissen:9,o_taube:30,o_blumen:14,o_spiel:18,o_sterne:20,o_mosaik:18,o_sanduhr:20,a_fellbank:10,a_futterhaus:24,a_rodel:14,a_nordlicht:26,a_iglu:14,a_robben:14,truhe:24,pokal:26,goldanker:28,siegerbanner:34,t_kokos:22,t_haengematte:28,t_tiki:26,t_huette:30,t_surf:28,t_flamingo:24,f_schaukel:36,f_scheune:28,f_wimpel:22,f_runen:22,o_dattel:36,o_tee:22,o_zelt:28,o_laternen:26,a_kakao:24,a_feuerkorb:28,a_huskys:16,a_schneemann:26,a_laternen:24,a_eisskulptur:16,palme:30,laternen:28,vogelhaus:30,schirm:26,glocke:28,sternwarte:30,schaukel:26,haengematte:20,spielplatz:22,stall:22,bienen:24,teleskop:24,feuer:24};
 const FIXED_ITEMS={flagge:c=>[c.cx+50,122],lichter:c=>[c.cx+50,148],windspiel:c=>[c.cx+28,160],angel:c=>[c.cx+108,198]};
 function layoutItems(cx,two,three,nTrees,extra,home){
   const out={}, S8=.8, ctx={cx};
@@ -2282,6 +2532,9 @@ function scene(){
     const wx=4+h%9, dur=7+(h>>>4)%8, del=-((h>>>8)%100)/10;
     s+=`<g transform="translate(${x} ${y})"><g class="${idle?"":"wander"}" style="--wx:${wx}px;animation-duration:${dur}s;animation-delay:${del}s"><g class="${sleep?"":"bob"}" style="animation-duration:${2.2+(h%9)/10}s;animation-delay:${-((h>>>3)%28)/10}s">${figure(r,0,0)}</g></g></g>`;
   });
+  if(home) guestNow().forEach((g,i)=>{const sea=SEA.includes(g.art), x=sea?[cx+136,cx-138][i]:[cx-104,cx+104][i], y=sea?214:192;
+    s+=`<g data-guest="${g.id}" class="guest" transform="translate(${x} ${y})" role="button" aria-label="${esc(artikel(g.art,true)+" "+g.art)} ist zu Besuch"><title>${esc(artikel(g.art,true)+" "+g.art)} ist zu Besuch</title><g class="${sea?"wave":"bob"}">${figure(guestRes(g),0,0)}</g>
+      <g transform="translate(0 -27)"><rect x="-17" y="-6.5" width="34" height="11" rx="5.5" fill="#FFB86B"/><text y="1.6" text-anchor="middle" font-size="7" font-weight="800" fill="#14151F" font-family="Manrope, sans-serif">Besuch</text></g></g>`});
   if(inside>0) s+=`<g transform="translate(${cx+50} 110)"><title>${inside} ${inside===1?"weitere Person ist":"weitere Bewohner sind"} gerade im Haus</title><rect x="-12" y="-8" width="24" height="13" rx="6.5" fill="#14151F" opacity=".78"/><text x="0" y="1.6" text-anchor="middle" font-size="8.5" font-weight="800" fill="#F3F1EA" font-family="Manrope, sans-serif">+${inside}</text></g>`;
   // Leben rund um die Insel, je nach Glück
   if(lvl>=2&&!calm){
@@ -2397,6 +2650,11 @@ function makeCard(g,hint){
 /* Fanpost: Verwandte und Nachbarinseln schreiben, was sie Gutes über die Insel gehört haben.
    Aus Anrede, Inhalt und Gruß zusammengesetzt; freshLine sorgt dafür, dass sich Inhalte nicht schnell wiederholen */
 /* Besuch bei voller Insel: anschauen, weiterziehen lassen oder gegen ein anderes Tier tauschen (mit Rückfrage) */
+/* Besuch: zwei Tage am Strand sichtbar, Antippen öffnet wieder die Frage nach dem Tausch */
+const guestNow=()=>(S.guests||[]).filter(g=>g.until>S.dayCount);
+const guestRes=g=>({id:g.id,name:"Besuch",kind:"tier",art:g.art,status:"da"});
+function guestDays(art){const g=guestNow().find(x=>x.art===art); return !g||g.until-S.dayCount>1?"bis übermorgen":"noch bis morgen"}
+function bindGuests(){document.querySelectorAll("[data-guest]").forEach(b=>b.onclick=()=>{const g=guestNow().find(x=>x.id===b.dataset.guest); if(g&&!$("#modalRoot").innerHTML) guestSheet({type:"guest",art:g.art})})}
 function guestSheet(ev){
   const cand=here().filter(r=>r.kind==="tier"&&!isPet(r)&&r.art!==ev.art).slice(0,8);   // nur Tiere, die einen Platz belegen
   const all=LAND.concat(SEA).concat(FAR_ANIMALS), seen=new Set(S.residents.filter(r=>r.kind==="tier").map(r=>r.art).concat(S.seenArts||[]));
@@ -2406,7 +2664,8 @@ function guestSheet(ev){
     <p class="muted">Die Insel ist gerade voll. Für deine Sammlung zählt der Besuch schon: Tierart ${all.filter(a=>seen.has(a)).length} von ${all.length}.</p>
     ${cand.length?`<p style="font-weight:700">Soll ${er} bleiben? Dann zieht dafür ein anderes Tier zu Freunden auf die Möweninsel.</p>
     <div class="swap-row">${cand.map(r=>`<button type="button" class="swap" data-swap="${r.id}">${avatarSvg(r.art,40)}<span><b>${esc(r.name)}</b><small>${esc(r.art)}</small></span></button>`).join("")}</div>`:""}
-    <button class="btn${cand.length?" secondary":""}" data-ok>Weiterziehen lassen</button>`,
+    <p class="small muted">Sonst bleibt ${er} ${guestDays(ev.art)} zu Besuch am Strand. Antippen auf der Insel, um es dir anders zu überlegen.</p>
+    <button class="btn${cand.length?" secondary":""}" data-ok>Nur zu Besuch</button>`,
     ()=>document.querySelectorAll("#modalRoot [data-swap]").forEach(b=>b.onclick=()=>guestConfirm(ev,b.dataset.swap)));
 }
 function guestConfirm(ev,id){
@@ -2429,7 +2688,7 @@ function guestSwap(art,id){
   if(old.pair){const p=S.residents.find(x=>x.id===old.pair); if(p&&p.pair===old.id) p.pair=null; old.pair=null}
   const r={id:uid(),name:freeName(ANIMAL_NAMES,S.residents.map(x=>x.name)),kind:"tier",art,pair:null,status:"da",ret:0,born:S.dayCount};
   if(!SEA.includes(art)&&adults().length) r.owner=pick(adults()).id;
-  S.residents.push(r); stat("besuch_bleibt");
+  S.residents.push(r); stat("besuch_bleibt"); S.guests=(S.guests||[]).filter(g=>g.art!==art);
   log(old.name+" ("+old.art+") ist zu Freunden auf die Möweninsel gezogen. Dafür bleibt "+artikel(art)+" "+art+" auf der Insel!","good");
   chron([old.id,r.id],old.name+" zog auf die Möweninsel, "+artikel(art)+" "+art+" ist geblieben.");
   S.pending.unshift({type:"arrival",id:r.id,partner:null});
@@ -2534,17 +2793,41 @@ function countUp(el,from,to){
 }
 
 /* ---------- Ansichten ---------- */
+/* Homescreen-Widget auf dem iPhone: Glück, Serie, Bewohner. Nur schicken, wenn sich etwas geändert hat. */
+let WIDGET_LAST="";
+function widgetSync(){
+  if(!ST_NATIVE||!S||!S.setup) return;
+  const h=here(), json=JSON.stringify({lang:window.OFFLAND_LANG||"de",budget:S.budget||180,name:TR(curWorld().name),glueck:Math.round(S.glueck),streak:S.budgetStreak||0,
+    people:h.filter(r=>r.kind==="mensch").length,animals:h.filter(r=>r.kind!=="mensch").length,entered:S.lastDay||""});
+  shieldSync();
+  if(json===WIDGET_LAST) return; WIDGET_LAST=json;
+  try{ST_NATIVE.widget({json}).catch(()=>{})}catch(e){}
+}
+let SETUP_AUTO=false;
 function viewSetup(){
   return `<div class="card">
     <h2>Willkommen${ACC?", "+esc(ACC.name):""}!</h2>
-    <p class="muted">Lege fest, wie viel Bildschirmzeit du dir pro Tag geben willst, und wie viel es bisher im Schnitt war. Deine iPhone- oder Android-Einstellungen unter „Bildschirmzeit“ bzw. „Digital Wellbeing“ zeigen dir den Schnitt.</p>
+    <p class="muted">Lege fest, wie viel Bildschirmzeit du dir pro Tag geben willst, und wie viel es bisher im Schnitt war.</p>
     <label class="field" for="setBudget">Tagesbudget: <span id="setBudgetOut" class="num">${hm(S.budget)}</span>
       <input id="setBudget" type="range" min="30" max="480" step="15" value="${S.budget}"></label>
-    <label class="field" for="setBase">Bisheriger Schnitt pro Tag: <span id="setBaseOut" class="num">${hm(S.baseline)}</span>
+    <div class="field"><span>Bisheriger Schnitt pro Tag</span>
+      <div class="row fr-seg setup-seg" role="radiogroup" aria-label="Bisheriger Schnitt"><button type="button" class="${SETUP_AUTO?"":"on"}" data-basemode="hand" aria-pressed="${!SETUP_AUTO}">Selbst eingeben</button><button type="button" class="${SETUP_AUTO?"on":""}" data-basemode="auto" aria-pressed="${SETUP_AUTO}">Automatisch messen</button></div></div>
+    ${SETUP_AUTO?`<p class="small muted">OffLand misst deine erste Woche mit${ST===ST_SIM?" (in der Web-Version als Simulation)":""}. Danach steht hier dein echter Schnitt. Bis dahin rechnen wir mit dieser Schätzung:</p>`
+      :`<p class="small muted">Du findest ihn auf dem iPhone unter Einstellungen → Bildschirmzeit → „Alle Aktivitäten anzeigen“ (Tagesdurchschnitt), auf Android unter „Digital Wellbeing“.</p>`}
+    <label class="field" for="setBase">${SETUP_AUTO?"Vorläufige Schätzung":"Bisheriger Schnitt"}: <span id="setBaseOut" class="num">${hm(S.baseline)}</span>
       <input id="setBase" type="range" min="30" max="600" step="15" value="${S.baseline}"></label>
+    <button type="button" class="btn secondary" id="stAvg">📱 Tagesdurchschnitt vom ${ST===ST_SIM?"Handy":"iPhone"} anzeigen</button>
     <p class="small muted">Deine ersten Bewohner heißen ${here().map(r=>esc(r.name)).join(", ")}. Umbenennen kannst du sie unter „Bewohner“.</p>
     <button class="btn" id="startBtn">Insel starten</button>
   </div>`;
+}
+/* Erste Woche automatisch gemessen: danach wird der bisherige Schnitt auf den Messwert gesetzt */
+function baseCheck(){
+  const m=S.baseMeasure; if(!m||m.done) return;
+  const ds=S.days.filter(d=>d.day>=m.since); if(ds.length<7) return;
+  const avg=Math.round(ds.slice(0,7).reduce((a,d)=>a+d.min,0)/7/5)*5;
+  m.done=true; m.old=S.baseline; S.baseline=Math.max(30,avg);
+  S.pending.push({type:"baseline",old:m.old,avg:S.baseline}); stat("schnitt_gemessen");   // kommt gleich nach der Tagesbilanz (PEND_ORDER)
 }
 function viewHeute(){
   const [mText,mCls]=mood();
@@ -2552,26 +2835,29 @@ function viewHeute(){
   const last=S.days[S.days.length-1];
   const p=curProjects()[S.projectIdx];
   const warn=S.warn?S.warn.ids.map(id=>S.residents.find(r=>r.id===id)).filter(Boolean):null;
-  const wh=whispers();
   const wisher=S.wish?S.residents.find(r=>r.id===S.wish.rid):null;
   const canNight=feature("nacht")&&S.lastDay&&!sleeping()&&(S.testmode||S.lastDay===today())&&!(S.night&&S.night.after===S.lastDay);
   const mons=(S.monsters||[]).map(id=>S.apps.find(a=>a.id===id)).filter(Boolean);
   const guard=S.vacation&&S.vacation.guard?S.residents.find(r=>r.id===S.vacation.guard):null;
   const closeFirst=ok&&(new Date().getHours()>=17||S.testmode);
   const entry=ok&&(closeFirst||ENTRY_OPEN);
-  const form=`<div id="closeCard" class="entry">
+  const last0=S.days[S.days.length-1], v0=last0?last0.min:Math.min(S.budget,150), smax=entryMax();
+  const form=`<div id="closeCard" class="entry2">
+    <p class="label">${nd===today()?"Heute eintragen":"Eintragen · "+nice(nd)}</p>
     ${S.repair?`<p class="small" style="color:var(--amber)">Reparatur möglich: Bleib heute im Budget, dann holst du ${S.repair.amount} % Glück zurück.</p>`:""}
-    <p class="small muted" id="stNote">Trag die Bildschirmzeit für ${nd===today()?"heute":nice(nd)} aus deinen Handy-Einstellungen ein. Budget: ${hm(S.budget)}.</p>
-    <div class="time">
-      <label class="field" for="inH">Stunden<input id="inH" type="number" min="0" max="24" inputmode="numeric" value="${last?Math.floor(last.min/60):2}"></label>
-      <label class="field" for="inM">Minuten<input id="inM" type="number" min="0" max="59" step="5" inputmode="numeric" value="${last?last.min%60:30}"></label>
-    </div>
-    <div class="goal-bar" id="liveBar" aria-hidden="true"><i></i><span class="goal-mark"></span></div>
-    <p class="small" id="liveTxt" aria-live="polite" style="font-weight:700;margin-top:-4px"></p>
-    ${feature("monster")?`<details><summary style="cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center">Pro App eintragen (für die App-Monster)</summary>
+    <div class="tin" aria-label="Bildschirmzeit">
+      <label for="inH" class="sr">Stunden</label><input id="inH" class="tin-n" type="number" min="0" max="24" inputmode="numeric" value="${Math.floor(v0/60)}"><span>h</span>
+      <label for="inM" class="sr">Minuten</label><input id="inM" class="tin-n tin-m" type="number" min="0" max="59" step="5" inputmode="numeric" value="${String(v0%60).padStart(2,"0")}"><span>min</span></div>
+    <p class="small muted" id="stNote">am Handy · Wert aus den Handy-Einstellungen</p>
+    ${ST&&!S.autoTime&&!S.stNoLink?`<button class="st-link" id="stEntry">⚡ Automatisch messen lassen</button>`:""}
+    <div class="tslide"><input id="inR" type="range" min="0" max="${smax}" step="5" value="${Math.min(v0,smax)}" aria-label="Bildschirmzeit einstellen">
+      <span class="tgoal" style="left:${(S.budget/smax*100).toFixed(1)}%"><b>Ziel ${hm(S.budget)}</b></span></div>
+    <div class="tticks">${[0,1,2,3].map(k=>`<span>${Math.round(smax*k/3/60)} h</span>`).join("")}</div>
+    <p class="live-prev" id="liveTxt" aria-live="polite"></p>
+    ${feature("monster")?`<details><summary style="cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px">oder pro App eintragen ›</summary>
       <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:6px">${S.apps.map(a=>`<label class="field" for="app_${a.id}" style="font-size:13px">${esc(a.name)} <span class="muted" style="font-weight:500">Limit ${a.limit} min</span><input id="app_${a.id}" type="number" min="0" max="1440" inputmode="numeric" placeholder="Minuten"></label>`).join("")}</div>
     </details>`:""}
-    <button class="btn" id="closeBtn">Tag abschließen</button></div>`;
+    <button class="btn big" id="closeBtn">Tag abschließen</button></div>`;
   const [gl,glC]=[S.glueck+" %",mCls==="good"?"var(--lime)":mCls==="ok"?"var(--amber)":"var(--coral)"];
   return `
   <div class="scene-chips glass">
@@ -2583,67 +2869,94 @@ function viewHeute(){
   ${heuteMain(ok,nd,entry?form:"")}
   ${warn?`<div class="card warn"><p class="label" style="color:var(--amber)">Wegzug droht</p><p><b>${esc(groupName(warn))}</b> ${vb(warn,"packt","packen")} die Koffer. Bring das Inselglück bis ${nice(S.warn.deadline)} über 40 %, dann ${vb(warn,"bleibt "+esc(warn[0].name),"bleiben alle")}.</p></div>`:""}
   ${planCard()}
+  ${actionCard(ok)}
   ${forYou(wisher)}
   ${mons.length?`<div class="card" style="border:1.5px solid #9B6BD6"><p class="label" style="color:#C8A8FF">App-Monster vor der Insel</p>${mons.map(a=>`<div class="row"><svg width="48" height="40" viewBox="-24 -34 48 40" aria-hidden="true">${monsterSvg(a.m)}</svg><p class="grow">${esc(monName(a,false))}: ${esc(a.name)} lag gestern über ${hm(a.limit)}.</p></div>`).join("")}<p class="small muted">Bleib heute bei diesen Apps unter dem Limit, dann tauchen sie wieder ab.</p></div>`:""}
-  ${S.setup?`<div class="sec-h"><span>Inselgeflüster</span>${wh.length>1?`<button class="linkbtn" id="whMore">mehr ›</button>`:""}</div>
-  <div class="card whisper">${whisperRow(null,lucLine())}${wh.slice(0,1).map(w=>whisperRow(w.r,w.t)).join("")}</div>`:""}
-  ${feature("boot")||feature("nacht")?`<div class="sec-h"><span>Handy weg</span></div>
-  <div class="tiles2">
-    ${feature("boot")?`<div class="tile"><span class="tile-ic">⛵</span><b>Fokus-Bootsfahrt</b>${S.boat?`<span class="small muted">Das Boot ist draußen. Leg das Handy weg, bis es zurück ist.</span>`
-      :`<span class="small muted">Handy weg, ein Bewohner fährt fischen.</span><div class="boat-row">${[15,25,45,60].map(m=>`<button class="mini" data-boat="${m}" ${adults().length?"":"disabled"}>${m}</button>`).join("")}</div>`}</div>`:""}
-    ${feature("nacht")?`<div class="tile${canNight?"":" off"}"><span class="tile-ic">🌙</span><b>Gute Nacht, Insel</b>${canNight?`<span class="small muted">Handy weg, morgen +15 Traumpunkte.</span><button class="mini wide" id="nightBtn">Gute Nacht</button>`
-      :`<span class="small muted">${sleeping()?"Die Insel schläft. Bis morgen!":"Geht nach dem Eintragen."}</span>`}</div>`
-    // noch gesperrt: als gestrichelte Kachel zeigen, damit die Reihe von Anfang an vollständig ist
-    :(()=>{const nf=FEATURES.find(x=>x.id==="nacht"), left=nf?nf.day-S.dayCount:0;
-      return `<div class="tile dashed"><span class="tile-ic" style="opacity:.5">🌙</span><b>Gute Nacht, Insel</b><span class="small muted">Bald freigeschaltet · ${left<=1?"nach dem nächsten Tag":"in "+left+" Tagen"}</span></div>`})()}
-  </div>`:""}
   ${friendsCard()}
-  ${devMode()||S.testmode?`<div class="card">
-    <div class="row between"><p class="label">Testmodus</p><label class="check" for="tm" style="min-height:auto"><input type="checkbox" id="tm" ${S.testmode?"checked":""}> an</label></div>
-    <p class="small muted">Im Testmodus kannst du beliebig viele Tage nacheinander eintragen oder zufällig simulieren.</p>
-    ${S.testmode?`<div class="row"><button class="btn secondary grow" id="simGood">Guter Tag</button><button class="btn secondary grow" id="simBad">Schlechter Tag</button></div>
-    <button class="btn ghost" id="sim10">10 Tage gemischt</button>
-    <button class="btn ghost" id="resetBtn">Spielstand zurücksetzen</button>`:""}
-  </div>`:""}`;
+  ${S.setup?(()=>{const wh=whispers();return `<div class="sec-h"><span>Inselgeflüster</span>${wh.length>1?`<button class="linkbtn" id="whMore">mehr ›</button>`:""}</div>
+  <div class="card whisper">${whisperRow(null,lucLine())}${wh.slice(0,1).map(w=>whisperRow(w.r,w.t)).join("")}</div>`})():""}`;
 }
-let ENTRY_OPEN=false;
+let ENTRY_OPEN=false, CU_KEY=null;
+/* Nach dem Eintragen: große Zahl zählt hoch, Balken füllt sich (einmal pro Tag) */
+function countUpMain(){
+  const big=$(".hm-big[data-cu]"); if(!big) return;
+  const key=S.lastDay+"|"+S.days.length; if(CU_KEY===key) return; const first=CU_KEY!==null; CU_KEY=key;
+  if(!first) return;   // beim App-Start nicht, nur direkt nach dem Eintragen
+  const to=+big.dataset.cu, reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches; if(reduce||!to) return;
+  const bw=$(".hm-bar[data-w]"), bar=bw&&bw.querySelector("i"), w=bw?bw.dataset.w:0;
+  if(bar){bar.style.transition="none";bar.style.width="0";requestAnimationFrame(()=>requestAnimationFrame(()=>{bar.style.transition="width 1.1s cubic-bezier(.2,.8,.2,1)";bar.style.width=w+"%"}))}
+  const t0=performance.now();(function step(t){const k=Math.min(1,(t-t0)/1100);big.textContent=hm(Math.round(to*(1-Math.pow(1-k,3))));if(k<1)requestAnimationFrame(step)})(t0);
+}
 function ringSvg(pct,big,small,col){
   return `<svg class="ring" width="92" height="92" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="15.5" fill="none" stroke="#2C2F45" stroke-width="3.4"/><circle cx="18" cy="18" r="15.5" fill="none" stroke="${col}" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="${Math.max(.02,Math.min(1,pct))*97.4} 97.4" transform="rotate(-90 18 18)"/><text x="18" y="17.6" text-anchor="middle" font-size="${String(big).length>4?6.2:7}" font-weight="800" fill="#F3F1EA" font-family="Manrope, sans-serif">${big}</text><text x="18" y="23.4" text-anchor="middle" font-size="3.6" fill="#A4A6BD" font-family="Manrope, sans-serif">${small}</text></svg>`;
 }
-/* Heute: Hauptkarte mit Ring (letzter eingetragener Tag) und Eintragen */
+/* Heute: eine Hauptaktion je nach Tageszustand (eintragen → Fokus-Bootsfahrt → abends Gute Nacht) */
+function actionCard(ok){
+  if(!S.setup||S.vacation||S.boat) return "";
+  const boot=feature("boot")&&adults().length, night=feature("nacht")&&S.lastDay&&!sleeping()&&(S.testmode||S.lastDay===today())&&!(S.night&&S.night.after===S.lastDay);
+  const eve=new Date().getHours()>=20;
+  const chip=(id,ic,t)=>`<button class="act-chip" id="${id}">${ic} ${t}</button>`;
+  const calm=chip("calmBtn","🌊",S.calmDay===today()?"Inselminute ✓":"Inselminute");
+  if(sleeping()) return `<div class="card act"><p class="act-sleep">🌙 Die Insel schläft. Bis morgen!</p><div class="act-row">${calm}</div></div>`;
+  let main="", hint="", side=[];
+  if(ok){ side=[boot?chip("boatGo","⛵","Fokus-Bootsfahrt"):"",calm] }   // vor dem Eintragen ist das Eintragen die Hauptsache
+  else if(night&&(eve||!boot)){ main=`<button class="btn big" id="nightBtn">🌙 Gute Nacht, Insel</button>`; hint="Handy weglegen · morgen gibt es Traumpunkte"; side=[boot?chip("boatGo","⛵","Fokus-Bootsfahrt"):"",calm] }
+  else if(boot){ main=`<button class="btn big" id="boatGo">⛵ Fokus-Bootsfahrt starten</button>`; hint="Handy weg · ein Bewohner fährt fischen"; side=[night?chip("nightBtn","🌙","Gute Nacht"):"",calm] }
+  else side=[calm];
+  return `<div class="card act">${main}${hint?`<p class="act-hint">${hint}</p>`:""}<div class="act-row">${side.join("")}</div></div>`;
+}
+function boatPick(){
+  sheet(`<p class="label">Fokus-Bootsfahrt</p><h2>Wie lange legst du das Handy weg?</h2><p class="muted">Ein Bewohner fährt so lange fischen und bringt Punkte mit.</p>
+    <div class="boat-pick">${[15,25,45,60].map(m=>`<button class="btn secondary" data-boat="${m}">${m} min</button>`).join("")}</div><button class="btn ghost" data-ok>Abbrechen</button>`,
+    ()=>document.querySelectorAll("#modalRoot [data-boat]").forEach(x=>x.onclick=()=>{closeModal();focusSheet(+x.dataset.boat)}));
+}
+/* Heute: Hauptkarte (letzter eingetragener Tag) – große Zahl, schmaler Balken, Wochensäulen, Eintragen */
 function heuteMain(ok,nd,form){
+  if(form) return `<div class="card hmain">${form}</div>`;
   const last=S.days[S.days.length-1], week=S.days.slice(-7), good=last&&last.min<=S.budget;
-  const col=!last?"#C8F169":good?"#C8F169":"#FF9C7A", pct=last?Math.min(1,last.min/S.budget):0;
-  const big=last?Math.floor(last.min/60)+":"+String(last.min%60).padStart(2,"0"):String(Math.round(S.budget/60*10)/10).replace(".",",")+" h";
-  const ring=`<svg class="ring" width="92" height="92" viewBox="0 0 36 36" role="img" aria-label="${last?hm(last.min)+" von "+hm(S.budget):"Tagesziel "+hm(S.budget)}"><circle cx="18" cy="18" r="15.5" fill="none" stroke="#2C2F45" stroke-width="3.4"/>${last?`<circle cx="18" cy="18" r="15.5" fill="none" stroke="${col}" stroke-width="3.4" stroke-linecap="round" stroke-dasharray="${Math.max(.02,pct)*97.4} 97.4" transform="rotate(-90 18 18)"/>`:""}<text x="18" y="17.6" text-anchor="middle" font-size="${big.length>4?6.2:7}" font-weight="800" fill="#F3F1EA" font-family="Manrope, sans-serif">${big}</text><text x="18" y="23.4" text-anchor="middle" font-size="3.6" fill="#A4A6BD" font-family="Manrope, sans-serif">${last?"von "+hm(S.budget):"pro Tag"}</text></svg>`;
+  const col=!last||good?"var(--lime)":"var(--coral)", diff=last?Math.abs(S.budget-last.min):0;
   const pl=S.plan&&!S.plan.res&&S.plan.day>today()?PLANS.find(x=>x.id===S.plan.id):null;   // Vorhaben für heute hat eine eigene Karte
-  const joker=last?(S.jokerWk===isoWeek(today())?"🃏 Joker genutzt":"🃏 Joker bereit"):"";
-  const sub=[pl?"Vorhaben morgen: "+esc(pl.n):"",joker].filter(Boolean).join(" · ");
-  const dots=week.length?`<div class="wk-dots" role="img" aria-label="${week.filter(d=>d.min<=S.budget).length} von ${week.length} Tagen im Ziel">${week.map(d=>`<span title="${nice(d.day)}: ${hm(d.min)}"><i style="background:${d.min<=S.budget?"var(--lime)":"var(--coral)"}"></i>${parse(d.day).toLocaleDateString("de-DE",{weekday:"narrow"})}</span>`).join("")}</div>`:"";
+  const pills=[last&&last.pts>0&&last.day===S.lastDay?`<span class="hm-pill pts">+${last.pts} Punkte</span>`:"",S.budgetStreak>1?`<span class="hm-pill" title="${S.budgetStreak} Tage in Folge im Ziel">🔥 ${S.budgetStreak}</span>`:"",
+    shieldStatsCache&&shieldStatsCache.day===today()&&shieldStatsCache.resisted>0?`<span class="hm-pill" title="Heute ${shieldStatsCache.resisted}× der Insel zuliebe eine App nicht geöffnet">🛡️ ${shieldStatsCache.resisted}</span>`:"",
+    last?`<span class="hm-pill${S.jokerWk===isoWeek(today())?" off":""}" title="${S.jokerWk===isoWeek(today())?"Joker diese Woche genutzt":"Joker bereit"}">🃏</span>`:""].join("");
+  // Balken: verbrauchte Zeit bis zum Budget (bei mehr: voll, Rest rot)
+  const used=last?Math.min(1,last.min/S.budget):0;
+  const bar=last?`<div class="hm-bar" data-w="${used*100}" role="img" aria-label="${hm(last.min)} von ${hm(S.budget)}"><i style="width:${used*100}%;background:${col}"></i></div>
+    <div class="hm-scale"><span>${hm(last.min)} am Handy</span><span>Ziel ${hm(S.budget)}</span></div>`:"";
+  // Wochensäulen: Höhe nach Minuten, gestrichelte Linie = Budget, letzter Tag hervorgehoben
+  const PH=48, top=Math.max(S.budget*1.3,...week.map(d=>d.min)), hgt=m=>Math.max(5,PH*m/top);
+  const cols=week.length>1?`<div class="hm-week" role="img" aria-label="${week.filter(d=>d.min<=S.budget).length} von ${week.length} Tagen im Ziel">
+    <div class="hm-plot" style="height:${PH}px"><span class="hm-goal" style="bottom:${hgt(S.budget).toFixed(1)}px"></span>
+      ${week.map((d,i)=>`<span class="hm-col${i===week.length-1?" now":""}" title="${nice(d.day)}: ${hm(d.min)}"><i style="height:${hgt(d.min).toFixed(1)}px;background:${d.min<=S.budget?"var(--lime)":"var(--coral)"}"></i></span>`).join("")}</div>
+    <div class="hm-days">${week.map((d,i)=>`<b${i===week.length-1?' class="now"':""}>${parse(d.day).toLocaleDateString(LOC,{weekday:"narrow"})}</b>`).join("")}</div></div>`:"";
+  const foot=form||(ok?`<button class="btn" id="goalGo">${nd===today()?"Tag eintragen":"Tag eintragen · "+nice(nd)}</button>`
+    :S.vacation?"":`<p class="hm-done"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Heute ist eingetragen. Bis morgen!</p>`);
   return `<div class="card hmain">
-    <div class="row" style="gap:14px;align-items:center">${ring}<div class="grow">
-      <p class="label">${last?dayLabel(last.day):"Dein Tagesziel"}</p>
-      <h3 class="hm-title" style="color:${last?col:"var(--ink)"}">${last?(good?hm(S.budget-last.min)+" unter dem Ziel":hm(last.min-S.budget)+" über dem Ziel"):hm(S.budget)+" Bildschirmzeit"}</h3>
-      ${sub?`<p class="small muted">${sub}</p>`:last?"":`<p class="small muted">Trag abends ein, wie lange du am Handy warst.</p>`}
-      ${S.budgetStreak>1?`<p class="small" style="color:var(--lime);font-weight:700">${S.budgetStreak} Tage in Folge im Ziel</p>`:""}
-    </div></div>
-    ${dots}
-    ${form||(ok?`<button class="btn" id="goalGo">${nd===today()?"Tag eintragen":"Tag eintragen · "+nice(nd)}</button>`:S.vacation?"":`<p class="small" style="color:var(--lime);font-weight:700">Heute ist eingetragen. Bis morgen!</p>`)}
+    <div class="hm-head"><p class="label">${last?dayLabel(last.day):"Dein Tagesziel"}</p>${pills?`<div class="hm-pills">${pills}</div>`:""}</div>
+    <h3 class="hm-title">${last?`<span class="hm-big" style="color:${col}" data-cu="${diff}">${hm(diff)}</span><span class="hm-word">${good?"unter dem Ziel":"über dem Ziel"}</span>`
+      :`<span class="hm-big">${hm(S.budget)}</span><span class="hm-word">Bildschirmzeit am Tag</span>`}</h3>
+    ${last||form?"":`<p class="small muted">Trag abends ein, wie lange du am Handy warst.</p>`}
+    ${pl?`<p class="small muted">Vorhaben morgen: ${esc(pl.n)}</p>`:""}
+    ${bar}${cols}
+    ${foot}
   </div>`;
 }
-/* Für dich: Kapitel, Wunsch, Wochenrückblick, Neues als Wischkarten */
+/* Für dich: Kapitel, Wunsch, Wochenrückblick, Neues: zum Wischen nebeneinander */
 function forYou(wisher){
   const it=[];
   if(S.chapter!=null&&S.setup){const c=CHAPTERS[S.chapter]; if(c){const pr=c.prog();
     it.push(`<div class="fy"><div class="row" style="gap:10px"><span class="says-pic" style="background:#2A2F45;width:38px;height:38px">${bayPic(34)}</span><div><p class="k" style="color:var(--amber)">Kapitel ${S.chapter+1}</p><b>${esc(c.n)}</b></div></div><p class="small muted">${esc(pr||c.goal)}</p></div>`)}}
   if(S.wish&&wisher){const w=S.wish, type=w.type||"item";
     it.push(`<div class="fy"><p class="k" style="color:var(--lilac)">Wunsch von ${esc(wisher.name)}</p><b>${esc(wishText(w))}</b><p class="small muted">+${w.pts||30} Punkte · +${w.gl||6} % Glück${type==="streak"?` · ${w.have}/${w.need} Tage`:""}</p>${type==="item"?`<button class="linkbtn" id="wishShop">Zum Laden ›</button>`:""}</div>`)}
+  const fc=festCard(); if(fc) it.push(fc);
   if(S.weekReady&&today()<=S.weekReady.until)
     it.push(`<div class="fy"><p class="k" style="color:var(--lime)">Neu</p><b>Inselwoche KW ${+S.weekReady.wk.split("-W")[1]}</b><button class="linkbtn" id="weekReadyBtn">Ansehen ›</button></div>`);
   const f=nextFeature(); if(f&&S.setup){const left=f.day-S.dayCount;
     it.push(`<div class="fy dashed"><p class="k" style="color:var(--muted)">Bald freigeschaltet</p><b>${esc(f.name)}</b><p class="small muted">${left<=1?"Nach dem nächsten Tag":"In "+left+" Tagen"}</p></div>`)}
   if(!it.length) return "";
-  return `<div class="sec-h"><span>Für dich</span></div><div class="fy-row">${it.join("")}</div>`;
+  // Wunsch und Fest zuerst, dann Kapitel & Co.; mehrere Karten wischt man seitlich durch
+  const order=[...it.filter(x=>!/Kapitel|dashed/.test(x)),...it.filter(x=>/Kapitel|dashed/.test(x))];
+  return `<div class="sec-h"><span>Für dich</span>${order.length>1?`<span class="small muted">${order.length} Karten · wischen</span>`:""}</div><div class="${order.length>1?"fy-row":"fy-one"}">${order.join("")}</div>`;
 }
 function whisperRow(r,t){
   const pic=r?`<div class="avatar" style="background:${r.kind==="mensch"?"#26233D":SEA.includes(r.art)?"#1F2A3A":"#22301F"}"><svg width="40" height="40" viewBox="${figVB(r)}" aria-hidden="true">${figure(r,0,0)}</svg></div>`:`<div class="avatar" style="background:#26233D">${lucPic(40)}</div>`;
@@ -2653,18 +2966,20 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.31";
+const APP_VERSION="1.64";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
+function entryMax(){return Math.min(720,Math.max(360,Math.ceil(S.budget*2/60)*60))}
 function liveUpdate(){
-  const h=$("#inH"), m=$("#inM"), bar=$("#liveBar"); if(!h||!m||!bar) return;
-  const min=clamp((+h.value||0)*60+(+m.value||0),0,1440), good=min<=S.budget;
-  const scale=Math.max(S.budget*1.5,min), col=good?"var(--lime)":"var(--coral)";
-  const i=bar.querySelector("i"); i.style.width=Math.min(100,min/scale*100)+"%"; i.style.background=col;
-  bar.querySelector(".goal-mark").style.left=(S.budget/scale*100)+"%";
-  const t=$("#liveTxt"); t.style.color=col;
-  t.textContent=hm(min)+(good?" · "+hm(S.budget-min)+" unter deinem Ziel":" · "+hm(min-S.budget)+" über deinem Ziel");
+  const h=$("#inH"), m=$("#inM"), r=$("#inR"), t=$("#liveTxt"); if(!h||!m) return;
+  const min=clamp((+h.value||0)*60+(+m.value||0),0,1440), good=min<=S.budget, col=good?"var(--lime)":"var(--coral)";
+  [h,m].forEach(x=>{if(x.classList.contains("tin-n")) x.style.width=(Math.max(1,String(x.value).length)*.56+.06)+"em"});   // Feld so breit wie die Zahl
+  if(r){r.value=Math.min(min,+r.max); r.style.setProperty("--p",(Math.min(min,+r.max)/r.max*100)+"%"); r.style.setProperty("--c",col)}
+  if(!t) return;
+  t.classList.toggle("bad",!good);
+  t.textContent=good?(S.budget-min>=5?"🌞 "+hm(S.budget-min)+" unter dem Ziel. Deine Insel wächst heute!":"🌤️ Genau im Ziel. Deine Insel freut sich!")
+    :"☁️ "+hm(min-S.budget)+" über dem Ziel. Es wird bewölkt auf der Insel …";
 }
 
 function resRow(r){
@@ -2686,11 +3001,33 @@ function resRow(r){
     r.kind==="mensch"?(()=>{const pets=here().filter(p=>p.kind==="tier"&&p.owner===r.id);return pets.length?"Tiere: "+pets.map(p=>p.name).join(", "):""})():"",
     friend?"befreundet mit "+friend[0].name:"", foe?"zerstritten mit "+foe[0].name:"", parents.length?"Kind von "+parents.map(p=>p.name).join(" & "):"", r.status==="weg"?(r.ret>=5?"möchte zurück, wartet auf einen freien Platz":"Rückkehr "+r.ret+"/5 gute Tage"):""].filter(Boolean).join(" · ");
   const bg=r.kind==="mensch"?"#26233D":SEA.includes(r.art)?"#1F2A3A":"#22301F";
-  return `<div class="res"><div class="avatar" style="background:${bg}"><svg width="40" height="40" viewBox="${figVB(r)}" aria-hidden="true">${figure(r,0,0)}</svg></div>
+  return `<div class="res" data-q="${esc((r.name+" "+(r.kind==="mensch"?"":r.art)+" "+sub).toLowerCase())}"><div class="avatar" style="background:${bg}"><svg width="40" height="40" viewBox="${figVB(r)}" aria-hidden="true">${figure(r,0,0)}</svg></div>
     <div class="grow res-txt"><p class="res-name"><b>${esc(r.name)}</b><span class="chip sm ${mCls}">${mText}</span></p><p class="small muted res-sub">${esc(sub||"Bewohner:in")}</p></div>
     ${r.sick&&S.tea>0?`<button class="iconbtn" style="width:44px;height:44px;background:#22301F" data-tea="${r.id}" aria-label="${esc(r.name)} Kräutertee geben"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C8F169" stroke-width="2" stroke-linecap="round"><path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM17 10h2a2 2 0 0 1 0 4h-2M8 5c0-1 1-1 1-2M12 5c0-1 1-1 1-2"/></svg></button>`:""}
     ${r.status==="da"?`<button class="iconbtn" style="width:44px;height:44px" data-rename="${r.id}" aria-label="${esc(r.name)} bearbeiten"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B6A4FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></button>`:""}
   </div>`;
+}
+/* Viele Bewohner: kompaktes Raster (ab 7 Menschen bzw. 7 Tieren), Antippen zeigt die ausführliche Zeile mit Bearbeiten und Kräutertee */
+function resLabel(r){
+  if(r.kind!=="mensch") return r.art;
+  return r.job?(r.retired?"Rentner:in":jobName(r.job)):(S.dayCount-(r.born||0)>=3?"Schulkind":"Baby");
+}
+function resTile(r){
+  const mensch=r.kind==="mensch", bg=mensch?"#26233D":SEA.includes(r.art)?"#1F2A3A":"#22301F";
+  const flag=r.status!=="da"?"gone":r.sick?"bad":r.sad||r.phone?"warn":"";
+  const q=(resRow(r).match(/data-q="([^"]*)"/)||[])[1]||"";   // gleiche Suchbegriffe wie die ausführliche Zeile
+  const lbl=resLabel(r), note=r.sick?"krank":r.status==="weg"?"weg":r.phone&&mensch?"am Handy":r.sad?"traurig":mensch&&lvOf(r)<4?LV_NAMES[lvOf(r)]:"";
+  return `<button type="button" class="ani-tile${flag?" "+flag:""}" data-rt="${r.id}" data-q="${q}" aria-label="${esc(r.name)}, ${esc(lbl)}${note?", "+note:""}">
+    <span class="avatar" style="background:${bg}"><svg width="40" height="40" viewBox="${figVB(r)}" aria-hidden="true">${figure(r,0,0)}</svg></span>
+    <b>${esc(r.name)}</b><span class="small muted">${esc(lbl)}${note?" · "+note:""}</span></button>`;
+}
+function resSheet(id){
+  const r=S.residents.find(x=>x.id===id); if(!r) return;
+  sheet(`<p class="label">${esc(resLabel(r))}</p><div class="card" style="padding:4px 12px">${resRow(r)}</div><button class="btn secondary" data-ok>Schließen</button>`,()=>{
+    const row=$("#modalRoot .res-txt"); if(row) row.classList.add("open");
+    document.querySelectorAll("#modalRoot [data-tea]").forEach(x=>x.onclick=()=>{closeModal();giveTea(x.dataset.tea)});
+    document.querySelectorAll("#modalRoot [data-rename]").forEach(x=>x.onclick=()=>nameSheet({type:"rename",id:x.dataset.rename}));
+  });
 }
 function viewBewohner(){
   const humans=S.residents.filter(r=>r.kind==="mensch"&&r.status!=="verstorben"), animals=S.residents.filter(r=>r.kind==="tier"&&r.status!=="verstorben"&&r.status!=="umgezogen");
@@ -2699,6 +3036,7 @@ function viewBewohner(){
   // Bild: Dorfplatz am Abend, die Bewohner im Halbkreis ums Lagerfeuer, Tiere am Rand
   const ppl=land.filter(r=>r.kind==="mensch").slice(0,10), ani=[], n=ppl.length;
   land.filter(r=>r.kind!=="mensch").forEach(r=>{if(ani.length<4&&!ani.some(a=>a.art===r.art)) ani.push(r)});   // vier verschiedene Arten
+  const aSlot=[[24,140],[336,140],[100,148],[262,148]], gst=guestNow().filter(g=>!SEA.includes(g.art)).slice(0,2);   // Besuch steht vorne am Rand
   const fig=(r,x,y,k)=>`<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${k})"><g class="bob" style="animation-delay:${Math.round(x)%7/5}s">${figure(r,0,0)}</g></g>`;
   const pos=ppl.map((r,i)=>{const a=Math.PI*(0.12+0.76*i/Math.max(1,n-1));return [n===1?150:180-Math.cos(a)*130,134-Math.sin(a)*18]});
   const order=pos.map((q,i)=>i).sort((a,b)=>pos[a][1]-pos[b][1]);
@@ -2711,12 +3049,14 @@ function viewBewohner(){
     ${order.filter(i=>pos[i][1]<128).map(i=>fig(ppl[i],pos[i][0],pos[i][1],1.7)).join("")}
     <g transform="translate(180 136) scale(1.4)"><path d="M-12 4l24-6M-12 -2l24 6" stroke="#6B4430" stroke-width="3" stroke-linecap="round"/><g class="fire-fl"><path d="M0 -2c-8 0-10-8-4-16 0 4 3 5 3 5 0-6 3-9 5-11 0 5 4 8 4 13 0 6-3 9-8 9z" fill="#FF9C7A"/><path d="M0 -2c-4 0-5-4-2-8 1 2 2 2 2 2 0-3 2-4 3-5 0 3 2 4 2 6 0 3-2 5-5 5z" fill="#FFD27A"/></g></g>
     ${order.filter(i=>pos[i][1]>=128).map(i=>fig(ppl[i],pos[i][0],pos[i][1],1.8)).join("")}
-    ${ani.map((r,i)=>fig(r,[24,336,100,262][i],[140,140,148,148][i],1.25)).join("")}</svg>`;
+    ${ani.slice(0,4-gst.length).map((r,i)=>fig(r,aSlot[i+gst.length][0],aSlot[i+gst.length][1],1.25)).join("")}
+    ${gst.map((g,i)=>`<g data-guest="${g.id}" class="guest">${fig(guestRes(g),aSlot[i][0],aSlot[i][1],1.25)}<g transform="translate(${aSlot[i][0]+(i?-6:6)} ${aSlot[i][1]-36})"><rect x="-20" y="-7" width="40" height="13" rx="6.5" fill="#FFB86B"/><text y="2.4" text-anchor="middle" font-size="8.5" font-weight="800" fill="#14151F" font-family="Manrope, sans-serif">Besuch</text></g></g>`).join("")}</svg>`;
   const wisher=S.wish?S.residents.find(r=>r.id===S.wish.rid&&r.status==="da"):null;
   const main=S.wish&&wisher?wishCard(S.wish,wisher)
     :`<div class="card"><div class="row" style="gap:14px;align-items:center">${ringSvg(S.glueck/100,S.glueck+" %","Inselglück",S.glueck>=40?"#C8F169":"#FF9C7A")}<div class="grow"><p class="label">Inselglück</p><h3 class="hm-title" style="color:${glC}">${mText}</h3><p class="small muted">Ab 80 % zieht alle 3 Tage jemand ein. Unter 40 % gibt es öfter Streit, nach 3 Tagen droht Wegzug.</p></div></div></div>`;
   const news=[];
   if(S.conflict){const a=S.residents.find(r=>r.id===S.conflict.a), b=S.residents.find(r=>r.id===S.conflict.b); if(a&&b) news.push(`<div class="fy"><p class="k" style="color:var(--coral)">Streit</p><b>${esc(a.name)} und ${esc(b.name)}</b><p class="small muted">Ein guter Tag hilft beim Versöhnen.</p></div>`)}
+  guestNow().forEach(g=>news.push(`<button type="button" class="fy" data-guest="${g.id}" style="text-align:left;border:0;color:inherit;font:inherit;cursor:pointer"><p class="k" style="color:var(--amber)">Zu Besuch</p><b>${esc(artikel(g.art,true)+" "+g.art)}</b><p class="small muted">${guestDays(g.art)==="bis übermorgen"?"Noch 2 Tage da.":"Noch bis morgen da."} Antippen zum Tauschen.</p></button>`));
   H.filter(r=>r.sick).forEach(r=>news.push(`<div class="fy"><p class="k" style="color:var(--amber)">Krank</p><b>${esc(r.name)}</b><p class="small muted">${esc(r.sick.kind)}${S.tea?" · Kräutertee im Vorrat":""}</p></div>`));
   H.filter(r=>r.phone).slice(0,2).forEach(r=>news.push(`<div class="fy"><p class="k" style="color:var(--lilac)">Am Handy</p><b>${esc(r.name)}</b><p class="small muted">Ein Tag im Budget holt jemanden zurück.</p></div>`));
   if(S.warn){const w=S.warn.ids.map(id=>S.residents.find(r=>r.id===id)).filter(Boolean); if(w.length) news.push(`<div class="fy"><p class="k" style="color:var(--amber)">Wegzug droht</p><b>${esc(groupName(w))}</b><p class="small muted">Glück bis ${nice(S.warn.deadline)} über 40 %</p></div>`)}
@@ -2729,10 +3069,12 @@ function viewBewohner(){
   </div>
   ${main}
   ${news.length?`<div class="sec-h"><span>Gerade los</span></div><div class="fy-row">${news.join("")}</div>`:""}
-  <div class="sec-h"><span>Menschen</span><span class="small muted" style="text-transform:none;letter-spacing:0">${occupied()}/${capacity()} Plätze</span></div>
-  <div class="card">${humans.map(resRow).join("")||`<p class="muted">Noch niemand.</p>`}</div>
-  <div class="sec-h"><span>Tiere</span></div>
-  <div class="card">${animals.map(resRow).join("")||`<p class="muted">Noch keine Tiere.</p>`}</div>
+  ${humans.length+animals.length>10?`<input id="resSearch" class="res-search" type="search" placeholder="Bewohner suchen: Name, Tier, Beruf …" aria-label="Bewohner suchen" autocomplete="off">
+  <p class="small muted" id="resNone" hidden style="padding:0 4px">Niemand gefunden.</p>`:""}
+  <details class="res-sec" data-fold="m" ${(S.bwFold||{}).m?"":"open"}><summary class="sec-h"><span>Menschen <span class="num muted">${humans.length}</span></span><span class="small muted" style="text-transform:none;letter-spacing:0">${occupied()}/${capacity()} Plätze${humans.length>6?" · Antippen für Details":""}</span></summary>
+  ${humans.length>6?`<div class="ani-grid">${humans.map(resTile).join("")}</div>`:`<div class="card">${humans.map(resRow).join("")||`<p class="muted">Noch niemand.</p>`}</div>`}</details>
+  <details class="res-sec" data-fold="t" ${(S.bwFold||{}).t?"":"open"}><summary class="sec-h"><span>Tiere <span class="num muted">${animals.length}</span></span>${animals.length>6?`<span class="small muted" style="text-transform:none;letter-spacing:0">Antippen für Details</span>`:""}</summary>
+  ${animals.length>6?`<div class="ani-grid">${animals.map(resTile).join("")}</div>`:`<div class="card">${animals.map(resRow).join("")||`<p class="muted">Noch keine Tiere.</p>`}</div>`}</details>
   ${S.tea?`<p class="small muted" style="padding:0 4px">Kräutertee im Vorrat: ${S.tea}. Tippe bei kranken Bewohnern auf die Tasse.</p>`:""}
   ${S.memorials.length?`<div class="card"><p class="label">In Erinnerung</p>${S.memorials.slice().reverse().map(m=>{const r=S.residents.find(x=>x.id===m.rid);const kids=S.residents.filter(k=>k.parents&&k.parents.includes(m.rid));
     return `<div class="row" style="padding:6px 0;border-top:1px solid var(--card2)"><svg width="36" height="36" viewBox="-12 -26 24 28" aria-hidden="true"><rect x="-1.5" y="-14" width="3" height="14" fill="#8A5A3B"/><circle cx="0" cy="-17" r="8" fill="#4E9A58"/><circle cx="-2" cy="-19" r="1.8" fill="#FFD27A"/></svg><div class="grow"><p><b>${esc(m.name)}</b></p><p class="small muted">${m.job?esc(jobName(m.job))+", ":""}verabschiedet am ${nice(m.day)}${kids.length?" · Kinder: "+kids.map(k=>esc(k.name)).join(", "):""}</p></div></div>`}).join("")}
@@ -2794,13 +3136,54 @@ function viewArten(){
       <span style="font-size:${ok&&a.length>9?"9.5px":"11px"};letter-spacing:${ok&&a.length>9?"-.2px":"0"};font-weight:700;text-align:center;line-height:1.2;max-width:100%">${ok?(a==="Meerschweinchen"?"Meer&shy;schweinchen":a):"?"}</span>${ok&&!lived.has(a)?`<span style="font-size:10px;color:var(--lime);font-weight:700">zu Besuch</span>`:""}</div>`}).join("")}</div>
   <p class="small muted">Delfine und Wale kommen erst, wenn der Leuchtturm steht. Papagei, Elch, Kamel und Eisbär leben nur in fernen Inselwelten.</p></div>`;
 }
-function viewAlbum(){
-  const have=new Set(S.postcards.map(c=>c.motif));
-  return `<div class="card"><div class="row between"><p class="label">Motive</p><span class="small muted num">${have.size} / ${MOTIFS.length} Motive</span></div>
-  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">${MOTIFS.map(m=>have.has(m.id)
-    ?`<div style="border-radius:8px;overflow:hidden;border:2px solid #F3F1EA">${motifSvg(m,true)}</div>`
-    :`<div style="border-radius:8px;border:1.5px dashed var(--line);aspect-ratio:350/120;display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7C7F99" stroke-width="2" stroke-linecap="round" aria-label="Noch nicht gesammelt"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>`).join("")}</div>
+/* Tab Zeit: gewonnene Zeit mit Wochenbalken, Inseljahr als Kalender, Umrechnungen als Sammelkarten */
+let zeitPage=0, zeitSel=null;
+const ZT_COL=["#B9A6FF","#C8F169","#FFB86B","#7FD4E8","#FF9C7A"];
+function dayCol(d){return d.min<=S.budget*.75?"#C8F169":d.min<=S.budget?"#8FB34F":"#FF9C7A"}
+function zeitCal(){
+  const by={}; S.days.forEach(d=>by[d.day]=d);
+  const end=S.lastDay&&S.lastDay>today()?S.lastDay:today(), wd=(parse(end).getDay()+6)%7;
+  const mon=addDays(end,-wd-7*12-zeitPage*91), W=13, cw=22.6;
+  const first=S.days.length?S.days[0].day:end;
+  let cells="";
+  for(let w=0;w<W;w++) for(let d=0;d<7;d++){
+    const day=addDays(mon,w*7+d), x=S.days.length?by[day]:null, sel=x&&x.day===zeitSel;
+    if(day>end){cells+=`<rect x="${20+w*cw}" y="${d*cw}" width="19" height="19" rx="6" fill="#1A1C2C"/>`;continue}
+    cells+=x?`<rect x="${20+w*cw}" y="${d*cw}" width="19" height="19" rx="6" fill="${dayCol(x)}" data-zday="${day}" style="cursor:pointer"${sel?' stroke="#F3F1EA" stroke-width="2.5"':""}><title>${nice(day)}: ${hm(x.min)}</title></rect>`
+      :`<rect x="${20+w*cw}" y="${d*cw}" width="19" height="19" rx="6" fill="#26283B"/>`;
+  }
+  const lbl=["Mo","","Mi","","Fr","","So"].map((l,d)=>l?`<text x="0" y="${d*cw+14}" font-family="Manrope, sans-serif" font-size="10" fill="#A4A6BD">${l}</text>`:"").join("");
+  const m=s=>parse(s).toLocaleDateString(LOC,{month:"short"}).replace(".","");
+  const lastCol=addDays(mon,W*7-1), range=m(mon)===m(lastCol>end?end:lastCol)?m(mon):m(mon)+" – "+m(lastCol>end?end:lastCol);
+  const older=first<mon, newer=zeitPage>0;
+  const sd=by[zeitSel]||S.days[S.days.length-1];
+  const ev=sd?(S.feed||[]).find(f=>f.day===sd.day&&f.kind==="good"):null;
+  return `<div class="sec-h zt-h"><span>Dein Inseljahr</span><span class="zt-nav"><button class="zt-arr" id="ztOld" aria-label="Frühere Wochen"${older?"":" disabled"}>‹</button>${range}<button class="zt-arr" id="ztNew" aria-label="Spätere Wochen"${newer?"":" disabled"}>›</button></span></div>
+  <div class="card"><svg viewBox="0 0 316 160" style="width:100%;height:auto;display:block" id="ztCal" role="img" aria-label="Kalender der letzten Wochen">${lbl}${cells}</svg>
+    <div class="row small muted" style="gap:12px;flex-wrap:wrap"><span><b style="color:#C8F169">■</b> weit drunter</span><span><b style="color:#8FB34F">■</b> im Ziel</span><span><b style="color:#FF9C7A">■</b> drüber</span></div>
+    ${sd?`<div class="zt-day"><div class="row between"><p class="label" style="color:${dayCol(sd)===`#FF9C7A`?"var(--coral)":"var(--lime)"}">${nice(sd.day)}</p><span class="small muted">Ziel ${hm(S.budget)}${sd.pts?` · <b style="color:var(--lime)">+${sd.pts} P</b>`:""}</span></div>
+      <p class="hm-title" style="font-size:24px">${hm(sd.min)}</p>${ev?`<p class="small muted">${esc(ev.text)}</p>`:""}</div>`:`<p class="small muted">Sobald du Tage einträgst, füllt sich hier dein Inseljahr.</p>`}
   </div>`;
+}
+function zeitBest(){
+  if(S.days.length<7) return "";
+  const avgBy=f=>{const g={};S.days.forEach(d=>{const k=f(d);(g[k]=g[k]||[]).push(d.min)});return Object.entries(g).filter(([,v])=>v.length>=2).map(([k,v])=>[k,v.reduce((a,b)=>a+b,0)/v.length]).sort((a,b)=>a[1]-b[1])[0]};
+  const bm=avgBy(d=>d.day.slice(0,7)), bw=avgBy(d=>(parse(d.day).getDay()+6)%7);
+  const WD=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+  return `<div class="row zt-chips">${bm?`<div class="cp"><i>Bester Monat</i><b>${parse(bm[0]+"-01").toLocaleDateString(LOC,{month:"long"})}</b></div>`:""}${bw?`<div class="cp"><i>Bester Wochentag</i><b>${WD[bw[0]]}</b></div>`:""}</div>`;
+}
+function zeitCards(saved){
+  const got=ACTS.filter(a=>saved>=a.min).sort((a,b)=>b.min-a.min), next=ACTS.filter(a=>saved<a.min).sort((a,b)=>a.min-b.min)[0];
+  const cards=got.map((a,i)=>{const c=Math.floor(saved/a.min);return `<button class="zt-card" style="background:${ZT_COL[i%ZT_COL.length]}" data-zshare="${ACTS.indexOf(a)}" aria-label="${c} ${esc(c===1?SING[a.n]||a.n:a.n)} teilen"><span class="zt-top"><span class="zt-ic">${actIcon(a)}</span><span class="zt-sh">↗</span></span><span><b>${c}</b><span>${esc(c===1?SING[a.n]||a.n:a.n)}</span></span></button>`}).join("");
+  const lock=next?`<div class="zt-card zt-lock"><span class="zt-top"><span class="zt-ic">${actIcon(next)}</span><span>🔒</span></span><span><span>noch ${hm(next.min-saved)}: ${esc(SING[next.n]||next.n)}</span></span></div>`:"";
+  return `<div class="sec-h"><span>Deine Sammlung · ${got.length} von ${ACTS.length}</span></div><div class="fy-row">${cards}${lock}</div>`;
+}
+function zeitDid(){
+  const it=[];
+  const fl=(S.focusLog||[]).length; if(fl||S.focusMin) it.push(["⛵",fl||1,"Fokus"]);
+  PLANS.map(p=>({p,c:(S.actTotals||{})[p.id]||0})).filter(x=>x.c).sort((a,b)=>b.c-a.c).forEach(x=>it.push([`<span class="plan-ic">${planIcon(x.p)}</span>`,x.c,x.p.n]));
+  if(!it.length) return "";
+  return `<div class="sec-h"><span>Was du daraus gemacht hast</span></div><div class="fy-row">${it.map(([e,c,n])=>`<div class="zt-did"><span class="zt-e">${e}</span><b>${c}×</b><i>${esc(n)}</i></div>`).join("")}</div>`;
 }
 function viewZeit(){
   const n=S.days.length;
@@ -2811,51 +3194,44 @@ function viewZeit(){
   const yearOld=S.baseline*365/60/24, yearNow=avg*365/60/24;
   const week=S.days.slice(-7), prev=S.days.slice(-14,-7);
   const sum=a=>a.reduce((x,d)=>x+d.min,0);
-  // Bild: gewonnene Zeit groß, daneben die letzten 7 Tage als Balken
+  // Bild: gewonnene Zeit groß, daneben die letzten 7 Tage als Balken mit Wochentag
   const max=Math.max(S.budget*1.4,...week.map(d=>d.min)), bh=72, y0=124;
-  const bars=week.map((d,i)=>{const h=Math.max(4,d.min/max*bh), x=216+i*20;return `<rect x="${x}" y="${y0-h}" width="14" height="${h}" rx="4" fill="${d.min<=S.budget?"#C8F169":"#FF9C7A"}"><title>${nice(d.day)}: ${hm(d.min)}</title></rect>`}).join("");
-  const hero=`<svg viewBox="0 0 360 200" role="img" aria-label="Gewonnene Zeit ${hm(saved)}" style="width:100%;height:auto;display:block"><defs><linearGradient id="zg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2B2F55"/><stop offset="1" stop-color="#1A1C2C"/></linearGradient></defs><rect width="360" height="200" fill="url(#zg)"/>
+  const bars=week.map((d,i)=>{const h=Math.max(4,d.min/max*bh), x=216+i*20;return `<rect x="${x}" y="${y0-h}" width="14" height="${h}" rx="4" fill="${d.min<=S.budget?"#C8F169":"#FF9C7A"}"><title>${nice(d.day)}: ${hm(d.min)}</title></rect><text x="${x+7}" y="${y0+16}" text-anchor="middle" font-family="Manrope, sans-serif" font-size="10" fill="#A4A6BD">${(LOC==="de-DE"?"SMDMDFS":"SMTWTFS")[parse(d.day).getDay()]}</text>`}).join("");
+  const hero=`<svg viewBox="0 0 360 160" role="img" aria-label="Gewonnene Zeit ${hm(saved)}" style="width:100%;height:auto;display:block"><defs><linearGradient id="zg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#33406B"/><stop offset="1" stop-color="#1E2030"/></linearGradient></defs><rect width="360" height="160" fill="url(#zg)"/>
     <text x="20" y="40" font-family="Manrope, sans-serif" font-size="12" font-weight="700" fill="#A4A6BD" letter-spacing="1.2">GEWONNENE ZEIT</text>
-    <text x="20" y="84" font-family="Bricolage Grotesque, Manrope, sans-serif" font-size="${hm(saved).length>9?32:40}" font-weight="800" fill="#C8F169">${hm(saved)}</text>
-    <text x="20" y="104" font-family="Manrope, sans-serif" font-size="11.5" fill="#A4A6BD">in ${n} ${n===1?"Tag":"Tagen"}</text><text x="20" y="119" font-family="Manrope, sans-serif" font-size="11.5" fill="#A4A6BD">statt ${hm(S.baseline)} am Tag</text>
+    <text x="20" y="84" font-family="Bricolage Grotesque, Manrope, sans-serif" font-size="${hm(saved).length>9?28:40}" font-weight="800" fill="#C8F169">${hm(saved)}</text>
+    <text x="20" y="106" font-family="Manrope, sans-serif" font-size="12" fill="#A4A6BD">in ${n} ${n===1?"Tag":"Tagen"}</text><text x="20" y="122" font-family="Manrope, sans-serif" font-size="12" fill="#A4A6BD">statt ${hm(S.baseline)} am Tag</text>
     ${bars}${week.length?`<path d="M210 ${y0-S.budget/max*bh}h144" stroke="#F3F1EA" stroke-dasharray="3 4" opacity=".5"/>`:""}</svg>`;
   const diff=prev.length?sum(prev)-sum(week):null, good=week.filter(d=>d.min<=S.budget).length;
-  const eq=equivTop(saved), top=eq[0];
-  const others=ACTS.filter(a=>saved>=a.min&&(!top||a!==top.a)).sort((a,b)=>b.min-a.min);
-  const done=PLANS.map(p=>({p,c:(S.actTotals||{})[p.id]||0})).filter(x=>x.c).sort((a,b)=>b.c-a.c);
+  const apps=S.apps.map(a=>{const ds=S.days.filter(d=>d.apps&&d.apps[a.id]!=null);return {a,ds,tot:ds.reduce((x,d)=>x+(d.apps[a.id]||0),0),over:ds.filter(d=>d.apps[a.id]>a.limit).length}});
+  const worst=apps.filter(x=>x.tot).sort((x,y)=>y.tot-x.tot)[0];
+  const fc=focusStatsCard();
   return `
-  <div class="hero-card" style="background:#1A1C2C">${hero}</div>
-  <div class="scene-chips">
+  <div class="hero-card zt-hero">${hero}</div>
+  <div class="row zt-chips">
     <div class="cp"><i>Diese Woche</i><b style="color:${diff==null?"var(--ink)":diff>=0?"var(--lime)":"var(--coral)"}">${diff==null?hm(sum(week)):(diff>=0?"−":"+")+hm(Math.abs(diff))}</b></div>
     <div class="cp"><i>Im Ziel</i><b>${good} von ${week.length}</b></div>
     <div class="cp"><i>Serie</i><b style="color:var(--amber)">${S.budgetStreak} ${S.budgetStreak===1?"Tag":"Tage"}</b></div>
   </div>
-  <div class="card"><div class="row" style="gap:14px;align-items:center"><span class="eq-big">${top?actIcon(top.a):actIcon(ACTS[0])}</span><div class="grow">
-    <p class="label">${top?"Das sind schon":"Bald schon"}</p><h3 class="hm-title">${top?top.c+" "+esc(top.c===1?SING[top.a.n]||top.a.n:top.a.n):"Dein erster Spaziergang"}</h3>
-    <p class="small muted">${top?"aus Zeit, die du nicht am Handy warst":"Jeder Tag unter deinem Schnitt zählt hier mit."}</p></div></div>
-    ${top?`<button class="btn secondary" id="zeitShare">Teilen</button>`:""}</div>
-  ${others.length?`<div class="sec-h"><span>Oder auch</span></div><div class="fy-row">${others.map(a=>{const c=Math.floor(saved/a.min);return `<div class="fy eqfy"><span class="eq-ic">${actIcon(a)}</span><b class="num" style="font:800 22px var(--display)">${c}</b><span class="small muted">${esc(c===1?SING[a.n]||a.n:a.n)}</span></div>`}).join("")}</div>`:""}
-  ${done.length?`<div class="sec-h"><span>Was du gemacht hast</span></div><div class="card">${done.map(x=>`<div class="row" style="padding:6px 0"><span class="plan-ic">${planIcon(x.p)}</span><div class="grow"><p><b>${esc(x.p.n)}</b></p><p class="small muted">${x.c}× geschafft</p></div><span class="chip good">+${x.c*20} P</span></div>`).join("")}</div>`:""}
+  ${zeitDid()}
+  ${zeitCal()}
+  ${zeitBest()}
+  ${zeitCards(saved)}
   ${S.lastDay?`<div class="card"><button class="rowbtn" id="weekBtn" data-wk="${isoWeek(S.lastDay)}"><span class="plan-ic" style="background:#26233D;color:var(--lilac)"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h6a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4zM20 5h-6a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h6z"/></svg></span><span class="grow"><b>Wochenrückblick</b><span class="small muted">KW ${+isoWeek(S.lastDay).split("-W")[1]} ansehen</span></span><span class="muted">›</span></button></div>`:""}
-  <div class="sec-h"><span>Rückblick</span></div>
-  <div class="card">
-    <div class="row between"><span>Über dem Budget verbracht</span><b class="num" style="color:var(--coral)">${hm(over)}</b></div>
-    <p class="small muted">${over?"Das wären gewesen: "+esc(eqText(equivTop(over)))+".":"Bisher bist du immer im Budget geblieben."}</p>
-  </div>
   <div class="card">
     <p class="label">Hochgerechnet aufs Jahr</p>
-    <div class="row between"><span>Mit deinem alten Schnitt</span><b class="num" style="white-space:nowrap">${Math.round(yearOld)} Tage</b></div>
+    <div class="row between small"><span>Mit deinem alten Schnitt</span><b class="num" style="white-space:nowrap">${Math.round(yearOld)} Tage</b></div>
     <div class="bar"><i style="width:${Math.min(100,yearOld/120*100)}%;background:var(--coral)"></i></div>
-    <div class="row between"><span>Mit deinem jetzigen Schnitt (${hm(avg)})</span><b class="num" style="white-space:nowrap">${Math.round(yearNow)} Tage</b></div>
+    <div class="row between small"><span>Mit deinem jetzigen Schnitt (${hm(avg)})</span><b class="num" style="white-space:nowrap">${Math.round(yearNow)} Tage</b></div>
     <div class="bar"><i style="width:${Math.min(100,yearNow/120*100)}%"></i></div>
-    <p class="small muted">${yearOld>yearNow?"Du gewinnst so rund "+Math.round(yearOld-yearNow)+" ganze Tage pro Jahr zurück, rund um die Uhr gerechnet.":"Noch kein Unterschied. Jeder Tag im Budget verschiebt diese Zahl."}</p>
+    <p class="small muted">${yearOld>yearNow?`Rund <b style="color:var(--lime)">${Math.round(yearOld-yearNow)} ganze Tage</b> pro Jahr zurück, rund um die Uhr gerechnet.`:"Noch kein Unterschied. Jeder Tag im Budget verschiebt diese Zahl."}</p>
+    <p class="small muted">${over?`Über dem Budget verbracht: <b style="color:var(--coral)">${hm(over)}</b>. Das wären gewesen: ${esc(eqText(equivTop(over)))}.`:"Bisher bist du immer im Budget geblieben."}</p>
   </div>
-  ${focusStatsCard()}
-  <div class="card"><p class="label">App-Monster</p>
-  ${S.apps.map(a=>{const ds=S.days.filter(d=>d.apps&&d.apps[a.id]!=null);const tot=ds.reduce((x,d)=>x+(d.apps[a.id]||0),0);const over=ds.filter(d=>d.apps[a.id]>a.limit).length;
-    return `<div class="row" style="padding:6px 0;border-top:1px solid var(--card2)"><svg width="44" height="36" viewBox="-24 -34 48 40" aria-hidden="true" style="${over?"":"opacity:.35"}">${monsterSvg(a.m)}</svg><div class="grow"><p><b>${esc(a.name)}</b> <span class="small muted">· Limit ${a.limit} min</span></p><p class="small muted">${ds.length?`${hm(tot)} in ${ds.length} Tagen · ${over}× ${esc(monName(a,false))} aufgetaucht`:"Noch nicht eingetragen"}</p></div></div>`}).join("")}
-  <p class="small muted">Trag beim Tagesabschluss die Minuten pro App ein, dann siehst du hier, welche App die meiste Zeit frisst.</p></div>
-  <p class="small muted" style="padding:0 4px">Die Umrechnungen sind Faustwerte, zum Beispiel 30 Minuten für einen Spaziergang , 90 Minuten für einen Kinofilm oder 8 Stunden für ein Buch mit 250 Seiten.</p>`;
+  ${fc?`<details class="card zt-fold"><summary><span class="grow"><b>Fokuszeit</b><span class="small muted">insgesamt ${hm(S.focusMin||0)}</span></span><span class="muted zt-chev">›</span></summary>${fc}</details>`:""}
+  <details class="card zt-fold"><summary><svg width="40" height="32" viewBox="-24 -34 48 40" aria-hidden="true">${monsterSvg((worst||apps[0]).a.m)}</svg><span class="grow"><b>App-Monster</b><span class="small muted">${worst?esc(worst.a.name)+" frisst am meisten: "+hm(worst.tot):"Noch keine Minuten pro App eingetragen"}</span></span><span class="muted zt-chev">›</span></summary>
+  ${apps.map(({a,ds,tot,over})=>`<div class="row" style="padding:6px 0;border-top:1px solid var(--card2)"><svg width="44" height="36" viewBox="-24 -34 48 40" aria-hidden="true" style="${over?"":"opacity:.35"}">${monsterSvg(a.m)}</svg><div class="grow"><p><b>${esc(a.name)}</b> <span class="small muted">· Limit ${a.limit} min</span></p><p class="small muted">${ds.length?`${hm(tot)} in ${ds.length} Tagen · ${over}× ${esc(monName(a,false))} aufgetaucht`:"Noch nicht eingetragen"}</p></div></div>`).join("")}
+  <p class="small muted">Trag beim Tagesabschluss die Minuten pro App ein, dann siehst du hier, welche App die meiste Zeit frisst.</p></details>
+  <p class="small muted" style="padding:0 4px">Die Umrechnungen sind Faustwerte, zum Beispiel 30 Minuten für einen Spaziergang, 90 Minuten für einen Kinofilm oder 8 Stunden für ein Buch mit 250 Seiten.</p>`;
 }
 /* Händlerschiff: ganz oben im Tab Bauen, solange es da ist */
 function traderCard(){
@@ -2892,6 +3268,31 @@ function itemSvg(id){
   case "t_orchidee": return `<rect x="-13" y="-4" width="26" height="4" rx="2" fill="#7A5038"/>${[-8,-1,6].map((x,i)=>`<g class="sway" style="animation-duration:${3+i*.4}s"><path d="M${x} -4q1-6 0-9" stroke="#3FA35A" stroke-width="1.2" fill="none"/><path d="M${x} -14l-3-2 3-1 3 1z" fill="${["#E07AB8","#B6A4FF","#F3F1EA"][i]}"/><circle cx="${x}" cy="-14.6" r="1" fill="#FFD27A"/></g>`).join("")}`;
   case "t_tiki": return `${[-6,6].map((x,i)=>`<path d="M${x} 0v-20" stroke="#8A5A3B" stroke-width="2.4"/><path d="M${x-1.6} -14h3.2M${x-1.6} -9h3.2" stroke="#6B4430"/><path d="M${x-2.4} -20h4.8l-1 -3h-2.8z" fill="#5A3A2A"/><g class="flick" style="animation-delay:${i*.3}s"><path d="M${x} -23c-2 0-3-2-1-5 0 1 1 1 1 1 0-2 1-3 2-4 0 2 1 3 1 4 0 2-1 4-3 4z" fill="#FFB86B"/></g>`).join("")}<g class="glow" style="animation-duration:1.6s"><circle cx="0" cy="-24" r="10" fill="#FFB86B" opacity=".18"/></g>`;
   case "t_huette": return `<path d="M-12 0v-6M12 0v-6" stroke="#8A5A3B" stroke-width="2"/><rect x="-13" y="-7" width="26" height="2" fill="#A0703F"/><rect x="-11" y="-19" width="22" height="12" fill="#D9B86A"/><path d="M-8 -19v12M-4 -19v12M4 -19v12M8 -19v12" stroke="#B8944E" stroke-width=".8"/><path d="M-16 -18l16-11 16 11z" fill="#C9A26A"/><rect x="-3" y="-15" width="6" height="8" fill="#7A5038"/>`;
+  case "t_bar": return `<rect x="-12" y="-10" width="24" height="10" fill="#C9A26A"/><path d="M-15 -10l3-8h24l3 8z" fill="#E9C46A"/><path d="M-12 -10h24" stroke="#B8902E" stroke-width="1.4"/><rect x="-9" y="-7" width="18" height="2" fill="#8A5A3B"/><circle cx="-5" cy="-11.6" r="1.4" fill="#FF9C7A"/><circle cx="4" cy="-11.6" r="1.4" fill="#FFD27A"/>`;
+  case "t_papagei": return `<path d="M0 0v-20M-8 -18h16" stroke="#8A5A3B" stroke-width="2"/><g class="bob" style="animation-duration:2.4s"><ellipse cx="4" cy="-22" rx="3" ry="4" fill="#E5484D"/><circle cx="4" cy="-26.5" r="2.4" fill="#E5484D"/><path d="M6.2 -27l2.2 1-2.2 1.2z" fill="#FFD27A"/><path d="M3 -18.6l-1 5" stroke="#3FA35A" stroke-width="2"/><path d="M1.6 -22.5l-2 3" stroke="#5B8CD6" stroke-width="1.6"/></g>`;
+  case "t_muschelweg": return `${[-12,-4,4,12].map((x,i)=>`<path d="M${x-3.4} 0q3.4-7 6.8 0z" fill="${["#FFD9C2","#FFB3C7","#F3F1EA","#FFD27A"][i]}"/><path d="M${x} -.2v-4M${x-1.6} -.2l.8-3.4M${x+1.6} -.2l-.8-3.4" stroke="#C9A26A" stroke-width=".5"/>`).join("")}`;
+  case "t_steg": return `<path d="M-15 0v-6M15 0v-6M-5 0v-6M5 0v-6" stroke="#8A5A3B" stroke-width="1.8"/><rect x="-16" y="-8" width="32" height="2.6" rx="1" fill="#D9B26A"/><path d="M-11 -8v2.6M-6 -8v2.6M-1 -8v2.6M4 -8v2.6M9 -8v2.6" stroke="#B8902E" stroke-width=".6"/><path d="M-15 -8v-6M15 -8v-6" stroke="#8A5A3B" stroke-width="1.4"/><path d="M-15 -13q15 4 30 0" stroke="#C9A26A" stroke-width="1" fill="none"/>`;
+  case "t_nest": return `<ellipse cx="-4" cy="-1.6" rx="9" ry="3" fill="#D9C08A"/><circle cx="-7" cy="-4" r="2" fill="#F3F1EA"/><circle cx="-3" cy="-4.4" r="2" fill="#F3F1EA"/><circle cx="-5" cy="-6.6" r="2" fill="#F3F1EA"/><g class="wander" style="--wx:4px;animation-duration:9s"><ellipse cx="9" cy="-2.6" rx="5" ry="3" fill="#3FA35A"/><path d="M6 -3.6h6M9 -5.4v4" stroke="#2E7D44" stroke-width=".6"/><circle cx="14.4" cy="-2.6" r="1.7" fill="#7FC57A"/></g>`;
+  case "t_lagune": return `<ellipse cx="0" cy="-3" rx="17" ry="5" fill="#E9D7A6"/><ellipse cx="0" cy="-3" rx="14" ry="3.6" fill="#4FC3D9"/><path d="M-7 -3.4q3.5-1.6 7 0M2 -2.2q3-1.2 6 0" stroke="#F3F1EA" stroke-width=".8" fill="none" opacity=".8"/><circle cx="9" cy="-3.6" r="1.1" fill="#FF9C7A"/>`;
+  case "f_bank": return `<rect x="-13" y="-6" width="26" height="3" rx="1.5" fill="#9A6A3E"/><path d="M-10 -3v3M10 -3v3" stroke="#7A5038" stroke-width="2.4"/><rect x="-13" y="-11" width="26" height="2.4" rx="1.2" fill="#9A6A3E"/><path d="M-12 -8.6v2.6M12 -8.6v2.6" stroke="#7A5038" stroke-width="1.6"/>`;
+  case "f_sauna": return `<rect x="-11" y="-12" width="22" height="12" fill="#9A6A3E"/><path d="M-11 -8h22M-11 -4h22" stroke="#7A5038" stroke-width=".7"/><path d="M-13 -12l13-7 13 7z" fill="#6B4430"/><rect x="-3" y="-8" width="6" height="8" fill="#5A3A26"/><rect x="5" y="-20" width="3" height="5" fill="#5A3A26"/><g class="drift" style="animation-duration:4s"><circle cx="6.5" cy="-23" r="1.6" fill="#F3F1EA" opacity=".6"/><circle cx="8" cy="-26.4" r="2" fill="#F3F1EA" opacity=".4"/></g>`;
+  case "f_nistkasten": return `<path d="M0 0v-14" stroke="#7A5038" stroke-width="2"/><rect x="-5" y="-22" width="10" height="9" fill="#C9A26A"/><path d="M-6.6 -21.4l6.6-5 6.6 5z" fill="#E5484D"/><circle cx="0" cy="-18" r="1.6" fill="#3A2A1E"/>`;
+  case "f_heide": return `<rect x="-13" y="-3" width="26" height="3" rx="1.5" fill="#6B4430"/>${[-9,-4,1,6,10].map((x,i)=>`<g class="sway" style="animation-duration:${3+i*.3}s"><path d="M${x} -3q-1-4 0-7" stroke="#5E8A5C" stroke-width="1"/><circle cx="${x}" cy="-9.6" r="2.1" fill="${i%2?"#B6A4FF":"#D98BD0"}"/></g>`).join("")}`;
+  case "f_troll": return `<ellipse cx="0" cy="-5" rx="6" ry="5" fill="#7FA36B"/><circle cx="0" cy="-12" r="4.6" fill="#8DB37A"/><circle cx="-1.6" cy="-12.6" r=".8" fill="#14151F"/><circle cx="1.6" cy="-12.6" r=".8" fill="#14151F"/><ellipse cx="0" cy="-10.4" rx="1.4" ry="1.8" fill="#6E9A5E"/><path d="M-2.4 -16q2.4-4.4 4.8 0" stroke="#C46D3A" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
+  case "f_boot": return `<path d="M-14 -6q14 9 28 0l-3 6h-22z" fill="#8A5A3B"/><path d="M-14 -6q-3-5 1-7M14 -6q3-5-1-7" stroke="#8A5A3B" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M0 -6v-15" stroke="#6B4430" stroke-width="1.4"/><rect x="-6" y="-19" width="12" height="9" fill="#F3F1EA"/><path d="M-6 -16h12M-6 -13h12" stroke="#E5484D" stroke-width="1.4"/>`;
+  case "o_kissen": return `<ellipse cx="0" cy="-2" rx="15" ry="3.6" fill="#C46D3A"/><path d="M-12 -2h24" stroke="#FFD27A" stroke-width=".7" stroke-dasharray="2 2"/>${[[-9,"#E5484D"],[0,"#FFD27A"],[9,"#5B8CD6"]].map(([x,c])=>`<ellipse cx="${x}" cy="-5" rx="4.4" ry="3" fill="${c}"/>`).join("")}`;
+  case "o_taube": return `<rect x="-5" y="-22" width="10" height="22" fill="#E3C9A0"/><path d="M-6.4 -22h12.8l-6.4-5.4z" fill="#C46D3A"/>${[-17,-11,-5].map(y=>`<circle cx="0" cy="${y}" r="1.4" fill="#5A3A26"/>`).join("")}<g class="bob" style="animation-duration:2.6s"><ellipse cx="7.4" cy="-25" rx="2.8" ry="1.8" fill="#F3F1EA"/><circle cx="9.6" cy="-26" r="1.2" fill="#F3F1EA"/></g>`;
+  case "o_blumen": return `<rect x="-13" y="-3" width="26" height="3" rx="1.5" fill="#C9A26A"/>${[-8,0,8].map((x,i)=>`<path d="M${x} -3v-6" stroke="#5E8A5C" stroke-width="2.6" stroke-linecap="round"/><circle cx="${x}" cy="-10.4" r="2.3" fill="${["#FF6B9A","#FFD27A","#FF9C7A"][i]}"/>`).join("")}`;
+  case "o_spiel": return `<rect x="-14" y="-4" width="14" height="4" fill="#C9A26A"/><rect x="-13" y="-3.4" width="12" height="2.6" fill="#F2D59A"/><path d="M4 0v-14h4v14M4 -5h4M4 -10h4" stroke="#9A6A3E" stroke-width="1.4" fill="none"/><path d="M8 -14q6 4 7 14" stroke="#FF9C7A" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+  case "o_sterne": return `<path d="M-14 0l14-16 14 16z" fill="#3B2F6B"/><path d="M-6 0l6-7 6 7z" fill="#14151F"/><path d="M0 -16v-3" stroke="#C46D3A" stroke-width="1.4"/>${[[-5,-9],[3,-11],[6,-5],[-8,-4]].map(([x,y],i)=>`<circle class="glow" style="animation-delay:${i*.4}s" cx="${x}" cy="${y}" r=".9" fill="#FFD27A"/>`).join("")}`;
+  case "o_mosaik": return `<ellipse cx="0" cy="-3" rx="12" ry="3.6" fill="#2E6FB0"/><ellipse cx="0" cy="-4" rx="10" ry="2.4" fill="#7FD1E6"/><path d="M-10 -2h20" stroke="#F3F1EA" stroke-width=".6" stroke-dasharray="1.4 1.4"/><path d="M0 -4v-8" stroke="#E3C9A0" stroke-width="2"/><g class="bob" style="animation-duration:1.8s"><path d="M-3.4 -12.4q3.4-4 6.8 0" stroke="#7FD1E6" stroke-width="1.3" fill="none"/></g>`;
+  case "o_sanduhr": return `<path d="M-5.4 0h10.8M-5.4 -19h10.8" stroke="#9A6A3E" stroke-width="2.2" stroke-linecap="round"/><path d="M-4 -18h8l-4 8.5zM-4 -1h8l-4-8.5z" fill="#BFE3F0" opacity=".6"/><path d="M-2.4 -1h4.8l-2.4-4z" fill="#E9C46A"/><path d="M-1.6 -15.6h3.2l-1.6 3z" fill="#E9C46A"/>`;
+  case "a_fellbank": return `<rect x="-13" y="-6" width="26" height="3" rx="1.5" fill="#9A6A3E"/><path d="M-10 -3v3M10 -3v3" stroke="#7A5038" stroke-width="2.4"/><path d="M-12 -6q6-4 12 0q6-4 12 0" fill="#E3D8C8"/>`;
+  case "a_futterhaus": return `<path d="M0 0v-12" stroke="#7A5038" stroke-width="2"/><rect x="-7" y="-17" width="14" height="5" fill="#C9A26A"/><path d="M-9 -17l9-6 9 6z" fill="#F3F1EA"/><g class="bob" style="animation-duration:2.2s"><circle cx="-3" cy="-19.6" r="1.7" fill="#E5484D"/><path d="M-1.6 -19.8l1.2.4-1.2.5z" fill="#FFB86B"/></g>`;
+  case "a_rodel": return `<path d="M-15 0q8-13 18-8q6 3 12 8z" fill="#F3F1EA"/><rect x="2" y="-7" width="11" height="3" rx="1" fill="#E5484D"/><path d="M1 -3h13q2 0 2-2" stroke="#9A6A3E" stroke-width="1.2" fill="none"/>`;
+  case "a_nordlicht": return `<path class="glow" d="M-15 -22q15-9 30 0" stroke="#5BF0A4" stroke-width="2.6" fill="none" opacity=".75"/><rect x="-9" y="-10" width="18" height="10" fill="#9A6A3E"/><path d="M-11 -10l11-6 11 6z" fill="#EAF2F8"/><rect x="-2.5" y="-7" width="5" height="7" fill="#5A3A26"/><rect x="4" y="-8" width="3" height="3" fill="#FFD27A"/>`;
+  case "a_iglu": return `<path d="M-13 0a13 12 0 0 1 26 0z" fill="#EAF2F8"/><path d="M-12.6 -4h25.2M-10.6 -8h21.2M-6.6 -11h13.2M-5 -8v-3M5 -8v-3M-8 -4v-4M8 -4v-4M0 -4v-4" stroke="#B8CCDA" stroke-width=".7"/><path d="M-4.4 0a4.4 5.4 0 0 1 8.8 0z" fill="#3A4A66"/>`;
+  case "a_robben": return `<path d="M-15 0q2-8 10-9q8 0 10 3q7 1 9 6z" fill="#8696A6"/><g class="bob" style="animation-duration:3s"><ellipse cx="1" cy="-9.6" rx="5.4" ry="2.6" fill="#B8C4CE"/><circle cx="6.4" cy="-11.4" r="2.1" fill="#B8C4CE"/><circle cx="7" cy="-11.8" r=".5" fill="#14151F"/></g><g class="bob" style="animation-duration:3.4s;animation-delay:.6s"><ellipse cx="-8" cy="-7.6" rx="4.6" ry="2.2" fill="#A3B1BC"/><circle cx="-12.4" cy="-9" r="1.8" fill="#A3B1BC"/></g>`;
   case "t_surf": return `${[[-6,"#FF9C7A",-8],[2,"#5B8CD6",4],[9,"#FFD27A",12]].map(([x,c,r])=>`<g transform="translate(${x} 0) rotate(${r})"><path d="M0 0c-3-8-3-18 0-26 3 8 3 18 0 26z" fill="${c}"/><path d="M0 -2v-22" stroke="#F3F1EA" stroke-width=".8"/></g>`).join("")}`;
   case "t_flamingo": return `${[[-6,0],[6,.6]].map(([x,d])=>`<g transform="translate(${x} 0)"><path d="M0 0v-9" stroke="#E07AB8" stroke-width="1"/><g class="bob" style="animation-duration:2.8s;animation-delay:${d}s"><ellipse cx="1" cy="-12" rx="4.6" ry="3" fill="#FF8FB8"/><path d="M-2 -13q-3-4 0-9q2-1 2 1" stroke="#FF8FB8" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M0 -21l-3 1.4 1 1z" fill="#3A3D58"/></g></g>`).join("")}`;
   /* Fjord */
@@ -3054,17 +3455,6 @@ function viewGemeinsam(){
     :`<p class="small muted">Noch keine anderen Inseln. Teile diese App über das Teilen-Menü mit Freund:innen, dann erscheinen ihre Inseln hier.</p>`}
   </div>`;
 }
-function chart(){
-  const d=S.days.slice(-14); if(!d.length) return "";
-  const W=320,H=140,max=Math.max(S.budget*1.5,...d.map(x=>x.min));
-  const bw=W/14;
-  let s=`<svg viewBox="0 0 ${W} ${H+20}" style="width:100%;height:auto" role="img" aria-label="Bildschirmzeit der letzten ${d.length} Tage">`;
-  const by=H-S.budget/max*H;
-  s+=`<line x1="0" x2="${W}" y1="${by}" y2="${by}" stroke="#7C7F99" stroke-dasharray="4 4"/>`;
-  d.forEach((x,i)=>{const h=Math.max(2,x.min/max*H);s+=`<rect x="${i*bw+3}" y="${H-h}" width="${bw-6}" height="${h}" rx="4" fill="${x.min<=S.budget?"#C8F169":"#FF9C7A"}"><title>${nice(x.day)}: ${hm(x.min)}</title></rect><text x="${i*bw+bw/2}" y="${H+14}" text-anchor="middle" font-size="9" fill="#A4A6BD" font-family="Manrope, sans-serif">${parse(x.day).getDate()}.</text>`});
-  s+=`<text x="4" y="${by-5}" font-size="10" font-weight="700" fill="#A4A6BD" stroke="#1E2030" stroke-width="3" paint-order="stroke" font-family="Manrope, sans-serif">Budget ${hm(S.budget)}</text>`;
-  return s+"</svg>";
-}
 function findSvg(id){
   switch(id){
   case "muschel": return `<path d="M0 -2l-12 -10a14 14 0 0 1 24 0z" fill="#FFB3C7"/><path d="M0 -2l-6 -14M0 -2v-15M0 -2l6 -14" stroke="#E08AA0" stroke-width="1.4"/>`;
@@ -3077,47 +3467,70 @@ function findSvg(id){
   }
   return "";
 }
-function viewStrandgut(){
-  const have=new Set(S.finds.map(f=>f.id));
-  const bottles=S.finds.filter(f=>f.msg).reverse().filter((f,i,a)=>a.findIndex(x=>x.msg===f.msg)===i).slice(0,3);   // gleiche Botschaft nur einmal
-  return `<div class="card"><div class="row between"><p class="label">Sammlung</p><span class="small muted num">${S.finds.length} ${S.finds.length===1?"Fund":"Funde"}</span></div>
-  <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">${FINDS.map(f=>{const ok=have.has(f.id);const n=S.finds.filter(x=>x.id===f.id).length;
-    return `<div style="background:var(--ground);border-radius:14px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;${ok?"":"opacity:.4"}"><svg width="40" height="30" viewBox="-16 -22 32 24" aria-hidden="true">${ok?findSvg(f.id):`<g style="filter:brightness(0) invert(.45)">${findSvg(f.id)}</g>`}</svg><span style="font-size:11px;font-weight:700;text-align:center;line-height:1.2">${ok?esc(f.n)+(n>1?" ×"+n:""):"?"}</span></div>`}).join("")}</div>
-  ${bottles.length?`<p class="small" style="font-weight:700">Flaschenpost</p>${bottles.map(b=>`<p class="small" style="font-family:'Caveat',cursive;font-size:19px;line-height:1.2">${esc(b.msg)}</p>`).join("")}`:""}
-  <p class="small muted">Je früher das Handy abends weg ist, desto mehr wird angespült.</p></div>`;
+/* Tab Album: Pinnwand mit dem Neuesten, Strandgut-Vitrine, Postkarten-Ständer, Inselpass */
+function albumBoard(cards){
+  const pins=[], recent=addDays(today(),-3);
+  cards.slice(0,3).forEach(c=>pins.push({t:"card",c}));
+  const bottle=S.finds.slice().reverse().find(f=>f.msg), find=S.finds.slice().reverse().find(f=>!f.msg), stamp=(S.stamps||[]).slice(-1)[0];
+  if(!cards.length&&!S.finds.length&&!stamp) return `<div class="alb-board empty"><p>Noch ist die Pinnwand leer.<br>Postkarten, Strandgut und Fest-Stempel landen hier, sobald sie ankommen.</p></div>`;
+  const P=[["4%","5%",-5],["52%","8%",6],["27%","34%",-2]];
+  let h=pins.map((p,i)=>{const m=MOTIFS.find(x=>x.id===p.c.motif)||MOTIFS[0];
+    return `<button type="button" class="alb-pin" data-card="${p.c.id}" style="left:${P[i][0]};top:${P[i][1]};transform:rotate(${P[i][2]}deg)" aria-label="Postkarte ${esc(m.title)}"><i class="alb-tack"></i>${motifSvg(m,true)}</button>`}).join("");
+  if(bottle) h+=`<div class="alb-note" style="left:4%;top:62%"><b>Flaschenpost:</b> ${esc(bottle.msg)}</div>`;
+  if(find){const f=FINDS.find(x=>x.id===find.id); h+=`<div class="alb-find" style="left:66%;top:60%"><svg width="58" height="44" viewBox="-16 -22 32 24" aria-hidden="true">${findSvg(find.id)}</svg>${find.day>=recent?`<span class="alb-new">NEU</span>`:""}<span class="sr">${esc(f?f.n:"")}</span></div>`}
+  if(stamp){const x=MFEST[+stamp.slice(5)-1]; h+=`<div class="alb-stamp" style="left:48%;top:74%" title="${esc(x.n)}"><span>${x.e}</span><small>${TR(MONTH_N[+stamp.slice(5)-1]).slice(0,3).toUpperCase()}</small></div>`}
+  return `<div class="alb-board" role="group" aria-label="Zuletzt angekommen">${h}<span class="alb-label">📌 Zuletzt angekommen</span></div>`;
 }
-function viewKapseln(){
+function albumVitrine(){
+  const have=new Set(S.finds.map(f=>f.id)), rows=[];
+  for(let i=0;i<FINDS.length;i+=4) rows.push(FINDS.slice(i,i+4));
+  const bottles=S.finds.filter(f=>f.msg).reverse().filter((f,i,a)=>a.findIndex(x=>x.msg===f.msg)===i).slice(0,3);
+  return `<div class="sec-h"><span>Strandgut-Vitrine</span><span class="num" style="text-transform:none;letter-spacing:0;color:var(--lime)">${have.size} / ${FINDS.length}</span></div>
+  <div class="card alb-vitrine">${rows.map(r=>`<div class="alb-shelf">${r.map(f=>{const ok=have.has(f.id), n=S.finds.filter(x=>x.id===f.id).length;
+    return `<div class="alb-item${ok?"":" off"}" title="${ok?esc(f.n):"Noch nicht gefunden"}"><svg width="46" height="34" viewBox="-16 -22 32 24" aria-hidden="true">${ok?findSvg(f.id):`<g style="filter:brightness(0) opacity(.45)">${findSvg(f.id)}</g>`}</svg><span>${ok?esc(f.n)+(n>1?" ×"+n:""):"?"}</span></div>`}).join("")}</div>`).join("")}
+    ${bottles.length?`<div class="alb-bottles">${bottles.map(b=>`<p>${esc(b.msg)}</p>`).join("")}</div>`:""}
+    <p class="small" style="color:#E9D7A3">Je früher das Handy abends weg ist, desto mehr wird angespült.</p></div>`;
+}
+function albumStand(cards){
+  const have=new Set(S.postcards.map(c=>c.motif)), miss=MOTIFS.length-have.size;
+  return `<div class="sec-h"><span>Postkarten-Ständer</span><span class="num" style="text-transform:none;letter-spacing:0;color:var(--lime)">${have.size} / ${MOTIFS.length} Motive</span></div>
+  <div class="card">${cards.length?`<div class="fy-row alb-cards">${cards.map((c,i)=>{const m=MOTIFS.find(x=>x.id===c.motif)||MOTIFS[0];
+      return `<button class="alb-pc" data-card="${c.id}" style="transform:rotate(${[-3,2,-1,3,-2][i%5]}deg)" aria-label="${esc(m.title)}">${motifSvg(m,true)}${c.fan?`<i class="alb-fan">♥</i>`:""}</button>`}).join("")}</div>`
+      :`<p class="small muted">Noch keine Post. Nach ein paar guten Tagen schreiben Verwandte und Nachbarinseln, was sie Gutes über deine Insel gehört haben.</p>`}
+    ${miss?`<div class="alb-miss">${Array.from({length:Math.min(miss,8)},()=>`<span>?</span>`).join("")}</div><p class="small muted">${miss} ${miss===1?"Motiv fehlt":"Motive fehlen"} noch. Jede Karte hat ein Motiv zum Sammeln.</p>`:`<p class="small" style="color:var(--lime)">Alle Motive gesammelt!</p>`}</div>`;
+}
+function albumPass(){
+  if(!feature("fest")) return "";
+  const got=S.stamps||[], y=today().slice(0,4), cur=today().slice(0,7);
+  const yr=MFEST.map((x,i)=>{const m=y+"-"+String(i+1).padStart(2,"0");return {m,x,ok:got.includes(m),now:m===cur,past:m<cur}});
+  return `<div class="sec-h"><span>Inselpass ${y}</span><span class="num" style="text-transform:none;letter-spacing:0;color:var(--lime)">${yr.filter(z=>z.ok).length} ${yr.filter(z=>z.ok).length===1?"Stempel":"Stempel"}</span></div>
+  <div class="card alb-pass"><div class="alb-stamps">${yr.map((z,i)=>`<div class="alb-st${z.ok?" ok":z.now?" now":z.past?" miss":""}" style="--c:${["#FFB86B","#B9A6FF","#C8F169","#7FD4E8","#FF9C7A"][i%5]};transform:rotate(${[-8,5,-3,7,-6,4][i%6]}deg)" title="${esc(z.x.n)}"><span>${z.ok?z.x.e:z.now?"…":""}</span><small>${TR(MONTH_N[i]).slice(0,3).toUpperCase()}</small></div>`).join("")}</div>
+    <p class="small muted">Jeden Monat ein Fest-Stempel, wenn deine Insel ihr Monatsziel schafft.${got.length>yr.filter(z=>z.ok).length?` Insgesamt ${got.length} Stempel gesammelt.`:""}</p></div>`;
+}
+function kapselSheet(){
   const cs=S.capsules.slice().reverse();
-  return `<div class="card">${cs.length?cs.map(c=>`<button data-kapsel="${c.id}" style="display:flex;flex-direction:column;gap:2px;text-align:left;border:none;border-radius:14px;background:var(--ground);color:var(--ink);padding:10px 12px;min-height:48px"><b>${esc(c.title)}</b><span class="small muted">${esc(c.lines[0])}</span></button>`).join("")
-    :`<p class="small muted">Am Ende jedes Monats bekommst du hier eine Rückblick-Karte, die du teilen kannst.</p>`}</div>`;
+  sheet(`<p class="label" style="color:var(--lilac)">Zeitkapseln</p><h2>Deine Monatsrückblicke</h2>
+    ${cs.length?cs.map(c=>`<button class="rowbtn" data-kapsel="${c.id}" style="background:var(--ground);border-radius:14px;padding:10px 12px"><span class="grow"><b>${esc(c.title)}</b><span class="small muted" style="display:block">${c.good} von ${c.total} Tagen im Budget</span></span><span class="muted">›</span></button>`).join("")
+      :`<p class="muted">Am Ende jedes Monats bekommst du hier eine Rückblick-Karte, die du teilen kannst.</p>`}
+    <button class="btn" data-ok>Schließen</button>`);
+  document.querySelectorAll("#modalRoot [data-kapsel]").forEach(x=>x.onclick=()=>{const c=S.capsules.find(y=>y.id===x.dataset.kapsel);if(c) capsuleSheet(c)});
 }
 function viewVerlauf(){
-  const have=new Set(S.postcards.map(c=>c.motif)), found=new Set(S.finds.map(f=>f.id));
-  const cards=S.postcards.slice().reverse();
-  // Bild: die letzten drei Postkarten als Stapel, leere Plätze gestrichelt
-  const slots=[0,1,2].map(i=>cards[i]?MOTIFS.find(x=>x.id===cards[i].motif)||MOTIFS[0]:null);
-  const pos=[["8%","10%",-7],["44%","6%",5],["24%","30%",-2]];
-  const hero=`<div class="album-hero" role="img" aria-label="${cards.length?"Deine letzten Postkarten":"Noch keine Postkarten"}">${slots.map((m,i)=>`<div class="ah-card${m?"":" empty"}" style="left:${pos[i][0]};top:${pos[i][1]};transform:rotate(${pos[i][2]}deg)">${m?motifSvg(m,true):"<span>?</span>"}</div>`).reverse().join("")}
-    ${[...found].slice(0,2).map((id,i)=>`<svg class="ah-find" style="left:${i?"84%":"6%"};top:${i?"14%":"52%"}" width="46" height="34" viewBox="-16 -22 32 24" aria-hidden="true">${findSvg(id)}</svg>`).join("")}</div>`;
-  return `<div class="hero-card" style="background:#2A2238">${hero}</div>
-  <div class="scene-chips">
+  const have=new Set(S.postcards.map(c=>c.motif)), found=new Set(S.finds.map(f=>f.id)), cards=S.postcards.slice().reverse();
+  const done=S.chapter==null?0:Math.min(S.chapter,CHAPTERS.length);
+  const row=(id,ic,title,sub,attr)=>`<button class="card rowbtn alb-row" ${attr||`id="${id}"`}><span class="alb-ric" aria-hidden="true">${ic}</span><span class="grow"><b>${title}</b><span class="small muted" style="display:block">${sub}</span></span><span class="muted">›</span></button>`;
+  return `${albumBoard(cards)}
+  <div class="row zt-chips">
     <div class="cp"><i>Postkarten</i><b>${have.size} / ${MOTIFS.length}</b></div>
     <div class="cp"><i>Strandgut</i><b>${found.size} / ${FINDS.length}</b></div>
-    <div class="cp"><i>Kapseln</i><b>${S.capsules.length}</b></div>
+    <div class="cp"><i>Stempel</i><b style="color:var(--amber)">${(S.stamps||[]).length}</b></div>
   </div>
-  ${viewBayAlbum()}
-  <div class="sec-h"><span>Postkarten</span><span class="num" style="text-transform:none;letter-spacing:0">${cards.length?cards.length+" "+(cards.length===1?"Karte":"Karten"):""}</span></div>
-  ${cards.length?`<div class="fy-row">${cards.map(c=>{const m=MOTIFS.find(x=>x.id===c.motif)||MOTIFS[0];
-    return `<button class="fy" data-card="${c.id}" style="border:none;text-align:left;color:var(--ink);font:inherit"><span style="border-radius:6px;overflow:hidden;border:2px solid #F3F1EA;display:block">${motifSvg(m,true)}</span>${c.fan?`<p class="k" style="color:var(--lime)">♥ Fanpost</p>`:c.hint||c.animal!=null||c.text?`<p class="k" style="color:var(--muted)">Von unterwegs</p>`:""}<b>${esc(m.title)}</b><span class="small muted" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(c.text)}</span></button>`}).join("")}</div>`
-    :`<div class="card"><p class="small muted">Noch keine Post. Nach ein paar guten Tagen schreiben Verwandte und Nachbarinseln, was sie Gutes über deine Insel gehört haben. Jede Karte hat ein Motiv zum Sammeln.</p></div>`}
-  ${cards.length?viewAlbum():""}
-  <div class="sec-h"><span>Strandgut</span></div>
-  ${viewStrandgut()}
-  <div class="sec-h"><span>Zeitkapseln</span></div>
-  ${viewKapseln()}
-  <div class="sec-h"><span>Tagebuch</span></div>
-  <div class="card"><div class="row between"><p class="label">Letzte 14 Tage</p><span class="small muted">${S.days.length} Tage gespielt</span></div>${chart()||`<p class="muted">Noch keine Tage eingetragen.</p>`}</div>
-  ${feedCard("feed","Inseltagebuch",S.feed,"Hier erscheint, was auf deiner Insel passiert.")}
+  ${albumVitrine()}
+  ${albumStand(cards)}
+  ${albumPass()}
+  ${S.chapter!=null?row("bayAlbum","🎩","Mr. Bays Album",`Die Geschichte von OffLand · ${done} / ${CHAPTERS.length} Kapitel`):""}
+  ${row("kapselBtn","⏳","Zeitkapseln",S.capsules.length?S.capsules.length+(S.capsules.length===1?" Monatsrückblick":" Monatsrückblicke")+" zum Teilen":"Am Monatsende kommt der erste Rückblick")}
+  ${row("","✍️","Inseltagebuch",S.feed.length?S.feed.length+(S.feed.length===1?" Eintrag · ":" Einträge · ")+esc(TR((S.feed[0]||{}).text||"")).slice(0,48)+((S.feed[0]||{}).text&&TR(S.feed[0].text).length>48?"…":""):"Hier erscheint, was auf deiner Insel passiert.",'data-feed="feed"')}
 `;
 }
 /* Einstellungen: erreichbar über das Profilbild oben rechts */
@@ -3134,6 +3547,8 @@ function settingsHtml(){
     ${S.allFeatures?"":`<label class="check" for="allFeat"><input type="checkbox" id="allFeat"> Alle Funktionen sofort zeigen (statt nach und nach)</label>`}
     <label class="check" for="alarmToggle"><input type="checkbox" id="alarmToggle" ${S.alarm!==false?"checked":""}> Wecker-Ton, wenn die Fokus-Bootsfahrt geschafft ist</label>
     <label class="check" for="soundToggle"><input type="checkbox" id="soundToggle" ${S.sound!==false?"checked":""}> Töne und Geräusche</label>
+    <label class="check" for="musicToggle"><input type="checkbox" id="musicToggle" ${S.music===true?"checked":""}> Leise Inselmusik (klingt nach 3 Minuten aus)</label>
+    <label class="field" for="langSel" style="margin-top:8px"><span data-noi18n>Sprache · Language</span><select id="langSel" data-noi18n>${[["","Automatisch · Auto"],["de","Deutsch"],["en","English"]].map(([v,n])=>`<option value="${v}"${(langPref()||"")===v?" selected":""}>${n}</option>`).join("")}</select></label>
   </div>
   ${netConfigured()?`<div class="card"><p class="label">Online: Freunde und Ranglisten</p>
     <label class="check" for="netToggle"><input type="checkbox" id="netToggle" ${netOn()?"checked":""}> Online sein (Name, Avatar und Wochen-Bildschirmzeit für Freund:innen sichtbar)</label>
@@ -3141,10 +3556,11 @@ function settingsHtml(){
     <p class="small muted">Ausschalten löscht alle Online-Daten dieses Kontos und trennt die Online-Freundschaften.</p>`:""}
   </div>`:""}
   ${stCard()}
+  ${shieldCard()}
   ${netConfigured()?backupCard():""}
   ${netConfigured()?`<div class="card"><p class="label">Anonyme Statistik</p>
     <label class="check" for="statsToggle"><input type="checkbox" id="statsToggle" ${statsDev().consent===true?"checked":""}> Anonym mitzählen, welche Funktionen genutzt werden</label>
-    <p class="small muted">Nur Zähler wie „heute wurde ein Tag eingetragen“, ohne Namen, Bildschirmzeiten oder Kennung. Gilt für dieses Gerät.</p></div>`:""}
+    <p class="small muted">Nur Zähler wie „heute wurde ein Tag eingetragen“, ohne Namen, Minuten oder Kennung; Bildschirmzeit nur als grobe Stufe. Gilt für dieses Gerät.</p></div>`:""}
   <div class="card"><p class="label">Sicherung</p>
     <p class="small muted">Dein Spielstand liegt nur in diesem Browser. Lade ab und zu eine Sicherung herunter, um ihn auf ein anderes Gerät mitzunehmen.</p>
     <div class="row"><button class="btn secondary grow" id="exportBtn">Sichern</button><button class="btn secondary grow" id="importBtn">Laden</button></div>
@@ -3156,6 +3572,14 @@ function settingsHtml(){
       <button class="btn ghost" id="famLeaveBtn">Familieninsel verlassen</button>`
     :`<p class="small muted">Gründe eine Familieninsel oder tritt einer bei: im Tab Freunde.</p>`}
   </div>`:""}
+  ${devMode()||S.testmode?`<div class="card">
+    <div class="row between"><p class="label">Testmodus</p><label class="check" for="tm" style="min-height:auto"><input type="checkbox" id="tm" ${S.testmode?"checked":""}> an</label></div>
+    <p class="small muted">Im Testmodus kannst du beliebig viele Tage nacheinander eintragen oder zufällig simulieren.</p>
+    ${S.testmode?`<div class="row"><button class="btn secondary grow" id="simGood">Guter Tag</button><button class="btn secondary grow" id="simBad">Schlechter Tag</button></div>
+    <button class="btn ghost" id="sim10">10 Tage gemischt</button>
+    <button class="btn ghost" id="resetBtn">Spielstand zurücksetzen</button>`:""}
+  </div>`:""}
+  <p class="small muted" style="text-align:center"><a href="impressum/" style="color:inherit">Impressum</a> · <a href="datenschutz/" style="color:inherit">Datenschutz</a></p>
   <p class="small muted" id="verLine" style="text-align:center;padding:8px;user-select:none">OffLand · Version ${APP_VERSION}${devMode()?" · Entwicklermodus":""}</p>`;
 }
 
@@ -3181,6 +3605,7 @@ function renderScene(){
   setViewBox(views[islandView].vb);
   if(scenePaused){const sv=$("#scene > svg"); if(sv&&sv.pauseAnimations) sv.pauseAnimations()}
   document.querySelectorAll("[data-snav]").forEach(b=>b.onclick=()=>goView(islandView+ +b.dataset.snav));
+  bindGuests();
   document.querySelectorAll("[data-sview]").forEach(b=>b.onclick=()=>goView(+b.dataset.sview));
 }
 function goView(i){
@@ -3213,15 +3638,49 @@ let scenePaused=false;
 })();
 
 /* ---------- Rendern ---------- */
+/* ---------- Testleiste: im Testmodus immer sichtbar, zeigt was ein simulierter Tag verändert ---------- */
+let devLast=null;
+function devSimDay(bad){
+  const apps={};S.apps.forEach(a=>{apps[a.id]=Math.round(a.limit*(bad?(0.6+Math.random()*1.2):(0.2+Math.random()*0.7)))});
+  const g0=S.glueck, before=new Map(S.residents.map(r=>[r.id,{lv:lvOf(r),phone:!!r.phone,status:r.status}]));
+  closeDay(Math.round(S.budget*(bad?(1.3+Math.random()*0.8):(0.4+Math.random()*0.5))/5)*5,[],apps);
+  const notes=[];
+  S.residents.forEach(r=>{const b=before.get(r.id);
+    if(!b){notes.push((r.parents?"👶 ":"🛶 ")+r.name+(r.parents?" geboren":" zieht ein"));return}
+    if(b.status!=="weg"&&r.status==="weg") notes.push("👋 "+r.name+" ist weg");
+    if(r.kind!=="mensch"||r.status==="weg") return;
+    const t=lvOf(r);
+    if(r.phone&&!b.phone) notes.push("📱 "+r.name+" hängt am Handy");
+    else if(t!==b.lv) notes.push((t>b.lv?"⬆️ ":"⬇️ ")+r.name+": "+(t===4?"wieder Mensch ✨":LV_NAMES[t]));
+  });
+  devLast={bad,day:S.dayCount,g0,g1:S.glueck,notes};
+}
+function devBar(){
+  let el=$("#devBar");
+  if(!S.testmode||!S.setup){if(el) el.remove();return}
+  if(!el){el=document.createElement("div");el.id="devBar";el.className="devbar";document.body.appendChild(el)}
+  const L=devLast, d=L?L.g1-L.g0:0;
+  el.innerHTML=`${L?`<div class="dev-res"><b>${L.bad?"🌧":"☀️"} Tag ${L.day}</b> · Glück ${L.g0} → <b class="${d>=0?"up":"down"}">${L.g1} %</b>${L.notes.length?`<span>${L.notes.slice(0,4).map(esc).join(" · ")}${L.notes.length>4?" · +"+(L.notes.length-4):""}</span>`:`<span class="muted">Sonst keine Veränderung</span>`}</div>`:`<div class="dev-res muted">Testmodus: Tage simulieren und zuschauen, was passiert</div>`}
+    <div class="dev-btns"><button type="button" data-dev="good">☀️ Gut</button><button type="button" data-dev="bad">🌧 Schlecht</button><button type="button" data-dev="week">⏩ 7 Tage</button><button type="button" data-dev="off" aria-label="Testmodus aus">✕</button></div>`;
+  el.querySelectorAll("[data-dev]").forEach(b=>b.onclick=()=>{
+    const k=b.dataset.dev;
+    if(k==="off"){S.testmode=false;devLast=null;save();render();toast("Testmodus aus");return}
+    if(k==="week"){let notes=[],g0=S.glueck;for(let i=0;i<7;i++){if($("#modalRoot").innerHTML) break; devSimDay(Math.random()<.3); notes=notes.concat(devLast.notes)} devLast.g0=g0; devLast.notes=notes; devLast.bad=devLast.g1<g0}
+    else devSimDay(k==="bad");
+    save(); render(); if(tab==="heute") window.scrollTo({top:0,behavior:"smooth"});
+  });
+}
 function render(){
+  widgetSync(); shieldRefresh();
   // Im Tab Freunde steht die Familieninsel, dort die eigene Insel oben ausblenden
   $("#scene").hidden=["freunde","bewohner","zeit","projekt","verlauf"].includes(tab);
   renderScene();
-  $("#streakChip").textContent=S.happyStreak>0?S.happyStreak+(S.happyStreak===1?" glücklicher Tag":" glückliche Tage"):S.dayCount+(S.dayCount===1?" Tag":" Tage")+" gespielt";
+  $("#streakChip").textContent=S.happyStreak>0?"🔥 "+S.happyStreak+(S.happyStreak===1?" Tag":" Tage"):S.dayCount+(S.dayCount===1?" Tag":" Tage")+" gespielt";
+  $("#streakChip").title=S.happyStreak>0?S.happyStreak+(S.happyStreak===1?" glücklicher Tag":" glückliche Tage")+" in Folge":"";
   $("#streakChip").className="chip "+(S.happyStreak>0?"good":"gone");
   $("#accBtn").innerHTML=ACC?avatarSvg(ACC.avatar,40):"";
   $("#title").textContent=!S.setup?"Deine Insel":tab==="heute"?(ACC?"Hallo "+ACC.name:"Deine Insel"):tab==="bewohner"?"Bewohner":tab==="zeit"?"Deine Zeit":tab==="projekt"?"Bauen":tab==="freunde"?"Freunde":tab==="verlauf"?"Album":"Deine Insel";
-  $("#dateline").textContent="OffLand · "+new Date().toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"short"});
+  $("#dateline").textContent="OffLand · "+new Date().toLocaleDateString(LOC,{weekday:"short",day:"numeric",month:"short"});
   const pb=plusBadge(); if(pb){$("#streakChip").textContent=pb;$("#streakChip").className="chip plus"}                // Plus-Woche: Abzeichen statt Tageszähler
   if(TAB_FEATURE[tab]&&!feature(TAB_FEATURE[tab])) tab="heute";
   let nTabs=0;
@@ -3233,19 +3692,36 @@ function render(){
   renderFocus();
   if(tab==="freunde"&&$("#rankBox")) fillRanks();
   if(tab==="freunde"&&$("#famBox")) fillFamily();
+  devBar();
 }
 function bind(){
+  bindGuests();
   const sb=$("#setBudget"), sa=$("#setBase");
   if(sb) sb.oninput=()=>{S.budget=+sb.value;$("#setBudgetOut").textContent=hm(S.budget)};
   if(sa) sa.oninput=()=>{S.baseline=+sa.value;$("#setBaseOut").textContent=hm(S.baseline)};
   if(sb) sb.onchange=save; if(sa) sa.onchange=save;
-  const st=$("#startBtn"); if(st) st.onclick=()=>{S.setup=true;stat("insel_start");log("Deine Insel ist gegründet. "+nameList(here().map(r=>r.name))+" ziehen ein.","good");plusTrialStart();save();render();if(famInvite())famJoinSheet(famInvite());else showPending()};
+  document.querySelectorAll("[data-basemode]").forEach(b=>b.onclick=()=>{SETUP_AUTO=b.dataset.basemode==="auto";render()});
+  const sav=$("#stAvg"); if(sav) sav.onclick=async()=>{
+    try{const i=await ST.status(); if(!i||i.status!=="approved") await ST.authorize(); await ST.showAverage(); await stStatus()}
+    catch(e){toast("Ohne Zugriff auf die Bildschirmzeit geht das leider nicht. Den Wert findest du in den Einstellungen unter Bildschirmzeit.")}
+    const b=$("#setBase"); if(b) b.focus();
+  };
+  const st=$("#startBtn"); if(st) st.onclick=async()=>{
+    if(SETUP_AUTO&&!S.setup){
+      let ok=false; try{await ST.authorize(); const r=await ST.pickApps(); ok=!!(r&&r.ok)}catch(e){}
+      await stStatus();
+      if(ok){S.autoTime=true; S.baseMeasure={since:today()}}
+      else {S.stNoLink=true; toast("Kein Zugriff auf die Bildschirmzeit. Du kannst den Schnitt später in den Einstellungen anpassen.")}
+    }
+    S.setup=true;stat("insel_start");log("Deine Insel ist gegründet. "+nameList(here().map(r=>r.name))+" ziehen ein.","good");plusTrialStart();save();render();if(famInvite())famJoinSheet(famInvite());else showPending()};
   const bo=$("#bkOn"); if(bo) bo.onclick=backupEnable;
   const wsb=$("#wishShop"); if(wsb) wsb.onclick=()=>{tab="projekt";bauTab="laden";render();window.scrollTo(0,0)};
   document.querySelectorAll("[data-bau]").forEach(b=>b.onclick=()=>{bauTab=b.dataset.bau;render();const t=$("[data-bau]");if(t&&t.getBoundingClientRect().top<0)t.scrollIntoView({block:"start"})});
   const stS=$("#stSetup"); if(stS) stS.onclick=stSetup;
+  const stE=$("#stEntry"); if(stE) stE.onclick=()=>stSetup(true);
   const stA=$("#stApps"); if(stA) stA.onclick=async()=>{try{await ST.pickApps()}catch(e){} await stStatus(); settingsSheet()};
-  const stO=$("#stOff"); if(stO) stO.onclick=async()=>{try{await ST.stop()}catch(e){} S.autoTime=false; save(); await stStatus(); settingsSheet()};
+  bindShieldCard();
+  const stO=$("#stOff"); if(stO) stO.onclick=async()=>{try{await ST.stop()}catch(e){} S.autoTime=false; S.stNoLink=true; save(); await stStatus(); settingsSheet()};
   ["#inH","#inM"].forEach(id=>{const el=$(id); if(el) el.addEventListener("input",()=>{el.dataset.touched="1"})});
   if(ST&&$("#inH")) stFill();
   const bn=$("#bkNow"); if(bn) bn.onclick=async()=>{bn.disabled=true;bn.textContent="Sichere …";const ok=await backupNow(true);toast(ok?"Insel gesichert":"Sichern hat nicht geklappt");settingsSheet()};
@@ -3268,34 +3744,54 @@ function bind(){
   const gg=$("#goalGo"); if(gg) gg.onclick=()=>{ENTRY_OPEN=true;render();const c=$("#closeCard");if(c)c.scrollIntoView({behavior:"smooth",block:"center"})};
   const wm=$("#whMore"); if(wm) wm.onclick=whisperSheet;
   ["#inH","#inM"].forEach(id=>{const el=$(id);if(el)el.oninput=liveUpdate}); liveUpdate();
+  const ir=$("#inR"); if(ir) ir.oninput=()=>{const v=+ir.value, h=$("#inH"), m=$("#inM"); h.value=Math.floor(v/60); m.value=String(v%60).padStart(2,"0"); h.dataset.touched=m.dataset.touched="1"; liveUpdate()};
+  const bg=$("#boatGo"); if(bg) bg.onclick=boatPick;
+  countUpMain();
   const cb=$("#closeBtn"); if(cb) cb.onclick=()=>{
     const h=+($("#inH").value||0), m=+($("#inM").value||0);
     const min=clamp(h*60+m,0,1440);
     const apps={}; S.apps.forEach(a=>{const el=$("#app_"+a.id);if(el&&el.value!=="")apps[a.id]=clamp(+el.value,0,1440)});
     closeDay(min,[],apps);
   };
-  const tm=$("#tm"); if(tm) tm.onchange=()=>{S.testmode=tm.checked;save();render()};
-  const simApps=bad=>{const o={};S.apps.forEach(a=>{o[a.id]=Math.round(a.limit*(bad?(0.6+Math.random()*1.2):(0.2+Math.random()*0.7)))});return o};
-  const simDay=bad=>closeDay(Math.round(S.budget*(bad?(1.3+Math.random()*0.8):(0.4+Math.random()*0.5))/5)*5,[],simApps(bad));
+  const tm=$("#tm"); if(tm) tm.onchange=()=>{S.testmode=tm.checked;devLast=null;save();
+    // Beim Einschalten direkt zur Insel, damit man sieht, was die Testleiste bewirkt
+    if(S.testmode){closeModal();tab="heute";render();window.scrollTo(0,0);toast("Testmodus an: Leiste unten")} else {render();if(tm.closest("#modalRoot"))settingsSheet()}};
+  const simDay=devSimDay;
   const g=$("#simGood"); if(g) g.onclick=()=>simDay(false);
   const b=$("#simBad"); if(b) b.onclick=()=>simDay(true);
   const s10=$("#sim10"); if(s10) s10.onclick=()=>{const keep=S.pending.length;for(let i=0;i<10;i++){if($("#modalRoot").innerHTML) break; simDay(Math.random()<.25)}};
   document.querySelectorAll("[data-boat]").forEach(x=>x.onclick=()=>focusSheet(+x.dataset.boat));
   document.querySelectorAll("[data-act]").forEach(x=>x.onclick=()=>doActivity(x.dataset.act));
-  const nb=$("#nightBtn"); if(nb) nb.onclick=goodNight;
+  const nb=$("#nightBtn"); if(nb) nb.onclick=nightAsk;
   const pdn=$("#planDone"); if(pdn) pdn.onclick=()=>{const pl=S.plan, p=pl&&PLANS.find(x=>x.id===pl.id); if(!p) return; pl.res=true; const r=planResult(true,pl.id,pl.day); save(); render(); planDoneSheet(p,r)};
   const wrb=$("#weekBtn"); if(wrb) wrb.onclick=()=>weekSheet(wrb.dataset.wk);
-  const zs=$("#zeitShare"); if(zs) zs.onclick=()=>{const e=equivTop(savedTotal())[0]; shareText("Mit OffLand habe ich schon "+hm(savedTotal())+" Handyzeit zurückgewonnen"+(e?", das sind "+e.c+" "+(e.c===1?SING[e.a.n]||e.a.n:e.a.n):"")+".",inviteLink())};
+  document.querySelectorAll("[data-zshare]").forEach(b=>b.onclick=()=>{const a=ACTS[+b.dataset.zshare], c=Math.floor(savedTotal()/a.min); shareText("Mit OffLand habe ich schon "+hm(savedTotal())+" Handyzeit zurückgewonnen, das sind "+c+" "+(c===1?SING[a.n]||a.n:a.n)+".",inviteLink())});
+  const zc=$("#ztCal"); if(zc) zc.onclick=e=>{const d=e.target.closest("[data-zday]"); if(d){zeitSel=d.dataset.zday; render()}};
+  const zo=$("#ztOld"); if(zo) zo.onclick=()=>{zeitPage++; render()};
+  const zn=$("#ztNew"); if(zn) zn.onclick=()=>{zeitPage=Math.max(0,zeitPage-1); render()};
   if($("#bayAlbum")) $("#bayAlbum").onclick=bayAlbumSheet;
+  const kb=$("#kapselBtn"); if(kb) kb.onclick=kapselSheet;
   document.querySelectorAll("[data-feed]").forEach(b=>b.onclick=()=>feedSheet(b.dataset.feed));
   const wrr=$("#weekReadyBtn"); if(wrr) wrr.onclick=()=>weekSheet(S.weekReady.wk);
   const vo=$("#vacOff"); if(vo) vo.onclick=()=>setVacation(false);
   const dt=$("#deathToggle"); if(dt) dt.onchange=()=>{S.natDeath=dt.checked;save()};
   document.querySelectorAll("[data-tea]").forEach(x=>x.onclick=()=>giveTea(x.dataset.tea));
   document.querySelectorAll(".res-txt").forEach(x=>x.onclick=()=>x.classList.toggle("open"));   // Bewohner-Zeile: alles zeigen
+  document.querySelectorAll("[data-rt]").forEach(x=>x.onclick=()=>resSheet(x.dataset.rt));
+  document.querySelectorAll("details.res-sec").forEach(d=>d.ontoggle=()=>{if(d.dataset.search) return; (S.bwFold=S.bwFold||{})[d.dataset.fold]=!d.open; save()});
+  const rsq=$("#resSearch"); if(rsq) rsq.oninput=()=>{
+    const q=rsq.value.trim().toLowerCase(); let hits=0;
+    document.querySelectorAll("#view .res-sec [data-q]").forEach(el=>{const ok=!q||el.dataset.q.includes(q); el.hidden=!ok; if(ok) hits++});
+    document.querySelectorAll("details.res-sec").forEach(d=>{d.dataset.search=1; if(q) d.open=true; else d.open=!(S.bwFold||{})[d.dataset.fold]; setTimeout(()=>delete d.dataset.search,0);
+      d.hidden=!!q&&![...d.querySelectorAll("[data-q]")].some(el=>!el.hidden)});   // Abschnitte ohne Treffer ausblenden
+    $("#resNone").hidden=!q||hits>0;
+  };
   const vt=$("#vacToggle"); if(vt) vt.onchange=()=>setVacation(vt.checked);
   const al=$("#alarmToggle"); if(al) al.onchange=()=>{S.alarm=al.checked;save();if(al.checked)ringAlarm()};
-  const so=$("#soundToggle"); if(so) so.onchange=()=>{S.sound=so.checked;save();if(so.checked)sfx("return")};
+  const so=$("#soundToggle"); if(so) so.onchange=()=>{S.sound=so.checked;save();if(so.checked)sfx("return");else MUSIC.stop(.5)};
+  const ls=$("#langSel"); if(ls) ls.onchange=()=>{try{if(ls.value)localStorage.setItem("offland-lang",ls.value);else localStorage.removeItem("offland-lang")}catch(e){} location.reload()};
+  const mu=$("#musicToggle"); if(mu) mu.onchange=()=>{S.music=mu.checked;save();if(mu.checked){musicDone=false;musicStart()}else MUSIC.stop(1)};
+  const calmB=$("#calmBtn"); if(calmB) calmB.onclick=calmMinute;
   document.querySelectorAll("[data-lim]").forEach(x=>x.onchange=()=>{const a=S.apps.find(y=>y.id===x.dataset.lim);if(a){a.limit=clamp(+x.value||a.limit,5,600);save()}});
   const fsh=$("#famShare"); if(fsh) fsh.onchange=()=>{S.family.share=fsh.checked;save();famSync()};
   const flv=$("#famLeaveBtn"); if(flv) flv.onclick=async()=>{flv.disabled=true;await famLeave();toast("Familieninsel verlassen");settingsSheet()};
@@ -3311,7 +3807,7 @@ function bind(){
   document.querySelectorAll("[data-buy]").forEach(btn=>btn.onclick=()=>{
     const it=allItems().find(x=>x.id===btn.dataset.buy), cost=price(it); if(S.points<cost) return;
     S.points-=cost;
-    if(it.consumable){if(it.id==="tee")S.tea++;else if(it.id==="klee")S.glueck=clamp(S.glueck+5,0,100);else S.sun++} else if(!owns(it.id)){ if(!S.items.includes(it.id)) S.items.push(it.id); if(!it.world&&RARE.includes(it)){S.itemW=S.itemW||{};S.itemW[it.id]=curWorldId()} }
+    if(it.consumable){if(it.id==="tee")S.tea++;else if(it.id==="klee")glAdd(5);else S.sun++} else if(!owns(it.id)){ if(!S.items.includes(it.id)) S.items.push(it.id); if(!it.world&&RARE.includes(it)){S.itemW=S.itemW||{};S.itemW[it.id]=curWorldId()} }
     sfx("buy"); stat("kauf"); log("Gekauft: "+it.n+" für "+cost+" Punkte.","good"); toast(it.n+(it.consumable?" auf Vorrat":" steht jetzt auf deiner Insel"));
     if(S.wish&&(!S.wish.type||S.wish.type==="item")&&S.wish.item===it.id) fulfillWish();
     save(); render(); showPending();
@@ -3333,11 +3829,19 @@ function audio(){
     if(!AC){const C=window.AudioContext||window.webkitAudioContext; if(!C) return null; AC=new C();
       NOISE=AC.createBuffer(1,AC.sampleRate*0.6,AC.sampleRate); const d=NOISE.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;}
     if(AC.state==="suspended") AC.resume();
+    audioIdle();
     return AC;
   }catch(e){return null}
 }
+/* Tonausgabe schläft kurz nach dem letzten Geräusch wieder ein: Beim Wechsel in eine andere App spielt
+   das iPhone sonst manchmal einen verzerrten Tonrest („Hupen“). Die nächste Berührung oder das nächste Geräusch weckt sie. */
+let idleT=0;
+function audioIdle(){clearTimeout(idleT); idleT=setTimeout(()=>{
+  if(typeof MUSIC!=="undefined"&&(MUSIC.playing()||CALM)) return audioIdle();
+  try{if(AC&&AC.state==="running") AC.suspend()}catch(e){}
+},4500)}
 // iOS/Safari geben Töne erst nach einer Berührung frei
-["pointerdown","touchend","keydown"].forEach(t=>document.addEventListener(t,()=>{if(AC&&AC.state==="suspended")AC.resume();else if(!AC&&S&&S.sound!==false)audio()},{passive:true}));
+["pointerdown","touchend","keydown"].forEach(t=>document.addEventListener(t,()=>{if(S&&S.sound!==false) audio()},{passive:true}));
 function tone(ac,f,t,dur,o){
   o=o||{}; const osc=ac.createOscillator(), g=ac.createGain(), now=ac.currentTime+t, v=(o.vol||.18);
   osc.type=o.type||"sine"; osc.frequency.setValueAtTime(f,now);
@@ -3420,6 +3924,178 @@ function speak(seq,delay){
   const ac=audio(); if(!ac) return;
   let t=delay||0; seq.forEach(([who,text])=>{t+=voice(ac,who,text,t)+.15});
 }
+/* ---------- Inselmusik: live erzeugt wie die Geräusche, leise, klingt nach 3 Minuten aus ----------
+   Morgen (Holzklänge), Abend (sanftes E-Piano mit Knistern), Nacht (Spieluhr); dazu Meeresrauschen. */
+const MUSIC=(()=>{
+  const V={
+    morgen:{bpm:92,lead:"marimba",comp:"stab",chords:[[60,64,67,72],[57,60,64,69],[53,57,60,65],[55,59,62,67]],bass:[48,45,41,43],
+      scale:[64,67,69,72,74,76,79,81],density:.55,birds:true,wave:.22},
+    abend:{bpm:62,lead:"soft",comp:"warm",chords:[[53,57,60,64],[52,55,59,62],[50,53,57,60],[48,52,55,59]],bass:[41,40,38,36],
+      scale:[60,62,64,67,69,72,74,76],density:.3,crackle:true,wave:.34},
+    nacht:{bpm:58,lead:"box",comp:"pad",chords:[[57,60,64,67],[53,57,60,64],[48,52,55,59],[55,59,62,64]],bass:[45,41,36,43],
+      scale:[69,72,74,76,79,81,84,86],density:.3,wave:.5}
+  };
+  let ac=null,master,dry,wet,waveGain,waveBuf,waveSrc=null,crackleGain,cur=null,timer=0,step=0,nextT=0,motif=null,cycle=0,endT=0,stopT=0;
+  const mtof=m=>440*Math.pow(2,(m-69)/12), rnd=Math.random;
+  function setup(a){
+    if(ac===a) return; ac=a;
+    master=ac.createGain(); master.gain.value=0; master.connect(ac.destination);
+    dry=ac.createGain(); dry.gain.value=.8; dry.connect(master);
+    const len=ac.sampleRate*3, ir=ac.createBuffer(2,len,ac.sampleRate);                       // Hall: selbst erzeugte Raumantwort
+    for(let c=0;c<2;c++){const d=ir.getChannelData(c); for(let i=0;i<len;i++) d[i]=(rnd()*2-1)*Math.pow(1-i/len,3.2)}
+    const conv=ac.createConvolver(); conv.buffer=ir; wet=ac.createGain(); wet.gain.value=.38; wet.connect(conv); conv.connect(master);
+    waveBuf=ac.createBuffer(1,ac.sampleRate*4,ac.sampleRate); const nd=waveBuf.getChannelData(0); let last=0;   // Meeresrauschen
+    for(let i=0;i<nd.length;i++){last=(last+.02*(rnd()*2-1))/1.02; nd[i]=last*3.5}
+    waveGain=ac.createGain(); waveGain.gain.value=0; waveGain.connect(master);
+    crackleGain=ac.createGain(); crackleGain.gain.value=.5; crackleGain.connect(master);
+  }
+  const out=(g,send)=>{g.connect(dry); const s=ac.createGain(); s.gain.value=send; g.connect(s); s.connect(wet)};
+  const env=(g,t,a,peak,dec)=>{g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(peak,t+a); g.gain.exponentialRampToValueAtTime(.0001,t+a+dec)};
+  const osc=(type,f,t,stop,dest,det)=>{const o=ac.createOscillator(); o.type=type; o.frequency.value=f; if(det) o.detune.value=det; o.connect(dest); o.start(t); o.stop(stop); return o};
+  const I={
+    marimba(t,m,dur,v){const f=mtof(m), g=ac.createGain(); env(g,t,.004,.32*v,.9); out(g,.25); osc("sine",f,t,t+1.2,g);
+      const g2=ac.createGain(); env(g2,t,.002,.08*v,.12); g2.connect(g); osc("sine",f*4,t,t+.3,g2)},
+    soft(t,m,dur,v){const f=mtof(m), g=ac.createGain(), lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=950; lp.Q.value=.3;
+      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.2*v,t+.06); g.gain.exponentialRampToValueAtTime(.0001,t+Math.max(2.2,dur*2.2));
+      lp.connect(g); out(g,.55); const e=t+dur*2.4+2.5; osc("sine",f,t,e,lp,-4); osc("sine",f,t,e,lp,5); osc("triangle",f/2,t,e,lp)},
+    hum(t,m,dur,v){const f=mtof(m), g=ac.createGain(), lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=700;
+      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.09*v,t+.08); g.gain.exponentialRampToValueAtTime(.0001,t+2); lp.connect(g); out(g,.5); osc("sine",f,t,t+2.2,lp)},
+    box(t,m,dur,v){const f=mtof(m), g=ac.createGain(); env(g,t,.003,.2*v,1.9); out(g,.55); osc("sine",f,t,t+2.2,g);
+      const g2=ac.createGain(); env(g2,t,.002,.05*v,.5); g2.connect(g); osc("sine",f*5.4,t,t+.7,g2)},
+    bass(t,m,dur,v){const g=ac.createGain(); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.3*v,t+.03); g.gain.setTargetAtTime(0,t+dur*.8,.25); out(g,.08); osc("sine",mtof(m),t,t+dur+1.5,g)},
+    pad(t,notes,dur,v){const g=ac.createGain(), lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=900;
+      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.06*v,t+Math.min(1.2,dur*.35)); g.gain.linearRampToValueAtTime(0,t+dur+1.2); lp.connect(g); out(g,.6);
+      notes.forEach(m=>{osc("triangle",mtof(m),t,t+dur+1.4,lp,-6); osc("triangle",mtof(m),t,t+dur+1.4,lp,6)})},
+    bird(t){const g=ac.createGain(); env(g,t,.01,.035,.18); out(g,.5); const o=osc("sine",2600,t,t+.25,g);
+      o.frequency.setValueAtTime(2600+rnd()*600,t); o.frequency.exponentialRampToValueAtTime(3800+rnd()*500,t+.08); o.frequency.exponentialRampToValueAtTime(3000,t+.16)},
+    crackle(t){const len=Math.floor(ac.sampleRate*.012), b=ac.createBuffer(1,len,ac.sampleRate), d=b.getChannelData(0);
+      for(let i=0;i<len;i++) d[i]=(rnd()*2-1)*Math.pow(1-i/len,2);
+      const s=ac.createBufferSource(); s.buffer=b; const hp=ac.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=1500+rnd()*2500;
+      const g=ac.createGain(); g.gain.value=.05+rnd()*.07; s.connect(hp); hp.connect(g); g.connect(crackleGain); s.start(t)}
+  };
+  // kurzes Motiv über zwei Takte, das sich über die vier Akkorde wiederholt und leicht verändert
+  function newMotif(v){
+    const st=[]; let deg=2+Math.floor(rnd()*3);
+    for(let i=0;i<15;i++){const p=i%4===0?v.density+.25:i%2===0?v.density:v.density*.45;
+      if(rnd()<p){deg=Math.max(0,Math.min(v.scale.length-1,deg+[-2,-1,-1,0,1,1,2][Math.floor(rnd()*7)])); st.push({i,deg})}}
+    if(!st.length||st[0].i!==0) st.unshift({i:0,deg:2});
+    return st.map((s,k)=>({i:s.i,deg:s.deg,len:(st[k+1]?st[k+1].i:16)-s.i}));
+  }
+  function pick(v,deg,chord,strong){let m=v.scale[deg]; if(strong){let b=m,bd=99; v.scale.forEach(s=>{if(chord.some(c=>(s-c)%12===0)){const d=Math.abs(s-m); if(d<bd){bd=d;b=s}}}); m=b} return m}
+  function tick(){
+    const v=V[cur], spb=60/v.bpm, e=spb/2;
+    if(endT&&ac.currentTime>=endT){stop(8);return}
+    if(nextT<ac.currentTime-.05){const skip=Math.ceil((ac.currentTime-nextT)/e); step+=skip; nextT+=skip*e}   // im Hintergrund verpasste Töne nicht alle auf einmal nachspielen
+    while(nextT<ac.currentTime+.2){
+      const bar=Math.floor(step/8), inBar=step%8, ci=Math.floor(bar/2)%4, chord=v.chords[ci], t=nextT, ph=step%16, rep=Math.floor((step%64)/16), sw=step%2?e*.12:0;
+      if(step%64===0){cycle++; if(!motif||cycle%2===1||rnd()<.4) motif=newMotif(v)}
+      motif.forEach(n=>{if(n.i===ph&&!(rep===3&&ph>=10)) I[v.lead](t+sw,pick(v,n.deg,chord,ph%4===0),n.len*e,.75+rnd()*.25)});
+      if(rep===3&&ph===10) I[v.lead](t,v.chords[3][0]+12,e*6,.8);
+      if(v.comp==="stab"){if(inBar%4===0) I.bass(t,v.bass[ci],spb*1.6,.9); if(inBar%4===2) chord.slice(0,3).forEach((c,k)=>I.marimba(t+k*.012,c,e,.38))}
+      else if(v.comp==="warm"){if(step%16===0){I.pad(t,chord,spb*8,.8); I.bass(t,v.bass[ci],spb*7,.55)} if(inBar%2===0) I.hum(t,chord[[0,2,1,3][inBar/2]],spb,.75+rnd()*.2)}
+      else {if(step%16===0){I.pad(t,chord,spb*8,1); I.bass(t,v.bass[ci],spb*7,.6)} if(inBar===4&&rnd()<.5) I.box(t,chord[Math.floor(rnd()*4)]+12,e*2,.35)}
+      if(v.birds&&rnd()<.025){I.bird(t+rnd()*.3); if(rnd()<.6) I.bird(t+.22+rnd()*.1)}
+      if(v.crackle){const n=rnd()<.5?1:rnd()<.3?2:0; for(let k=0;k<n;k++) I.crackle(t+rnd()*e)}
+      nextT+=e; step++;
+    }
+  }
+  function play(mood,o){
+    o=o||{}; const a=audio(); if(!a) return false; setup(a);
+    clearTimeout(stopT); clearInterval(timer);
+    if(cur!==mood){step=0;cycle=0;motif=null} cur=mood;
+    const t=ac.currentTime; nextT=t+.08; endT=o.minutes?t+o.minutes*60:0;
+    master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value,t); master.gain.linearRampToValueAtTime(o.vol||.32,t+(o.fadeIn||1.2));
+    if(!waveSrc){   // Rauschen läuft nur, solange Musik spielt
+      const ns=ac.createBufferSource(); ns.buffer=waveBuf; ns.loop=true;
+      const lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=650;
+      const swell=ac.createGain(); swell.gain.value=.5; const lfo=ac.createOscillator(); lfo.frequency.value=1/9; const lg=ac.createGain(); lg.gain.value=.45;
+      lfo.connect(lg); lg.connect(swell.gain); ns.connect(lp); lp.connect(swell); swell.connect(waveGain); ns.start(t); lfo.start(t); waveSrc=[ns,lfo];
+    }
+    // geplantes Ausblenden eines vorherigen stop() verwerfen, sonst dreht es das Rauschen kurz danach wieder auf 0
+    waveGain.gain.cancelScheduledValues(t); waveGain.gain.setValueAtTime(waveGain.gain.value,t);
+    waveGain.gain.setTargetAtTime(o.waves===false?0:V[mood].wave*(o.waveBoost||1),t,.8);
+    timer=setInterval(tick,25); tick(); return true;
+  }
+  function stop(sec){
+    if(!ac||!cur) return; const t=ac.currentTime; sec=sec==null?2:sec;
+    master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value,t); master.gain.linearRampToValueAtTime(0,t+sec);
+    waveGain.gain.setTargetAtTime(0,t+sec*.8,.3);
+    clearInterval(timer); clearTimeout(stopT); endT=0;   // keine neuen Töne mehr planen
+    const ws=waveSrc; waveSrc=null; if(ws) ws.forEach(n=>{try{n.stop(t+sec+.3)}catch(e){}});
+    stopT=setTimeout(()=>{cur=null},sec*1000+100);
+  }
+  // sofort still: beim Verlassen der App alles anhalten, damit das iPhone keine Tonreste verzerrt abspielt
+  function halt(){clearInterval(timer); clearTimeout(stopT); endT=0; cur=null; const ws=waveSrc; waveSrc=null;
+    if(ac){try{master.gain.cancelScheduledValues(0); master.gain.value=0}catch(e){} if(ws) ws.forEach(n=>{try{n.stop()}catch(e){}})}}
+  return {play,stop,halt,playing:()=>cur,waveLevel:()=>waveGain?waveGain.gain.value:0};
+})();
+const moodNow=()=>{const h=new Date().getHours(); return h>=22||h<5?"nacht":h>=17?"abend":"morgen"};
+/* Hintergrundmusik: nur wenn eingeschaltet, startet mit der ersten Berührung, klingt nach 3 Minuten aus */
+let musicDone=false;
+function musicStart(){if(S&&S.music===true&&S.sound!==false&&!musicDone&&!MUSIC.playing()&&!document.hidden&&!$(".calm")){if(MUSIC.play(moodNow(),{minutes:3})) musicDone=true}}
+["pointerdown","touchend","keydown"].forEach(t=>document.addEventListener(t,musicStart,{passive:true}));
+function audioSleep(){MUSIC.halt(); if(CALM) calmEnd(false); try{if(AC&&AC.state==="running") AC.suspend()}catch(e){}}   // Töne beim Verlassen sofort anhalten
+document.addEventListener("visibilitychange",()=>{if(document.hidden) audioSleep(); else musicDone=false});
+window.addEventListener("pagehide",audioSleep);
+
+/* einmalige Frage nach der Musik, mit Hörprobe */
+function musicAskSheet(){
+  sheet(`<p class="label" style="color:var(--lilac)">Kurze Frage</p><h2>Magst du leise Inselmusik?</h2>
+    ${saysHtml("bay","Ich hab da was vorbereitet: ein bisschen Musik für deine Besuche auf der Insel. Ganz leise, mit Meeresrauschen. Nach drei Minuten wird es wieder still.")}
+    <button class="btn secondary" id="muTry">▶ Kurz reinhören</button>
+    <p class="small muted">Du kannst das jederzeit in den Einstellungen ändern.</p>
+    <div class="row"><button class="btn ghost grow" id="muNo" data-ok>Lieber ohne</button><button class="btn grow" id="muYes">Ja, gern</button></div>`);
+  const t=$("#muTry");
+  t.onclick=()=>{if(MUSIC.playing()){MUSIC.stop(1);t.textContent="▶ Kurz reinhören"}else if(MUSIC.play(moodNow(),{minutes:3,fadeIn:1.5})){musicDone=true;t.textContent="■ Anhalten"}};
+  $("#muYes").onclick=()=>{S.music=true;save();stat("musik_ja");if(!MUSIC.playing()&&MUSIC.play(moodNow(),{minutes:3}))musicDone=true;closeModal();render();showPending();toast("Inselmusik ist an")};
+  $("#muNo").onclick=()=>{S.music=false;save();stat("musik_nein");MUSIC.stop(1);closeModal();render();showPending()};
+}
+/* ---------- Inselminute: eine Minute runterkommen, Bildschirm dunkel, Meeresrauschen ---------- */
+let CALM=null;
+function calmMinute(){
+  if(CALM) return;
+  stat("inselminute_start");
+  const keep=S.sound; S.sound=true; audio(); S.sound=keep;                         // hier immer mit Ton, die Minute ist freiwillig gestartet
+  MUSIC.stop(.6);
+  const el=document.createElement("div"); el.className="calm"; el.setAttribute("role","dialog"); el.setAttribute("aria-modal","true"); el.setAttribute("aria-label","Inselminute");
+  el.innerHTML=`<div class="calm-in">
+    <p class="label" style="color:var(--lilac)">Inselminute</p>
+    <h2>Kurz runterkommen von der ganzen Bildschirmzeit</h2>
+    <p class="calm-txt">Nimm dir eine Minute, schließe die Augen und lass dich vom Meeresrauschen auf deine Insel bringen.</p>
+    <div class="calm-orb" aria-hidden="true"><i></i></div>
+    <p class="calm-breath" aria-live="polite">Einatmen …</p>
+    <p class="calm-time num" id="calmTime">1:00</p>
+    <button class="btn ghost" id="calmStop">Beenden</button></div>`;
+  document.body.appendChild(el); requestAnimationFrame(()=>el.classList.add("on"));
+  calmSession(true);   // auch bei Lautlos-Schalter hörbar, wo das Gerät es erlaubt
+  const keepS=S.sound; S.sound=true; MUSIC.play("nacht",{vol:.3,fadeIn:4,waveBoost:1.5}); S.sound=keepS;
+  let lock=null; try{navigator.wakeLock&&navigator.wakeLock.request("screen").then(l=>{lock=l}).catch(()=>{})}catch(e){}
+  const t0=Date.now(), br=el.querySelector(".calm-breath");
+  CALM={el,lock:()=>lock,iv:setInterval(()=>{
+    const s=Math.floor((Date.now()-t0)/1000), left=Math.max(0,60-s);
+    $("#calmTime").textContent=Math.floor(left/60)+":"+String(left%60).padStart(2,"0");
+    br.textContent=(s%10)<4?"Einatmen …":"Ausatmen …";
+    if(left<=0) calmEnd(true);
+  },250)};
+  $("#calmStop").onclick=()=>calmEnd(false);
+}
+/* Inselminute ist bewusst gestartet: Ton wie bei einer Medien-App (Safari/iOS 17+: navigator.audioSession), danach zurück */
+function calmSession(on){try{if(navigator.audioSession) navigator.audioSession.type=on?"playback":"auto"}catch(e){}}
+function calmEnd(done){
+  if(!CALM) return; const c=CALM; CALM=null; clearInterval(c.iv); MUSIC.stop(done?5:1.2); setTimeout(()=>{if(!CALM) calmSession(false)},(done?5:1.2)*1000+400);
+  try{const l=c.lock(); if(l) l.release()}catch(e){}
+  stat(done?"inselminute":"inselminute_abbruch");
+  if(done){
+    const first=S.calmDay!==today(); S.calmDay=today(); S.calmN=(S.calmN||0)+1;
+    if(first) glAdd(1);
+    save();
+    c.el.querySelector(".calm-in").innerHTML=`<p class="label" style="color:var(--lilac)">Inselminute</p><h2>Schön, dass du da warst</h2>
+      <p class="calm-txt">Eine Minute nur für dich. Die Insel ist auch ein bisschen ruhiger geworden${first?": +1 % Glück":""}.</p>
+      ${S.music===undefined?`<label class="check" for="calmMusic"><input type="checkbox" id="calmMusic"> Leise Inselmusik auch beim Öffnen der App spielen</label>`:""}
+      <button class="btn" id="calmOk">Zurück zur Insel</button>`;
+    $("#calmOk").onclick=()=>{const m=$("#calmMusic"); if(m){S.music=m.checked; save()} c.el.classList.remove("on"); setTimeout(()=>{c.el.remove();render()},500)};
+  } else {c.el.classList.remove("on"); setTimeout(()=>c.el.remove(),500)}
+}
 function soundFor(ev){
   try{
     const r=ev.id?S.residents.find(x=>x.id===ev.id):null;
@@ -3433,8 +4109,8 @@ function soundFor(ev){
 /* Fenster-Warteschlange: höchstens 3 am Stück, der Rest wartet bis zum nächsten Öffnen oder Eintragen.
    Vorhaben-Nachfrage, Joker und Tagesbilanz kommen immer und zuerst. */
 let PEND_BUDGET=3;
-const PEND_MUST=new Set(["plan","jokerAsk","day","plusStart"]);
-const PEND_ORDER={plusStart:-1,plan:0,jokerAsk:1,day:2,planAsk:3,bilanz:4,unlock:7,chapter:6,umfrage:8,statsAsk:9};
+const PEND_MUST=new Set(["plan","jokerAsk","day","comeback","baseline","plusStart"]);
+const PEND_ORDER={plusStart:-2,comeback:-1,plan:0,jokerAsk:1,day:2,baseline:2.2,planAsk:3,bilanz:4,unlock:7,chapter:6,umfrage:8,statsAsk:9,musicAsk:2.5};
 function sortPending(){const o=e=>PEND_ORDER[e.type]!=null?PEND_ORDER[e.type]:5; S.pending=S.pending.map((e,i)=>[e,i]).sort((a,b)=>o(a[0])-o(b[0])||a[1]-b[1]).map(x=>x[0])}
 function showPending(){
   if($("#modalRoot").innerHTML) return;
@@ -3463,6 +4139,7 @@ function showPending(){
   if(ev.type==="planAsk") return planAskSheet(ev);
   if(ev.type==="chapter") return chapterSheet(ev.n,true);
   if(ev.type==="umfrage") return umfrageSheet(ev);
+  if(ev.type==="musicAsk"){CUR_EV=null; if(S.music!==undefined||S.sound===false) return showPending(); return musicAskSheet()}
   if(ev.type==="statsAsk"){CUR_EV=null; if(statsDev().consent!==undefined) return showPending(); return statsAskSheet()}
   if(ev.type==="jokerAsk"){
     if(S.jokerWk===ev.wk||S.lastDay!==ev.day) return showPending();
@@ -3631,6 +4308,43 @@ function showPending(){
       <p class="muted">Du hast deine Seite des gemeinsamen Ziels geschafft: +150 Punkte und +5 % Glück. Sag deiner Freundin oder deinem Freund Bescheid und teilt eure Inseln!</p>
       <button class="btn secondary" id="buddyShare">Insel teilen</button><button class="btn" data-ok>Super</button>`,()=>{const b=$("#buddyShare");if(b)b.onclick=shareSheet});
   }
+  if(ev.type==="mfest"){
+    const x=festOf(ev.m);
+    return sheet(`<div class="anim">${base(here().filter(r=>r.kind==="mensch").slice(0,5).map((r,i)=>`<g class="bob" style="animation-delay:${i*.2}s">${figure(r,196+i*16+(i>1?24:0),136)}</g>`).join("")+confetti(),false)}</div>
+      <div class="mstamp big ok" aria-hidden="true"><span>${x.e}</span><small>${esc(festMonth(ev.m))}</small></div>
+      <p class="label" style="color:var(--amber)">Monatsfest</p><h2>${esc(x.n)}</h2><p class="muted">${esc(x.t)}</p>
+      <p class="small muted">+50 Punkte, +5 % Glück und der Stempel für ${esc(festMonth(ev.m))} ist jetzt in deinem Album.</p><button class="btn" data-ok>Mitfeiern</button>`);
+  }
+  if(ev.type==="baseline"){
+    sheet(`<p class="label" style="color:var(--lime)">Erste Woche gemessen</p><h2>Dein Schnitt: ${hm(ev.avg)} pro Tag</h2>
+      <p class="muted">So viel warst du in deiner ersten Woche mit OffLand im Schnitt am Handy. Geschätzt hattest du ${hm(ev.old)}. Ab jetzt rechnet OffLand mit dem gemessenen Wert.</p>
+      <p class="small muted">Weil man in der ersten Woche oft schon bewusster aufs Handy schaut, kann der Wert etwas niedrig sein. Du kannst ihn anpassen.</p>
+      <label class="field" for="baseAdj">Bisheriger Schnitt: <span id="baseAdjOut" class="num">${hm(S.baseline)}</span><input id="baseAdj" type="range" min="30" max="600" step="15" value="${S.baseline}"></label>
+      <button class="btn" data-ok>Passt so</button>`);
+    const ba=$("#baseAdj"); if(ba) ba.oninput=()=>{S.baseline=+ba.value;$("#baseAdjOut").textContent=hm(S.baseline);save()};
+    return;
+  }
+  if(ev.type==="jubi"){
+    const ds=S.days.slice(0,ev.n), good=ds.filter(d=>d.min<=S.budget).length, saved=ds.reduce((a,d)=>a+Math.max(0,S.baseline-d.min),0);
+    const ppl=here().filter(r=>r.kind==="mensch").length, ani=here().filter(r=>r.kind!=="mensch").length;
+    return sheet(`<div class="anim">${base(here().slice(0,5).map((r,i)=>`<g class="bob" style="animation-delay:${i*.2}s">${figure(r,196+i*16+(i>1?24:0),136)}</g>`).join("")+hearts(240,84)+confetti(),false)}</div>
+      <p class="label" style="color:var(--lime)">Insel-Jubiläum</p><h2>${ev.n} Tage OffLand</h2>
+      ${saysHtml("bay",ev.n>=365?"Ein ganzes Jahr! Ich hab eine Rede vorbereitet, aber ich fang lieber gleich an zu weinen.":"Weißt du noch, wie leer es hier am Anfang war? Schau dich mal um.")}
+      <div class="jubi-grid"><div><b class="num">${good}</b><span>Tage im Budget</span></div><div><b class="num">${hm(saved)}</b><span>weniger am Handy</span></div><div><b class="num">${ppl}</b><span>Menschen</span></div><div><b class="num">${ani}</b><span>Tiere</span></div></div>
+      <p class="small muted">Als Dankeschön: +${ev.n} Punkte.</p><button class="btn" data-ok>Weiter so</button>`);
+  }
+  if(ev.type==="comeback"){
+    const y=addDays(today(),-1);
+    return sheet(`<div class="anim">${base(here().slice(0,4).map((r,i)=>`<g class="bob">${figure(r,214+i*14,134)}</g>`).join("")+hearts(240,90),false)}</div>
+      <p class="label" style="color:var(--lime)">Schön, dass du da bist</p><h2>Die Insel hat auf dich gewartet</h2>
+      ${saysHtml("bay","Keine Sorge, hier ist niemand sauer. Pausen gehören dazu. Wollen wir einfach von heute an weitermachen?")}
+      <p class="small muted">${ev.miss} Tage fehlen. Du kannst sie als Pause abhaken, ohne Punktabzug, oder sie wie gewohnt nachtragen. Als Willkommensgeschenk gibt es eine Sonne für den nächsten schwierigen Tag.</p>
+      <button class="btn" id="cbSkip">Als Pause abhaken</button><button class="btn ghost" id="cbFill">Lieber nachtragen</button>`,()=>{
+      const gift=()=>{S.sun=(S.sun||0)+1};
+      $("#cbSkip").onclick=()=>{gift(); if(S.lastDay<y) S.lastDay=y; S.comeback=S.lastDay; stat("comeback_pause"); log("Pause von "+ev.miss+" Tagen abgehakt. Weiter geht's.","info"); save(); closeModal(); render(); showPending()};
+      $("#cbFill").onclick=()=>{gift(); save(); closeModal(); render(); showPending()};
+    });
+  }
   if(ev.type==="fest"){
     return sheet(`<div class="anim">${base(`<g transform="translate(240 134) scale(1.2)">${itemSvg("feuer")}</g>`+here().filter(r=>r.kind==="mensch").slice(0,5).map((r,i)=>`<g class="bob" style="animation-delay:${i*.2}s">${figure(r,200+i*16+(i>1?24:0),136)}</g>`).join("")+`${[0,1,2,3,4,5].map(i=>`<g class="glow" style="animation-delay:${i*.3}s"><circle cx="${190+i*22}" cy="${80+(i%2)*8}" r="4" fill="#FFD27A"/></g>`).join("")}`+confetti(),false)}</div>
       <p class="label" style="color:var(--amber)">Inselfest</p><h2>Die Insel feiert dich</h2><p class="muted">${ev.good} von 7 Tagen im Budget. Laternen, Lagerfeuer und Musik: +5 % Glück und +30 Punkte.</p><button class="btn" data-ok>Mitfeiern</button>`);
@@ -3746,12 +4460,12 @@ function nameSheet(ev){
     text=r.kind==="mensch"?"Die Familie wächst, weil sich alle auf der Insel wohlfühlen.":artikel(r.art,true,true)+" "+r.art+" ist da.";
   } else { head=r.name+" bearbeiten"; text="Ändere Namen und Aussehen."; }
   const list=r.kind==="mensch"?HUMAN_NAMES:ANIMAL_NAMES;
-  const draft=r.kind==="mensch"?lookIdx(r):{fur:animalVar(r)};
+  const draft=r.kind==="mensch"?lookIdx(r):tierDraft(r);
   sheet(`${ev.type==="rename"?"":`<div class="anim">${animScene(ev)}</div>`}<p class="label" style="color:var(--lime)">${ev.type==="rename"?"Name und Aussehen":ev.type==="birth"?"Nachwuchs":"Neue Bewohner"}</p>
     <h2>${esc(head)}</h2><p class="muted">${esc(text)}</p>
     <label class="field" for="nameIn">Wie soll ${r.kind==="mensch"?"die Person":"das Tier"} heißen?</label>
     <div class="row"><input id="nameIn" type="text" maxlength="20" value="${esc(r.name)}"><button class="iconbtn" id="dice" aria-label="Zufälligen Namen würfeln"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B6A4FF" stroke-width="2" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="9" cy="9" r="1.3" fill="#B6A4FF"/><circle cx="15" cy="15" r="1.3" fill="#B6A4FF"/><circle cx="15" cy="9" r="1.3" fill="#B6A4FF"/><circle cx="9" cy="15" r="1.3" fill="#B6A4FF"/></svg></button></div>
-    ${lookEditor(r,draft)}
+    ${lookEditor(r,draft)}${r.kind==="mensch"&&lvOf(r)<4?`<p class="small muted lv-hint">✨ So sieht ${esc(r.name)} aus, wenn die Farbe ganz zurück ist. Gerade: <b>${LV_NAMES[lvOf(r)]}</b>. Gute Tage bringen sie zurück.</p>`:""}
     ${r.kind==="tier"&&!isSea(r)&&adults().length?`<label class="field" for="ownSel">Gehört zu<select id="ownSel" style="height:52px;border:1.5px solid var(--line);border-radius:16px;background:var(--ground);color:var(--ink);font:700 17px var(--body);padding:0 12px">${adults().map(a=>`<option value="${a.id}" ${a.id===r.owner?"selected":""}>${esc(a.name)}</option>`).join("")}<option value="" ${r.owner?"":"selected"}>allen zusammen</option></select></label>`:""}
     <button class="btn" id="nameOk">${ev.type==="rename"?"Speichern":"Willkommen heißen"}</button>
     <button class="btn ghost" id="nameNo">${ev.type==="rename"?"Verwerfen":"Änderungen verwerfen"}</button>`);
@@ -3762,15 +4476,16 @@ function nameSheet(ev){
   // Ankunftsbild oben gleich mit dem neuen Aussehen zeigen (ohne die Animation neu zu starten)
   bindLookEditor(r,draft,()=>{
     const a=$("#modalRoot .anim"); if(!a) return;
-    const keep={look:r.look,fur:r.fur};
-    if(r.kind==="mensch") r.look=Object.assign({},draft); else r.fur=draft.fur;
+    const keep={look:r.look,fur:r.fur,gear:r.gear};
+    if(r.kind==="mensch") r.look=Object.assign({},draft); else {r.fur=draft.fur; r.gear=tierGear(draft)}
     a.innerHTML=animScene(ev); a.classList.add("skip");
     if(keep.look===undefined) delete r.look; else r.look=keep.look;
     if(keep.fur===undefined) delete r.fur; else r.fur=keep.fur;
+    if(keep.gear===undefined) delete r.gear; else r.gear=keep.gear;
   });
   $("#nameOk").onclick=()=>{
     const n=inp.value.trim()||r.name; const old=r.name; r.name=n.slice(0,20);
-    if(r.kind==="mensch") r.look=Object.assign({},draft); else if((FUR[r.art]||[]).length>1) r.fur=draft.fur;
+    if(r.kind==="mensch") r.look=Object.assign({},draft); else {if((FUR[r.art]||[]).length>1) r.fur=draft.fur; const g=tierGear(draft); if(g) r.gear=g; else delete r.gear}
     const os=$("#ownSel"); if(os){const nv=os.value||null; if(nv!==(r.owner||null)){r.owner=nv; const mate=r.pair&&S.residents.find(x=>x.id===r.pair); if(mate&&!isSea(mate)) mate.owner=nv; r.sad=false}}
     if(ev.type==="arrival"){log(r.name+(r.kind==="tier"?" ("+r.art+")":"")+" ist auf die Insel gezogen.","good");
       const ow=r.owner?S.residents.find(x=>x.id===r.owner):null;
@@ -3783,26 +4498,260 @@ function nameSheet(ev){
 }
 /* Aussehen wählen: kleine Auswahl mit Live-Vorschau */
 function lookPreview(r,draft){
-  const tmp=Object.assign({},r,{sick:null});
-  if(r.kind==="mensch") tmp.look=draft; else tmp.fur=draft.fur;
-  return `<svg width="72" height="78" viewBox="${r.kind==="mensch"?(stage(r)==="baby"?"-8.5 -15.5 17 17":"-12 -25 24 26"):SEA.includes(tmp.art)?figVB(tmp):"-16 -22 32 25"}" aria-hidden="true">${figure(tmp,0,0)}</svg>`;
+  const tmp=Object.assign({},r,{sick:null,phone:false,lv:4,lvUp:null,lvFull:true});   // im Editor sieht man immer, wie jemand ganz zurück aussieht
+  if(r.kind==="mensch") tmp.look=draft; else {tmp.fur=draft.fur; tmp.gear=tierGear(draft)}
+  const adult=r.kind==="mensch"&&stage(r)!=="baby"&&stage(r)!=="kind";
+  const tier=r.kind!=="mensch", main=`<svg width="${tier?124:76}" height="${tier?104:adult?92:78}" viewBox="${r.kind==="mensch"?(stage(r)==="baby"?"-8.5 -15.5 17 17":stage(r)==="kind"?"-12 -25 24 26":"-13.5 -32.4 27 33.4"):tierVB(tmp.art,124/104,tierScale(tmp))}" aria-hidden="true">${figure(tmp,0,0)}</svg>`;
+  if(!adult) return main;
+  // Kleine Schatten-Vorschau: so leuchten die Augen, solange die Farbe noch fehlt
+  const sh=Object.assign({},tmp,{lv:1,lvFull:false});
+  return main+`<div class="look-shadow"><svg width="40" height="46" viewBox="-11 -31 24 32" aria-hidden="true">${figure(sh,0,0)}</svg><span>als Schatten</span></div>`;
+}
+let LOOK_PANE="looks";
+/* Fertige Looks: komplette Stile als Startpunkt, danach in der Umkleide anpassen */
+const LOOKS=[["Surfer",{skin:1,style:18,hair:4,shirt:5,pat:7,beard:0,acc:[]}],["Skaterin",{skin:4,style:5,hair:0,shirt:2,pat:4,beard:0,acc:[],accC:1}],["Opa Gerd",{skin:0,style:10,hair:7,beard:4,acc:[2],shirt:11,pat:3}],
+  ["Büro",{skin:3,style:12,hair:0,shirt:7,pat:0,beard:0,acc:[2]}],["Hipster",{skin:2,style:16,hair:2,beard:4,shirt:12,pat:3,acc:[2]}],["Sporty",{skin:5,style:15,hair:6,shirt:8,pat:1,beard:0,acc:[7],accC:7}],
+  ["Künstlerin",{skin:1,style:8,hair:8,shirt:13,pat:2,beard:0,acc:[6],accC:10}],["Rocker",{skin:3,style:9,hair:5,shirt:8,pat:4,beard:0,acc:[3]}],["Gärtnerin",{skin:4,style:11,hair:2,shirt:12,pat:6,beard:0,acc:[4],accC:4}],
+  ["Fischer",{skin:2,style:6,hair:7,beard:4,shirt:3,pat:3,acc:[4],accC:8}],["Gamer",{skin:0,style:17,hair:1,shirt:13,pat:8,beard:0,acc:[2]}],["Festival",{skin:5,style:7,hair:10,shirt:6,pat:9,beard:0,acc:[3,6],accC:1}],
+  ["Bücherwurm",{skin:0,style:2,hair:3,shirt:0,pat:5,beard:0,acc:[1,2],accC:8}],["Strandkind",{skin:4,style:4,hair:5,shirt:4,pat:7,beard:0,acc:[3]}],["Bergfex",{skin:1,style:14,hair:3,beard:1,shirt:12,pat:3,acc:[1],accC:8}],["DJ",{skin:5,style:3,hair:9,shirt:14,pat:9,beard:0,acc:[3]}]];
+const UK_PANES=[["looks","✨","Looks"],["gesicht","🙂","Gesicht"],["haare","💇","Haare"],["bart","🧔","Bart"],["shirt","👕","Shirt"],["muster","🎨","Muster"],["extras","🕶️","Extras"],["augen","👁️","Augen"]];
+function ukFig(r,d,ch,s){const t=Object.assign({},r,{sick:null,phone:false,lv:4,lvUp:null,lvFull:true,look:Object.assign({},d,ch)});
+  return `<svg width="${s}" height="${Math.round(s*1.15)}" viewBox="-12.5 -31 25 32" aria-hidden="true">${figure(t,0,0)}</svg>`}
+function umkleide(r,d){
+  const kid=stage(r)==="kind", panes=UK_PANES.filter(p=>!kid||!["bart","muster","augen"].includes(p[0]));
+  if(!panes.some(p=>p[0]===LOOK_PANE)) LOOK_PANE="looks";
+  const sw=(label,key,list,sel)=>`<div class="sw-row" role="radiogroup" aria-label="${label}"><span class="small muted">${label}</span>${list.map((c,i)=>`<button type="button" class="sw${i===sel?" on":""}" data-look="${key}" data-v="${i}" style="background:${c}" aria-label="${label} ${i+1}" aria-pressed="${i===sel}"></button>`).join("")}</div>`;
+  const tiles=(key,names,cur,ch)=>`<div class="uk-grid" role="radiogroup">${names.map((n,i)=>`<button type="button" class="uk-tile${i===cur?" on":""}" data-look="${key}" data-v="${i}" aria-label="${n}" aria-pressed="${i===cur}">${ukFig(r,d,ch(i),62)}</button>`).join("")}</div>`;
+  const al=accList(d.acc);
+  const body={
+    looks:`<p class="uk-h">Fertige Looks <span>${LOOKS.length}</span></p><div class="uk-grid">${LOOKS.map(([n,l],i)=>`<button type="button" class="uk-tile lk" data-lookset="${i}" aria-label="Look ${n}">${ukFig(r,d,kid?Object.assign({},l,{beard:0}):l,62)}<span>${n}</span></button>`).join("")}</div>`,
+    gesicht:sw("Hautfarbe","skin",SKIN,d.skin),
+    haare:`<p class="uk-h">Frisur</p>${tiles("style",STYLE_NAMES,d.style,i=>({style:i}))}${sw("Haarfarbe","hair",HAIR,d.hair)}`,
+    bart:`<p class="uk-h">Bart</p>${tiles("beard",BEARD_NAMES,(d.beard||0)%BEARD_NAMES.length,i=>({beard:i}))}`,
+    shirt:sw(kid?"Shirt":"Oberteil","shirt",SHIRT,d.shirt),
+    muster:`<p class="uk-h">Muster</p>${tiles("pat",PAT_NAMES,(d.pat||0)%PAT_NAMES.length,i=>({pat:i}))}`,
+    extras:`<p class="uk-h">Extras <span>mehrere möglich</span></p><div class="uk-grid">${ACC_NAMES.map((n,i)=>{const on=i?al.includes(i):!al.length;return `<button type="button" class="uk-tile${on?" on":""}" data-look="acc" data-v="${i}" aria-label="${n}" aria-pressed="${on}">${ukFig(r,d,{acc:i?accToggle(al.filter(x=>x!==i),i):[]},62)}<span>${n}</span></button>`}).join("")}</div>${sw("Farbe der Extras","accC",SHIRT,d.accC)}`,
+    augen:`${sw("Leuchtaugen (als Schatten)","eye",LV_EYES,(d.eye||0)%LV_EYES.length)}<p class="small muted">So leuchten die Augen, solange die Farbe noch fehlt. Unten links im Spiegel siehst du es.</p>`
+  }[LOOK_PANE];
+  return `<div class="uk"><div class="uk-rail" role="tablist">${panes.map(([k,e,n])=>`<button type="button" role="tab" class="uk-r${k===LOOK_PANE?" on":""}" data-pane="${k}" aria-selected="${k===LOOK_PANE}"><b aria-hidden="true">${e}</b><i>${n}</i></button>`).join("")}</div>
+    <div class="uk-main"><div class="uk-mir"><div class="look-prev" id="lookPrev">${lookPreview(r,d)}</div><button type="button" class="uk-photo" data-photo aria-label="Aussehen aus Foto übernehmen">📷</button><button type="button" class="uk-dice" data-dice aria-label="Zufälliger Look">🎲</button></div>
+    ${photoBanner(r,d)}<div class="uk-body">${body}</div></div></div>`;
+}
+/* Umkleide für Tiere: gleicher Aufbau wie bei Menschen (Leiste links, Spiegel, Kacheln) */
+const TIER_LOOKS=[["Chillig",{specs:1,collar:3,cc:5}],["Rockstar",{specs:1,collar:1,cc:14}],["Verliebt",{specs:3,collar:2,cc:6}],["Schick",{specs:0,collar:4,cc:8}],
+  ["Sportlich",{specs:4,collar:1,cc:1}],["Pilot",{specs:2,collar:3,cc:11}],["Klassisch",{specs:0,collar:2,cc:8}],["Strand",{specs:1,collar:3,cc:15}],["Natur",{specs:0,collar:0,cc:0}]];
+const UK_TIER=[["looks","✨","Looks"],["fell","🎨","Fell"],["hals","🎀","Halsband"],["brille","🕶️","Brille"]];
+/* Enger Ausschnitt ums Tier, damit Brille und Halsband gut zu sehen sind */
+function tierVB(a,ratio,sc){const B=(ART_BOX[a]||[-12,-16,12,1]).map(v=>v*(sc||1)), cx=(B[0]+B[2])/2, cy=(B[1]+B[3])/2, w=Math.max(B[2]-B[0],(B[3]-B[1])*ratio)+3, h=w/ratio;
+  return [cx-w/2,cy-h/2,w,h].map(v=>+v.toFixed(1)).join(" ")}
+function ukTier(r,d,ch,s){const g=Object.assign({},d,ch), vb=tierVB(r.art,1/.85);
+  return `<svg width="${s}" height="${Math.round(s*.85)}" viewBox="${vb}" aria-hidden="true">${animalSvg(r.art,g.fur||0)}${gearSvg(r.art,g)}</svg>`}
+function umkleideTier(r,d){
+  const nf=(FUR[r.art]||[{}]).length, col=hasCollar(r.art);
+  const panes=UK_TIER.filter(p=>(p[0]!=="fell"||nf>1)&&(p[0]!=="hals"||col));
+  if(!panes.some(p=>p[0]===LOOK_PANE)) LOOK_PANE="looks";
+  const tiles=(key,names,cur,ch)=>`<div class="uk-grid" role="radiogroup">${names.map((n,i)=>`<button type="button" class="uk-tile${i===cur?" on":""}" data-look="${key}" data-v="${i}" aria-label="${n}" aria-pressed="${i===cur}">${ukTier(r,d,ch(i),62)}<span>${n}</span></button>`).join("")}</div>`;
+  const sw=(label,key,list,sel)=>`<div class="sw-row" role="radiogroup" aria-label="${label}"><span class="small muted">${label}</span>${list.map((c,i)=>`<button type="button" class="sw${i===sel?" on":""}" data-look="${key}" data-v="${i}" style="background:${c}" aria-label="${label} ${i+1}" aria-pressed="${i===sel}"></button>`).join("")}</div>`;
+  const body={
+    looks:`<p class="uk-h">Fertige Looks <span>${TIER_LOOKS.length}</span></p><div class="uk-grid">${TIER_LOOKS.map(([n,l],i)=>`<button type="button" class="uk-tile lk" data-lookset="${i}" aria-label="Look ${n}">${ukTier(r,d,col?l:Object.assign({},l,{collar:0}),62)}<span>${n}</span></button>`).join("")}</div>`,
+    fell:`<p class="uk-h">Fellfarbe</p>${tiles("fur",Array.from({length:nf},(_,i)=>"Farbe "+(i+1)),d.fur||0,i=>({fur:i}))}`,
+    hals:`<p class="uk-h">Halsband</p>${tiles("collar",COLLAR_NAMES,d.collar||0,i=>({collar:i}))}${sw("Farbe","cc",SHIRT,d.cc||0)}`,
+    brille:`<p class="uk-h">Brille</p>${tiles("specs",SPECS_NAMES,d.specs||0,i=>({specs:i}))}`
+  }[LOOK_PANE];
+  return `<div class="uk"><div class="uk-rail" role="tablist">${panes.map(([k,e,n])=>`<button type="button" role="tab" class="uk-r${k===LOOK_PANE?" on":""}" data-pane="${k}" aria-selected="${k===LOOK_PANE}"><b aria-hidden="true">${e}</b><i>${n}</i></button>`).join("")}</div>
+    <div class="uk-main"><div class="uk-mir"><div class="look-prev" id="lookPrev">${lookPreview(r,d)}</div><button type="button" class="uk-photo" data-photo aria-label="Aussehen aus Foto übernehmen">📷</button><button type="button" class="uk-dice" data-dice aria-label="Zufälliger Look">🎲</button></div>
+    ${photoBanner(r,d)}<div class="uk-body">${body}</div></div></div>`;
+}
+const tierDraft=r=>Object.assign({fur:animalVar(r),collar:0,cc:0,specs:0},r.gear||{});
+function tierGear(d){const g={collar:d.collar||0,cc:d.cc||0,specs:d.specs||0};return g.collar||g.specs?g:null}
+/* Aus Foto: Hautton, Haare, Bart, Brille, Oberteil oder Fellfarbe werden nur auf dem Gerät aus dem Bild gelesen.
+   Das Foto wird nicht hochgeladen und nicht gespeichert, danach kann man im Editor alles anpassen. */
+let PHOTO_RES=null;
+const hexRgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+function rgbLab(c){const f=v=>{v/=255;return v>.04045?Math.pow((v+.055)/1.055,2.4):v/12.92}, [r,g,b]=c.map(f);
+  const x=(r*.4124+g*.3576+b*.1805)/.95047, y=r*.2126+g*.7152+b*.0722, z=(r*.0193+g*.1192+b*.9505)/1.08883, q=t=>t>.008856?Math.cbrt(t):7.787*t+16/116;
+  return [116*q(y)-16,500*(q(x)-q(y)),200*(q(y)-q(z))]}
+const labD=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]);
+const nearC=(c,list)=>{const l=rgbLab(c);let bi=0,bd=1e9;list.forEach((h,i)=>{const d=labD(l,rgbLab(hexRgb(h)));if(d<bd){bd=d;bi=i}});return bi};
+const medC=a=>[0,1,2].map(k=>{const v=a.map(c=>c[k]).sort((x,y)=>x-y);return v[v.length>>1]});
+/* Erkennung mit MediaPipe (läuft im Gerät): Bibliothek und Modelle werden beim ersten Mal geladen, das Foto bleibt lokal */
+const MP_BASE="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21", MP_M="https://storage.googleapis.com/mediapipe-models/image_segmenter/";
+const MP_MODEL={mensch:MP_M+"selfie_multiclass_256x256/float32/1/selfie_multiclass_256x256.tflite",tier:MP_M+"deeplab_v3/float32/1/deeplab_v3.tflite"};
+let MP=null;
+async function mpSegment(kind,cv){
+  if(!MP){const V=await import(MP_BASE+"/vision_bundle.mjs"); MP={V,fs:await V.FilesetResolver.forVisionTasks(MP_BASE+"/wasm"),seg:{}}}
+  if(!MP.seg[kind]) MP.seg[kind]=await MP.V.ImageSegmenter.createFromOptions(MP.fs,{baseOptions:{modelAssetPath:MP_MODEL[kind],delegate:"CPU"},runningMode:"IMAGE",outputCategoryMask:true,outputConfidenceMasks:false});
+  const res=MP.seg[kind].segment(cv), m=res.categoryMask, out={w:m.width,h:m.height,a:m.getAsUint8Array().slice()};
+  if(res.close) res.close(); return out;
+}
+async function photoPx(file){
+  let src;
+  try{src=await createImageBitmap(file,{imageOrientation:"from-image"})}catch(e){
+    src=await new Promise((ok,no)=>{const im=new Image(),u=URL.createObjectURL(file);im.onload=()=>{URL.revokeObjectURL(u);ok(im)};im.onerror=no;im.src=u})}
+  const k=Math.min(1,320/Math.max(src.width,src.height)), w=Math.max(1,Math.round(src.width*k)), h=Math.max(1,Math.round(src.height*k));
+  const cv=document.createElement("canvas"); cv.width=w; cv.height=h; const cx=cv.getContext("2d"); cx.drawImage(src,0,0,w,h);
+  const d=cx.getImageData(0,0,w,h).data.slice(); if(src.close) src.close();
+  // Weißabgleich zur Hälfte: Lampenlicht macht Haut und Haare sonst zu orange
+  const mean=[0,0,0]; for(let i=0;i<d.length;i+=4){mean[0]+=d[i];mean[1]+=d[i+1];mean[2]+=d[i+2]}
+  const g=(mean[0]+mean[1]+mean[2])/3, gain=mean.map(m=>Math.max(.75,Math.min(1.45,1+(g/Math.max(1,m)-1)*.6)));
+  for(let i=0;i<d.length;i+=4) for(let k=0;k<3;k++) d[i+k]=Math.min(255,d[i+k]*gain[k]);
+  const at=(x,y)=>{x=Math.max(0,Math.min(w-1,x|0));y=Math.max(0,Math.min(h-1,y|0));const i=(y*w+x)*4;return [d[i],d[i+1],d[i+2]]};
+  return {w,h,at,cv};
+}
+/* Zusammenhängende Flächen einer Maske (4er-Nachbarschaft) */
+function maskComps(w,h,fn){
+  const seen=new Uint8Array(w*h), comps=[];
+  for(let i=0;i<w*h;i++){ if(seen[i]||!fn(i%w,(i/w)|0)) continue;
+    const st=[i], px=[]; seen[i]=1;
+    while(st.length){const j=st.pop(); px.push(j); const x=j%w,y=(j/w)|0;
+      for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const X=x+dx,Y=y+dy; if(X<0||Y<0||X>=w||Y>=h) continue; const k=Y*w+X; if(!seen[k]&&fn(X,Y)){seen[k]=1;st.push(k)}}}
+    comps.push(px)}
+  return comps;
+}
+/* Mensch (Selfie-Modell: 1 Haare, 2 Körperhaut, 3 Gesichtshaut, 4 Kleidung, 5 Accessoires): größtes Gesicht nehmen, drumherum lesen */
+function photoHuman(P,M){
+  const {w,h,at}=P, cls=(x,y)=>M.a[Math.min(M.h-1,(y*M.h/h)|0)*M.w+Math.min(M.w-1,(x*M.w/w)|0)];
+  let best=null,bs=0;
+  for(const px of maskComps(w,h,(x,y)=>cls(x,y)===3)){ if(px.length<w*h*.004) continue;
+    let sx=0; for(const j of px) sx+=j%w; const sc=px.length*(1.2-Math.abs(sx/px.length/w-.5)); if(sc>bs){bs=sc;best=px}}
+  if(!best) return null;
+  const xs=best.map(j=>j%w).sort((a,b)=>a-b), ys=best.map(j=>(j/w)|0).sort((a,b)=>a-b), q=(a,f)=>a[Math.min(a.length-1,Math.floor(a.length*f))];
+  const L=q(xs,.02), R=q(xs,.98), top=q(ys,.01), bot=q(ys,.99), fw=Math.max(3,R-L), fh=Math.max(3,bot-top), fa=best.length;
+  const pick=(x0,x1,y0,y1,c)=>{const o=[];for(let y=Math.max(0,y0|0);y<Math.min(h,y1);y++)for(let x=Math.max(0,x0|0);x<Math.min(w,x1);x++) if(cls(x,y)===c) o.push([x,y]);return o};
+  const col=pts=>medC(pts.map(([x,y])=>at(x,y)));
+  const res={};
+  // Hautton nur bei ordentlichem Licht: in dunklen oder lampenbeleuchteten Fotos wirkt Haut viel dunkler, dann lieber selbst wählen lassen
+  const sk=pick(L+fw*.2,R-fw*.2,top+fh*.2,top+fh*.8,3), skc=col(sk.length?sk:best.map(j=>[j%w,(j/w)|0]));
+  res.skin=rgbLab(skc)[0]>=58?nearC(skc,SKIN):null;
+  // Haare: Flächen, die das Gesicht berühren (bei Gruppenfotos nicht die Haare der Nachbarn)
+  const near=(x,y)=>x>=L-fw*.25&&x<=R+fw*.25&&y>=top-fh*.45&&y<=bot;
+  const hp=[]; for(const px of maskComps(w,h,(x,y)=>cls(x,y)===1)) if(px.some(j=>near(j%w,(j/w)|0))) for(const j of px){const x=j%w,y=(j/w)|0; if(x>L-fw*1.1&&x<R+fw*1.1&&y>top-fh*1.2&&y<bot+fh*2.6) hp.push([x,y])}
+  // Frisur aus der Form der Haare: Länge, Pony oder Mittelscheitel, Dutt, Volumen. Dazu passende Alternativen zur Auswahl.
+  if(hp.length<fa*.07){res.style=10; res.alt=[10,6,0,15]}
+  else{res.hair=nearC(col(hp),HAIR);
+    const side=(y0,y1)=>hp.filter(([x,y])=>y>y0&&y<=y1&&(x<L+fw*.15||x>R-fw*.15)).length;
+    const low=side(bot+fh*.05,1e9), chin=side(bot-fh*.3,bot+fh*.05);
+    const hTop=Math.min(...hp.map(p=>p[1])), topW=hp.filter(([x,y])=>y<hTop+fh*.15).map(p=>p[0]), tw=topW.length?Math.max(...topW)-Math.min(...topW):0;
+    // Volumen nur, wenn die Haare auf beiden Seiten weit abstehen (bei Gruppenfotos liegen sonst die Haare der Nachbarin daneben)
+    const midY=hp.filter(([x,y])=>y>top&&y<bot), ext=Math.min(L-Math.min(L,...midY.map(p=>p[0])),Math.max(R,...midY.map(p=>p[0]))-R);
+    const bun=top-hTop>fh*.62&&tw<fw*.55, wide=ext>fw*.5;
+    if(bun){res.style=2; res.alt=[2,16,7,3]}
+    else if(low>fa*.18){res.style=wide?4:18; res.alt=[res.style,18,1,4,7,11]}
+    else if(chin>fa*.1){res.style=8; res.alt=[8,1,18,4]}
+    else{res.style=0; res.alt=[0,12,13,14]}
+    res.alt=[...new Set(res.alt)].slice(0,4)}
+  // Bart: Haar-Pixel mittig am Kinn (lange Haare liegen seitlich daneben)
+  const brd=pick(L+fw*.3,R-fw*.3,top+fh*.74,bot+fh*.1,1).length/Math.max(1,fw*.4*fh*.36);
+  const mus=pick(L+fw*.32,R-fw*.32,top+fh*.6,top+fh*.72,1).length/Math.max(1,fw*.36*fh*.12);
+  res.beard=mus<.15?0:brd>.35?4:brd>.18?1:0;
+  // Brille: Accessoire-Pixel auf Augenhöhe
+  const gl=pick(L,R,top+fh*.22,top+fh*.6,5);
+  if(gl.length>fw*fh*.38*.07) res.specs=rgbLab(col(gl))[0]<32&&gl.length>fw*fh*.38*.18?3:2; else res.specs=0;
+  // Oberteil: Kleidung unter dem Kinn
+  const sh=pick(L-fw*.4,R+fw*.4,bot+fh*.1,bot+fh*1.8,4);
+  if(sh.length>fa*.25) res.shirt=nearC(col(sh),SHIRT);
+  return res;
+}
+/* Tier (DeepLab: 3 Vogel, 8 Katze, 10 Kuh, 12 Hund, 13 Pferd, 17 Schaf): Hauptfarben des Tiers mit den Fellvarianten vergleichen */
+function photoFur(P,M,art){
+  const {w,h,at}=P, V=FUR[art]||[{}]; if(V.length<2) return null;
+  const AN=[3,8,10,12,13,17], cls=(x,y)=>M.a[Math.min(M.h-1,(y*M.h/h)|0)*M.w+Math.min(M.w-1,(x*M.w/w)|0)];
+  let px=[]; for(const c of maskComps(w,h,(x,y)=>AN.includes(cls(x,y)))) if(c.length>px.length) px=c;
+  if(px.length<w*h*.03){ // nicht erkannt (z. B. Hase, Ziege): Bildmitte ohne Rand-Hintergrund
+    const border=[];for(let x=0;x<w;x+=2)border.push(at(x,0),at(x,h-1));for(let y=0;y<h;y+=2)border.push(at(0,y),at(w-1,y));const bg=rgbLab(medC(border));
+    px=[]; for(let y=Math.round(h*.2);y<h*.9;y++)for(let x=Math.round(w*.2);x<w*.8;x++) if(labD(rgbLab(at(x,y)),bg)>18) px.push(y*w+x);
+    if(px.length<w*h*.05) return null}
+  const L=px.filter((_,i)=>i%2===0).map(j=>rgbLab(at(j%w,(j/w)|0)));
+  let cen=[L[0],L[L.length>>1],L[L.length-1]].map(c=>c.slice()), cnt=[0,0,0];
+  for(let it=0;it<10;it++){const sum=cen.map(()=>[0,0,0]); cnt=[0,0,0];
+    for(const p of L){let bi=0,bd=1e9; cen.forEach((c,i)=>{const d=labD(p,c);if(d<bd){bd=d;bi=i}}); cnt[bi]++; for(let k=0;k<3;k++) sum[bi][k]+=p[k]}
+    cen=cen.map((c,i)=>cnt[i]?sum[i].map(v=>v/cnt[i]):c)}
+  const ord=[0,1,2].sort((a,b)=>cnt[b]-cnt[a]), main=cen[ord[0]], sec=cen[ord[1]], keys=Object.keys(V.find(v=>Object.keys(v).length)||{});
+  let bi=0,bd=1e9;
+  V.forEach((v,i)=>{const cols=keys.map(k=>rgbLab(hexRgb(v[k]||k)));
+    const d=Math.min(...cols.map(c=>labD(main,c)))+.35*Math.min(...cols.map(c=>labD(sec,c))); if(d<bd){bd=d;bi=i}});
+  return {fur:bi};
+}
+async function photoLook(r,draft,file){
+  let P,M; try{P=await photoPx(file)}catch(e){toast("Das Foto konnte nicht gelesen werden.");return false}
+  try{M=await mpSegment(r.kind==="mensch"?"mensch":"tier",P.cv)}catch(e){console.warn("Foto-Erkennung:",e);toast("Für die Foto-Erkennung braucht OffLand beim ersten Mal kurz Internet.");return false}
+  const prev=JSON.parse(JSON.stringify(draft)), chips=[]; let alt=[];
+  if(r.kind!=="mensch"){const f=photoFur(P,M,r.art);
+    if(!f){toast("Auf dem Foto war kein Tier gut zu erkennen. Am besten von nah und vor ruhigem Hintergrund.");return false}
+    draft.fur=f.fur; chips.push(["Fellfarbe",null])}
+  else{const f=photoHuman(P,M);
+    if(!f){toast("Kein Gesicht gefunden. Am besten ein Foto von vorne bei gutem Licht.");return false}
+    const kid=stage(r)==="kind";
+    alt=f.alt||[];
+    if(f.skin!=null){draft.skin=f.skin; chips.push(["Hautton",SKIN[f.skin]])} else {chips.push(["Hautton bitte selbst wählen",null]); LOOK_PANE="gesicht"}
+    if(f.hair!=null){draft.hair=f.hair; chips.push(["Haarfarbe",HAIR[f.hair]])}
+    if(f.style!=null){draft.style=f.style; chips.push([STYLE_NAMES[f.style],null])}
+    if(!kid&&f.beard!=null){draft.beard=f.beard; if(f.beard) chips.push([BEARD_NAMES[f.beard],null])}
+    const al=accList(draft.acc).filter(a=>a!==2&&a!==3); draft.acc=f.specs?accToggle(al,f.specs):al; if(f.specs) chips.push([ACC_NAMES[f.specs],null]);
+    if(f.shirt!=null){draft.shirt=f.shirt; draft.pat=0; chips.push([kid?"Shirt":"Oberteil",SHIRT[f.shirt]])}}
+  if(PHOTO_RES&&PHOTO_RES.url) URL.revokeObjectURL(PHOTO_RES.url);
+  PHOTO_RES={id:r.id,url:URL.createObjectURL(file),chips,prev,alt};
+  return true;
+}
+function photoBanner(r,d){
+  if(!PHOTO_RES||PHOTO_RES.id!==r.id) return "";
+  // Frisur-Vorschläge als Köpfe, damit man die Haare gut erkennt
+  const head=i=>{const t=Object.assign({},r,{sick:null,phone:false,lv:4,lvUp:null,lvFull:true,look:Object.assign({},d,{style:i})});
+    return `<svg width="40" height="40" viewBox="-10.5 -28 21 21" aria-hidden="true">${figure(t,0,0)}</svg>`};
+  const alt=PHOTO_RES.alt&&PHOTO_RES.alt.length>1?`<div class="photo-alt" role="radiogroup" aria-label="Frisur aus dem Foto">${PHOTO_RES.alt.map(i=>`<button type="button" class="${i===d.style?"on":""}" data-look="style" data-v="${i}" aria-label="${STYLE_NAMES[i]}" aria-pressed="${i===d.style}">${head(i)}</button>`).join("")}</div>`:"";
+  return `<div class="photo-res" role="status"><img src="${PHOTO_RES.url}" alt=""><div><b>Aus deinem Foto</b><span>${PHOTO_RES.chips.map(([n,c])=>`<i>${c?`<em style="background:${c}"></em>`:""}${esc(n)}</i>`).join("")}</span>${alt}<small>Passt was nicht? Einfach anpassen. Das Foto bleibt auf deinem Handy. <button type="button" class="photo-undo" data-photo-undo>Rückgängig</button></small></div></div>`;
 }
 function lookEditor(r,d){
+  if(PHOTO_RES&&!$("#lookEd")){URL.revokeObjectURL(PHOTO_RES.url); PHOTO_RES=null}
   const row=(label,key,list,sel)=>`<div class="sw-row" role="radiogroup" aria-label="${label}"><span class="small muted">${label}</span>${list.map((c,i)=>`<button type="button" class="sw${i===sel?" on":""}" data-look="${key}" data-v="${i}" style="background:${c}" aria-label="${label} ${i+1}" aria-pressed="${i===sel}"></button>`).join("")}</div>`;
   if(r.kind==="mensch"){
     const baby=stage(r)==="baby";   // Babys haben keine Frisur und keine Extras, also nur zeigen, was man bei ihnen sieht
     const styles=`<div class="sw-row" role="radiogroup" aria-label="Frisur"><span class="small muted">Frisur</span>${STYLE_NAMES.map((n,i)=>{const hs=hairSvg(i,i===5?"#B6A4FF":"#4A3222");
       return `<button type="button" class="sw sw-ic${i===d.style?" on":""}" data-look="style" data-v="${i}" aria-label="${n}" aria-pressed="${i===d.style}"><svg width="24" height="24" viewBox="-7.5 -24 15 15" aria-hidden="true">${hs.back}<circle cx="0" cy="-16" r="5" fill="#E8B48F"/>${hs.front}</svg></button>`}).join("")}</div>`;
-    const al=accList(d.acc), accOn=i=>i?al.includes(i):!al.length;
+    const al=accList(d.acc), accOn=i=>i?al.includes(i):!al.length, tsel=(d.top==null?lookIdx(r).top:d.top)%TOP_NAMES.length;
+    const pats=lookPatRow(r,d), beards=lookBeardRow(d);
     const accs=`<div class="sw-row" role="group" aria-label="Extras"><span class="small muted">Extras (mehrere möglich)</span>${ACC_NAMES.map((n,i)=>{const a=accSvg(i,"#FF9C7A"),hs=hairSvg(0,"#4A3222");
       return `<button type="button" class="sw sw-ic${accOn(i)?" on":""}" data-look="acc" data-v="${i}" aria-label="${n}" aria-pressed="${accOn(i)}">${i===0?`<svg width="22" height="22" viewBox="-10 -10 20 20" aria-hidden="true"><circle r="7.5" fill="none" stroke="#9EA3B8" stroke-width="2"/><path d="M-5.3 5.3L5.3 -5.3" stroke="#9EA3B8" stroke-width="2" stroke-linecap="round"/></svg>`:`<svg width="24" height="24" viewBox="-7.5 -25 15 16" aria-hidden="true"><path d="M-6 -6c0-4 2.4-5.2 6-5.2s6 1.2 6 5.2z" fill="#5B8CD6"/>${a.body}${hs.back}<circle cx="0" cy="-16" r="5" fill="#E8B48F"/>${hs.front}${a.head}</svg>`}</button>`}).join("")}</div>`;
-    return `<div class="field"><span>Aussehen</span><div class="look"><div class="look-prev" id="lookPrev">${lookPreview(r,d)}</div><div class="look-opts">
-      ${baby?`${row("Haut","skin",SKIN,d.skin)}${row("Haare","hair",HAIR,d.hair)}${row("Strampler","shirt",SHIRT,d.shirt)}`:`${row("Haut","skin",SKIN,d.skin)}${styles}${row("Haare","hair",HAIR,d.hair)}${row("Shirt","shirt",SHIRT,d.shirt)}${accs}${row("Farbe der Extras","accC",SHIRT,d.accC)}`}</div></div></div>`;
+    if(baby) return `<div class="field"><span>Aussehen</span><div class="look"><div class="look-prev" id="lookPrev">${lookPreview(r,d)}</div><div class="look-opts">${row("Haut","skin",SKIN,d.skin)}${row("Haare","hair",HAIR,d.hair)}${row("Strampler","shirt",SHIRT,d.shirt)}</div></div></div>`;
+    return `<div class="field"><span>Aussehen</span><div id="lookEd">${umkleide(r,d)}</div></div>`;
   }
-  const n=(FUR[r.art]||[]).length; if(n<2) return "";
-  return `<div class="field"><span>Fellfarbe</span><div class="sw-row" role="radiogroup" aria-label="Fellfarbe">${Array.from({length:n},(_,i)=>`<button type="button" class="sw sw-ic sw-big${i===d.fur?" on":""}" data-look="fur" data-v="${i}" aria-label="Fellfarbe ${i+1}" aria-pressed="${i===d.fur}"><svg width="38" height="30" viewBox="${artVB(r.art,38/30)}" aria-hidden="true">${animalSvg(r.art,i)}</svg></button>`).join("")}</div></div>`;
+  return `<div class="field"><span>Aussehen</span><div id="lookEd">${umkleideTier(r,d)}</div></div>`;
 }
+function lookIc(i,on,k,n,inner,vb){return `<button type="button" class="sw sw-ic${on?" on":""}" data-look="${k}" data-v="${i}" aria-label="${n}" aria-pressed="${on}"><svg width="24" height="24" viewBox="${vb}" aria-hidden="true">${inner}</svg></button>`}
+function lookPatRow(r,d){const c=SHIRT[d.shirt]||"#5B8CD6", sel=(d.pat||0)%PAT_NAMES.length;
+  return `<div class="sw-row" role="radiogroup" aria-label="Muster" id="patRow"><span class="small muted">Muster</span>${PAT_NAMES.map((n,i)=>lookIc(i,i===sel,"pat",n,`<path d="M-6.4 0q0-13 6.4-13.4q6.4.4 6.4 13.4z" fill="${c}"/><g clip-path="url(#lvBody)">${patSvg(i,c,r.name)}</g>`,"-7.5 -14 15 14.5")).join("")}</div>`}
+function lookBeardRow(d){const hc=HAIR[d.hair]||"#4A3222", sel=(d.beard||0)%BEARD_NAMES.length;
+  return `<div class="sw-row" role="radiogroup" aria-label="Bart" id="beardRow"><span class="small muted">Bart</span>${BEARD_NAMES.map((n,i)=>lookIc(i,i===sel,"beard",n,`<circle cx="0" cy="-16" r="5" fill="${SKIN[d.skin]||"#E8B48F"}"/>${hairSvg(0,hc).front}${beardSvg(i,hc)}<circle cx="-1.8" cy="-16.3" r=".55" fill="#14151F"/><circle cx="1.8" cy="-16.3" r=".55" fill="#14151F"/>`,"-7 -23 14 14")).join("")}</div>`}
 function bindLookEditor(r,draft,onChange){
+  const ed=$("#lookEd");
+  if(ed){
+    const UK=r.kind==="mensch"?umkleide:umkleideTier;
+    const redraw=()=>{const b=ed.querySelector(".uk-body"), y=b?b.scrollTop:0; ed.innerHTML=UK(r,draft); const nb=ed.querySelector(".uk-body"); if(nb) nb.scrollTop=y; if(onChange) onChange()};
+    ed.onclick=e=>{const t=e.target.closest("button"); if(!t||!ed.contains(t)) return;
+      if(t.dataset.pane){LOOK_PANE=t.dataset.pane; ed.innerHTML=UK(r,draft); return}
+      if(t.dataset.photo!=null){const inp=document.createElement("input"); inp.type="file"; inp.accept="image/*";
+        inp.onchange=async()=>{const f=inp.files&&inp.files[0]; if(!f) return;
+          t.textContent="⏳"; t.disabled=true; if(!MP||!MP.seg[r.kind==="mensch"?"mensch":"tier"]) toast("Foto wird angeschaut … beim ersten Mal dauert es ein paar Sekunden.");
+          const ok=await photoLook(r,draft,f); if(ok&&r.kind!=="mensch"&&!hasCollar(r.art)) draft.collar=0; redraw()};
+        inp.click(); return}
+      if(t.dataset.photoUndo!=null){if(PHOTO_RES){for(const k of Object.keys(draft)) if(!(k in PHOTO_RES.prev)) delete draft[k]; Object.assign(draft,PHOTO_RES.prev); URL.revokeObjectURL(PHOTO_RES.url); PHOTO_RES=null} redraw(); return}
+      if(r.kind!=="mensch"){
+        if(t.dataset.lookset!=null) Object.assign(draft,TIER_LOOKS[+t.dataset.lookset][1]);
+        else if(t.dataset.dice!=null){const R=n=>Math.floor(Math.random()*n); Object.assign(draft,{fur:R((FUR[r.art]||[{}]).length),collar:hasCollar(r.art)&&Math.random()<.7?1+R(COLLAR_NAMES.length-1):0,cc:R(SHIRT.length),specs:Math.random()<.6?1+R(SPECS_NAMES.length-1):0})}
+        else if(t.dataset.look) draft[t.dataset.look]=+t.dataset.v;
+        else return;
+        if(!hasCollar(r.art)) draft.collar=0;
+        redraw(); return}
+      if(t.dataset.lookset!=null){Object.assign(draft,JSON.parse(JSON.stringify(LOOKS[+t.dataset.lookset][1]))); if(stage(r)==="kind") draft.beard=0; redraw(); return}
+      if(t.dataset.dice!=null){const R=n=>Math.floor(Math.random()*n), kid=stage(r)==="kind";
+        Object.assign(draft,{skin:R(SKIN.length),hair:R(HAIR.length),style:R(STYLE_NAMES.length),shirt:R(SHIRT.length),pat:Math.random()<.4?0:R(PAT_NAMES.length),beard:kid||Math.random()<.6?0:R(BEARD_NAMES.length),acc:Math.random()<.5?[]:[1+R(ACC_NAMES.length-1)],accC:R(SHIRT.length)}); redraw(); return}
+      if(t.dataset.look){const k=t.dataset.look, v=+t.dataset.v; if(k==="acc") draft.acc=accToggle(draft.acc,v); else draft[k]=v; redraw()}
+    };
+    return;
+  }
+  document.querySelectorAll("#modalRoot [data-pane]").forEach(t=>t.onclick=()=>{LOOK_PANE=t.dataset.pane;
+    document.querySelectorAll("#modalRoot [data-pane]").forEach(x=>{const on=x===t;x.classList.toggle("on",on);x.setAttribute("aria-selected",on)});
+    document.querySelectorAll("#modalRoot [data-pane-box]").forEach(b=>b.hidden=b.dataset.paneBox!==LOOK_PANE)});
   document.querySelectorAll("#modalRoot [data-look]").forEach(b=>b.onclick=()=>{
     const k=b.dataset.look, v=+b.dataset.v;
     if(k==="acc"){draft.acc=accToggle(draft.acc,v); const al=draft.acc;
@@ -3810,6 +4759,8 @@ function bindLookEditor(r,draft,onChange){
     } else {draft[k]=v;
       document.querySelectorAll(`#modalRoot [data-look="${k}"]`).forEach(x=>{const on=x===b;x.classList.toggle("on",on);x.setAttribute("aria-pressed",on)});}
     const pv=$("#lookPrev"); if(pv) pv.innerHTML=lookPreview(r,draft);
+    // Muster- und Bart-Knöpfe in der aktuellen Oberteil-, Haut- und Haarfarbe zeigen
+    if(["shirt","skin","hair"].includes(k)){const pr=$("#patRow"),br=$("#beardRow"); if(pr) pr.outerHTML=lookPatRow(r,draft); if(br) br.outerHTML=lookBeardRow(draft); if(pr||br) bindLookEditor(r,draft,onChange)}
     if(onChange) onChange();
   });
 }
@@ -3849,10 +4800,20 @@ function importSave(file){
 }
 function travelSheet(){
   const next=WORLDS[(S.world||0)+1]; if(!next||!((S.found||0)>(S.world||0))) return;
+  const box=hereItems().filter(id=>itemDef(id)&&!itemDef(id).consumable);
   modal(`${worldMapSvg()}<p class="label" style="color:var(--lime)">Weltreise</p><h2>Nach ${esc(next.name)} aufbrechen?</h2>
     <p class="muted">${esc(next.text)} Alle Bewohner und Tiere kommen mit. Gegenstände aus dem Laden bleiben hier, auf der neuen Insel gibt es passende neue. Die Großprojekte hier bleiben gebaut, auf der neuen Insel geht es mit neuen weiter.</p>
+    ${box.length?`<div class="kiste"><p class="label" style="color:var(--amber)">Umzugskiste</p><p class="small muted">Bis zu ${KISTE_MAX} Lieblingsstücke dürfen mit. Das Verpacken kostet die Hälfte vom Ladenpreis.</p>
+      <div class="kiste-list">${box.map(id=>`<label class="kiste-it" for="kb_${id}"><input type="checkbox" id="kb_${id}" data-kiste="${id}"><svg viewBox="-18 -30 36 34" width="34" height="32" aria-hidden="true">${itemSvg(id)}</svg><span><b>${esc(itemName(id))}</b><small class="num">${kisteCost(id)} Punkte</small></span></label>`).join("")}</div>
+      <p class="small" id="kisteSum" aria-live="polite"></p></div>`:""}
     <div class="row"><button class="btn secondary grow" id="trNo">Noch bleiben</button><button class="btn grow" id="trYes">Aufbrechen</button></div>`);
-  $("#trNo").onclick=closeModal; $("#trYes").onclick=travel;
+  const picked=()=>[...document.querySelectorAll("[data-kiste]:checked")].map(x=>x.dataset.kiste);
+  const upd=()=>{const ids=picked(), sum=ids.reduce((a,id)=>a+kisteCost(id),0), el=$("#kisteSum");
+    document.querySelectorAll("[data-kiste]").forEach(x=>{x.disabled=!x.checked&&ids.length>=KISTE_MAX});
+    if(el) el.innerHTML=ids.length?`Kiste: <b class="num">${sum} Punkte</b> · du hast <b class="num">${S.points}</b>${sum>S.points?` · <span style="color:var(--coral)">nicht genug Punkte</span>`:""}`:`Du hast <b class="num">${S.points} Punkte</b>.`;
+    $("#trYes").disabled=sum>S.points; $("#trYes").textContent=ids.length?"Mit Kiste aufbrechen":"Aufbrechen"};
+  document.querySelectorAll("[data-kiste]").forEach(x=>x.onchange=upd); upd();
+  $("#trNo").onclick=closeModal; $("#trYes").onclick=()=>travel(picked());
 }
 function confirmReset(){
   sheet(`<h2>Spielstand zurücksetzen?</h2><p class="muted">Deine Insel, alle Bewohner und eingetragenen Tage werden gelöscht. Das lässt sich nicht rückgängig machen.</p>
@@ -3864,7 +4825,7 @@ function confirmReset(){
 /* ---------- Freunde einladen, gemeinsame Ziele, OffLand Plus ----------
    Ohne Server: Einladungscode im Link, beide Seiten lösen den Code der anderen Person ein.
    "Plus" ist eine Vorschau und wird später mit Apple-Abo und Server echt geprüft. */
-const APP_URL="https://offland2026.github.io/OffLand/";
+const APP_URL="https://offlandapp.com/";
 const INVITE_KEY="offline-insel-einladung";
 const GOAL_DAYS=7, PLUS_DAYS=30;
 const CODE_ABC="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -3948,7 +4909,7 @@ function buddyProgress(){
   (S.buddies||[]).forEach(b=>{
     if(b.reward) return;
     b.done++;
-    if(b.done>=GOAL_DAYS){b.reward=true;S.points+=150;S.glueck=clamp(S.glueck+5,0,100);
+    if(b.done>=GOAL_DAYS){b.reward=true;S.points+=150;glAdd(5);
       log("Gemeinsames Ziel mit "+b.code+" geschafft: +150 Punkte, +5 % Glück.","good");S.pending.push({type:"buddy",code:b.code})}
   });
 }
@@ -4032,7 +4993,9 @@ async function netInit(){
     if(window.OFFLAND_FAKE_NET) return NET=window.OFFLAND_FAKE_NET;
     const b="https://www.gstatic.com/firebasejs/"+FB_VER+"/";
     const [A,U,F]=await Promise.all([import(b+"firebase-app.js"),import(b+"firebase-auth.js"),import(b+"firebase-firestore.js")]);
-    const app=A.initializeApp(window.OFFLAND_FIREBASE), auth=U.getAuth(app), db=F.getFirestore(app);
+    const app=A.initializeApp(window.OFFLAND_FIREBASE);
+    if(window.offlandAppCheck) await window.offlandAppCheck(app,b);   // Schutz vor Missbrauch, nur wenn ein Schlüssel eingetragen ist
+    const auth=U.getAuth(app), db=F.getFirestore(app);
     await auth.authStateReady(); if(!auth.currentUser) await U.signInAnonymously(auth);
     return NET={uid:auth.currentUser.uid,
       get:async p=>{const d=await F.getDoc(F.doc(db,p));return d.exists()?d.data():null},
@@ -4060,9 +5023,10 @@ function weekStats(){
 }
 const netName=()=>(ACC?ACC.name:"Insel").slice(0,20), netAv=()=>ACC?ACC.avatar:"Ziege";
 /* ---------- Anonyme Nutzungsstatistik (nur mit Zustimmung) ----------
-   Gilt pro Gerät, nicht pro Konto. Gesendet werden nur Zähler pro Tag (z. B. „tag_gut +1“) nach stats/JJJJ-MM-TT:
-   keine Namen, keine Minuten, keine Kennungen. Bis zur Zustimmung bleibt die Warteschlange auf dem Gerät. */
+   Gilt pro Gerät, nicht pro Konto. Gesendet werden nur Zähler pro Tag (z. B. „tag_gut +1“) nach stats/JJJJ-MM-TT_sN (N = 0–9, siehe statsFlush):
+   keine Namen, keine Minuten, keine Kennungen (Bildschirmzeit nur als grobe Stufe, siehe statsChange). Bis zur Zustimmung bleibt die Warteschlange auf dem Gerät. */
 const STATS_KEY="offland-stats";
+const STATS_SHARDS=10;
 function statsDev(){try{return JSON.parse(localStorage.getItem(STATS_KEY))||{}}catch(e){return {}}}
 function statsPut(d){try{localStorage.setItem(STATS_KEY,JSON.stringify(d))}catch(e){}}
 function stat(name,n){
@@ -4077,19 +5041,66 @@ function statsActive(){
   const age=Math.round((parse(t)-parse(d.since))/864e5), b=age===0?"0":age===1?"1":age<4?"2_3":age<8?"4_7":age<15?"8_14":age<31?"15_30":"31";
   stat("aktiv"); stat("aktiv_"+statsPlatform()); stat("aktiv_t"+b);
 }
+/* Wirkt OffLand? Ab Tag 8 wird der Tag mit dem Schnitt der eigenen ersten Woche verglichen.
+   Gezählt wird nur die Stufe (z. B. „bz_w3_m15“ = Woche 3, 15–30 % weniger), keine Minuten. */
+function statsChange(min){
+  const n=S.days.length; if(n<8) return;
+  const base=S.days.slice(0,7).reduce((a,d)=>a+d.min,0)/7; if(base<15) return;
+  const r=(base-min)/base, cls=r>=.5?"m50":r>=.3?"m30":r>=.15?"m15":r>=0?"m0":r>=-.15?"p15":"pp";
+  const w=Math.ceil(n/7); stat("bz_"+(w<=4?"w"+w:w<=8?"w5_8":"w9")+"_"+cls);
+}
 let statsTimer=0;
 function statsFlushSoon(){clearTimeout(statsTimer);statsTimer=setTimeout(statsFlush,4000)}
 async function statsFlush(){
   const d=statsDev(); if(d.consent!==true||!netConfigured()||!d.q||!Object.keys(d.q).length) return;
   const q=d.q; d.q={}; statsPut(d);
-  try{const N=await netInit(); if(!N.inc) throw 0; await N.inc("stats/"+today(),q)}
+  // Auf 10 Dokumente pro Tag verteilt: ein einzelnes Dokument verträgt nur etwa einen Schreibvorgang pro Sekunde
+  try{const N=await netInit(); if(!N.inc) throw 0; await N.inc("stats/"+today()+"_s"+Math.floor(Math.random()*STATS_SHARDS),q)}
   catch(e){const d2=statsDev(); if(d2.consent!==true) return; d2.q=d2.q||{}; for(const k in q) d2.q[k]=(d2.q[k]||0)+q[k]; statsPut(d2)}
 }
-function statsSet(on){const d=statsDev(); d.consent=!!on; if(!on) d.q={}; statsPut(d); if(on){statsActive();statsFlushSoon()}}
+/* ---------- Fehlerberichte (nur mit Zustimmung zur Statistik) ----------
+   Gesendet werden nur Fehlertext, Stelle im Code, App-Version und Plattform – keine Namen, keine Inseldaten.
+   Gleiche Fehler landen im selben Dokument errors/<kennung> und werden gezählt. Fehler, durch die die App gar nicht
+   startet, sammelt ein kleines Skript in index.html; sie werden beim nächsten erfolgreichen Start nachgereicht. */
+const ERR_KEY="offland-errors";
+const errSig=t=>{let h=0;for(let i=0;i<t.length;i++)h=(h*31+t.charCodeAt(i))|0;return "e"+(h>>>0).toString(36)};
+const errClean=t=>String(t||"").split(location.origin).join("").replace(/\?v=[^\s:)]*/g,"");
+function errReport(msg,src,stack){
+  try{
+    msg=errClean(msg||"Unbekannter Fehler").slice(0,300).trim(); src=errClean(src).slice(0,200); stack=errClean(stack).slice(0,1200);
+    if(!msg||/ResizeObserver loop|^Script error\.?$/.test(msg)) return;          // harmlos bzw. ohne Inhalt (fremde Skripte)
+    const q=JSON.parse(localStorage.getItem(ERR_KEY)||"[]"); if(q.length>=20) return;
+    q.push({msg,src,stack,v:typeof APP_VERSION!=="undefined"?APP_VERSION:"?",p:statsPlatform(),at:Date.now()});
+    localStorage.setItem(ERR_KEY,JSON.stringify(q)); errFlushSoon();
+  }catch(e){}
+}
+let errTimer=0;
+function errFlushSoon(){clearTimeout(errTimer);errTimer=setTimeout(errFlush,3000)}
+async function errFlush(){
+  let q; try{q=JSON.parse(localStorage.getItem(ERR_KEY)||"[]")}catch(e){q=[]}
+  if(!q.length) return;
+  const d=statsDev(); if(d.consent===false){try{localStorage.removeItem(ERR_KEY)}catch(e){} return}
+  if(d.consent!==true||!netConfigured()) return;                                // wartet auf die Zustimmung
+  try{localStorage.removeItem(ERR_KEY)}catch(e){}
+  try{
+    const N=await netInit(); if(!N.inc) return;
+    const groups={}; q.forEach(e=>{const k=errSig(e.msg+"|"+e.src); (groups[k]=groups[k]||[]).push(e)});
+    for(const k in groups){const g=groups[k], e=g[g.length-1], plat=["ios","pwa","web"].includes(e.p)?e.p:"web", inc={n:g.length}; inc["p_"+plat]=g.length;
+      await N.inc("errors/"+k,inc);
+      await N.set("errors/"+k,{msg:e.msg,src:e.src,stack:e.stack,v:String(e.v).slice(0,12),last:Date.now()});}
+    stat("fehler",q.length);
+    if(d.errDay!==today()){const d2=statsDev(); d2.errDay=today(); statsPut(d2); stat("fehler_geraet")}   // Gerätetage mit Fehler
+  }catch(e){}
+}
+window.__offlandReady=true;                                                       // ab jetzt meldet die App selbst (siehe index.html)
+window.addEventListener("error",e=>errReport(e.message,(e.filename||"")+(e.lineno?":"+e.lineno+":"+(e.colno||0):""),e.error&&e.error.stack));
+window.addEventListener("unhandledrejection",e=>{const r=e.reason; errReport("Promise: "+((r&&r.message)||r),"",r&&r.stack)});
+setTimeout(errFlush,4000);                                                         // Fehler vom letzten Start nachreichen
+function statsSet(on){const d=statsDev(); d.consent=!!on; if(!on) d.q={}; statsPut(d); if(on){statsActive();statsFlushSoon()} errFlushSoon()}
 function statsAskSheet(){
   sheet(`<p class="label" style="color:var(--lime)">Kurze Frage</p><h2>Hilfst du mit, OffLand besser zu machen?</h2>
-    ${saysHtml("bay","Ich würde gern anonym mitzählen, was auf OffLand gut läuft und was nicht. Keine Namen, keine Bildschirmzeiten. Versprochen, ich bin nur neugierig.")}
-    <p class="small muted">Gezählt wird nur, wie oft etwas passiert, zum Beispiel „heute wurde ein Tag eingetragen“ oder „ein Vorhaben wurde geschafft“. Nichts davon lässt sich dir zuordnen. Du kannst das jederzeit in den Einstellungen ändern.</p>
+    ${saysHtml("bay","Ich würde gern anonym mitzählen, was auf OffLand gut läuft und was nicht. Keine Namen, keine Minuten. Versprochen, ich bin nur neugierig.")}
+    <p class="small muted">Gezählt wird nur, wie oft etwas passiert, zum Beispiel „heute wurde ein Tag eingetragen“ oder „heute 15–30 % weniger am Handy als in der ersten Woche“. Nichts davon lässt sich dir zuordnen. Du kannst das jederzeit in den Einstellungen ändern.</p>
     <div class="row"><button class="btn secondary grow" id="stNo" data-ok>Lieber nicht</button><button class="btn grow" id="stYes" data-ok>Ja, gern</button></div>`);
   $("#stYes").onclick=()=>{statsSet(true);closeModal();render();showPending();toast("Danke! Mr. Bay freut sich.")};
   $("#stNo").onclick=()=>{statsSet(false);closeModal();render();showPending()};
@@ -4117,9 +5128,11 @@ async function netSync(){
     const row={owner:N.uid,name:netName(),avatar:netAv(),avg:w.avg,days:w.days,good:w.good,streak:S.budgetStreak,world:curWorld().name,updated:Date.now()};
     row.duel=S.duel&&S.duel.wk===w.wk?S.duel.vs:null;                              // merge-Schreiben: null löscht ein altes Duell
     row.duelOff=S.duelOff&&S.duelOff.wk===w.wk?S.duelOff.vs:null;                  // abgebrochen oder abgelehnt
+    postsUpdate(); row.ev=S.posts.map(p=>Object.assign({},p));                         // Inselpost: eigene Meilensteine
+    const co=S.cheerOut||{}; row.ch=Object.keys(co).filter(k=>co[k].d>=addDays(today(),-7)).slice(0,20).map(k=>({p:k,k:co[k].k,e:co[k].e,d:co[k].d}));
     await N.set("players/"+o.pid,{owner:N.uid,name:row.name,avatar:row.avatar,world:row.world,updated:row.updated});
     await N.set("weeks/"+w.wk+"/ranks/"+o.pid,row);
-    if(o.pub&&w.avg!=null&&w.days>=3){const pub=Object.assign({},row);delete pub.duel;delete pub.duelOff;await N.set("weeks/"+w.wk+"/public/"+o.pid,pub)}
+    if(o.pub&&w.avg!=null&&w.days>=3){const pub=Object.assign({},row);delete pub.duel;delete pub.duelOff;delete pub.ev;delete pub.ch;await N.set("weeks/"+w.wk+"/public/"+o.pid,pub)}
     else await N.del("weeks/"+w.wk+"/public/"+o.pid).catch(()=>{});
     await netPullFriends();
     await duelCheck();
@@ -4232,28 +5245,31 @@ function rankSheet(){closeModal();tab="freunde";render();window.scrollTo(0,0)}
 const TROPHY='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8M10 17h4v3h-4z"/></svg>';
 /* Tab „Freunde“: Vorschau, Ranglisten, Freunde hinzufügen, gemeinsame Ziele */
 function viewFreunde(){
-  const inv=pendingInvite(), on=netConfigured()&&netOn();
-  let h=(inv?friendsCardInvite(inv):"")+`<div class="hero-card" id="frHero" style="background:#1B2340">${frHeroSvg(null)}</div>
-  ${on?`<div class="scene-chips">
-    <div class="cp"><i>Platz</i><b id="chPl">–</b></div>
-    <div class="cp"><i>Duell</i><b id="chDu">${!on?"–":S.duel&&S.duel.wk===isoWeek(today())?"läuft":"offen"}</b></div>
-    <div class="cp"><i>Freunde</i><b id="chFr">…</b></div>
+  const inv=pendingInvite(), on=netConfigured()&&netOn(), wk=isoWeek(today()), left=6-(new Date().getDay()+6)%7;
+  const meRow={id:"me",name:"Du",avatar:netAv(),avg:weekStats().avg,me:true};
+  let h=(inv?friendsCardInvite(inv):"")+(on?`<div class="fr-stories" id="frStories">${storiesHtml([meRow])}</div>`:"")+
+  `<div class="card fr-reg"><div class="row between"><p class="label" style="color:#9CC8EE">Regatta · KW ${+wk.split("-W")[1]}</p><span class="small muted">${left?"noch "+left+(left===1?" Tag":" Tage"):"letzter Tag"}</span></div>
+    <div id="frHero">${regattaSvg([meRow])}</div>
+    ${on?`<div class="row fr-seg" role="tablist"><button class="${rankTab==="freunde"?"on":""}" data-rk="freunde" role="tab" aria-selected="${rankTab==="freunde"}">Freunde</button><button class="${rankTab==="alle"?"on":""}" data-rk="alle" role="tab" aria-selected="${rankTab==="alle"}">Alle</button></div><div id="rankHint"></div>`:""}
+  </div>
+  ${on?`<div class="row zt-chips">
+    <div class="cp"><i>Dein Platz</i><b id="chPl" style="color:var(--lime)">–</b></div>
+    <div class="cp"><i>Bis Platz 1</i><b id="chLead">–</b></div>
+    <div class="cp"><i>Rückenwind</i><b style="color:var(--amber)">${S.budgetStreak} ${S.budgetStreak===1?"Tag":"Tage"}</b></div>
   </div>`:""}`;
   if(!on){
     h+=`<div class="card" style="align-items:center;text-align:center">
       <div style="width:64px;height:64px;border-radius:32px;background:#26233D;color:var(--amber);display:flex;align-items:center;justify-content:center"><span style="width:34px;height:34px;display:block">${TROPHY}</span></div>
       <h2>Freunde und Ranglisten</h2>
-      <p class="muted">Vergleicht euch jede Woche: Wer war am wenigsten am Handy? Ladet euch gegenseitig ein, dann bekommt ihr ${plusOffer(false)}ein gemeinsames Ziel.</p>
+      <p class="muted">Segelt jede Woche gegeneinander: Wer am wenigsten am Handy war, liegt vorn. Ladet euch gegenseitig ein, dann bekommt ihr ${plusOffer(false)}ein gemeinsames Ziel.</p>
       ${netConfigured()?`<button class="btn" id="goOnline" style="align-self:stretch">Mitmachen</button>`:`<p class="small muted">Ranglisten sind in dieser Version noch nicht verfügbar.</p>`}
     </div>`+(netConfigured()?duelTeaser("Dafür musst du oben bei Freunde und Ranglisten mitmachen."):"");
   } else {
-    h+=`<div class="card" id="rankHero"><p class="label" style="color:var(--lime)">Diese Woche</p><p class="muted">Lade Rangliste …</p></div>
-    <div id="duelBox">${duelTeaser("Lade Freund:innen …")}</div>
-    <div class="sec-h"><span>Rangliste</span></div>
-    <div class="card">
-      <div class="row" role="tablist"><button class="btn ${rankTab==="freunde"?"":"secondary"} grow" data-rk="freunde" role="tab" aria-selected="${rankTab==="freunde"}">Freunde</button><button class="btn ${rankTab==="alle"?"":"secondary"} grow" data-rk="alle" role="tab" aria-selected="${rankTab==="alle"}">Alle</button></div>
-      <div id="rankBox"><p class="small muted">Lade …</p></div>
-    </div>`;
+    h+=`<div id="duelBox">${duelTeaser("Lade Freund:innen …")}</div>
+    <div class="sec-h"><span>Inselpost</span></div>
+    <div id="postBox" class="fr-posts"><div class="card"><p class="small muted">Lade …</p></div></div>
+    <details class="card zt-fold" id="rankFold"><summary><span class="grow"><b>Ganze Rangliste</b><span class="small muted">${rankTab==="alle"?"Alle diese Woche":"Deine Freund:innen"}</span></span><span class="muted zt-chev">›</span></summary>
+      <div id="rankBox"><p class="small muted">Lade …</p></div></details>`;
   }
   const fam=famCard();
   if(fam) h+=`<div class="sec-h"><span>Familie</span></div>`+fam;
@@ -4272,24 +5288,98 @@ function viewFreunde(){
   return h;
 }
 /* Freunde: Wettsegeln oben, wer im Schnitt weniger am Handy ist, segelt weiter vorne */
-function frHeroSvg(list){
-  const me={name:"Du",avatar:netAv(),me:true};
-  list=(list&&list.length?list:[me]).slice(0,3);
-  // Bild unten verdecken die Chips: alle Boote zwischen y 84 und 128, vorne liegt oben rechts
-  const n=list.length, lane=n===1?[116]:n===2?[92,124]:[86,108,130];
-  const boat=(r,i)=>{const x=n===1?150:246-i*(140/(n-1||1)), y=lane[i], sail=r.me?"#C8F169":["#B6A4FF","#FF9C7A","#9CC8EE"][i%3];
-    return `<g transform="translate(${x} ${y})"><g class="bob" style="animation-duration:${2+i*.3}s;animation-delay:${i*.2}s">
-      <path d="M-22 -2h44l-7 10h-30z" fill="#8A5A3B"/><path d="M0 -2V-40" stroke="#D9D4C6" stroke-width="1.8"/><path d="M2 -38q15 12 13 34h-13z" fill="${sail}"/><path d="M-2 -35q-12 10-12 31h12z" fill="#F3F1EA" opacity=".9"/>
-      <g transform="translate(-9 -3) scale(.55)">${animalSvg(r.avatar||"Ziege",0)}</g>
-      <path d="M-26 7q-10 2-20 0" stroke="#9CC8EE" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".6"/>
-      <text x="26" y="2" font-size="10" font-weight="800" fill="${sail}" font-family="Manrope, sans-serif">${i===0&&n>1?"★ ":""}${esc(r.me?"Du":r.name||"?")}</text></g></g>`};
-  return `<svg viewBox="0 0 360 200" role="img" aria-label="Wettsegeln mit deinen Freund:innen" style="width:100%;height:auto;display:block">
-    <defs><linearGradient id="frSea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A4A7A"/><stop offset="1" stop-color="#16294A"/></linearGradient></defs>
-    <rect width="360" height="200" fill="#1B2340"/>${[[40,22],[96,40],[210,18],[300,34],[150,30]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.2" fill="#F3F1EA" opacity=".7"/>`).join("")}
-    <rect y="54" width="360" height="146" fill="url(#frSea)"/>
-    <g stroke="#9CC8EE" fill="none" stroke-linecap="round" opacity=".3"><path class="wscroll" style="animation-duration:5s" d="${wavePath(84,2)}" stroke-width="1.4"/><path class="wscroll" style="animation-duration:3.8s" d="${wavePath(126,2.5)}" stroke-width="1.4"/></g>
-    <g transform="translate(334 0)"><path d="M0 134V60" stroke="#F3F1EA" stroke-width="2"/><g class="flagwave">${[0,1,2].map(r=>[0,1,2].map(c=>`<rect x="${1+c*6}" y="${60+r*5}" width="6" height="5" fill="${(r+c)%2?"#14151F":"#F3F1EA"}"/>`).join("")).join("")}</g></g>
-    ${list.map(boat).join("")}</svg>`;
+/* Freunde oben als Kreise; grüner Ring = in den letzten 2 Tagen ist etwas passiert */
+function storiesHtml(list){
+  const fresh=r=>!r.me&&((r.ev||[]).some(p=>p.d>=addDays(today(),-2)));
+  return list.map((r,i)=>`<button type="button" class="fr-st" data-story="${esc(r.id)}" aria-label="${esc(r.me?"Du":r.name||"?")}"><span class="fr-av${fresh(r)?" new":""}">${avatarSvg(r.avatar||"Ziege",50)}</span><span class="small">${esc(r.me?"Du":r.name||"?")}</span></button>`).join("")
+    +`<button type="button" class="fr-st" id="frAdd" aria-label="Freund:in einladen"><span class="fr-av add">+</span><span class="small">Einladen</span></button>`;
+}
+/* Regatta: jede Person ein Boot auf eigener Bahn, wer im Schnitt weniger am Handy ist, liegt näher am Ziel */
+function regattaSvg(list,places){
+  list=list.slice(0,8); const n=Math.max(1,list.length), H=26+n*38;
+  const av=list.filter(r=>r.avg!=null).map(r=>r.avg), lo=Math.min(...av), hi=Math.max(...av);
+  const X=r=>r.avg==null?56:hi===lo?262:262-(r.avg-lo)/(hi-lo)*170;
+  const boats=list.map((r,i)=>{const y=14+i*38, x=X(r), c=r.me?"#C8F169":"#F3F1EA", pl=places?places[i]:i+1;
+    return `<text x="6" y="${y+24}" font-family="Bricolage Grotesque, Manrope, sans-serif" font-weight="800" font-size="13" fill="${r.me?"#C8F169":"#A4A6BD"}">${pl}</text>
+    <path d="M22 ${y+27}h268" stroke="#F3F1EA" stroke-opacity=".12" stroke-dasharray="4 6"/>
+    <g transform="translate(${x.toFixed(1)} ${y+20})"><g class="bob" style="animation-duration:${2+i%3*.3}s">
+      <path d="M-15 0h30l-5 7h-20z" fill="#8A5A3B"/><path d="M0 0V-19" stroke="#D9D4C6" stroke-width="1.4"/><path d="M1.5 -18q10 8 9 18h-9z" fill="${c}"/><path d="M-1.5 -16q-8 7-8 16h8z" fill="#F3F1EA" opacity=".85"/>
+      <g transform="translate(-30 2) scale(.62)">${animalSvg(r.avatar||"Ziege",0)}</g>
+      <text x="14" y="-6" font-family="Manrope, sans-serif" font-weight="800" font-size="10" fill="${c}">${esc(r.me?"Du":r.name||"?")}</text>
+      <text x="14" y="5" font-family="Manrope, sans-serif" font-weight="700" font-size="9" fill="${c}" opacity=".75">${r.avg!=null?hm(r.avg):"–"}</text></g></g>`}).join("");
+  return `<svg viewBox="0 0 330 ${H}" role="img" aria-label="Regatta: wer diese Woche am wenigsten am Handy ist" style="width:100%;height:auto;display:block">
+    <rect x="304" y="6" width="3" height="${H-12}" fill="#F3F1EA" opacity=".55"/><g class="flagwave" transform="translate(307 6)">${[0,1].map(r=>[0,1,2].map(c=>`<rect x="${c*5}" y="${r*5}" width="5" height="5" fill="${(r+c)%2?"#14151F":"#F3F1EA"}"/>`).join("")).join("")}</g>
+    ${boats}</svg>`;
+}
+/* ---------- Inselpost: Meilensteine, die Freund:innen sehen, und Reaktionen darauf ----------
+   Gespeichert im Wochen-Eintrag (weeks/…/ranks/…): ev = eigene Meilensteine, ch = eigene Reaktionen.
+   Keine freien Texte: nur Art, Zahl bzw. Großprojekt und Datum. */
+const POST_MILES=[3,5,7,10,14,21,30,50,75,100,150,200,365];
+const postKey=p=>p.k+(p.n||"")+(p.it||"");
+function postsUpdate(){
+  const d=S.lastDay&&S.lastDay<=today()?S.lastDay:today(), P=(S.posts||[]).filter(p=>p.d>=addDays(today(),-14)&&p.d<=today());
+  const add=p=>{if(!P.some(x=>postKey(x)===postKey(p))) P.push(p)};
+  const m=POST_MILES.filter(x=>S.budgetStreak>=x).pop(); if(m) add({k:"serie",n:m,d});
+  const b=(S.builtLog||[]).slice(-1)[0]; if(b&&b.day>=addDays(today(),-14)&&b.day<=today()) add({k:"bau",it:b.id,d:b.day});
+  if(S.glueck>=100&&!P.some(x=>x.k==="glueck"&&x.d>=addDays(d,-6))) add({k:"glueck",d});
+  P.sort((x,y)=>x.d<y.d?1:x.d>y.d?-1:0); S.posts=P.slice(0,6);
+}
+function postText(p){
+  if(p.k==="serie") return `hat ${p.n} Tage Serie geschafft 🔥`;
+  if(p.k==="bau"){const pr=projById(p.it); return `hat ${pr?"„"+pr.name+"“":"ein Großprojekt"} gebaut 🏗️`}
+  if(p.k==="glueck") return "hat eine Insel mit 100 % Glück 🌞";
+  return "war auf der Insel";
+}
+const POST_EMO=["👏","🌴"];
+function postAgo(d){const n=Math.round((parse(today())-parse(d))/864e5);return n<=0?"heute":n===1?"gestern":"vor "+n+" Tagen"}
+function postFeed(R){
+  const me=S.online.pid, wk=isoWeek(today()), items=[], old=addDays(today(),-7);
+  R.friends.forEach(r=>{
+    if(r.id===me) return;
+    (r.ev||[]).forEach(p=>{if(p&&p.d>=old&&p.d<=today()) items.push({t:"post",r,p,d:p.d})});
+    (r.ch||[]).filter(c=>c&&c.p===me&&c.d>=old).slice(0,1).forEach(c=>items.push({t:"cheer",r,c,d:c.d}));
+  });
+  (S.frOver||[]).filter(o=>o.wk===wk).forEach(o=>{const r=R.friends.find(x=>x.id===o.id); if(r) items.push({t:"over",r,d:o.d})});
+  if(S.duel&&S.duel.wk===wk&&S.duel.by==="them"&&S.duel.d){const r=R.friends.find(x=>x.id===S.duel.vs); if(r) items.push({t:"duel",r,d:S.duel.d})}
+  items.sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:0);
+  return items.slice(0,8);
+}
+function postHtml(it,R){
+  const r=it.r, me=S.online.pid, nm=esc(r.name||"?"), head=(txt,sub)=>`<div class="row">${avatarSvg(r.avatar||"Ziege",40)}<div class="grow" style="min-width:0"><p><b>${nm}</b> ${txt}</p><p class="small muted">${sub}</p></div></div>`;
+  if(it.t==="post"){
+    const k=postKey(it.p), mine=(S.cheerOut||{})[r.id], cnt=e=>R.friends.filter(x=>(x.ch||[]).some(c=>c&&c.p===r.id&&c.k===k&&c.e===e)).length;
+    return `<div class="card fr-post">${head(postText(it.p),postAgo(it.d)+(r.avg!=null?" · Ø "+hm(r.avg)+" diese Woche":""))}
+      <div class="row fr-react">${POST_EMO.map(e=>{const on=mine&&mine.k===k&&mine.e===e, n=cnt(e);return `<button type="button" class="fr-chip${on?" on":""}" data-cheer="${esc(r.id)}" data-k="${esc(k)}" data-e="${e}" aria-pressed="${!!on}">${e}${n?" "+n:""}</button>`}).join("")}
+      <button type="button" class="fr-chip" data-story="${esc(r.id)}" style="margin-left:auto">Ansehen</button></div></div>`;
+  }
+  if(it.t==="cheer") return `<div class="card fr-post">${head(`feuert dich an ${esc(it.c.e)}`,postAgo(it.d))}</div>`;
+  if(it.t==="over"){const dw=S.duel&&S.duel.wk===isoWeek(today()), off=(S.duelOff&&S.duelOff.wk===isoWeek(today())&&S.duelOff.vs===r.id)||r.duelOff===me;
+    return `<div class="card fr-post">${head("hat dich überholt ⛵",postAgo(it.d)+(r.avg!=null?" · Ø "+hm(r.avg)+" diese Woche":""))}
+      <div class="row fr-react">${!dw&&!off?`<button type="button" class="fr-chip" data-duel="${esc(r.id)}">⚔️ Revanche</button>`:""}<button type="button" class="fr-chip" data-cheer="${esc(r.id)}" data-k="over" data-e="👏" style="margin-left:auto">👏 Glückwunsch</button></div></div>`}
+  if(it.t==="duel") return `<div class="card fr-post">${head("hat dich zum Duell herausgefordert ⚔️","Wer ist diese Woche weniger am Handy? Der Stand steht oben.")}</div>`;
+  return "";
+}
+function cheer(pid,k,e){
+  S.cheerOut=S.cheerOut||{}; const cur=S.cheerOut[pid];
+  if(cur&&cur.k===k&&cur.e===e) delete S.cheerOut[pid]; else {S.cheerOut[pid]={k,e,d:today()}; toast(e==="🌴"?"Palme geschickt":"Angefeuert!"); stat("anfeuern")}
+  save(); RANKC=null; netSync().then(()=>{if(tab==="freunde") fillRanks(true)});
+}
+function friendSheet(r){
+  const wk=isoWeek(today()), me=S.online.pid, dw=S.duel&&S.duel.wk===wk, off=(S.duelOff&&S.duelOff.wk===wk&&S.duelOff.vs===r.id)||r.duelOff===me, self=r.id===me;
+  const last=(r.ev||[])[0];
+  sheet(`<div style="align-self:center">${avatarSvg(r.avatar||"Ziege",76)}</div><p class="label" style="color:var(--lime);text-align:center">${esc(r.world||"")}</p><h2 style="text-align:center">${esc(self?"Du":r.name||"?")}</h2>
+    <div class="row zt-chips"><div class="cp"><i>Ø diese Woche</i><b>${r.avg!=null?hm(r.avg):"–"}</b></div><div class="cp"><i>Im Ziel</i><b>${r.good||0} von ${r.days||0}</b></div><div class="cp"><i>Serie</i><b style="color:var(--amber)">${r.streak||0}</b></div></div>
+    ${last&&!self?`<p class="muted" style="text-align:center">Zuletzt: ${esc(r.name||"?")} ${postText(last)}</p>`:""}
+    ${self?"":`<button class="btn" id="fsCheer">👏 Anfeuern</button>${!dw&&!off?`<button class="btn secondary" id="fsDuel">⚔️ Zum Duell herausfordern</button>`:""}`}
+    <button class="btn ghost" data-ok>Schließen</button>`);
+  const c=$("#fsCheer"); if(c) c.onclick=()=>{closeModal();cheer(r.id,last?postKey(last):"hi","👏")};
+  const d=$("#fsDuel"); if(d) d.onclick=()=>{closeModal();duelChallenge(r)};
+}
+function bindFriendsUi(R){
+  document.querySelectorAll("#frStories [data-story], #postBox [data-story]").forEach(b=>b.onclick=()=>{const r=R.friends.find(x=>x.id===b.dataset.story||(b.dataset.story==="me"&&x.id===S.online.pid)); if(r) friendSheet(r)});
+  const fa=$("#frAdd"); if(fa) fa.onclick=friendsSheet;
+  document.querySelectorAll("#postBox [data-cheer]").forEach(b=>b.onclick=()=>{b.disabled=true;cheer(b.dataset.cheer,b.dataset.k,b.dataset.e)});
+  document.querySelectorAll("#postBox [data-duel]").forEach(b=>b.onclick=()=>{const r=R.friends.find(x=>x.id===b.dataset.duel); if(r){b.disabled=true;duelChallenge(r)}});
 }
 function friendsCardInvite(inv){
   return `<div class="card" style="border:1.5px solid var(--lime)"><p class="label" style="color:var(--lime)">Einladung</p>
@@ -4321,17 +5411,16 @@ async function loadRanks(force){
     .sort(byAvg);
   let all=RANKC&&RANKC.key===key&&!force?RANKC.all:null;
   let place=null,total=null;
-  if(rankTab==="alle"||S.online.pub){
-    all=(await N.list("weeks/"+wk+"/public",{orderBy:"avg",limit:100})).filter(r=>(r.days||0)>=3);
-    // genauer Platz auch jenseits der ersten 100: zählen, wer im Schnitt weniger hatte
-    const mine=friends.find(r=>r.id===me);
-    if(N.count){
-      total=await N.count("weeks/"+wk+"/public").catch(()=>null);
-      if(mine&&all.some(r=>r.id===me)===false&&S.online.pub&&mine.avg!=null&&(mine.days||0)>=3) place=await N.count("weeks/"+wk+"/public",["avg","<",mine.avg]).then(n=>n+1).catch(()=>null);
-    }
-    if(place==null){const i=all.findIndex(r=>r.id===me); if(i>=0) place=rankPlaces(all)[i]}
-    if(total==null) total=all.length;
+  const mine=friends.find(r=>r.id===me), pubPath="weeks/"+wk+"/public";
+  // Die große Liste (bis 100 Einträge) nur laden, wenn „Alle“ gewählt ist. Den eigenen Platz holen zwei Zählabfragen,
+  // die kosten pro 1000 Einträge nur einen Lesezugriff.
+  if(rankTab==="alle"&&!all) all=(await N.list(pubPath,{orderBy:"avg",limit:100})).filter(r=>(r.days||0)>=3);
+  if((rankTab==="alle"||S.online.pub)&&N.count){
+    total=await N.count(pubPath).catch(()=>null);
+    if(S.online.pub&&mine&&mine.avg!=null&&(mine.days||0)>=3) place=await N.count(pubPath,["avg","<",mine.avg]).then(n=>n+1).catch(()=>null);
   }
+  if(place==null&&all){const i=all.findIndex(r=>r.id===me); if(i>=0) place=rankPlaces(all)[i]}
+  if(total==null&&all) total=all.length;
   return RANKC={key,at:Date.now(),friends,all,place,total,nFriends:fr.length};
 }
 async function fillRanks(force){
@@ -4340,7 +5429,7 @@ async function fillRanks(force){
   if(!$("#rankBox")||tab!=="freunde") return;                                  // inzwischen woanders
   const me=S.online.pid, fi=R.friends.findIndex(r=>r.id===me), mine=R.friends[fi]||{};
   const ai=R.all?R.all.findIndex(r=>r.id===me):-1, pl=R.all?rankPlaces(R.all):[];
-  const pubHint=!S.online.pub?"":R.place!=null?`<p class="small"><b>Platz ${R.place.toLocaleString("de-DE")}</b> <span class="muted">von ${Math.max(R.total||0,R.place).toLocaleString("de-DE")} in der Rangliste für alle</span></p>`
+  const pubHint=!S.online.pub?"":R.place!=null?`<p class="small"><b>Platz ${R.place.toLocaleString(LOC)}</b> <span class="muted">von ${Math.max(R.total||0,R.place).toLocaleString(LOC)} in der Rangliste für alle</span></p>`
     :mine.avg!=null&&(mine.days||0)<3?`<p class="small muted">Ab 3 eingetragenen Tagen diese Woche bist du in der Rangliste für alle dabei (noch ${3-(mine.days||0)}).</p>`:"";
   const simHint=S.testmode&&S.lastDay&&S.lastDay>today()?`<p class="small muted">Testmodus: Simulierte Tage liegen in der Zukunft und zählen nicht für die Ranglisten. Es zählen nur echte Tage dieser Woche.</p>`:"";
   // Duell: Herausforderung von jemandem annehmen, dann Rennen zeigen
@@ -4348,25 +5437,33 @@ async function fillRanks(force){
   if(S.duel&&S.duel.wk===wkNow){const opp=R.friends.find(r=>r.id===S.duel.vs);
     if(opp&&opp.duelOff===me){const n=S.duel.name;S.duelOff={vs:S.duel.vs,wk:wkNow};S.duel=null;log(n+" hat das Duell abgebrochen.","info");save();toast(n+" hat das Duell abgebrochen");netSync()}}
   const ch=R.friends.find(r=>r.id!==me&&r.duel===me&&r.duelOff!==me&&!(S.duelOff&&S.duelOff.wk===wkNow&&S.duelOff.vs===r.id));
-  if(ch&&!(S.duel&&S.duel.wk===wkNow)){S.duel={vs:ch.id,name:ch.name||"?",avatar:ch.avatar||"Ziege",wk:wkNow,by:"them"};log(S.duel.name+" hat dich zum Duell der Woche herausgefordert.","info");S.pending.push({type:"duelStart",name:S.duel.name,avatar:S.duel.avatar});save();netSync();showPending()}
+  if(ch&&!(S.duel&&S.duel.wk===wkNow)){S.duel={vs:ch.id,name:ch.name||"?",avatar:ch.avatar||"Ziege",wk:wkNow,by:"them",d:today()};log(S.duel.name+" hat dich zum Duell der Woche herausgefordert.","info");S.pending.push({type:"duelStart",name:S.duel.name,avatar:S.duel.avatar});save();netSync();showPending()}
   const db=$("#duelBox"); if(db){db.innerHTML=duelHtml(R); db.querySelectorAll("[data-duel]").forEach(b=>b.onclick=()=>{const r=R.friends.find(x=>x.id===b.dataset.duel); if(r){b.disabled=true;duelChallenge(r)}});
     const st=$("#duelStop"); if(st) st.onclick=duelCancelSheet}
-  // Vorschau oben: Ring-Karte, Chips und Wettsegeln im Bild
-  const nF=R.friends.length, ahead=fi>0?R.friends[fi-1]:null;
-  const ring=R.nFriends?ringSvg((nF-fi)/nF,"#"+(fi+1),"von "+nF,fi===0?"#FFB86B":"#B6A4FF")
-    :ringSvg(mine.avg!=null?Math.min(1,mine.avg/S.budget):0,mine.avg!=null?Math.floor(Math.round(mine.avg)/60)+":"+String(Math.round(mine.avg)%60).padStart(2,"0"):"–",mine.avg!=null?"pro Tag":"im Schnitt",mine.avg!=null&&mine.avg<=S.budget?"#C8F169":"#FF9C7A");
-  $("#rankHero").innerHTML=`<div class="row" style="gap:14px;align-items:center">${ring}<div class="grow">
-    <p class="label" style="color:var(--lime)">Diese Woche${R.nFriends?" · Freund:innen":""}</p>
-    ${R.nFriends?`<h3 class="hm-title" style="color:${fi===0?"var(--amber)":"var(--ink)"}">${fi===0?"Du führst!":"Platz "+(fi+1)}</h3>
-      <p class="small muted">${fi===0?"Niemand war diese Woche weniger am Handy.":ahead&&mine.avg!=null&&ahead.avg!=null?"Noch "+hm(mine.avg-ahead.avg+1)+" pro Tag weniger, dann überholst du "+esc(ahead.name||"?")+".":"Jeder Tag im Budget bringt dich nach vorne."}</p>`
-    :`<h3 class="hm-title">${mine.avg!=null?"Dein Schnitt":"Noch kein Tag"}</h3><p class="small muted">${mine.avg!=null?"Lade Freund:innen ein, um euch zu vergleichen.":"Trag deinen ersten Tag ein, dann geht's los."}</p>`}
-    </div></div>${pubHint}${simHint}`;
+  // Überholt? Wer letztes Mal hinter mir lag und jetzt vorne ist, landet in der Inselpost
+  const behind=R.friends.slice(fi+1).map(r=>r.id);
+  if(fi>=0&&mine.avg!=null){
+    if(S.frSeen&&S.frSeen.wk===wkNow) R.friends.slice(0,fi).filter(r=>S.frSeen.behind.includes(r.id)).forEach(r=>{
+      S.frOver=(S.frOver||[]).filter(o=>o.wk===wkNow&&o.id!==r.id); S.frOver.unshift({id:r.id,wk:wkNow,d:today()})});
+    S.frSeen={wk:wkNow,behind}; save();
+  }
+  // Oben: Kreise, Regatta, Chips
+  const nF=R.friends.length, lead=R.friends[0];
+  const st=$("#frStories"); if(st){st.innerHTML=storiesHtml(R.friends.map(r=>r.id===me?Object.assign({},r,{me:true,avatar:netAv()}):r).sort((a,b)=>(b.me?1:0)-(a.me?1:0)));bindFriendsUi(R)}
+  let regList, regPl=null;
+  if(rankTab==="alle"&&R.all){regList=R.all.slice(0,8); regPl=pl.slice(0,8); if(ai<0||ai>=8){regList=regList.slice(0,7).concat([mine]); regPl=regPl.slice(0,7).concat([R.place||"–"])}}
+  else regList=R.friends;
+  const fh=$("#frHero"); if(fh) fh.innerHTML=regattaSvg(regList.map(r=>r.id===me?Object.assign({},r,{me:true,avatar:netAv()}):r),regPl);
+  const hint=$("#rankHint"); if(hint) hint.innerHTML=(rankTab==="freunde"&&!R.nFriends?`<p class="small muted">Noch allein auf dem Wasser. Lade jemanden ein, dann segelt ihr gegeneinander.</p>`:"")+pubHint+simHint;
   const set=(id,t)=>{const e=$(id); if(e) e.textContent=t};
-  set("#chPl",R.nFriends?(fi+1)+" von "+nF:R.place!=null?R.place.toLocaleString("de-DE"):"–");
-  set("#chFr",String(R.nFriends));
-  const dw=S.duel&&S.duel.wk===isoWeek(today())?S.duel:null, dOpp=dw?R.friends.find(r=>r.id===dw.vs):null;
-  set("#chDu",!dw?"offen":dOpp&&dOpp.avg!=null&&mine.avg!=null?(mine.avg<dOpp.avg?"vorne":mine.avg>dOpp.avg?"hinten":"gleich"):"läuft");
-  const fh=$("#frHero"); if(fh) fh.innerHTML=frHeroSvg(R.friends.map(r=>r.id===me?Object.assign({},r,{me:true,avatar:netAv()}):r));
+  if(rankTab==="alle") set("#chPl",R.place!=null?R.place.toLocaleString(LOC)+" von "+Math.max(R.total||0,R.place).toLocaleString(LOC):"–");
+  else set("#chPl",R.nFriends?(fi+1)+" von "+nF:"–");
+  const top=rankTab==="alle"&&R.all&&R.all[0]?R.all[0]:lead;
+  set("#chLead",!top||mine.avg==null||top.avg==null?"–":top.id===me||mine.avg<=top.avg?"Du führst":"−"+hm(mine.avg-top.avg));
+  // Inselpost
+  const pb=$("#postBox"); if(pb){const items=postFeed(R);
+    pb.innerHTML=items.length?items.map(it=>postHtml(it,R)).join(""):`<div class="card"><p class="small muted">${R.nFriends?"Noch nichts los. Sobald deine Freund:innen eine Serie schaffen oder etwas bauen, steht es hier.":"Hier siehst du, was bei deinen Freund:innen passiert: Serien, neue Bauten und wer dich überholt hat."}</p></div>`;
+    bindFriendsUi(R)}
   // Liste
   if(rankTab==="freunde"){
     box.innerHTML=(R.nFriends?"":`<p class="small muted">Noch keine Freund:innen online. Füg jemanden mit dem Code hinzu oder schick eine Einladung.</p>`)+
@@ -4420,35 +5517,6 @@ function duelChallenge(r){
   log("Du hast "+S.duel.name+" zum Duell der Woche herausgefordert.","info");
   save(); RANKC=null; toast("Duell gestartet!"); netSync().then(()=>fillRanks(true));
 }
-/* Wettsegeln: je weiter vorne, desto weniger Handyzeit im Schnitt. Die Handyzeit-Welle jagt beide. */
-function duelRace(me,them){
-  const wd=(new Date().getDay()+6)%7, p=(wd+1)/7, base=70+190*p;
-  const known=me.avg!=null&&them.avg!=null, lead=known?them.avg-me.avg:0;
-  const gap=known?Math.min(110,Math.abs(lead)/60*55):0;
-  let xm=base, xt=base;
-  if(known){if(lead>0) xt=base-gap; else if(lead<0) xm=base-gap}
-  if(me.avg==null) xm=36; if(them.avg==null) xt=36;
-  const boat=(r,x,y,sail,delay,lead)=>`<g transform="translate(${x} ${y})"><g><animateTransform attributeName="transform" type="translate" from="${30-x} 0" to="0 0" dur="1.8s" begin="${delay}s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines=".2 .8 .2 1"/>
-      <g class="bob" style="animation-duration:${lead?1.6:2.2}s">
-      <path d="M-26 -2h52l-8 12h-36z" fill="#8A5A3B"/><path d="M-26 -2h52" stroke="#A0703F" stroke-width="2"/>
-      <path d="M0 -2V-50" stroke="#D9D4C6" stroke-width="2"/><g class="sailflap"><path d="M2 -48q18 14 16 42h-16z" fill="${sail}"/></g><path d="M-2 -44q-14 12-14 38h14z" fill="#F3F1EA" opacity=".9"/>
-      <g transform="translate(-10 -4) scale(.62)">${animalSvg(r.avatar||"Ziege",0)}</g>
-      ${lead?`<g class="pop fb" style="animation-delay:2s"><path d="M0 -52l2 4 4 .5-3 3 .8 4.5-3.8-2-3.8 2 .8-4.5-3-3 4-.5z" fill="#FFD27A"/></g>`:""}
-      <path class="wake" d="M-30 8q-10 2-22 0M-30 4q-8 2-16 0" stroke="#9CC8EE" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".7"/>
-      <text x="0" y="24" text-anchor="middle" font-size="10" font-weight="800" fill="${sail}" font-family="Manrope, sans-serif">${esc(r.name)}</text></g></g></g>`;
-  const back=Math.max(10,Math.min(xm,xt)-78);
-  return `<svg viewBox="0 0 340 220" class="duel-svg" role="img" aria-label="Wettsegeln: ${esc(me.name)} gegen ${esc(them.name)}">
-    <defs><linearGradient id="dSea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A4A7A"/><stop offset="1" stop-color="#16294A"/></linearGradient></defs>
-    <rect width="340" height="220" rx="18" fill="#1B2340"/><rect y="40" width="340" height="180" fill="url(#dSea)"/>
-    <g stroke="#9CC8EE" fill="none" stroke-linecap="round" opacity=".35"><path class="wscroll" style="animation-duration:5s" d="${wavePath(70,2)}" stroke-width="1.4"/><path class="wscroll" style="animation-duration:3.8s" d="${wavePath(130,2.5)}" stroke-width="1.6"/><path class="wscroll" style="animation-duration:4.4s" d="${wavePath(186,2)}" stroke-width="1.4"/></g>
-    <g transform="translate(272 0)"><path d="M0 196V36" stroke="#F3F1EA" stroke-width="2"/><g class="flagwave">${[0,1,2,3].map(r=>[0,1,2].map(c=>`<rect x="${1+c*7}" y="${36+r*6}" width="7" height="6" fill="${(r+c)%2?"#14151F":"#F3F1EA"}"/>`).join("")).join("")}</g></g>
-    <g transform="translate(${back} 140) scale(1.4)"><g class="chase">${monsterSvg("strudel")}</g></g>
-    ${boat(them,xt,104,"#B6A4FF",.1,known&&lead<0)}
-    ${boat(me,xm,170,"#C8F169",.3,known&&lead>0)}
-    <text x="12" y="26" font-size="12" fill="#F3F1EA" font-family="Manrope, sans-serif" font-weight="800">${esc(them.name)}: ${them.avg!=null?hm(them.avg)+" / Tag":"noch nichts eingetragen"}</text>
-    <text x="328" y="26" text-anchor="end" font-size="12" fill="#C8F169" font-family="Manrope, sans-serif" font-weight="800">Du: ${me.avg!=null?hm(me.avg)+" / Tag":"noch nichts"}</text>
-</svg>`;
-}
 function duelTeaser(text,btn){
   return `<div class="card duel-card"><p class="label" style="color:var(--amber)">⚔️ Duell der Woche</p>
     <div class="duel-vs" style="justify-content:flex-start"><span>${avatarSvg(netAv(),48)}</span><b class="duel-x" style="font-size:24px">⚔️</b><span class="avatar" style="width:48px;height:48px;border-radius:24px;background:var(--card2);display:inline-flex;align-items:center;justify-content:center;font-weight:800;color:var(--muted)">?</span></div>
@@ -4473,8 +5541,9 @@ function duelHtml(R){
     :lead>0?`<b style="color:var(--lime)">Du liegst vorne!</b> ${hm(lead)} weniger pro Tag als ${esc(B.name)}.`
     :lead<0?`<b style="color:var(--coral)">${esc(B.name)} liegt ${hm(-lead)} vorne.</b> Ein guter Tag, und du holst auf!`:`<b>Gleichstand!</b> Jetzt zählt jeder Tag.`;
   return `<div class="card duel-card"><div class="row between"><p class="label" style="color:var(--amber)">⚔️ Duell gegen ${esc(B.name)}</p><span class="chip ok">${left?"noch "+left+(left===1?" Tag":" Tage"):"letzter Tag"}</span></div>
-    ${duelRace(A,B)}<p>${msg}</p>
-    <p class="small muted">Die Handyzeit-Welle jagt euch beide. Wer im Schnitt weniger am Handy ist, segelt vorne. Sieg am Sonntag: eine Deko für die Insel.</p>
+    <div class="row duel-bar">${avatarSvg(A.avatar||"Ziege",40)}<div class="grow"><div class="duel-track"><i style="width:${known?(B.avg+A.avg?Math.round(B.avg/(A.avg+B.avg)*100):50):A.avg!=null?70:B.avg!=null?30:50}%"></i></div>
+      <p class="small muted row between"><span>Du ${A.avg!=null?"Ø "+hm(A.avg):"–"}</span><span>${esc(B.name)} ${B.avg!=null?"Ø "+hm(B.avg):"–"}</span></p></div>${avatarSvg(B.avatar||"Ziege",40)}</div>
+    <p>${msg}</p><p class="small muted">Sieg am Sonntag: eine Deko für die Insel. Auch wer verliert, bekommt Punkte fürs Mitmachen.</p>
     <button class="btn ghost" id="duelStop">Duell abbrechen</button></div>`;
 }
 function duelStartSheet(ev){
@@ -4543,7 +5612,7 @@ function supportSheet(prefill){
 function ticketHtml(t){
   const cat=(SUPPORT_CATS.find(c=>c[0]===t.cat)||["",""])[1];
   return `<div style="background:var(--ground);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:6px">
-    <div class="row between"><span class="small muted">${esc(cat)} · ${new Date(t.at).toLocaleDateString("de-DE")}</span><span class="small" style="font-weight:700;color:${t.reply?"var(--lime)":"var(--muted)"}">${t.reply?"beantwortet":"offen"}</span></div>
+    <div class="row between"><span class="small muted">${esc(cat)} · ${new Date(t.at).toLocaleDateString(LOC)}</span><span class="small" style="font-weight:700;color:${t.reply?"var(--lime)":"var(--muted)"}">${t.reply?"beantwortet":"offen"}</span></div>
     <p class="small">„${esc(t.text)}${t.text.length>=140?"…":""}“</p>
     ${t.reply?`<div style="border-left:3px solid var(--lime);padding-left:10px"><p class="small" style="font-weight:700;color:var(--lime)">OffLand-Team</p><p class="small" style="white-space:pre-wrap">${esc(t.reply)}</p></div>`:""}</div>`;
 }
@@ -4648,7 +5717,60 @@ function umfrageSheet(ev){
 /* ---------- Bildschirmzeit automatisch (nur iPhone-App) ----------
    Natives Plugin "ScreenTime" (ios/App/App/ScreenTimePlugin.swift). Apple liefert nur Schwellen:
    Die Monitor-Erweiterung merkt sich pro Tag die höchste erreichte 15-Minuten-Stufe. */
-const ST=(()=>{try{const C=window.Capacitor;return C&&C.isNativePlatform&&C.isNativePlatform()&&C.getPlatform()==="ios"&&C.registerPlugin?C.registerPlugin("ScreenTime"):null}catch(e){return null}})();
+const ST_NATIVE=(()=>{try{const C=window.Capacitor;return C&&C.isNativePlatform&&C.isNativePlatform()&&C.getPlatform()==="ios"&&C.registerPlugin?C.registerPlugin("ScreenTime"):null}catch(e){return null}})();
+/* Ohne iPhone-App: Simulation mit denselben Schritten wie das echte Plugin (Erlaubnis, Apps wählen,
+   Minuten in 15-Minuten-Stufen). Die Werte sind ausgedacht, aber pro Tag immer gleich. */
+function stSimAsk(html){
+  return new Promise(res=>{
+    const d=document.createElement("div"); d.className="modal st-sim"; d.style.zIndex="400";
+    d.innerHTML=`<div class="sheet" role="dialog" aria-modal="true">${html}</div>`;
+    document.body.appendChild(d);
+    d.querySelectorAll("[data-st]").forEach(b=>b.onclick=()=>{const v=b.dataset.st==="ok"?[...d.querySelectorAll("input:checked")].map(x=>x.value):null; d.remove(); res(v)});
+  });
+}
+const ST_SIM={
+  now(){const s=S.stSim||{};return {available:true,simulated:true,status:s.status||"notDetermined",monitoring:!!s.monitoring}},
+  async status(){return ST_SIM.now()},
+  async authorize(){
+    const ok=await stSimAsk(`<p class="label">Simulation · so fragt das iPhone</p>
+      <h2>„OffLand“ möchte auf Bildschirmzeit zugreifen</h2>
+      <p class="small muted">Wenn du OffLand den Zugriff auf Bildschirmzeit gewährst, kann die App deine Aktivitätsdaten sehen, Inhalte einschränken und die Nutzung von Apps und Websites begrenzen.</p>
+      <button class="btn" data-st="ok">Fortfahren</button><button class="btn ghost" data-st="no">Nicht erlauben</button>`);
+    S.stSim=Object.assign(S.stSim||{},{status:ok?"approved":"denied"}); save();
+    if(!ok) throw new Error("Bildschirmzeit wurde nicht erlaubt");
+    return {status:"approved"};
+  },
+  async pickApps(){
+    const cats=[["social","Soziale Netzwerke",1],["games","Spiele",1],["video","Unterhaltung",1],["web","Safari und Websites",1],["chat","Kommunikation",0],["other","Alle anderen Apps",0]];
+    const sel=await stSimAsk(`<p class="label">Simulation · Auswahl wie auf dem iPhone</p>
+      <h2>Welche Apps zählen?</h2>
+      <p class="small muted">OffLand sieht später nicht, welche Apps du gewählt hast, nur die Gesamtzeit.</p>
+      <div style="display:flex;flex-direction:column;gap:8px">${cats.map(([v,n,on])=>`<label class="field" style="flex-direction:row;align-items:center;gap:10px;min-height:44px"><input type="checkbox" value="${v}"${on?" checked":""}> ${n}</label>`).join("")}</div>
+      <button class="btn" data-st="ok">Fertig</button><button class="btn ghost" data-st="no">Abbrechen</button>`);
+    if(!sel||!sel.length) return {ok:false};
+    S.stSim=Object.assign(S.stSim||{},{monitoring:true,apps:sel,since:S.stSim&&S.stSim.since||today()}); save();
+    return {ok:true};
+  },
+  async minutes({day}){
+    const s=S.stSim||{}; if(!s.monitoring) return {has:false,minutes:0};
+    // typischer Wert: Schnitt der letzten Tage, sonst knapp unter dem Ausgangswert
+    const recent=S.days.slice(-7).map(d=>d.min), base=recent.length?recent.reduce((a,b)=>a+b,0)/recent.length:Math.max(60,(S.baseline||S.budget||180)*.8);
+    let h=0; for(const c of String(day)) h=(h*31+c.charCodeAt(0))>>>0;
+    let m=base*(0.65+(h%70)/100)*(1+((s.apps||[]).length-4)*.06);
+    if(day===today()){const n=new Date(), f=clamp((n.getHours()+n.getMinutes()/60-7)/16,0,1); m*=f}
+    return {has:true,minutes:Math.max(0,Math.floor(m/15)*15)};
+  },
+  async stop(){S.stSim=Object.assign(S.stSim||{},{monitoring:false}); save()},
+  async showAverage(){
+    let h=0; for(const c of String(ACC?ACC.name:"Insel")) h=(h*31+c.charCodeAt(0))>>>0;
+    const m=150+(h%30)*7;   // ausgedacht, aber für dieselbe Person immer gleich
+    await stSimAsk(`<p class="label">Simulation · so zeigt es das iPhone</p><h2>Deine Bildschirmzeit</h2>
+      <div style="text-align:center;padding:10px 0"><p class="small muted">Dein Tagesdurchschnitt der letzten 7 Tage</p><p style="font:800 40px var(--display)">${hm(Math.round(m/5)*5)}</p></div>
+      <p class="small muted">Stell den Regler „Bisheriger Schnitt“ auf diesen Wert. Auf dem iPhone zeigt Apple die Zahl nur hier an, OffLand selbst bekommt sie nicht.</p>
+      <button class="btn" data-st="ok">Fertig</button>`);
+  }
+};
+const ST=ST_NATIVE||ST_SIM;
 let stInfo=null;
 async function stStatus(){if(!ST)return null;try{stInfo=await ST.status()}catch(e){stInfo={available:false}}return stInfo}
 function stCard(){
@@ -4656,6 +5778,7 @@ function stCard(){
   const i=stInfo||{};
   const on=i.status==="approved"&&i.monitoring;
   return `<div class="card" id="stCard"><p class="label">Bildschirmzeit automatisch</p>
+    ${i.simulated?`<p class="small" style="color:var(--amber)">In der Web-Version simuliert: Die Zeiten sind ausgedacht. In der iPhone-App kommen sie von Apple.</p>`:""}
     ${on?`<p class="small muted">OffLand misst deine Bildschirmzeit in 15-Minuten-Schritten mit. Beim Eintragen ist die Zeit schon vorausgefüllt, du musst nur noch bestätigen.</p>
       <div class="row"><button class="btn secondary grow" id="stApps">Apps ändern</button><button class="btn ghost grow" id="stOff">Ausschalten</button></div>`
     :i.status==="denied"?`<p class="small muted">Du hast den Zugriff auf die Bildschirmzeit abgelehnt. Erlauben kannst du ihn in den iPhone-Einstellungen unter Bildschirmzeit.</p><button class="btn secondary" id="stSetup">Erneut versuchen</button>`
@@ -4663,22 +5786,121 @@ function stCard(){
       <button class="btn secondary" id="stSetup">Einrichten</button>`}
   </div>`;
 }
-async function stSetup(){
+async function stSetup(fromEntry){
   try{
     await ST.authorize();
     const r=await ST.pickApps();
     if(r&&r.ok){S.autoTime=true;save();toast("Bildschirmzeit wird jetzt automatisch gemessen")}
-  }catch(e){toast(String(e&&e.message||e).slice(0,120))}
-  await stStatus(); settingsSheet();
+    else if(fromEntry===true){S.stNoLink=true;save()}
+  }catch(e){if(fromEntry===true){S.stNoLink=true;save()} toast(String(e&&e.message||e).slice(0,120))}
+  await stStatus(); if(fromEntry===true) render(); else settingsSheet();
 }
 /* Beim Eintragen: gemessene Zeit des einzutragenden Tages vorausfüllen */
 async function stFill(){
   if(!ST||!$("#inH")) return;
-  const i=stInfo||await stStatus(); if(!i||i.status!=="approved"||!i.monitoring) return;
+  const i=ST===ST_SIM?ST_SIM.now():stInfo||await stStatus(); if(!i||i.status!=="approved"||!i.monitoring) return;
   const day=nextDay(); let r; try{r=await ST.minutes({day})}catch(e){return}
   const h=$("#inH"), m=$("#inM"), note=$("#stNote"); if(!h||!r||!r.has) return;
   if(!h.dataset.touched&&!m.dataset.touched){h.value=Math.floor(r.minutes/60);m.value=r.minutes%60;liveUpdate()}
-  if(note) note.innerHTML=`<b style="color:var(--lime)">Automatisch gemessen:</b> mindestens ${hm(r.minutes)}${day===today()?" bis jetzt":""}. Apple meldet die Zeit in 15-Minuten-Schritten, darum kann es bis zu 14 Minuten mehr gewesen sein.`;
+  if(note) note.innerHTML=`<b style="color:var(--lime)">Automatisch gemessen${i.simulated?" (Simulation)":""}:</b> mindestens ${hm(r.minutes)}${day===today()?" bis jetzt":""}. Apple meldet die Zeit in 15-Minuten-Schritten, darum kann es bis zu 14 Minuten mehr gewesen sein.`;
+}
+
+/* ---------- Insel-Schutz: beim Öffnen gewählter Apps steht erst die Insel in der Tür ----------
+   iPhone-App: Apples Bildschirmzeit-Sperre („Shield“) mit eigenen Texten (ios/App/Shared/IslandShield.swift,
+   Erweiterungen ShieldConfig und ShieldAction). In der Web-Version simuliert, mit einer Vorschau. */
+const SHIELD_MODES=[["off","Aus"],["always","Immer"],["evening","Abends ab 21 Uhr"],["focus","Bei Fokus-Bootsfahrt"]];
+const SHIELD_SIM_APPS=[["insta","Instagram",1],["tiktok","TikTok",1],["yt","YouTube",1],["snap","Snapchat",0],["safari","Safari",0],["games","Spiele",0]];
+Object.assign(ST_SIM,{
+  async shieldPick(){
+    const cur=(S.shield&&S.shield.sim)||null;
+    const sel=await stSimAsk(`<p class="label">Simulation · Auswahl wie auf dem iPhone</p><h2>Was bewacht die Insel?</h2>
+      <p class="small muted">Wähl die Apps, bei denen du oft ohne nachzudenken landest. OffLand sieht nicht, welche Apps du wählst.</p>
+      <div style="display:flex;flex-direction:column;gap:8px">${SHIELD_SIM_APPS.map(([v,n,on])=>`<label class="field" style="flex-direction:row;align-items:center;gap:10px;min-height:44px"><input type="checkbox" value="${v}"${(cur?cur.includes(v):on)?" checked":""}> ${n}</label>`).join("")}</div>
+      <button class="btn" data-st="ok">Fertig</button><button class="btn ghost" data-st="no">Abbrechen</button>`);
+    if(!sel) return {ok:false};
+    S.shield=Object.assign(S.shield||{},{sim:sel}); save(); return {ok:true,count:sel.length};
+  },
+  async shieldSet({mode,unlock}){S.shield=Object.assign(S.shield||{},{mode,unlock:unlock||(S.shield&&S.shield.unlock)||5}); save(); return {mode}},
+  async shieldFocus(){return {}},
+  async shieldInfo(){},
+  async shieldStats({day}={}){const d=day||today(), t=(S.shield&&S.shield.simDay===d&&S.shield.simCnt)||{res:0,open:0};
+    return {day:d,resisted:t.res,opened:t.open,mode:(S.shield&&S.shield.mode)||"off",unlock:(S.shield&&S.shield.unlock)||5,count:((S.shield&&S.shield.sim)||[]).length}}
+});
+function shieldSimCount(kind){const d=today(); S.shield=S.shield||{}; if(S.shield.simDay!==d){S.shield.simDay=d;S.shield.simCnt={res:0,open:0}} S.shield.simCnt[kind]++; save()}
+let shieldStatsCache=null, shieldStatsAt=0;
+async function shieldRefresh(force){
+  if(!ST||!ST.shieldStats||!S.shield||!S.shield.mode||S.shield.mode==="off") return null;
+  if(!force&&Date.now()-shieldStatsAt<60000) return shieldStatsCache;
+  shieldStatsAt=Date.now();
+  try{shieldStatsCache=await ST.shieldStats({})}catch(e){return null}
+  // Belohnung: jedes Widerstehen +1 Punkt, höchstens 20 am Tag
+  const st=shieldStatsCache; if(!st) return null;
+  const aw=S.shield.award&&S.shield.award.day===st.day?S.shield.award:{day:st.day,n:0}, give=Math.min(20,st.resisted)-aw.n;
+  if(give>0){aw.n+=give; S.shield.award=aw; S.points+=give; save(); toast(`🛡️ ${give}× widerstanden: +${give} Punkte`); render()}
+  return st;
+}
+function shieldNames(){const a=adults().map(r=>r.name); return a.length?a:here().filter(r=>r.kind==="mensch").map(r=>r.name)}
+/* Gleiche Texte wie im iPhone-Schutz (IslandShield.message), hier für die Vorschau */
+function shieldMsg(res,open,app){
+  const names=shieldNames(), tries=res+open, n=names.length?names[tries%names.length]:"Jemand auf deiner Insel", a=app||"Instagram";
+  const T=[`${n} hat dir am Strand einen Platz freigehalten.`,`${n} fragt, ob du kurz zum Steg kommst.`,`Lucifer hat gesehen, dass du ${a} öffnen wolltest.`,
+    `${n} baut gerade eine Sandburg. Hilfst du mit?`,"Auf deiner Insel geht gleich die Sonne unter.",`${n} wartet am Lagerfeuer auf dich.`];
+  const title=T[tries%T.length];
+  const sub=tries===0?"Kurz durchatmen. Deine Insel ist nur einen Tipp entfernt.":title.includes("Lucifer")?"Er sagt nichts. Er guckt nur.":`Du warst heute schon ${tries+1}× kurz davor. ${res}× hast du widerstanden.`;
+  return {title,sub};
+}
+const SHIELD_ICON=`<svg viewBox="0 0 150 150" width="120" height="120" aria-hidden="true"><defs><clipPath id="shR"><rect width="150" height="150" rx="34"/></clipPath><linearGradient id="shSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5B4A8E"/><stop offset="1" stop-color="#C77B8A"/></linearGradient></defs>
+  <g clip-path="url(#shR)"><rect width="150" height="150" fill="url(#shSky)"/><circle cx="112" cy="40" r="15" fill="#FFB38A"/><rect y="98" width="150" height="52" fill="#2C4770"/><path d="M8 104 Q75 70 142 104z" fill="#E8D7A6"/><path d="M22 100 Q75 74 128 100" fill="#7FC57A"/>
+  <rect x="34" y="62" width="9" height="30" fill="#F3F1EA"/><rect x="34" y="70" width="9" height="4" fill="#E5484D"/><path d="M32 62h13l-6.5-9z" fill="#E5484D"/>
+  <g transform="translate(86 84)"><circle cy="-10" r="7" fill="#F3D2B8"/><path d="M-7 -12a7 7 0 0 1 14 0q-7-4-14 0z" fill="#4A3222"/><path d="M-7 4q0-10 7-10t7 10z" fill="#5BC0A8"/><path d="M7 -2 l8 -10" stroke="#F3D2B8" stroke-width="3" stroke-linecap="round"/></g>
+  <g transform="translate(110 94)"><ellipse rx="7" ry="4" fill="#1E1F2B"/><circle cx="-5" cy="-3" r="3.4" fill="#1E1F2B"/><path d="M-8 -5l1-4 2 3zM-4 -6l2-4 .5 3.5z" fill="#1E1F2B"/></g></g></svg>`;
+async function shieldPreview(){
+  let st={resisted:0,opened:0}; try{if(ST.shieldStats) st=(await ST.shieldStats({}))||st}catch(e){}
+  const m=shieldMsg(st.resisted||0,st.opened||0), mins=(S.shield&&S.shield.unlock)||5;
+  const d=document.createElement("div"); d.className="shield-prev"; d.setAttribute("role","dialog"); d.setAttribute("aria-modal","true");
+  d.innerHTML=`<p class="shield-tag">Vorschau · so erscheint es beim Öffnen von Instagram</p>${SHIELD_ICON}<h2>${esc(m.title)}</h2><p>${esc(m.sub)}</p><div class="grow"></div>
+    <button class="btn" data-sh="res">Zurück zur Insel</button><button class="shield-sec" data-sh="open">Trotzdem öffnen · ${mins} Min.</button>`;
+  document.body.appendChild(d); d.querySelector("[data-sh=res]").focus();
+  d.querySelectorAll("[data-sh]").forEach(b=>b.onclick=()=>{const k=b.dataset.sh; d.remove();
+    if(ST===ST_SIM){shieldSimCount(k)}
+    const names=shieldNames(), n=names.length?names[((st.resisted||0)+1)%names.length]:"Deine Insel";
+    toast(k==="res"?`💛 ${n} freut sich!`:`Okay, ${mins} Minuten. ${n} wartet.`);
+    if(ST===ST_SIM) shieldRefresh(true).then(()=>{if($("#shieldCard"))settingsSheet()});
+  });
+}
+function shieldSync(){
+  if(!ST_NATIVE||!S||!S.setup) return;
+  const json=JSON.stringify({lang:window.OFFLAND_LANG||"de",names:shieldNames().slice(0,12),pet:"Lucifer"});
+  if(json===shieldSync.last) return; shieldSync.last=json;
+  try{ST_NATIVE.shieldInfo({json}).catch(()=>{})}catch(e){}
+}
+function shieldCard(){
+  if(!ST||!ST.shieldPick) return "";
+  const sh=S.shield||{}, mode=sh.mode||"off", st=shieldStatsCache, cnt=st?st.count:(sh.sim||[]).length, sim=ST===ST_SIM;
+  const allowed=(sim?ST_SIM.now():stInfo||{}).status==="approved";
+  return `<div class="card" id="shieldCard"><p class="label">Insel-Schutz</p>
+    <p class="small muted">Öffnest du eine gewählte App, steht erst deine Insel in der Tür: Ein Bewohner wartet auf dich. Du kannst zurück zur Insel oder die App trotzdem kurz öffnen. Nichts wird verboten.</p>
+    ${sim?`<p class="small" style="color:var(--amber)">In der Web-Version eine Vorschau. Richtig funktioniert der Insel-Schutz in der iPhone-App.</p>`:""}
+    ${!allowed?`<button class="btn secondary" id="shAllow">Einrichten</button>`:`
+    <div class="row between"><span class="small"><b>${cnt?cnt+(cnt===1?" App gewählt":" Apps gewählt"):"Noch keine Apps gewählt"}</b></span><button class="btn secondary" id="shPick" style="width:auto;padding:8px 14px">Apps wählen</button></div>
+    <p class="small muted" style="margin-top:10px">Wann</p>
+    <div class="row fr-seg shield-seg" role="radiogroup" aria-label="Wann der Insel-Schutz gilt">${SHIELD_MODES.map(([k,n])=>`<button type="button" class="${mode===k?"on":""}" data-shmode="${k}" aria-pressed="${mode===k}">${n}</button>`).join("")}</div>
+    ${mode!=="off"?`<p class="small muted" style="margin-top:10px">„Trotzdem öffnen“ gibt frei für</p>
+    <div class="row fr-seg" role="radiogroup" aria-label="Freigabe">${[1,5,15].map(m=>`<button type="button" class="${(sh.unlock||5)===m?"on":""}" data-shunlock="${m}" aria-pressed="${(sh.unlock||5)===m}">${m} min</button>`).join("")}</div>`:""}
+    ${st&&(st.resisted||st.opened)?`<p class="small" style="margin-top:10px">Heute <b style="color:var(--lime)">${st.resisted}× widerstanden</b> · ${st.opened}× trotzdem geöffnet</p>`:""}
+    <button class="btn ghost" id="shPrev" style="margin-top:10px">Vorschau ansehen</button>`}
+  </div>`;
+}
+function bindShieldCard(){
+  const re=()=>shieldRefresh(true).then(()=>settingsSheet());
+  const a=$("#shAllow"); if(a) a.onclick=async()=>{try{await ST.authorize();await stStatus();const r=await ST.shieldPick();if(r&&r.ok&&(!S.shield||!S.shield.mode||S.shield.mode==="off")){S.shield=Object.assign(S.shield||{},{mode:"always"});await ST.shieldSet({mode:"always",unlock:S.shield.unlock||5})}save()}catch(e){toast(String(e&&e.message||e).slice(0,120))} re()};
+  const p=$("#shPick"); if(p) p.onclick=async()=>{try{const r=await ST.shieldPick();if(r&&r.ok&&S.shield&&S.shield.mode&&S.shield.mode!=="off") await ST.shieldSet({mode:S.shield.mode,unlock:S.shield.unlock||5})}catch(e){} re()};
+  document.querySelectorAll("[data-shmode]").forEach(b=>b.onclick=async()=>{const mode=b.dataset.shmode; S.shield=Object.assign(S.shield||{},{mode}); save();
+    try{await ST.shieldSet({mode,unlock:S.shield.unlock||5});if(mode==="focus") await ST.shieldFocus({on:!!S.boat})}catch(e){}
+    toast(mode==="off"?"Insel-Schutz aus":"Insel-Schutz: "+SHIELD_MODES.find(x=>x[0]===mode)[1]); re()});
+  document.querySelectorAll("[data-shunlock]").forEach(b=>b.onclick=async()=>{const unlock=+b.dataset.shunlock; S.shield=Object.assign(S.shield||{},{unlock}); save();
+    try{await ST.shieldSet({mode:S.shield.mode||"off",unlock})}catch(e){} re()});
+  const v=$("#shPrev"); if(v) v.onclick=shieldPreview;
 }
 
 /* ---------- Online-Backup: verschlüsselt, nur mit Wiederherstellungs-Code lesbar ----------
@@ -4732,7 +5954,7 @@ function backupCard(){
     <p class="small muted">Sichert deine Insel verschlüsselt online, damit sie bei einem neuen Handy nicht verloren geht. Du bekommst einen Wiederherstellungs-Code. Ohne ihn kann niemand das Backup öffnen, auch wir nicht.</p>
     <button class="btn secondary" id="bkOn">Backup einschalten</button></div>`;
   return `<div class="card"><p class="label">Online-Backup</p>
-    <p class="small muted">Wird automatisch nach jedem Tag gesichert. ${b.at?"Zuletzt: "+new Date(b.at).toLocaleString("de-DE",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"Noch nicht gesichert."}</p>
+    <p class="small muted">Wird automatisch nach jedem Tag gesichert. ${b.at?"Zuletzt: "+new Date(b.at).toLocaleString(LOC,{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"Noch nicht gesichert."}</p>
     <div style="background:var(--ground);border-radius:16px;padding:12px;text-align:center"><span class="small muted">Dein Wiederherstellungs-Code</span><br><b class="num" style="font-size:22px;letter-spacing:.08em">${fmtCode(b.code)}</b></div>
     <p class="small" style="color:var(--amber)">Schreib dir den Code auf oder mach einen Screenshot. Ohne ihn lässt sich die Insel nicht zurückholen.</p>
     <div class="row"><button class="btn secondary grow" id="bkCopy">Code kopieren</button><button class="btn secondary grow" id="bkNow">Jetzt sichern</button></div>
@@ -4940,7 +6162,7 @@ function famLookSheet(){
     <div class="row"><button class="btn secondary grow" id="flNo">Abbrechen</button><button class="btn grow" id="flOk">Speichern</button></div>`);
   bindLookEditor(me,draft);
   $("#flNo").onclick=()=>{closeModal();render()};
-  $("#flOk").onclick=async()=>{f.look={skin:draft.skin,hair:draft.hair,style:draft.style,shirt:draft.shirt,acc:accList(draft.acc),accC:draft.accC||0};save();
+  $("#flOk").onclick=async()=>{f.look={skin:draft.skin,hair:draft.hair,style:draft.style,shirt:draft.shirt,acc:accList(draft.acc),accC:draft.accC||0,beard:draft.beard||0,pat:draft.pat||0,eye:draft.eye||0};save();
     const b=$("#flOk");b.disabled=true;b.textContent="Speichere …";await famSync();closeModal();render();toast("Figur gespeichert")};
 }
 async function famJoinId(fid,name,code,share){
@@ -4998,7 +6220,7 @@ function wowText(min){
   const n=m?Math.min(Math.floor(min/m),m>=270?9:1):1;
   return "Genug Zeit, um "+f(n)+"!";
 }
-function wrapText(c,t,max){
+function wrapText(c,t,max){t=TR(t);
   const out=[]; let line="";
   for(const w of t.split(" ")){const tr=line?line+" "+w:w; if(c.measureText(tr).width>max&&line){out.push(line);line=w}else line=tr}
   return out.concat(line?[line]:[]);
@@ -5096,7 +6318,7 @@ function login(p){
   document.body.classList.remove("start"); $("#start").innerHTML="";
   closeModal(); render(); window.scrollTo(0,0);
   if(S.setup){chapterCheck(true);save()}
-  statsActive(); statsFlushSoon();
+  statsActive(); statsFlushSoon(); comebackCheck();
   if(!S.storySeen) storySheet(!!S.setup); else showPending();
   if(S.setup&&pendingInvite()&&!$("#modalRoot").innerHTML) inviteSheet();
   if(S.setup&&famInvite()&&!S.family&&!$("#modalRoot").innerHTML) famJoinSheet(famInvite());
@@ -5124,8 +6346,9 @@ function startHero(){
     <ellipse cx="200" cy="148" rx="150" ry="18" fill="#E9D7A6"/><path d="M70 146c14-40 76-58 130-58s116 18 130 58z" fill="#7FC57A"/>
     <path d="M276 132v-24l18-14 18 14v24z" fill="#F3F1EA"/><path d="M272 110l22-17 22 17" fill="none" stroke="#FF9C7A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><rect x="288" y="116" width="10" height="16" rx="2" fill="#B6A4FF"/>
     ${lights}
-    <g transform="translate(180 150) scale(3)"><g class="bob">${baySvg(true)}</g></g>
-    <g transform="translate(232 152) scale(2.5)"><g class="bob" style="animation-delay:.6s;animation-duration:3.4s">${lucSvg(true)}</g></g>
+    <g transform="translate(180 150) scale(3)"><g class="st-pop"><g class="bob">${baySvg(true)}</g></g></g>
+    <g transform="translate(232 152) scale(2.5)"><g class="st-pop st-pop2"><g class="bob" style="animation-delay:.6s;animation-duration:3.4s">${lucSvg(true)}</g></g></g>
+    <g class="st-burst">${Array.from({length:10},(_,i)=>{const w=i/10*Math.PI*2;return `<circle cx="200" cy="120" r="${i%2?2.2:3}" fill="${["#C8F169","#B6A4FF","#FFD27A"][i%3]}" style="--dx:${Math.round(Math.cos(w)*90)}px;--dy:${Math.round(Math.sin(w)*55)}px"/>`}).join("")}</g>
   </svg>`;
 }
 let START_TALK=null;
@@ -5133,7 +6356,7 @@ function startTalk(name){
   clearInterval(START_TALK);
   // Die beiden schicken dich eher raus, als dass sie dich festhalten: kurz eintragen, Handy weg
   const lines=name?[["bay","Hallo "+name+"! Kurz eintragen, dann Handy weg. So mögen wir das."],["luc","Mach's kurz. Draußen passiert mehr als hier."],["bay","Die Insel wächst, wenn du nicht hier bist. Klingt komisch, ist aber so."],["luc","Ich zähl mit, wie lange du bleibst. Je kürzer, desto stolzer bin ich."]]
-    :[["bay","Willkommen auf OffLand! Ich bin Mr. Bay, der Bürgermeister."],["luc","Und ich bin Lucifer. Ich war zuerst hier."],["bay","Hier gewinnst du, wenn du weniger am Handy bist. Auch weniger hier."],["luc","Einmal am Abend vorbeischauen reicht. Den Rest des Tages verschlaf ich eh."],["bay","Den Rest macht das echte Leben. Wir freuen uns nur mit."],["luc","Ich mag Leute, die schnell wieder gehen. Nimm's nicht persönlich."]];
+    :[["bay","Willkommen auf OffLand! Ich bin Mr. Bay, der Bürgermeister."],["luc","Und ich bin Lucifer. Ich war zuerst hier."],["bay","Hier gewinnst du, wenn du weniger am Handy bist. Das gilt auch für OffLand: Du musst nicht ständig reinschauen."],["luc","Einmal am Abend vorbeischauen reicht. Den Rest des Tages verschlaf ich eh."],["bay","Den Rest macht das echte Leben. Wir freuen uns nur mit."],["luc","Ich mag Leute, die schnell wieder gehen. Nimm's nicht persönlich."]];
   let i=0;
   const show=()=>{const b=$("#startBub"); if(!b){clearInterval(START_TALK);return}
     const [who,t]=lines[i++%lines.length];
@@ -5158,6 +6381,7 @@ function showStart(){
       <button class="btn secondary" id="newAcc">+ Neue Insel</button>
       ${netConfigured()?`<button class="btn ghost" id="restoreBtn">Insel aus Backup holen</button>`:""}
       <p class="small muted" style="text-align:center">Alle Daten bleiben auf diesem Gerät, außer du schaltest Online-Funktionen oder die anonyme Statistik ein.</p>
+      <p class="small muted" style="text-align:center"><a href="impressum/" style="color:inherit">Impressum</a> · <a href="datenschutz/" style="color:inherit">Datenschutz</a></p>
     </div></div></div>`;
   else st.innerHTML=`<div class="start-wrap">
     <div class="start-hero">${hero}<div class="start-bub" id="startBub" aria-live="polite"></div></div>
@@ -5169,6 +6393,7 @@ function showStart(){
       <button class="btn" id="newAcc">Konto anlegen</button>`}
     ${netConfigured()?`<button class="btn ghost" id="restoreBtn">Insel aus Backup holen</button>`:""}
     <p class="small muted" style="text-align:center">Alle Daten bleiben auf diesem Gerät, außer du schaltest Online-Funktionen oder die anonyme Statistik ein.</p>
+      <p class="small muted" style="text-align:center"><a href="impressum/" style="color:inherit">Impressum</a> · <a href="datenschutz/" style="color:inherit">Datenschutz</a></p>
   </div>`;
   document.querySelectorAll("[data-login]").forEach(b=>b.onclick=()=>{const p=profiles().find(x=>x.id===b.dataset.login);if(p)tryLogin(p)});
   $("#newAcc").onclick=showCreate;
@@ -5218,7 +6443,7 @@ function pinPrompt(p,onOk){
 
 function accountSheet(){
   if(!ACC) return;
-  modal(`<div class="row">${avatarSvg(ACC.avatar,56)}<div class="grow"><p class="label">Konto</p><h2>${esc(ACC.name)}</h2><p class="small muted">${ACC.pin?"Mit PIN geschützt":"Ohne PIN"} · seit ${new Date(ACC.created).toLocaleDateString("de-DE")}</p></div></div>
+  modal(`<div class="row">${avatarSvg(ACC.avatar,56)}<div class="grow"><p class="label">Konto</p><h2>${esc(ACC.name)}</h2><p class="small muted">${ACC.pin?"Mit PIN geschützt":"Ohne PIN"} · seit ${new Date(ACC.created).toLocaleDateString(LOC)}</p></div></div>
     ${plusActive()?`<p class="small" style="color:var(--amber);font-weight:700">★ OffLand Plus bis ${nice(S.plus.until)}</p>`:""}
     <button class="btn secondary" id="accSettings">⚙︎ Einstellungen</button>
     <button class="btn secondary" id="accSupport">Hilfe und Support</button>
@@ -5234,6 +6459,7 @@ function accountSheet(){
   $("#accClose").focus();
 }
 function settingsSheet(){
+  if(ST===ST_SIM) stInfo=ST_SIM.now();
   if(ST&&!stInfo){stStatus().then(settingsSheet);return}
   modal(`<div class="row between"><div><p class="label">Konto · ${esc(ACC?ACC.name:"")}</p><h2>Einstellungen</h2></div><button class="iconbtn" id="setClose" aria-label="Schließen"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F3F1EA" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     ${settingsHtml()}
@@ -5244,7 +6470,7 @@ function settingsSheet(){
   $("#setClose").onclick=done; $("#setDone").onclick=done;
   let vt=0; const vl=$("#verLine"); if(vl) vl.onclick=()=>{if(++vt<7)return; vt=0; const on=localStorage.getItem("offland-dev")!=="1";
     try{on?localStorage.setItem("offland-dev","1"):localStorage.removeItem("offland-dev")}catch(e){}
-    if(!on&&S.testmode){S.testmode=false;save()} toast(on?"Entwicklermodus an: Testmodus im Tab Heute":"Entwicklermodus aus"); settingsSheet()}; $("#setBack").onclick=()=>{render();accountSheet()};
+    if(!on&&S.testmode){S.testmode=false;save()} toast(on?"Entwicklermodus an: Testmodus hier in den Einstellungen":"Entwicklermodus aus"); settingsSheet()}; $("#setBack").onclick=()=>{render();accountSheet()};
 }
 function editSheet(){
   modal(`<p class="label">Konto</p><h2>Name und Avatar</h2>${accFields(ACC)}<p class="err" id="accErr" role="alert"></p>
@@ -5272,20 +6498,28 @@ function pinSheet(){
   };
   if(has) $("#pinDel").onclick=async()=>{if(!await oldOk())return err("Gib zuerst deine aktuelle PIN ein.");updateProfile(ACC.id,{pin:null});closeModal();render();toast("PIN entfernt")};
 }
+const DEL_WHY=[["unnoetig","Brauche ich nicht mehr"],["wirkt_nicht","Hilft mir nicht"],["aufwand","Zu viel Aufwand"],["neustart","Will neu anfangen"],["anderes","Anderes"]];
 function deleteSheet(){
   modal(`<p class="label" style="color:var(--coral)">Konto löschen</p><h2>„${esc(ACC.name)}“ wirklich löschen?</h2>
     <p class="muted">Deine Insel mit allen Bewohnern, eingetragenen Tagen, Postkarten und Punkten wird von diesem Gerät gelöscht. Das lässt sich nicht rückgängig machen.</p>
     <button class="btn secondary" id="delBackup">Vorher Sicherung herunterladen</button>
     ${ACC.pin?pinField("delPin","Zur Bestätigung deine PIN"):""}
+    <p class="small muted" style="margin-bottom:-4px">Magst du uns sagen, warum? (freiwillig, anonym)</p>
+    <div class="del-why" role="radiogroup" aria-label="Grund">${DEL_WHY.map(([k,t])=>`<button type="button" class="chip" data-why="${k}" aria-pressed="false">${t}</button>`).join("")}</div>
     <label class="check" for="delSure"><input type="checkbox" id="delSure"> Ja, ich will mein Konto endgültig löschen</label>
     <p class="err" id="delErr" role="alert"></p>
     <div class="row"><button class="btn secondary grow" id="delNo">Abbrechen</button><button class="btn grow" id="delYes" style="background:var(--coral)" disabled>Löschen</button></div>`);
-  const sure=$("#delSure"), yes=$("#delYes");
+  const sure=$("#delSure"), yes=$("#delYes"); let why=null;
+  document.querySelectorAll("#modalRoot [data-why]").forEach(b=>b.onclick=()=>{why=why===b.dataset.why?null:b.dataset.why;
+    document.querySelectorAll("#modalRoot [data-why]").forEach(x=>{const on=x.dataset.why===why;x.classList.toggle("on",on);x.setAttribute("aria-pressed",on)})});
   sure.onchange=()=>{yes.disabled=!sure.checked};
   $("#delBackup").onclick=exportSave; $("#delNo").onclick=accountSheet;
   yes.onclick=async()=>{
     if(ACC.pin&&await hashPin($("#delPin").value,ACC.salt)!==ACC.pin) return $("#delErr").textContent="Die PIN stimmt nicht.";
     const id=ACC.id;
+    // Statistik: gelöschte Konten nach Spieldauer und freiwilligem Grund (nur Zähler, nichts Persönliches)
+    const nd=(S.days||[]).length; stat("konto_geloescht"); stat("konto_geloescht_t"+(nd===0?"0":nd<7?"1_6":nd<30?"7_29":"30")); if(why) stat("konto_grund_"+why);
+    yes.disabled=true; try{await statsFlush()}catch(e){}
     if(S.online&&S.online.pid){yes.disabled=true;yes.textContent="Lösche …";await netDeleteAll()}
     if(S.backup&&S.backup.on){yes.disabled=true;yes.textContent="Lösche …";await backupDelete()}
     if(S.family){yes.disabled=true;yes.textContent="Lösche …";await famLeave()}
@@ -5296,7 +6530,52 @@ function deleteSheet(){
 }
 
 $("#accBtn").onclick=accountSheet;
-document.addEventListener("visibilitychange",()=>{if(!document.hidden&&ACC&&S.setup){PEND_BUDGET=3;showPending();checkReplies(false)} if(document.hidden&&ACC&&S.setup)backupNow(false)});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&ACC&&S.setup){PEND_BUDGET=3;comebackCheck();showPending();checkReplies(false)} if(document.hidden&&ACC&&S.setup)backupNow(false)});
+
+/* ---------- Umzug auf die eigene Domain ----------
+   Nach der Umstellung leitet die alte Adresse (github.io) auf die neue Domain um. Der Service Worker
+   merkt das, lädt die App auf der alten Adresse noch einmal aus dem Speicher und hinterlegt das Ziel.
+   Dann packt die App alle Konten und Inseln in die Adresse und öffnet die neue Domain, die sie dort auspackt. */
+const UMZUG_CACHE="offland-umzug";
+const umzugKey=k=>/^(offline-insel|offland-)/.test(k)&&k!=="offland-dev";
+const b64u={enc:u8=>{let s="";for(let i=0;i<u8.length;i+=0x8000)s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000));return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")},
+  dec:t=>{const s=atob(t.replace(/-/g,"+").replace(/_/g,"/")),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u}};
+async function zipBytes(u8,dir){const S=dir?CompressionStream:DecompressionStream;return new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(new S("gzip"))).arrayBuffer())}
+async function umzugPack(){
+  const d={}; for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i); if(umzugKey(k)) d[k]=localStorage.getItem(k)}
+  const raw=new TextEncoder().encode(JSON.stringify({v:1,at:Date.now(),d}));
+  return window.CompressionStream?"z"+b64u.enc(await zipBytes(raw,true)):"p"+b64u.enc(raw);
+}
+async function umzugUnpack(t){
+  const u=b64u.dec(t.slice(1)), raw=t[0]==="z"?await zipBytes(u,false):u;
+  return JSON.parse(new TextDecoder().decode(raw));
+}
+// Neue Domain: mitgebrachte Inseln übernehmen. Vorhandenes wird nie überschrieben, Kontenlisten werden zusammengeführt.
+let UMZUG_DONE=0;
+async function umzugImport(){
+  const m=location.hash.match(/^#umzug=([A-Za-z0-9_-]+)$/); if(!m) return;
+  try{const pkg=await umzugUnpack(m[1]); const d=pkg&&pkg.d||{};
+    for(const k in d){ if(!umzugKey(k)) continue;
+      if(k===PROF_KEY){const have=profiles(), ids=new Set(have.map(x=>x.id)); let add=[]; try{add=JSON.parse(d[k])||[]}catch(e){} storeProfiles(have.concat(add.filter(x=>x&&!ids.has(x.id)))); UMZUG_DONE+=add.filter(x=>x&&!ids.has(x.id)).length; continue}
+      if(localStorage.getItem(k)==null) localStorage.setItem(k,d[k]);
+    }
+    if(!UMZUG_DONE) UMZUG_DONE=-1;
+  }catch(e){UMZUG_DONE=-2}
+  history.replaceState(null,"",location.pathname+location.search);
+}
+// Alte Adresse: Hinweis mit einem Knopf, der alles mitnimmt
+async function umzugCheck(){
+  if(!("caches" in window)) return;
+  let to=null; try{const r=await caches.match("offland-umzug-ziel",{cacheName:UMZUG_CACHE}); to=r&&await r.text()}catch(e){}
+  if(!to) return; try{if(new URL(to).origin===location.origin) return}catch(e){return}
+  const go=async()=>{let pkg="";try{pkg=await umzugPack()}catch(e){} location.href=to.split("#")[0]+(pkg?"#umzug="+pkg:"")};
+  if(!profiles().length) return go();
+  modal(`<p class="label" style="color:var(--lime)">Umzug</p><h2>OffLand ist umgezogen 🏝️</h2>
+    <p class="muted">Ab jetzt findest du OffLand unter <b>${esc(new URL(to).host)}</b>. Nimm deine Inseln mit: ein Tipp, und alles ist drüben, mit allen Bewohnern, Tagen und Punkten.</p>
+    <p class="small muted">Tipp: Hast du OffLand auf dem Home-Bildschirm, leg es danach von der neuen Adresse aus neu dort ab.</p>
+    <button class="btn" id="umzugGo">Inseln mitnehmen</button>`);
+  $("#umzugGo").onclick=async()=>{$("#umzugGo").disabled=true;$("#umzugGo").textContent="Packe Koffer …";await go()};
+}
 
 function boot(){
   migrateOldSave();
@@ -5304,9 +6583,12 @@ function boot(){
   const p=sid&&profiles().find(x=>x.id===sid);
   if(p) login(p); else showStart();
   initStore();
+  if(UMZUG_DONE>0) toast(UMZUG_DONE===1?"Deine Insel ist umgezogen 🏝️":"Deine "+UMZUG_DONE+" Inseln sind umgezogen 🏝️");
+  else if(UMZUG_DONE===-2) toast("Der Umzug hat nicht geklappt. Öffne bitte nochmal die alte Adresse.");
+  umzugCheck();
 }
 
-boot();
+umzugImport().then(boot,boot);
 })();
 
 /* Offline-Unterstützung */

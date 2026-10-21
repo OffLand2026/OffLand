@@ -2,6 +2,19 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
+<script>
+  // offlandapp.com: Neue Besucher sehen zuerst die Website. Direkt in die App geht es mit Insel auf dem Gerät,
+  // vom Home-Bildschirm, mit Einladungs- oder Umzugslink oder über „Ausprobieren“ auf der Website (?app).
+  (function(){try{
+    if(!/(^|\.)offlandapp\.com$/.test(location.hostname))return;
+    var q=location.search,h=location.hash,ss=sessionStorage;
+    if(/(^|[?&])app\b/.test(q))ss.setItem("offland-app","1");
+    var standalone=(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)||navigator.standalone;
+    var hasIsland=(JSON.parse(localStorage.getItem("offline-insel-profile")||"[]")||[]).length>0;
+    if(standalone||hasIsland||q||h||ss.getItem("offland-app"))return;
+    location.replace("landing/");
+  }catch(e){}})();
+</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#14151F">
 <meta name="description" content="OffLand – Grow your world beyond the screen. Weniger Bildschirmzeit, glücklichere Insel.">
@@ -10,12 +23,11 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Manrope:wght@400;500;700&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/fonts.css">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="start">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><filter id="lv0" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 0.082 0 0 0 0 0.086 0 0 0 0 0.165 0 0 0 1 0"/></filter><filter id="lv1" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 0.082 0 0 0 0 0.086 0 0 0 0 0.165 0 0 0 1 0"/></filter><filter id="lv2" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0.33 0 0 0 0.055 0 0.33 0 0 0.058 0 0 0.33 0 0.110 0 0 0 1 0"/></filter><filter id="lv3" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0.67 0 0 0 0.027 0 0.67 0 0 0.028 0 0 0.67 0 0.054 0 0 0 1 0"/></filter><clipPath id="lvBody"><path d="M-6.4 0q0-13 6.4-13.4q6.4.4 6.4 13.4z"/></clipPath><filter id="lvGlow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation=".55" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs></svg>
 <div id="start"></div>
 
 <div class="app" id="app">
@@ -44,6 +56,248 @@
 
 <div id="modalRoot"></div>
 
+<!-- Ladebildschirm: liegt über allem, bis die App bereit ist. Gleiches Motiv und gleiche Position wie der iOS-Startbildschirm. -->
+<div id="splash">
+  <style>
+    /* Startanimation: Das Handy geht aus, der Bildschirm wird zum Horizont, die Insel taucht auf, Mr. Bay und Lucifer kommen.
+       Beim ersten Öffnen die volle Fassung (ca. 6,5 s, überspringbar), danach ab dem Meer (ca. 3 s). Testen: ?intro=full / ?intro=short */
+    #splash{position:fixed;inset:0;z-index:9999;pointer-events:none;overflow:hidden;background:#000;--k:1;--off:0;transition:opacity .8s ease,transform .8s ease}
+    #splash>svg{position:absolute;inset:0;width:100%;height:100%;display:block;overflow:visible}
+    #splash.out{opacity:0;transform:scale(1.06)}
+    #splash.to-b{transition:none;animation:spPan 1.15s cubic-bezier(.65,0,.25,1) forwards}
+    @keyframes spPan{to{transform:translateY(-100%)}}
+    #splash .sp-skip{position:absolute;right:calc(14px + env(safe-area-inset-right,0px));top:calc(12px + env(safe-area-inset-top,0px));pointer-events:auto;cursor:pointer;
+      font:700 13px/1 Manrope,system-ui,sans-serif;color:#F3F1EA;background:rgba(243,241,234,.12);border:0;border-radius:999px;padding:9px 14px;opacity:0;animation:spxSkipIn .4s 1.2s both}
+    #splash .sp-skip:focus-visible{outline:2px solid #B6A4FF;outline-offset:2px}
+    @keyframes spxSkipIn{to{opacity:1}}
+    /* ---------- Szene ---------- */
+    #splash .a,#splash .luc-tail,#splash .bay-wave,#splash .blink{transform-box:fill-box}
+    #splash .a{animation-fill-mode:both;animation-timing-function:cubic-bezier(.2,.7,.2,1)}
+    #splash:not(.play) .a{animation:none!important}
+    /* Zeitpunkte in Sekunden; --k = Tempo, --off = so viele Sekunden am Anfang überspringen (Kurzfassung) */
+    #splash .d{animation-duration:calc(var(--dur)*var(--k)*1s);animation-delay:calc((var(--at) - var(--off))*var(--k)*1s)}
+    /* 1. Handy leuchtet, Mitteilungen ploppen */
+    #splash #spPhone{animation-name:spxPhIn;transform-origin:center}
+    @keyframes spxPhIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+    #splash .badge{animation-name:spxPop;transform-origin:center}
+    @keyframes spxPop{0%{opacity:0;transform:scale(0)}60%{transform:scale(1.25)}100%{opacity:1;transform:scale(1)}}
+    #splash #spBanner{animation-name:spxDrop}
+    @keyframes spxDrop{from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:none}}
+    #splash #spGlow{animation-name:spxGlowOut}
+    @keyframes spxGlowOut{0%{opacity:0}15%{opacity:1}85%{opacity:1}100%{opacity:0}}
+    /* 2. Bildschirm geht aus wie ein alter Fernseher */
+    #splash #spScr{animation-name:spxCrt;transform-origin:center}
+    @keyframes spxCrt{0%{transform:none;filter:brightness(1)}55%{transform:scale(1,.012);filter:brightness(3)}100%{transform:scale(.0,.012);filter:brightness(3)}}
+    #splash #spBody{animation-name:spxFade}
+    @keyframes spxFade{to{opacity:0}}
+    #splash #spHorizon{transform-origin:center;animation:spxHz calc(.45s*var(--k)) calc((1.78s - var(--off)*1s)*var(--k)) both,spxFade calc(.6s*var(--k)) calc((2.5s - var(--off)*1s)*var(--k)) forwards}
+    @keyframes spxHz{0%{opacity:0;transform:scaleX(.02)}20%{opacity:1}100%{opacity:1;transform:scaleX(1)}}
+    /* 3. Meer und Himmel */
+    #splash #spSea{animation-name:spxSeaIn;transform-origin:top}
+    @keyframes spxSeaIn{from{transform:scaleY(0)}to{transform:none}}
+    #splash #spSky{animation-name:spxSkyIn}
+    @keyframes spxSkyIn{from{opacity:0}to{opacity:1}}
+    #splash .star{animation-name:spxTw}
+    @keyframes spxTw{from{opacity:0}to{opacity:.9}}
+    #splash #spMoon{animation-name:spxMoonUp}
+    @keyframes spxMoonUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
+    /* 4. Insel taucht auf */
+    #splash #spIsle{animation-name:spxRise;animation-timing-function:cubic-bezier(.22,1.25,.36,1)}
+    @keyframes spxRise{from{transform:translateY(150px)}to{transform:none}}
+    #splash .ring{animation-name:spxRing;transform-origin:center}
+    @keyframes spxRing{0%{opacity:0;transform:scale(.4)}8%{opacity:.8}100%{opacity:0;transform:scale(1.7)}}
+    #splash .splash-drop{animation-name:spxDropUp;transform-origin:center}
+    @keyframes spxDropUp{0%{opacity:0;transform:translateY(10px)}30%{opacity:1}100%{opacity:0;transform:translateY(-34px)}}
+    /* 5. Bewohnerin und Lucifer laufen rein */
+    #splash #spWalker{animation-name:spxWalkIn;animation-timing-function:cubic-bezier(.3,.6,.3,1)}
+    @keyframes spxWalkIn{from{opacity:0;transform:translateX(-230px)}20%{opacity:1}to{transform:none}}
+    #splash #spWalkerBob{animation-name:spxBob;animation-iteration-count:5;animation-timing-function:ease-in-out}
+    @keyframes spxBob{0%,100%{transform:none}50%{transform:translateY(-5px)}}
+    #splash #spCat{animation-name:spxCatIn;animation-timing-function:cubic-bezier(.3,.6,.3,1)}
+    @keyframes spxCatIn{from{opacity:0;transform:translateX(-260px)}20%{opacity:1}to{transform:none}}
+    #splash .bay-wave{animation:spxWaveHi calc(.42s*var(--k)) ease-in-out calc((4.75s - var(--off)*1s)*var(--k)) 3 both;transform-origin:0% 100%}
+    @keyframes spxWaveHi{0%,100%{transform:rotate(0)}50%{transform:rotate(-28deg)}}
+    #splash .luc-tail{animation:spxTail 1.6s ease-in-out infinite;transform-origin:0% 100%}
+    #splash .blink{animation:spxBlink 4s infinite;transform-origin:center}
+    @keyframes spxBlink{0%,94%,100%{transform:none}97%{transform:scaleY(.1)}}
+    @keyframes spxTail{0%,100%{transform:rotate(0)}50%{transform:rotate(14deg)}}
+    #splash #spHearts{animation-name:spxPop;transform-origin:center}
+    /* 6. Name */
+    #splash #spWord{animation-name:spxWordUp}
+    @keyframes spxWordUp{from{opacity:0;transform:translateY(16px);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+    #splash #spTag{animation-name:spxWordUp}
+    #splash .wavelet{animation:spxWl 3s ease-in-out infinite}
+    @keyframes spxWl{0%,100%{transform:translateX(0)}50%{transform:translateX(10px)}}
+    @media (prefers-reduced-motion:reduce){
+      #splash .a{animation-duration:1ms!important;animation-delay:0s!important}
+      #splash .luc-tail,#splash .wavelet,#splash .blink,#splash .bay-wave{animation:none!important}
+    }
+  </style>
+<svg id="spStage" viewBox="0 0 390 844" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+  <defs>
+  <linearGradient id="spGSky" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="500">
+  <stop offset="0" stop-color="#14151F"/><stop offset=".55" stop-color="#1F2850"/><stop offset="1" stop-color="#4A3F7A"/>
+  </linearGradient>
+  <linearGradient id="spGSea" gradientUnits="userSpaceOnUse" x1="0" y1="500" x2="0" y2="844">
+  <stop offset="0" stop-color="#2E3F6E"/><stop offset="1" stop-color="#151B33"/>
+  </linearGradient>
+  <linearGradient id="spGScreen" x1="0" y1="0" x2="1" y2="1">
+  <stop offset="0" stop-color="#9DC1FF"/><stop offset="1" stop-color="#5A6CF0"/>
+  </linearGradient>
+  <radialGradient id="spGGlow"><stop offset="0" stop-color="#8FB4FF" stop-opacity=".55"/><stop offset="1" stop-color="#8FB4FF" stop-opacity="0"/></radialGradient>
+  <clipPath id="spAbove"><rect x="-3000" y="-3000" width="6390" height="3512"/></clipPath>
+  <linearGradient id="spGWord" x1="0" x2="1"><stop offset="0" stop-color="#C8F169"/><stop offset="1" stop-color="#9FE8B0"/></linearGradient>
+  </defs>
+  <rect x="-3000" y="-3000" width="6390" height="6844" fill="#000"/>
+  <g id="spWorld">
+  <!-- 3. Himmel, Sterne, Mond -->
+  <rect id="spSky" class="a d" style="--at:1.95;--dur:1.2" x="-3000" y="-3000" width="6390" height="3500" fill="url(#spGSky)"/>
+  <g fill="#F3F1EA">
+  <circle class="star a d" style="--at:2.2;--dur:.6" cx="52" cy="120" r="1.6"/>
+  <circle class="star a d" style="--at:2.35;--dur:.6" cx="120" cy="70" r="1.2"/>
+  <circle class="star a d" style="--at:2.5;--dur:.6" cx="300" cy="96" r="1.8"/>
+  <circle class="star a d" style="--at:2.3;--dur:.6" cx="350" cy="180" r="1.2"/>
+  <circle class="star a d" style="--at:2.6;--dur:.6" cx="80" cy="300" r="1.1"/>
+  <circle class="star a d" style="--at:2.45;--dur:.6" cx="236" cy="56" r="1.3"/>
+  <circle class="star a d" style="--at:2.7;--dur:.6" cx="330" cy="330" r="1"/>
+  </g>
+  <g id="spMoon" class="a d" style="--at:2.3;--dur:1.1">
+  <circle cx="306" cy="372" r="46" fill="#F3F1EA" opacity=".08"/>
+  <circle cx="306" cy="372" r="24" fill="#F3F1EA"/>
+  <circle cx="318" cy="364" r="22" fill="#28306A"/>
+  </g>
+  <!-- 3. Meer -->
+  <rect id="spSea" class="a d" style="--at:1.9;--dur:.7" x="-3000" y="500" width="6390" height="3500" fill="url(#spGSea)"/>
+  <g class="a d" style="--at:2.3;--dur:.8;animation-name:spxSkyIn" stroke="#4A5E92" stroke-width="3" stroke-linecap="round" opacity=".7">
+  <path class="wavelet" d="M40 600h50M250 640h70M120 700h44M290 760h40M60 790h60"/>
+  </g>
+  <!-- 4. Insel (taucht aus dem Wasser auf, unten abgeschnitten) -->
+  <g clip-path="url(#spAbove)">
+  <g id="spIsle" class="a d" style="--at:2.45;--dur:1.1">
+  <ellipse cx="195" cy="508" rx="150" ry="20" fill="#E9D7A6"/>
+  <path d="M78 506c14-62 66-92 117-92s103 30 117 92z" fill="#7FC57A"/>
+  <path d="M120 506c10-34 40-52 75-52" fill="none" stroke="#6AB066" stroke-width="5" stroke-linecap="round"/>
+  <!-- Palme -->
+  <path d="M112 500c-2-36 2-62 12-82" fill="none" stroke="#8A5A3B" stroke-width="7" stroke-linecap="round"/>
+  <g fill="#4E9A58">
+  <path d="M124 418c-22-10-44-4-56 10 18-4 36-2 56-10z"/>
+  <path d="M124 418c-6-22-26-34-44-32 16 8 30 18 44 32z"/>
+  <path d="M124 418c12-20 34-26 52-18-18 2-34 8-52 18z"/>
+  <path d="M124 418c22-4 40 8 46 24-14-12-30-18-46-24z"/>
+  </g>
+  <!-- Hütte -->
+  <path d="M236 496v-40l30-24 30 24v40z" fill="#F3F1EA"/>
+  <path d="M229 460l37-30 37 30" fill="none" stroke="#FF9C7A" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="258" y="470" width="16" height="26" rx="3" fill="#FFD27A"/>
+  </g>
+  </g>
+  <!-- Wellenringe und Spritzer beim Auftauchen -->
+  <g fill="none" stroke="#9DB3E8" stroke-width="2">
+  <ellipse class="ring a d" style="--at:2.5;--dur:1.2" cx="195" cy="512" rx="170" ry="16"/>
+  <ellipse class="ring a d" style="--at:2.85;--dur:1.3" cx="195" cy="512" rx="170" ry="16"/>
+  </g>
+  <g fill="#C9D8FF">
+  <circle class="splash-drop a d" style="--at:2.5;--dur:.8" cx="62" cy="506" r="3"/>
+  <circle class="splash-drop a d" style="--at:2.58;--dur:.8" cx="330" cy="504" r="3.5"/>
+  <circle class="splash-drop a d" style="--at:2.66;--dur:.8" cx="44" cy="510" r="2"/>
+  <circle class="splash-drop a d" style="--at:2.62;--dur:.8" cx="348" cy="510" r="2.2"/>
+  </g>
+  <!-- 5. Mr. Bay (Bürgermeister) läuft rein und winkt -->
+  <g id="spWalker" class="a d" style="--at:3.45;--dur:1.25">
+  <g id="spWalkerBob" class="a d" style="--at:3.45;--dur:.25">
+  <g transform="translate(160 500) scale(3.7)"><path d="M-2.4 -3.4v3.4M2.4 -3.4v3.4" stroke="#2C3550" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M-6.6 -2.4c0-6.8 2.8-9.4 6.6-9.4s6.6 2.6 6.6 9.4z" fill="#2C3550"/>
+  <path d="M-2.7 -11.6L0 -4.2L2.7 -11.6z" fill="#F7F5EF"/><path d="M-1.2 -11.4L0 -9.7L1.2 -11.4" stroke="#D9D4C6" stroke-width=".6" fill="none"/>
+  <path d="M-2.7 -11.5L-4 -5.6M2.7 -11.5L4 -5.6" stroke="#47557A" stroke-width=".8"/>
+  <circle cx="4.1" cy="-8.2" r=".95" fill="#FFD27A" stroke="#E0A93C" stroke-width=".3"/>
+  <circle cx="0" cy="-16" r="5.1" fill="#F0C2A0"/>
+  <g fill="#6B4226"><circle cx="-3.6" cy="-18.6" r="2.3"/><circle cx="-1" cy="-20.3" r="2.4"/><circle cx="2" cy="-20.2" r="2.4"/><circle cx="4.2" cy="-18.3" r="2.1"/><path d="M-5.3 -16.4a5.3 5 0 0 1 10.6 0q-5.3-1.4-10.6 0z"/></g>
+  <g class="blink"><circle cx="-1.8" cy="-15.7" r=".75" fill="#14151F"/><circle cx="1.8" cy="-15.7" r=".75" fill="#14151F"/></g>
+  <g class="bay-wave"><path d="M5.4 -9.6L9.2 -15.4" stroke="#2C3550" stroke-width="2.3" stroke-linecap="round"/><circle cx="9.6" cy="-16.3" r="1.3" fill="#F0C2A0"/></g>
+  <circle cx="-3.3" cy="-13.9" r="1" fill="#FF9C7A" opacity=".4"/><circle cx="3.3" cy="-13.9" r="1" fill="#FF9C7A" opacity=".4"/>
+  <path d="M-1.9 -13.6q.95-.7 1.9-.15q.95-.55 1.9.15q-.95.35-1.9 0q-.95.35-1.9 0z" fill="#6B4226"/><path d="M-1.1 -12.3q1.3.8 2.6-.6" stroke="#5A3A2A" stroke-width=".65" fill="none" stroke-linecap="round"/></g>
+  </g>
+  </g>
+  <!-- 5. Lucifer (Inselkatze) mit Herzbrille -->
+  <g id="spCat" class="a d" style="--at:3.75;--dur:1.25">
+  <g transform="translate(214 500) scale(2.7)"><path class="luc-tail" d="M5.6 -1.4q6.4-.6 5.2-7.2" stroke="#1E1F2B" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+  <ellipse cx="0" cy="-5.2" rx="6" ry="5.6" fill="#1E1F2B"/>
+  <path d="M-2.7 -9.2q2.7 2 5.4 0q-.5 5.8-2.7 7.8q-2.2-2-2.7-7.8z" fill="#F3F1EA"/>
+  <ellipse cx="-2.5" cy="-.7" rx="1.7" ry="1.05" fill="#F3F1EA"/><ellipse cx="2.5" cy="-.7" rx="1.7" ry="1.05" fill="#F3F1EA"/>
+  <g class="luc-ear"><path d="M-4.3 -15.2l-.7-4.8 3.6 2.5z" fill="#1E1F2B"/></g><path d="M4.3 -15.2l.7-4.8-3.6 2.5z" fill="#1E1F2B"/><path d="M-3.9 -16.2l-.3-2.4 1.6 1.2zM3.9 -16.2l.3-2.4-1.6 1.2z" fill="#E07AB8" opacity=".7"/>
+  <circle cx="0" cy="-13" r="4.7" fill="#1E1F2B"/>
+  <path d="M-2.3 -11.5q2.3-2.8 4.6 0q-.4 2.1-2.3 2.3q-1.9-.2-2.3-2.3z" fill="#F3F1EA"/>
+  <g class="blink" style="animation-delay:1.7s"><ellipse cx="-1.8" cy="-13.7" rx="1.05" ry="1.25" fill="#C8F169"/><ellipse cx="1.8" cy="-13.7" rx="1.05" ry="1.25" fill="#C8F169"/>
+  <path d="M-1.8 -14.6v1.8M1.8 -14.6v1.8" stroke="#14151F" stroke-width=".55" stroke-linecap="round"/></g>
+  <path d="M-.5 -11.9h1l-.5.6z" fill="#E07AB8"/>
+  <path d="M-1.4 -11.2l-3.4-.5M-1.4 -10.7l-3.2.5M1.4 -11.2l3.4-.5M1.4 -10.7l3.2.5" stroke="#F3F1EA" stroke-width=".28" opacity=".8"/><g id="spHearts" class="a d" style="--at:4.95;--dur:.4" fill="#FF6FA8"><path d="M-1.8 -14.3c-.6-.7-1.9-.3-1.6.8l1.6 1.4 1.6-1.4c.3-1.1-1-1.5-1.6-.8z"/><path d="M1.8 -14.3c-.6-.7-1.9-.3-1.6.8l1.6 1.4 1.6-1.4c.3-1.1-1-1.5-1.6-.8z"/><path d="M-.3 -13.6h.6" stroke="#FF6FA8" stroke-width=".5"/></g></g>
+  </g>
+  <!-- 6. Schriftzug -->
+  <g id="spWordGrp">
+  <text id="spWord" class="a d" style="--at:5.2;--dur:.8" x="195" y="214" text-anchor="middle" font-family="Bricolage Grotesque, Avenir Next, system-ui, sans-serif" font-weight="800" font-size="58" letter-spacing="-1.4" fill="#F3F1EA">Off<tspan fill="url(#spGWord)">Land</tspan></text>
+  <text id="spTag" class="a d" style="--at:5.55;--dur:.8" x="195" y="252" text-anchor="middle" font-family="Manrope, system-ui, sans-serif" font-weight="600" font-size="16" fill="#A4A6BD">Weniger Handy. Mehr Insel.</text>
+  </g>
+  </g>
+  <!-- 1.+2. Das Handy, das ausgeht -->
+  <rect id="spGlow" class="a d" style="--at:.1;--dur:1.7" x="-140" y="210" width="670" height="580" fill="url(#spGGlow)"/>
+  <g id="spPhone" class="a d" style="--at:.05;--dur:.5">
+  <rect id="spBody" class="a d" style="--at:1.45;--dur:.3" x="108" y="324" width="174" height="352" rx="30" fill="#0E0F16" stroke="#2C2E3E" stroke-width="2"/>
+  <g id="spScr" class="a d" style="--at:1.4;--dur:.42">
+  <rect x="116" y="332" width="158" height="336" rx="23" fill="url(#spGScreen)"/>
+  <g fill="#F3F1EA" fill-opacity=".85">
+  <rect x="130" y="404" width="26" height="26" rx="7" fill="#FF6B6B"/><rect x="165" y="404" width="26" height="26" rx="7" fill="#FFD27A"/><rect x="200" y="404" width="26" height="26" rx="7" fill="#7FC57A"/><rect x="235" y="404" width="26" height="26" rx="7" fill="#F3F1EA"/>
+  <rect x="130" y="446" width="26" height="26" rx="7" fill="#B6A4FF"/><rect x="165" y="446" width="26" height="26" rx="7" fill="#FF9C7A"/><rect x="200" y="446" width="26" height="26" rx="7" fill="#5BC0EB"/><rect x="235" y="446" width="26" height="26" rx="7" fill="#F3F1EA"/>
+  <rect x="130" y="488" width="26" height="26" rx="7" fill="#F3F1EA"/><rect x="165" y="488" width="26" height="26" rx="7" fill="#E86AF0"/><rect x="200" y="488" width="26" height="26" rx="7" fill="#FFD27A"/><rect x="235" y="488" width="26" height="26" rx="7" fill="#7FC57A"/>
+  </g>
+  <g fill="#FF3B30" stroke="#5A6CF0" stroke-width="1.5">
+  <circle class="badge a d" style="--at:0.35;--dur:.3" cx="155" cy="405" r="6.5"/>
+  <circle class="badge a d" style="--at:0.5;--dur:.3" cx="225" cy="405" r="6.5"/>
+  <circle class="badge a d" style="--at:0.62;--dur:.3" cx="190" cy="447" r="6.5"/>
+  <circle class="badge a d" style="--at:0.74;--dur:.3" cx="260" cy="489" r="6.5"/>
+  <circle class="badge a d" style="--at:0.84;--dur:.3" cx="155" cy="489" r="6.5"/>
+  </g>
+  <g id="spBanner" class="a d" style="--at:.7;--dur:.35">
+  <rect x="124" y="346" width="142" height="40" rx="12" fill="#F3F1EA" fill-opacity=".92"/>
+  <rect x="132" y="354" width="24" height="24" rx="6" fill="#E86AF0"/>
+  <text x="162" y="364" font-family="Manrope, system-ui, sans-serif" font-size="9.5" font-weight="700" fill="#14151F">23 neue Mitteilungen</text>
+  <text x="162" y="377" font-family="Manrope, system-ui, sans-serif" font-size="8.5" fill="#4A4C60">Du hast heute 4 h 12 min …</text>
+  </g>
+  </g>
+  </g>
+  <!-- 2. Der Strich wird zum Horizont -->
+  <rect id="spHorizon" class="a" x="-3000" y="499" width="6390" height="2.5" fill="#E6EEFF"/>
+  </svg>
+  <button class="sp-skip" type="button">Überspringen</button>
+</div>
+<script>
+  // Ausblenden, sobald die App bereit ist und die Animation durch ist (spätestens nach 6 s bzw. 9 s beim ersten Mal)
+  (function(){var t0=Date.now(),el=document.getElementById("splash"),q=location.search,skip=el.querySelector(".sp-skip");
+    function seen(){try{return localStorage.getItem("offland-intro")==="1"}catch(e){return true}}
+    var full=/intro=full/.test(q)||(!/intro=short/.test(q)&&!navigator.webdriver&&!seen());
+    var minT=full?6300:3000,maxT=full?9000:6500;
+    // Kurzfassung: ab dem Meer (Handy-Teil übersprungen), in ruhigem Tempo
+    el.style.setProperty("--k",full?"1":".75");el.style.setProperty("--off",full?"0":"2.3");el.classList.add("play");
+    if(full){try{localStorage.setItem("offland-intro","1")}catch(e){}}else skip.style.display="none";
+    skip.addEventListener("click",function(){minT=0;skip.style.display="none"});
+    function rm(){el&&el.remove();el=null}
+    function done(){if(!el)return;var b=document.body;
+      // Läuft der Anmeldebildschirm dahinter, fährt die Kamera nach oben und er kommt von unten herein
+      if(b.classList.contains("start")&&!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)){
+        b.classList.add("enter-b");el.classList.add("to-b");setTimeout(rm,1250);setTimeout(function(){b.classList.remove("enter-b")},3200);return}
+      el.classList.add("out");setTimeout(rm,850)}
+    (function wait(){if(!el)return;var ok=window.__offlandReady&&(!document.fonts||document.fonts.status==="loaded");
+      if(ok&&Date.now()-t0>=minT||Date.now()-t0>maxT)return done();requestAnimationFrame(wait)})();
+    setTimeout(done,maxT+500);   // auch wenn requestAnimationFrame im Hintergrund pausiert
+  })();
+</script>
+
+
+<script>
+  // Fehler beim Start merken, falls die App selbst gar nicht lädt; die App reicht sie beim nächsten Start nach
+  addEventListener("error",function(e){if(window.__offlandReady)return;try{var k="offland-errors",q=JSON.parse(localStorage.getItem(k)||"[]");if(q.length<20){q.push({msg:String(e.message||"Fehler beim Start").slice(0,300),src:String((e.filename||"").split(location.origin).join(""))+":"+(e.lineno||0),stack:String(e.error&&e.error.stack||"").slice(0,1200),v:"start",p:"web",at:Date.now()});localStorage.setItem(k,JSON.stringify(q))}}catch(x){}});
+</script>
+<script src="js/i18n-en.js"></script>
+<script src="js/i18n.js"></script>
 <script src="js/online-config.js"></script>
 <script src="js/app.js"></script>
 </body>

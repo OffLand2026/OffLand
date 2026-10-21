@@ -49,8 +49,12 @@ test("Kontoverwaltung von Anfang bis Ende", async ({ page }) => {
   // Löschen erst nach Bestätigung
   await page.click("#accBtn"); await page.click("#accDel");
   await expect(page.locator("#delYes")).toBeDisabled();
+  await page.click('#modalRoot [data-why="neustart"]');
   await page.check("#delSure"); await page.click("#delYes");
   expect((await profiles(page)).map(p => p.name)).toEqual(["Meine Insel"]);
+  // Statistik zählt das gelöschte Konto samt freiwilligem Grund (ohne Firebase bleibt es lokal in der Warteschlange)
+  const q = await page.evaluate(k => (JSON.parse(localStorage.getItem(k)) || {}).q || {}, "offland-stats");
+  expect(q.konto_geloescht).toBe(1); expect(q.konto_grund_neustart).toBe(1);
   await expect(page.locator("body")).toHaveClass(/start/);
 
   // Altes Konto öffnet mit seinen Daten
@@ -64,4 +68,20 @@ test("Erster Start zeigt die Anleitung", async ({ page }) => {
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
   await page.reload();
   await expect(page.locator("#start")).toContainText("So funktioniert");
+});
+
+test("Umzug: Inseln werden eingepackt und auf der neuen Adresse ausgepackt", async ({ page }) => {
+  await page.goto("/");
+  // Zwei Inseln anlegen, dann einpacken
+  const pkg = await page.evaluate(async () => {
+    localStorage.setItem("offline-insel-profile", JSON.stringify([{ id: "a1", name: "Emily" }, { id: "b2", name: "Franzi" }]));
+    localStorage.setItem("offline-insel-v1:a1", JSON.stringify({ glueck: 77 })); localStorage.setItem("offline-insel-v1:b2", JSON.stringify({ glueck: 55 }));
+    return await T.umzugPack();
+  });
+  // „Neue Domain“: alles leer, eine eigene Insel schon da
+  await page.evaluate(() => { localStorage.clear(); localStorage.setItem("offline-insel-profile", JSON.stringify([{ id: "c3", name: "Neu" }])); });
+  await page.goto("/?neu=1#umzug=" + pkg);
+  await expect(page.locator("#toast, .toast").first()).toContainText("umgezogen");
+  const r = await page.evaluate(() => ({ names: JSON.parse(localStorage.getItem("offline-insel-profile")).map(p => p.name), g: JSON.parse(localStorage.getItem("offline-insel-v1:a1")).glueck, hash: location.hash }));
+  expect(r.names.sort()).toEqual(["Emily", "Franzi", "Neu"]); expect(r.g).toBe(77); expect(r.hash).toBe("");
 });

@@ -64,8 +64,15 @@
   th:first-child,td:first-child{text-align:left}
   .scroll{overflow-x:auto}
   .status{font-size:13px;color:var(--text-secondary)}
+  .errs td{text-align:left;vertical-align:top}.errs td.n{text-align:right;font-weight:650}.errs code{font-size:11.5px;color:var(--text-muted);word-break:break-all}
+  .errs .msg{font-weight:600;word-break:break-word}.errs details summary{font-weight:400;font-size:12px;color:var(--text-muted)}.errs pre{white-space:pre-wrap;font-size:11px;color:var(--text-secondary);margin:4px 0 0}
+  .row-act{display:flex;justify-content:flex-end;margin-top:10px}
+  .delta{font-weight:650}.delta.up{color:var(--good)}.delta.down{color:var(--critical)}
   .demo{background:#fab219;color:#0b0b0b;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700}
   @media (max-width:760px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.grid2{grid-template-columns:1fr}}
+  .chip.from { display: inline-flex; align-items: center; gap: 6px; }
+  .chip.from input { border: none; background: transparent; font: inherit; color: inherit; padding: 0; max-width: 128px; }
+  .chip.from[aria-pressed="true"] input { color: inherit; }
 </style>
 </head>
 <body>
@@ -74,6 +81,7 @@
     <div><h1>OffLand Statistik</h1><p class="sub">Anonyme Tageszähler von Geräten, die zugestimmt haben · keine Namen, keine Bildschirmzeiten</p></div>
     <div class="chips" role="group" aria-label="Zeitraum">
       <button class="chip" data-days="7">7 Tage</button><button class="chip" data-days="14">14 Tage</button><button class="chip" data-days="30">30 Tage</button><button class="chip" data-days="90">90 Tage</button>
+      <label class="chip from" id="fromWrap">Ab <input type="date" id="fromIn" aria-label="Erst ab diesem Datum zählen"></label><button class="chip" id="fromClr" type="button" hidden aria-label="Datum zurücksetzen">✕</button>
     </div>
   </div>
   <p class="status" id="status">Lade …</p>
@@ -81,9 +89,21 @@
   <section class="tiles" aria-label="Kennzahlen">
     <div class="tile"><div class="lab">Aktive Gerätetage</div><div class="val" id="kAktiv">–</div><div class="hint" id="kAktivH"></div></div>
     <div class="tile"><div class="lab">Neue Konten</div><div class="val" id="kNeu">–</div><div class="hint" id="kNeuH"></div></div>
+    <div class="tile"><div class="lab">Gelöschte Konten</div><div class="val" id="kDel">–</div><div class="hint" id="kDelH"></div></div>
     <div class="tile"><div class="lab">Eingetragene Tage</div><div class="val" id="kTage">–</div><div class="hint" id="kTageH"></div></div>
-    <div class="tile"><div class="lab">Tage im Budget</div><div class="val" id="kGut">–</div><div class="hint">Anteil der eingetragenen Tage</div></div>
+    <div class="tile"><div class="lab">Tage im Budget</div><div class="val" id="kGut">–</div><div class="hint" id="kGutH">Anteil der eingetragenen Tage</div></div>
+    <div class="tile"><div class="lab">Weniger als in Woche 1</div><div class="val" id="kBz">–</div><div class="hint" id="kBzH">Anteil der Tage ab Woche 2</div></div>
+    <div class="tile"><div class="lab">Inselminuten</div><div class="val" id="kRuhe">–</div><div class="hint" id="kRuheH"></div></div>
+    <div class="tile"><div class="lab">Musik an</div><div class="val" id="kMusik">–</div><div class="hint" id="kMusikH">Anteil der Antworten auf die Musik-Frage</div></div>
+    <div class="tile"><div class="lab">Fanpost</div><div class="val" id="kFan">–</div><div class="hint">Postkarten nach guten Tagen</div></div>
+    <div class="tile"><div class="lab">Umfragen beantwortet</div><div class="val" id="kUmf">–</div><div class="hint" id="kUmfH"></div></div>
+    <div class="tile"><div class="lab">Fehlerfreie Gerätetage</div><div class="val" id="kOk">–</div><div class="hint" id="kOkH"></div></div>
+    <div class="tile"><div class="lab">Fehler gemeldet</div><div class="val" id="kErr">–</div><div class="hint" id="kErrH"></div></div>
   </section>
+
+  <section class="card"><h2>Neue und gelöschte Konten pro Tag</h2><p class="desc">Nach oben: an dem Tag neu angelegte Konten. Nach unten: gelöschte Konten (gezählt ab Version 1.40)</p>
+    <div class="legend"><span><i style="background:var(--series-1)"></i>Neue Konten</span><span><i style="background:var(--series-2)"></i>Gelöschte Konten</span></div>
+    <div id="cKonten"></div></section>
 
   <section class="grid2">
     <div class="card"><h2>Aktive Geräte pro Tag</h2><p class="desc">Geräte, die OffLand an dem Tag geöffnet haben, nach Plattform</p>
@@ -94,11 +114,25 @@
       <div id="cTage"></div></div>
     <div class="card"><h2>Wer bleibt dabei?</h2><p class="desc">Aktive Gerätetage nach Abstand zum ersten Start. Viel bei „Tag 0“ und wenig danach heißt: Leute springen früh ab.</p><div id="cRet"></div></div>
     <div class="card"><h2>Vom Konto zur Gewohnheit</h2><p class="desc">Wie viele erreichen die Meilensteine, im Verhältnis zu neuen Konten</p><div id="cFunnel"></div></div>
+    <div class="card"><h2>Gelöschte Konten</h2><p class="desc">Nach wie vielen eingetragenen Tagen gelöscht wurde und welcher Grund freiwillig angegeben wurde</p><div id="cDel"></div><div id="cWhy"></div></div>
     <div class="card"><h2>Was genutzt wird</h2><p class="desc">Wie oft eine Funktion im Zeitraum genutzt wurde</p><div id="cFeat"></div></div>
     <div class="card"><h2>Geschichte</h2><p class="desc">Wie oft jedes Kapitel geschafft wurde, dazu Intro und Joker</p><div id="cKap"></div><div id="cMisc"></div></div>
   </section>
 
-  <details class="card"><summary>Alle Zahlen als Tabelle</summary><div class="scroll" id="tbl"></div></details>
+  <section class="card"><h2>Wirkt OffLand?</h2><p class="desc">Bildschirmzeit im Vergleich zur eigenen ersten Woche, nach Woche seit dem Start. Jeder eingetragene Tag zählt einmal, nur als Stufe ohne Minuten. Grün heißt weniger am Handy als in Woche 1.</p>
+    <div class="legend" id="bzLeg"></div><div id="cBz"></div><p class="note" id="bzNote"></p></section>
+
+  <section class="grid2">
+    <div class="card"><h2>Anteil im Budget im Verlauf</h2><p class="desc">Wie viel Prozent der eingetragenen Tage im Budget lagen, Tag für Tag</p><div id="cQuote"></div></div>
+    <div class="card"><h2>Schwierige Wochentage</h2><p class="desc">Anteil im Budget nach Wochentag, in Klammern die Zahl der eingetragenen Tage. Niedrige Werte zeigen, wann Erinnerungen oder Events am meisten helfen würden.</p><div id="cWd"></div></div>
+    <div class="card"><h2>Ruhe und Musik</h2><p class="desc">Inselminuten und Antworten auf die Frage nach der Inselmusik</p><div id="cRuhe"></div></div>
+    <div class="card"><h2>Weltreise und Umfragen</h2><p class="desc">Wie viele eine neue Insel erreichen, und wie die Testphasen-Umfragen ankommen</p><div id="cWelt"></div><div id="cUmf"></div></div>
+  </section>
+
+  <section class="card"><h2>Fehler und Abstürze</h2><p class="desc">Geräte, auf denen an dem Tag ein Fehler aufgetreten ist, und die häufigsten Fehler. Gezählt nur auf Geräten mit Zustimmung; Abstürze im Swift-Teil der iPhone-App sind nicht dabei.</p>
+    <div class="grid2"><div id="cErr"></div><div class="scroll" id="errList"></div></div></section>
+
+  <details class="card"><summary>Alle Zahlen als Tabelle</summary><div class="row-act"><button class="chip" id="csvBtn" type="button">Als CSV herunterladen</button></div><div class="scroll" id="tbl"></div></details>
   <p class="note">Gezählt wird nur auf Geräten, die in der App zugestimmt haben (Konto → Einstellungen → Anonyme Statistik). Die Zahlen sind Tagessummen ohne Bezug zu einzelnen Personen. <a href="?demo" id="demoLink" style="color:inherit">Mit Beispieldaten ansehen</a></p>
 </main>
 <div id="tip" role="tooltip"></div>
@@ -114,39 +148,71 @@ const iso = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate(
 const short = s => { const [y, m, d] = s.split("-"); return `${+d}.${+m}.`; };
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
+// Bildschirmzeit gegenüber Woche 1: eine 100-%-Leiste pro Woche, Stufen von „viel weniger“ bis „mehr“
+const BZ_CLS = [["m50", "50 % und mehr weniger", "var(--good)", 1, .6], ["m30", "30–50 % weniger", "var(--good)", .75, .4], ["m15", "15–30 % weniger", "var(--good)", .5, .22], ["m0", "bis 15 % weniger", "var(--good)", .28, .07],
+  ["p15", "bis 15 % mehr", "var(--critical)", .4, -.07], ["pp", "mehr als 15 % mehr", "var(--critical)", .85, -.3]];
+const BZ_WK = [["w2", "Woche 2"], ["w3", "Woche 3"], ["w4", "Woche 4"], ["w5_8", "Woche 5–8"], ["w9", "ab Woche 9"]];
 const NAMES = {
   vorhaben_gewaehlt: "Vorhaben gewählt", vorhaben_ok: "Vorhaben geschafft", vorhaben_nein: "Vorhaben nicht geschafft", vorhaben_ohne: "Ohne Vorhaben weiter",
   boot: "Fokus-Bootsfahrt", nacht: "Gute Nacht, Insel", kauf: "Im Laden gekauft", projekt: "Großprojekt fertig", rueckblick: "Wochenrückblick",
   album: "Mr. Bays Album", tagebuch_alle: "Tagebuch ganz geöffnet", chronik_alle: "Chronik ganz geöffnet", ueberraschung: "Überraschung",
   online_an: "Online eingeschaltet", familie: "Familieninsel", duell: "Duell gestartet", joker_ja: "Joker eingesetzt", joker_nein: "Joker abgelehnt",
   wunsch_item: "Wunsch: Gegenstand", wunsch_streak: "Wunsch: Serie", wunsch_unter: "Wunsch: Tag unter X", wunsch_plan: "Wunsch: Vorhaben",
-  wunsch_glueck: "Wunsch: Inselglück", wunsch_frei: "Wunsch: vom Handy holen", wunsch_boot: "Wunsch: Bootsfahrt", wunsch_nacht: "Wunsch: Gute Nacht"
+  wunsch_glueck: "Wunsch: Inselglück", wunsch_frei: "Wunsch: vom Handy holen", wunsch_boot: "Wunsch: Bootsfahrt", wunsch_nacht: "Wunsch: Gute Nacht",
+  inselminute: "Inselminute geschafft", fanpost: "Fanpost bekommen", besuch_bleibt: "Seltener Gast getauscht", umzugskiste: "Umzugskiste gepackt"
 };
+// weitere Zähler, die nur in der Tabelle mit Namen erscheinen
+const MORE = { inselminute_start: "Inselminute gestartet", inselminute_abbruch: "Inselminute abgebrochen", musik_ja: "Musik: ja", musik_nein: "Musik: lieber ohne",
+  umfrage_start: "Umfrage Start beantwortet", umfrage_t7: "Umfrage Woche 1 beantwortet", umfrage_t21: "Umfrage Woche 3 beantwortet", umfrage_nein: "Umfrage abgelehnt",
+  fehler: "Fehler gemeldet", fehler_geraet: "Gerätetage mit Fehler", welt_1: "Tropeninsel erreicht", welt_2: "Fjordinseln erreicht", welt_3: "Wüsteninsel erreicht", welt_4: "Eisinseln erreicht",
+  aktiv: "Aktive Gerätetage", aktiv_ios: "Aktiv: iOS-App", aktiv_pwa: "Aktiv: Home-Bildschirm", aktiv_web: "Aktiv: Browser", konto_neu: "Neue Konten", insel_start: "Insel gestartet",
+  ...Object.fromEntries(BZ_WK.flatMap(([w, n]) => BZ_CLS.map(([c, cn]) => ["bz_" + w + "_" + c, `${n}: ${cn}`]))),
+  tag: "Tage eingetragen", tag_gut: "Tage im Budget", tag_schlecht: "Tage über dem Budget", intro_ende: "Intro angesehen", intro_skip: "Intro übersprungen",
+  konto_geloescht: "Konten gelöscht", konto_geloescht_t0: "Gelöscht ohne eingetragenen Tag", konto_geloescht_t1_6: "Gelöscht nach 1–6 Tagen", konto_geloescht_t7_29: "Gelöscht nach 7–29 Tagen", konto_geloescht_t30: "Gelöscht ab 30 Tagen",
+  konto_grund_unnoetig: "Grund: brauche ich nicht mehr", konto_grund_wirkt_nicht: "Grund: hilft mir nicht", konto_grund_aufwand: "Grund: zu viel Aufwand", konto_grund_neustart: "Grund: will neu anfangen", konto_grund_anderes: "Grund: anderes" };
+const label = k => NAMES[k] || MORE[k] || k;
 
 // ---------- Daten holen ----------
 async function load(days) {
   const list = [];
-  for (let i = days - 1; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); list.push(iso(d)); }
-  if (demo) return list.map((day, i) => ({ day, c: demoDay(i, days) }));
+  for (let i = days * 2 - 1; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); list.push(iso(d)); }
+  if (demo) { ERRS = DEMO_ERRS; return list.map((day, i) => ({ day, c: demoDay(i, days) })); }
   const cfg = window.OFFLAND_FIREBASE;
   if (!cfg || !cfg.apiKey) throw new Error("Firebase ist nicht eingerichtet.");
   const [A, U, F] = await Promise.all([import(FB + "firebase-app.js"), import(FB + "firebase-auth.js"), import(FB + "firebase-firestore.js")]);
-  const app = A.initializeApp(cfg), auth = U.getAuth(app), db = F.getFirestore(app);
+  const app = A.initializeApp(cfg);
+  if (window.offlandAppCheck) await window.offlandAppCheck(app, FB);
+  const auth = U.getAuth(app), db = F.getFirestore(app);
   await auth.authStateReady(); if (!auth.currentUser) await U.signInAnonymously(auth);
-  const snaps = await Promise.all(list.map(day => F.getDoc(F.doc(db, "stats/" + day)).catch(() => null)));
+  // Pro Tag ein altes Dokument (bis Version 1.53) plus 10 Teil-Dokumente _s0 … _s9, zusammengezählt
+  const ids = d => [d].concat(Array.from({ length: 10 }, (_, s) => d + "_s" + s));
+  const parts = await Promise.all(list.map(day => Promise.all(ids(day).map(id => F.getDoc(F.doc(db, "stats/" + id)).catch(() => null)))));
+  const snaps = parts.map(ps => { const c = {}; let any = false; ps.forEach(s => { if (s && s.exists()) { any = true; const d = s.data(); for (const k in d) if (typeof d[k] === "number") c[k] = (c[k] || 0) + d[k]; } }); return { exists: () => any, data: () => c }; });
+  ERRS = await F.getDocs(F.query(F.collection(db, "errors"), F.orderBy("last", "desc"), F.limit(30))).then(r => r.docs.map(d => d.data())).catch(() => null);
   return list.map((day, i) => ({ day, c: snaps[i] && snaps[i].exists() ? snaps[i].data() : {} }));
 }
+let ERRS = null;
+const DEMO_ERRS = [
+  { msg: "TypeError: Cannot read properties of undefined (reading 'art')", src: "/js/app.js:2412:31", stack: "TypeError: Cannot read properties of undefined (reading 'art')\n    at guestSheet (/js/app.js:2412:31)\n    at showPending (/js/app.js:3640:30)", v: "1.31", n: 14, p_ios: 9, p_pwa: 5, last: Date.now() - 3600e3 },
+  { msg: "Promise: Failed to fetch", src: "", stack: "", v: "1.31", n: 37, p_pwa: 21, p_web: 16, last: Date.now() - 5 * 3600e3 },
+  { msg: "NotAllowedError: play() failed because the user didn't interact with the document first", src: "/js/app.js:3381:12", stack: "", v: "1.30", n: 6, p_ios: 6, last: Date.now() - 2 * 864e5 }];
 function demoDay(i, n) {
   const r = k => Math.abs(Math.sin(i * 12.9898 + k * 78.233) * 43758.5453) % 1, grow = 0.4 + i / n;
   const ios = Math.round(18 * grow + r(1) * 6), pwa = Math.round(9 * grow + r(2) * 4), web = Math.round(5 + r(3) * 4), akt = ios + pwa + web;
   const tag = Math.round(akt * (0.6 + r(4) * 0.2)), gut = Math.round(tag * (0.55 + r(5) * 0.25)), neu = Math.round(3 + r(6) * 5);
-  return { aktiv: akt, aktiv_ios: ios, aktiv_pwa: pwa, aktiv_web: web, konto_neu: neu, insel_start: Math.max(0, neu - 1), tag, tag_gut: gut, tag_schlecht: tag - gut,
+  const bz = {}; BZ_WK.forEach(([w], wi) => BZ_CLS.forEach(([c], j) => { bz["bz_" + w + "_" + c] = Math.round([.6, 1.2, 1.6, 1.4, .9, .5][j] * (1 + (wi < 3 ? j < 4 ? wi * .15 : -wi * .1 : 0)) * (4 - wi * .5) * r(30 + wi * 6 + j) * grow); }));
+  return { ...bz, aktiv: akt, aktiv_ios: ios, aktiv_pwa: pwa, aktiv_web: web, konto_neu: neu, insel_start: Math.max(0, neu - 1), tag, tag_gut: gut, tag_schlecht: tag - gut,
     aktiv_t0: neu, aktiv_t1: Math.round(neu * .7), aktiv_t2_3: Math.round(akt * .14), aktiv_t4_7: Math.round(akt * .2), aktiv_t8_14: Math.round(akt * .22), aktiv_t15_30: Math.round(akt * .2), aktiv_t31: Math.round(akt * .1),
     tage_1: Math.max(0, neu - 1), tage_3: Math.round(neu * .6), tage_7: Math.round(neu * .4), tage_14: Math.round(neu * .25), tage_30: Math.round(neu * .12),
     vorhaben_gewaehlt: Math.round(tag * .45), vorhaben_ohne: Math.round(tag * .3), vorhaben_ok: Math.round(tag * .3), vorhaben_nein: Math.round(tag * .1),
     boot: Math.round(akt * .25), nacht: Math.round(akt * .15), kauf: Math.round(akt * .2), rueckblick: i % 7 === 6 ? Math.round(akt * .4) : 0, album: Math.round(r(7) * 4),
     joker_ja: Math.round(r(8) * 3), joker_nein: Math.round(r(9) * 2), intro_ende: Math.round(neu * .6), intro_skip: Math.round(neu * .4),
-    kapitel_1: Math.round(neu * .7), kapitel_2: Math.round(neu * .5), kapitel_3: Math.round(neu * .3), kapitel_4: Math.round(r(10) * 2), wunsch_item: Math.round(r(11) * 4), wunsch_plan: Math.round(r(12) * 3) };
+    kapitel_1: Math.round(neu * .7), kapitel_2: Math.round(neu * .5), kapitel_3: Math.round(neu * .3), kapitel_4: Math.round(r(10) * 2), wunsch_item: Math.round(r(11) * 4), wunsch_plan: Math.round(r(12) * 3),
+    inselminute_start: Math.round(akt * .12), inselminute: Math.round(akt * .09), inselminute_abbruch: Math.round(akt * .03), musik_ja: Math.round(neu * .55), musik_nein: Math.round(neu * .35),
+    fanpost: Math.round(r(13) * 3), besuch_bleibt: Math.round(r(14) * 1.4), umzugskiste: Math.round(r(15) * 1.2), welt_1: Math.round(r(16) * 2), welt_2: Math.round(r(17) * 1.2), welt_3: Math.round(r(18) * .8),
+    fehler: Math.round(r(20) * 6), fehler_geraet: Math.round(r(21) * 3), umfrage_start: Math.round(neu * .5), umfrage_t7: Math.round(neu * .25), umfrage_t21: Math.round(r(19) * 2), umfrage_nein: Math.round(neu * .15),
+    konto_geloescht: Math.round(r(22) * 2), konto_geloescht_t0: Math.round(r(23) * .8), konto_geloescht_t1_6: Math.round(r(24) * 1.2), konto_geloescht_t7_29: Math.round(r(25) * .6), konto_geloescht_t30: Math.round(r(26) * .3),
+    konto_grund_unnoetig: Math.round(r(27) * .6), konto_grund_wirkt_nicht: Math.round(r(28) * .5), konto_grund_aufwand: Math.round(r(29) * .5), konto_grund_neustart: Math.round(r(31) * .7), konto_grund_anderes: Math.round(r(32) * .3) };
 }
 
 // ---------- Tooltip ----------
@@ -163,6 +229,30 @@ function bindTips(root) {
 const niceMax = v => { if (v <= 4) return 4; const p = Math.pow(10, Math.floor(Math.log10(v))), m = v / p; return (m <= 2 ? 2 : m <= 5 ? 5 : 10) * p; };
 const roundTop = (x, y, w, h, r) => h <= 0 ? "" : (r = Math.min(r, h, w / 2), `M${x} ${y + h}V${y + r}q0-${r} ${r}-${r}h${w - 2 * r}q${r} 0 ${r} ${r}V${y + h}z`);
 const roundRight = (x, y, w, h, r) => w <= 0 ? "" : (r = Math.min(r, w, h / 2), `M${x} ${y}h${w - r}q${r} 0 ${r} ${r}v${h - 2 * r}q0 ${r}-${r} ${r}H${x}z`);
+
+// Säulen pro Tag nach oben (neu) und nach unten (gelöscht), gemeinsame Nulllinie
+function diverge(el, rows, up, down) {
+  const W = Math.max(320, Math.min(1080, el.clientWidth || 520)), H = 200, L = 30, B = 22, T = 8, n = rows.length;
+  const u = rows.map(r => r.c[up.k] || 0), d = rows.map(r => r.c[down.k] || 0);
+  if (!u.some(Boolean) && !d.some(Boolean)) { el.innerHTML = `<div class="empty">Noch keine Daten in diesem Zeitraum.</div>`; return; }
+  const mu = niceMax(Math.max(1, ...u)), md = Math.max(...d) ? niceMax(Math.max(...d)) : 0, span = H - T - B;
+  const zero = T + span * mu / (mu + md), sc = span / (mu + md), y = v => zero - v * sc;
+  const band = (W - L) / n, bw = Math.min(24, band * 0.7);
+  let g = `<line x1="${L}" x2="${W}" y1="${zero}" y2="${zero}" stroke="var(--axis, #999)"/>`;
+  [mu, mu / 2].forEach(v => { g += `<line x1="${L}" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/><text x="${L - 6}" y="${y(v) + 3.5}" text-anchor="end">${fmt(v)}</text>`; });
+  if (md) g += `<line x1="${L}" x2="${W}" y1="${y(-md)}" y2="${y(-md)}" stroke="var(--grid)"/><text x="${L - 6}" y="${y(-md) + 3.5}" text-anchor="end">−${fmt(md)}</text>`;
+  g += `<text x="${L - 6}" y="${zero + 3.5}" text-anchor="end">0</text>`;
+  const every = Math.ceil(n / (W < 420 ? 6 : 10));
+  rows.forEach((r, i) => {
+    const x = L + band * i + (band - bw) / 2;
+    if (u[i]) g += `<path d="${roundTop(x, y(u[i]), bw, zero - y(u[i]) - 1, 4)}" fill="var(${up.c})"/>`;
+    if (d[i]) { const h = d[i] * sc - 1, r0 = Math.min(4, h, bw / 2); g += `<path d="M${x} ${zero + 1}V${zero + 1 + h - r0}q0 ${r0} ${r0} ${r0}h${bw - 2 * r0}q${r0} 0 ${r0}-${r0}V${zero + 1}z" fill="var(${down.c})"/>`; }
+    if ((i % every === 0 && n - 1 - i >= Math.max(2, every)) || i === n - 1) g += `<text x="${x + bw / 2}" y="${H - 6}" text-anchor="middle">${short(r.day)}</text>`;
+    const t = `<b>${short(r.day)}</b>${esc(up.n)}: ${fmt(u[i])}<br>${esc(down.n)}: ${fmt(d[i])}`;
+    g += `<rect class="hit" x="${L + band * i}" y="${T}" width="${band}" height="${H - T - B}" data-tip="${esc(t)}"/>`;
+  });
+  el.innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Neue und gelöschte Konten pro Tag">${g}</svg>`; bindTips(el);
+}
 
 // Gestapelte Säulen pro Tag (eine Achse, 2px Fuge zwischen Segmenten)
 function stacked(el, rows, series) {
@@ -197,15 +287,94 @@ function hbars(el, items, opt = {}) {
   el.innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Balkendiagramm">${g}</svg>`; bindTips(el);
 }
 
-// ---------- Seite füllen ----------
-function render(rows) {
-  const sum = k => rows.reduce((a, r) => a + (r.c[k] || 0), 0);
-  const days = rows.length, aktiv = sum("aktiv"), neu = sum("konto_neu"), tag = sum("tag"), gut = sum("tag_gut");
-  $("#kAktiv").textContent = fmt(aktiv); $("#kAktivH").textContent = `Ø ${fmt(Math.round(aktiv / days * 10) / 10)} pro Tag`;
-  $("#kNeu").textContent = fmt(neu); $("#kNeuH").textContent = `${fmt(sum("insel_start"))} davon Insel gestartet`;
-  $("#kTage").textContent = fmt(tag); $("#kTageH").textContent = aktiv ? `${Math.round(tag / aktiv * 100)} % der aktiven Gerätetage` : "";
-  $("#kGut").textContent = tag ? Math.round(gut / tag * 100) + " %" : "–";
+// Linie mit Prozentwerten (0–100), Tage ohne Einträge bleiben Lücken
+function line(el, rows, fn) {
+  const W = Math.max(320, Math.min(520, el.clientWidth || 520)), H = W < 420 ? 170 : 190, L = 34, B = 22, T = 10, n = rows.length;
+  const vals = rows.map(fn); if (!vals.some(v => v != null)) { el.innerHTML = `<div class="empty">Noch keine Daten in diesem Zeitraum.</div>`; return; }
+  const x = i => L + (W - L - 8) * (n === 1 ? .5 : i / (n - 1)), y = v => T + (H - T - B) * (1 - v / 100);
+  let g = "";
+  [0, 50, 100].forEach(v => { g += `<line x1="${L}" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/><text x="${L - 6}" y="${y(v) + 3.5}" text-anchor="end">${v} %</text>`; });
+  let d = "", area = "", seg = [];
+  const flush = () => { if (seg.length > 1) { area += `M${seg[0][0]} ${y(0)}` + seg.map(p => `L${p[0]} ${p[1]}`).join("") + `L${seg[seg.length - 1][0]} ${y(0)}z`; } seg = []; };
+  vals.forEach((v, i) => { if (v == null) { flush(); return; } const p = [x(i), y(v)]; d += (seg.length ? "L" : "M") + p[0] + " " + p[1]; seg.push(p); }); flush();
+  g += `<path d="${area}" fill="var(--good)" opacity=".12"/><path d="${d}" fill="none" stroke="var(--good)" stroke-width="2.2" stroke-linejoin="round"/>`;
+  const every = Math.ceil(n / (W < 420 ? 6 : 8));
+  rows.forEach((r, i) => { const v = vals[i];
+    if (v != null) g += `<circle cx="${x(i)}" cy="${y(v)}" r="${i === n - 1 ? 4 : 2.4}" fill="var(--good)"/>`;
+    if ((i % every === 0 && n - 1 - i >= Math.max(2, every)) || i === n - 1) g += `<text x="${x(i)}" y="${H - 6}" text-anchor="middle">${short(r.day)}</text>`;
+    g += `<rect class="hit" x="${x(i) - (W - L) / n / 2}" y="${T}" width="${(W - L) / n}" height="${H - T - B}" data-tip="${esc(`<b>${short(r.day)}</b>${v == null ? "keine Einträge" : v + " % im Budget"}`)}"/>`; });
+  el.innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Liniendiagramm">${g}</svg>`; bindTips(el);
+}
+function bzChart(el, sum) {
+  const data = BZ_WK.map(([w, n]) => { const v = BZ_CLS.map(c => sum("bz_" + w + "_" + c[0])); return { n, v, t: v.reduce((a, b) => a + b, 0) }; }).filter(d => d.t);
+  if (!data.length) { el.innerHTML = `<div class="empty">Noch keine Daten. Gezählt wird ab dem 8. eingetragenen Tag eines Geräts.</div>`; return; }
+  const W = Math.max(320, Math.min(980, el.clientWidth || 640)), LW = W < 480 ? 74 : 110, RW = W < 480 ? 104 : 110, row = 34, H = data.length * row + 4, span = W - LW - RW;
+  let g = "";
+  data.forEach((d, i) => { const y = i * row + 4; let x = LW;
+    const less = d.v.slice(0, 4).reduce((a, b) => a + b, 0), avg = Math.round(d.v.reduce((a, v, j) => a + v * BZ_CLS[j][4], 0) / d.t * 100);
+    g += `<text class="lab" x="${LW - 8}" y="${y + 17}" text-anchor="end">${esc(d.n)}</text>`;
+    d.v.forEach((v, j) => { if (!v) return; const w = span * v / d.t, c = BZ_CLS[j];
+      g += `<rect x="${x}" y="${y + 4}" width="${Math.max(0, w - 2)}" height="20" rx="3" fill="${c[2]}" opacity="${c[3]}"/>`;
+      g += `<rect class="hit" x="${x}" y="${y}" width="${w}" height="${row}" data-tip="${esc(`<b>${esc(d.n)} · ${esc(c[1])}</b>${fmt(v)} von ${fmt(d.t)} Tagen (${Math.round(v / d.t * 100)} %)`)}"/>`; x += w; });
+    g += `<text class="val" x="${W - RW + 8}" y="${y + 18}">${Math.round(less / d.t * 100)} %<tspan style="fill:var(--text-muted);font-weight:400"> · Ø ${avg > 0 ? "−" : avg < 0 ? "+" : "±"}${Math.abs(avg)} %</tspan></text>`; });
+  el.innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Bildschirmzeit gegenüber Woche 1">${g}</svg>`; bindTips(el);
+}
+const WD = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
+// worse: steigende Werte sind schlecht (z. B. Fehler), dann rot statt grün
+const delta = (now, before, worse) => { if (!before) return ""; const p = Math.round((now - before) / before * 100); return p ? ` · <span class="delta ${(p > 0) !== !!worse ? "up" : "down"}">${p > 0 ? "+" : ""}${p} %</span> zum Vorzeitraum` : " · gleich wie im Vorzeitraum"; };
+function csv(rows) {
+  const keys = [...new Set(rows.flatMap(r => Object.keys(r.c)))].sort();
+  const q = t => `"${String(t).replace(/"/g, '""')}"`;
+  const out = [["Zähler", ...rows.map(r => r.day), "Summe"].map(q).join(";")].concat(keys.map(k => [q(label(k)), ...rows.map(r => r.c[k] || 0), rows.reduce((a, r) => a + (r.c[k] || 0), 0)].join(";")));
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["\ufeff" + out.join("\n")], { type: "text/csv" })); a.download = `offland-statistik-${rows[0].day}-bis-${rows[rows.length - 1].day}.csv`; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
 
+// ---------- Seite füllen ----------
+function render(all) {
+  const half = all.length / 2, prev = all.slice(0, half), rows = all.slice(half);
+  const sum = k => rows.reduce((a, r) => a + (r.c[k] || 0), 0), psum = k => prev.reduce((a, r) => a + (r.c[k] || 0), 0);
+  const days = rows.length, aktiv = sum("aktiv"), neu = sum("konto_neu"), tag = sum("tag"), gut = sum("tag_gut");
+  $("#kAktiv").textContent = fmt(aktiv); $("#kAktivH").innerHTML = `Ø ${fmt(Math.round(aktiv / days * 10) / 10)} pro Tag` + delta(aktiv, psum("aktiv"));
+  $("#kNeu").textContent = fmt(neu); $("#kNeuH").innerHTML = `${fmt(sum("insel_start"))} davon Insel gestartet` + delta(neu, psum("konto_neu"));
+  $("#kTage").textContent = fmt(tag); $("#kTageH").innerHTML = (aktiv ? `${Math.round(tag / aktiv * 100)} % der aktiven Gerätetage` : "") + delta(tag, psum("tag"));
+  $("#kGut").textContent = tag ? Math.round(gut / tag * 100) + " %" : "–";
+  { const pt = psum("tag"), pq = pt ? Math.round(psum("tag_gut") / pt * 100) : null, q = tag ? Math.round(gut / tag * 100) : null;
+    $("#kGutH").innerHTML = "Anteil der eingetragenen Tage" + (pq != null && q != null ? ` · <span class="delta ${q >= pq ? "up" : "down"}">${q - pq >= 0 ? "+" : ""}${q - pq} Punkte</span>` : ""); }
+  const rs = sum("inselminute_start"), rd = sum("inselminute");
+  $("#kRuhe").textContent = fmt(rd); $("#kRuheH").innerHTML = (rs ? `${Math.round(rd / rs * 100)} % zu Ende gemacht` : "geschafft") + delta(rd, psum("inselminute"));
+  const mj = sum("musik_ja"), mn = sum("musik_nein");
+  $("#kMusik").textContent = mj + mn ? Math.round(mj / (mj + mn) * 100) + " %" : "–"; $("#kMusikH").textContent = mj + mn ? `${fmt(mj)} ja, ${fmt(mn)} lieber ohne` : "Noch keine Antworten";
+  $("#kFan").textContent = fmt(sum("fanpost"));
+  const ua = sum("umfrage_start") + sum("umfrage_t7") + sum("umfrage_t21"), un = sum("umfrage_nein");
+  $("#kUmf").textContent = fmt(ua); $("#kUmfH").textContent = ua + un ? `${fmt(un)} abgelehnt · Antworten stehen in Firebase unter support` : "Antworten stehen in Firebase unter support";
+
+  { const all = BZ_WK.flatMap(([w]) => BZ_CLS.map((c, j) => [sum("bz_" + w + "_" + c[0]), j])), t = all.reduce((a, [v]) => a + v, 0), less = all.filter(([, j]) => j < 4).reduce((a, [v]) => a + v, 0);
+    const avg = t ? Math.round(all.reduce((a, [v, j]) => a + v * BZ_CLS[j][4], 0) / t * 100) : 0;
+    $("#kBz").textContent = t ? Math.round(less / t * 100) + " %" : "–";
+    $("#kBzH").textContent = t ? `${fmt(t)} Tage ab Woche 2 · geschätzt Ø ${avg > 0 ? "−" : "+"}${Math.abs(avg)} % Bildschirmzeit` : "Gezählt ab dem 8. eingetragenen Tag";
+    $("#bzLeg").innerHTML = BZ_CLS.map(c => `<span><i style="background:${c[2]};opacity:${c[3]}"></i>${esc(c[1])}</span>`).join("");
+    bzChart($("#cBz"), sum);
+    $("#bzNote").textContent = t ? "Rechts: Anteil der Tage mit weniger Bildschirmzeit als in Woche 1, dahinter die geschätzte durchschnittliche Veränderung (aus der Mitte jeder Stufe)." : ""; }
+  line($("#cQuote"), rows, r => r.c.tag ? Math.round((r.c.tag_gut || 0) / r.c.tag * 100) : null);
+  { const g = Array(7).fill(0), t = Array(7).fill(0);
+    rows.forEach(r => { const wd = (new Date(r.day + "T12:00:00").getDay() + 6) % 7; g[wd] += r.c.tag_gut || 0; t[wd] += r.c.tag || 0; });
+    hbars($("#cWd"), WD.map((n, i) => ({ n: t[i] ? `${n} (${fmt(t[i])})` : n, v: t[i] ? Math.round(g[i] / t[i] * 100) : 0, extra: t[i] ? "%" : "" })), { labelW: 140, color: "--good" }); }
+  hbars($("#cRuhe"), [{ n: "Inselminute gestartet", v: rs }, { n: "… zu Ende gemacht", v: rd }, { n: "… abgebrochen", v: sum("inselminute_abbruch") }, { n: "Musik: ja", v: mj }, { n: "Musik: lieber ohne", v: mn }], { labelW: 170, color: "--series-2", empty: "Noch keine Inselminuten oder Musik-Antworten." });
+  hbars($("#cWelt"), [["welt_1", "Tropeninsel"], ["welt_2", "Fjordinseln"], ["welt_3", "Wüsteninsel"], ["welt_4", "Eisinseln"], ["umzugskiste", "Umzugskiste gepackt"]].map(([k, n]) => ({ n, v: sum(k) })), { labelW: 160, empty: "Noch niemand ist weitergereist." });
+  { const fg = sum("fehler_geraet"), fe = sum("fehler");
+    $("#kOk").textContent = aktiv ? (Math.round((1 - fg / aktiv) * 1000) / 10).toLocaleString("de-DE") + " %" : "–";
+    $("#kOkH").textContent = aktiv ? `${fmt(fg)} von ${fmt(aktiv)} Gerätetagen mit Fehler` : "";
+    $("#kErr").textContent = fmt(fe); $("#kErrH").innerHTML = (ERRS && ERRS.length ? `${ERRS.length} verschiedene in der Liste` : "keine Einträge") + delta(fe, psum("fehler"), true); }
+  stacked($("#cErr"), rows, [{ k: "fehler_geraet", n: "Geräte mit Fehler", c: "--critical" }]);
+  $("#errList").innerHTML = !ERRS ? `<div class="empty">Die Fehlerliste konnte nicht geladen werden (Firestore-Regeln schon veröffentlicht?).</div>`
+    : !ERRS.length ? `<div class="empty">Noch keine Fehler gemeldet. 🎉</div>`
+    : `<table class="errs"><thead><tr><th>Fehler</th><th style="text-align:right">Anzahl</th></tr></thead><tbody>` + ERRS.slice().sort((a, b) => (b.n || 0) - (a.n || 0)).map(e => {
+        const plat = [["p_ios", "iOS"], ["p_pwa", "Home"], ["p_web", "Browser"]].filter(([k]) => e[k]).map(([k, n]) => `${n} ${e[k]}`).join(" · ");
+        return `<tr><td><div class="msg">${esc(e.msg || "–")}</div><code>${esc(e.src || "")}</code><div class="note">${esc(plat)} · Version ${esc(e.v || "?")} · zuletzt ${e.last ? new Date(e.last).toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" }) : "?"}</div>${e.stack ? `<details><summary>Ablauf anzeigen</summary><pre>${esc(e.stack)}</pre></details>` : ""}</td><td class="n">${fmt(e.n || 0)}</td></tr>`; }).join("") + "</tbody></table>";
+  hbars($("#cUmf"), [["umfrage_start", "Start beantwortet"], ["umfrage_t7", "Woche 1 beantwortet"], ["umfrage_t21", "Woche 3 beantwortet"], ["umfrage_nein", "Umfrage abgelehnt"]].map(([k, n]) => ({ n, v: sum(k) })), { labelW: 160, color: "--series-3", empty: "Noch keine Umfragen beantwortet." });
+
+  diverge($("#cKonten"), rows, { k: "konto_neu", n: "Neue Konten", c: "--series-1" }, { k: "konto_geloescht", n: "Gelöschte Konten", c: "--series-2" });
   stacked($("#cAktiv"), rows, [{ k: "aktiv_ios", n: "iOS-App", c: "--series-1" }, { k: "aktiv_pwa", n: "Vom Home-Bildschirm", c: "--series-2" }, { k: "aktiv_web", n: "Browser", c: "--series-3" }]);
   stacked($("#cTage"), rows, [{ k: "tag_gut", n: "Im Budget", c: "--good" }, { k: "tag_schlecht", n: "Über dem Budget", c: "--critical" }]);
   hbars($("#cRet"), [["0", "Erster Tag"], ["1", "Tag 1"], ["2_3", "Tag 2–3"], ["4_7", "Tag 4–7"], ["8_14", "Tag 8–14"], ["15_30", "Tag 15–30"], ["31", "Ab Tag 31"]].map(([k, n]) => ({ n, v: sum("aktiv_t" + k) })), { keepZero: true, labelW: 120 });
@@ -213,28 +382,43 @@ function render(rows) {
   hbars($("#cFunnel"), [["konto_neu", "Konto angelegt"], ["insel_start", "Insel gestartet"], ["tage_1", "1. Tag eingetragen"], ["tage_3", "3 Tage"], ["tage_7", "7 Tage"], ["tage_14", "14 Tage"], ["tage_30", "30 Tage"]]
     .map(([k, n]) => ({ n, v: sum(k), extra: neu ? Math.round(sum(k) / base * 100) + " %" : "" })), { keepZero: true, labelW: 150 });
   hbars($("#cFeat"), Object.keys(NAMES).map(k => ({ n: NAMES[k], v: sum(k) })).sort((a, b) => b.v - a.v).slice(0, 14));
+  const del = sum("konto_geloescht");
+  $("#kDel").textContent = fmt(del); $("#kDelH").innerHTML = (neu ? Math.round(del / neu * 100) + " % der neuen Konten" : "") + delta(del, psum("konto_geloescht"), true);
+  hbars($("#cDel"), [["t0", "Ohne eingetragenen Tag"], ["t1_6", "Nach 1–6 Tagen"], ["t7_29", "Nach 7–29 Tagen"], ["t30", "Ab 30 Tagen"]].map(([k, n]) => ({ n, v: sum("konto_geloescht_" + k) })), { labelW: 170, color: "--series-3", empty: "Noch kein Konto gelöscht." });
+  hbars($("#cWhy"), [["unnoetig", "Brauche ich nicht mehr"], ["wirkt_nicht", "Hilft mir nicht"], ["aufwand", "Zu viel Aufwand"], ["neustart", "Will neu anfangen"], ["anderes", "Anderes"]].map(([k, n]) => ({ n, v: sum("konto_grund_" + k) })), { labelW: 170, color: "--series-2", empty: "" });
   hbars($("#cKap"), Array.from({ length: 19 }, (_, i) => ({ n: "Kapitel " + (i + 1), v: sum("kapitel_" + (i + 1)) })), { labelW: 110, empty: "Noch kein Kapitel geschafft." });
   hbars($("#cMisc"), [{ n: "Intro ganz angesehen", v: sum("intro_ende") }, { n: "Intro übersprungen", v: sum("intro_skip") }], { labelW: 170, empty: "" });
 
   const keys = [...new Set(rows.flatMap(r => Object.keys(r.c)))].sort();
   $("#tbl").innerHTML = keys.length ? `<table><thead><tr><th>Zähler</th>${rows.map(r => `<th>${short(r.day)}</th>`).join("")}<th>Summe</th></tr></thead><tbody>` +
-    keys.map(k => `<tr><td>${esc(NAMES[k] || k)}</td>${rows.map(r => `<td>${r.c[k] ? fmt(r.c[k]) : ""}</td>`).join("")}<td><b>${fmt(sum(k))}</b></td></tr>`).join("") + "</tbody></table>" : `<div class="empty">Noch keine Daten.</div>`;
+    keys.map(k => `<tr><td>${esc(label(k))}</td>${rows.map(r => `<td>${r.c[k] ? fmt(r.c[k]) : ""}</td>`).join("")}<td><b>${fmt(sum(k))}</b></td></tr>`).join("") + "</tbody></table>" : `<div class="empty">Noch keine Daten.</div>`;
 }
 
 let cur = 14, LAST = null;
+// „Ab Datum“: zeigt nur Tage ab einem Stichtag (z. B. Teststart). Die Daten in Firebase bleiben unverändert; der Stichtag wird nur in diesem Browser gemerkt.
+let FROM = null; try { FROM = localStorage.getItem("offland-stat-from") || null; } catch (e) {}
+const daysSince = f => Math.min(365, Math.max(1, Math.round((new Date(iso(new Date())) - new Date(f)) / 864e5) + 1));
 async function go(days) {
+  if (FROM) days = daysSince(FROM);
   cur = days;
-  document.querySelectorAll("[data-days]").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.days === days)));
+  document.querySelectorAll("[data-days]").forEach(b => b.setAttribute("aria-pressed", String(!FROM && +b.dataset.days === days)));
+  $("#fromIn").value = FROM || ""; $("#fromWrap").setAttribute("aria-pressed", String(!!FROM)); $("#fromClr").hidden = !FROM;
   $("#status").innerHTML = "Lade …";
   try {
     const rows = await load(days);
-    const any = rows.some(r => Object.keys(r.c).length);
+    if (FROM) rows.slice(0, rows.length / 2).forEach(r => r.c = {});   // vor dem Stichtag nichts vergleichen
+    const any = rows.slice(rows.length / 2).some(r => Object.keys(r.c).length);
     $("#status").innerHTML = demo ? `<span class="demo">Beispieldaten</span> So sieht die Seite aus, wenn Zahlen da sind. <a href="./" style="color:inherit">Echte Zahlen</a>`
-      : any ? `Stand: ${new Date().toLocaleString("de-DE", { dateStyle: "medium", timeStyle: "short" })}` : "Noch keine Zahlen in diesem Zeitraum. Sie erscheinen, sobald Geräte zugestimmt haben und OffLand nutzen.";
+      : any ? `Stand: ${new Date().toLocaleString("de-DE", { dateStyle: "medium", timeStyle: "short" })}${FROM ? ` · gezählt ab ${new Date(FROM).toLocaleDateString("de-DE", { dateStyle: "medium" })}` : ""}` : "Noch keine Zahlen in diesem Zeitraum. Sie erscheinen, sobald Geräte zugestimmt haben und OffLand nutzen.";
     LAST = rows; render(rows);
   } catch (e) { $("#status").textContent = "Konnte die Zahlen nicht laden: " + (e && e.message || e); }
 }
-document.querySelectorAll("[data-days]").forEach(b => b.onclick = () => go(+b.dataset.days));
+const setFrom = f => { FROM = f || null; try { FROM ? localStorage.setItem("offland-stat-from", FROM) : localStorage.removeItem("offland-stat-from"); } catch (e) {} };
+document.querySelectorAll("[data-days]").forEach(b => b.onclick = () => { setFrom(null); go(+b.dataset.days); });
+$("#fromIn").max = iso(new Date());
+$("#fromIn").onchange = () => { const v = $("#fromIn").value; if (v && v <= iso(new Date())) { setFrom(v); go(cur); } };
+$("#fromClr").onclick = () => { setFrom(null); go(14); };
+$("#csvBtn").onclick = () => LAST && csv(LAST.slice(LAST.length / 2));
 let rz = 0; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => LAST && render(LAST), 200); });
 if (demo) $("#demoLink").remove();
 go(cur);

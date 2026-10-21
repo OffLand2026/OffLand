@@ -16,7 +16,9 @@ service cloud.firestore {
       return d.owner == request.auth.uid && shortText(d.name, 20) && shortText(d.avatar, 20)
         && (d.avg == null || (d.avg is int && d.avg >= 0 && d.avg <= 1440))
         && d.days is int && d.days >= 0 && d.days <= 7
-        && d.good is int && d.good >= 0 && d.good <= 7 && shortText(d.world, 30);
+        && d.good is int && d.good >= 0 && d.good <= 7 && shortText(d.world, 30)
+        && (!("ev" in d) || d.ev == null || (d.ev is list && d.ev.size() <= 6))      // Inselpost: eigene Meilensteine
+        && (!("ch" in d) || d.ch == null || (d.ch is list && d.ch.size() <= 20));    // Inselpost: eigene Reaktionen
     }
 
     // Spielerprofil: Name, Avatar, Code, Inselwelt. Lesen nur einzeln (keine Liste aller Spieler).
@@ -114,14 +116,27 @@ service cloud.firestore {
         && request.resource.data.at == request.time;
     }
 
-    // Anonyme Nutzungsstatistik (nur mit Zustimmung in der App): ein Dokument pro Tag, nur Zähler,
+    // Anonyme Nutzungsstatistik (nur mit Zustimmung in der App): pro Tag bis zu 10 Teil-Dokumente (_s0 … _s9), nur Zähler,
     // keine Namen und keine Kennungen. Lesen einzeln für die Auswertung (scripts/statistik.mjs).
     match /stats/{day} {
       allow get: if signedIn();
-      allow create: if signedIn() && day.matches('^20[0-9]{2}-[0-9]{2}-[0-9]{2}$')
+      allow create: if signedIn() && day.matches('^20[0-9]{2}-[0-9]{2}-[0-9]{2}(_s[0-9])?$')
         && request.resource.data.keys().size() <= 200;
       allow update: if signedIn() && request.resource.data.keys().size() <= 200
         && request.resource.data.diff(resource.data).affectedKeys().size() <= 80;
+    }
+
+    // Fehlerberichte (nur mit Zustimmung zur Statistik): gleicher Fehler = gleiches Dokument, Zähler n und p_<plattform>.
+    // Nur technische Angaben, keine Namen. Lesen und Auflisten für die Statistik-Seite.
+    function okErr(d) {
+      return d.keys().hasOnly(["msg", "src", "stack", "v", "last", "n", "p_ios", "p_pwa", "p_web"])
+        && (!("msg" in d) || shortText(d.msg, 300)) && (!("src" in d) || shortText(d.src, 200))
+        && (!("stack" in d) || shortText(d.stack, 1200)) && (!("v" in d) || shortText(d.v, 12))
+        && (!("n" in d) || d.n is int) && (!("last" in d) || d.last is int);
+    }
+    match /errors/{sig} {
+      allow get, list: if signedIn();
+      allow create, update: if signedIn() && sig.size() <= 16 && okErr(request.resource.data);
     }
 
     // Rangliste für alle: nur wer zugestimmt hat, steht hier.

@@ -27,7 +27,7 @@ test("Mit Zustimmung werden nur Tageszähler gesendet", async ({ page }) => {
   await answer(page, "stYes");
   await page.waitForFunction(() => window.INCS.length > 0, null, { timeout: 8000 });
   const [path, data] = await page.evaluate(() => window.INCS[0]);
-  expect(path).toMatch(/^stats\/\d{4}-\d{2}-\d{2}$/);
+  expect(path).toMatch(/^stats\/\d{4}-\d{2}-\d{2}_s\d$/);   // auf 10 Teil-Dokumente pro Tag verteilt
   expect(data).toMatchObject({ aktiv: 1, konto_neu: 1, insel_start: 1, intro_skip: 1, tag: 1, tag_gut: 1 });
   for (const v of Object.values(data)) expect(typeof v).toBe("number");
   expect(JSON.stringify(data)).not.toContain("Stat");
@@ -40,4 +40,23 @@ test("Ohne Zustimmung wird nichts gesendet", async ({ page }) => {
   await page.waitForTimeout(4500);
   expect(await page.evaluate(() => window.INCS.length)).toBe(0);
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("offland-stats")).consent)).toBe(false);
+});
+
+test("Ab Tag 8: Veränderung zur ersten Woche nur als Stufe", async ({ page }) => {
+  await start(page);
+  await answer(page, "stYes");
+  const q = await page.evaluate(() => {
+    // Woche 1: 200 min am Tag (der erste Tag mit 30 min ist schon eingetragen)
+    T.S.days = T.S.days.slice(0, 0); for (let i = 0; i < 7; i++) T.closeDay(200, [], {});
+    const before = JSON.parse(localStorage.getItem("offland-stats")).q || {};
+    T.closeDay(150, [], {});   // Tag 8: 25 % weniger → Woche 2, Stufe 15–30 %
+    T.closeDay(260, [], {});   // Tag 9: 30 % mehr → Woche 2, Stufe „mehr als 15 % mehr“
+    const d = JSON.parse(localStorage.getItem("offland-stats"));
+    return { before, q: d.q || {} };
+  });
+  expect(Object.keys(q.before).some(k => k.startsWith("bz_"))).toBe(false);
+  const all = Object.assign({}, q.q); for (const k in q.before) if (k.startsWith("bz_")) delete all[k];
+  expect(all.bz_w2_m15).toBe(1);
+  expect(all.bz_w2_pp).toBe(1);
+  expect(Object.keys(all).filter(k => k.startsWith("bz_")).length).toBe(2);
 });
