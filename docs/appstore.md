@@ -158,7 +158,9 @@ Nach der Freigabe: In Certificates, Identifiers & Profiles bei allen fünf App-I
 
 ## 11. OffLand Plus: Abos in App Store Connect anlegen
 
-Die App fragt die Abos über StoreKit 2 ab (`ios/App/App/PlusStorePlugin.swift`). Solange die Produkte in App Store Connect fehlen, zeigt die Paywall in der iPhone-App „OffLand Plus ist gerade nicht erreichbar“.
+Die App fragt die Abos über StoreKit 2 ab (`ios/App/App/PlusStorePlugin.swift`). Solange der App Store keine Abo-Produkte liefert, ist Plus in App und Webseite unsichtbar und nichts ist gesperrt (Schalter `plusAvailable()` in `js/app.js`). Sobald die Abos angelegt sind, erscheint Plus von selbst, auch schon in TestFlight.
+
+Plus enthält: Weltreise (Welten 2 bis 5 mit eigenen Kapiteln; wo man schon wohnt, bleibt man), Zeit-Statistik (Inseljahr, Bestwerte, Hochrechnung, Fokus- und App-Auswertung), Insel-Schutz Pro, Goldene Lagune, Plus-Looks, +10 % Punkte und goldener Rahmen. Gratis bleiben Insel, Bewohner, Tagesbilanz, Familieninsel, Fokus-Boot, Inselminute und die laufende Woche im Zeit-Tab.
 
 **Voraussetzung:** Unter **Geschäftliches** (Business) den **Vertrag für kostenpflichtige Apps** annehmen und Bank- und Steuerangaben hinterlegen. Ohne diesen Vertrag lassen sich keine Abos verkaufen, auch nicht testen.
 
@@ -177,14 +179,14 @@ Reihenfolge der Stufen in der Gruppe: Familie oben, dann Jährlich, dann Monatli
 **Familienfreigabe** heißt: Wer das Familien-Abo abschließt, teilt es mit bis zu 5 weiteren Personen seiner Apple-Familie. Die App erkennt das von selbst.
 
 **3. Anzeigename und Beschreibung** je Abo (Deutsch und Englisch), z. B.:
-- Jährlich: „OffLand Plus“ / „Insel-Schutz Pro, Goldene Lagune, Plus-Looks und 10 % mehr Punkte.“
-- EN: „OffLand Plus“ / „Island Guard Pro, Golden Lagoon, Plus looks and 10% more points.“
+- Jährlich: „OffLand Plus“ / „Weltreise, Zeit-Statistik, Insel-Schutz Pro, Goldene Lagune und Plus-Looks.“
+- EN: „OffLand Plus“ / „World tour, time stats, Island Guard Pro, Golden Lagoon and Plus looks.“
 - Familie: „OffLand Plus Familie“ / „Alles aus Plus für bis zu 6 Personen.“
 
 **4. Prüfungsinformationen** je Abo: Screenshot der Paywall (Einstellungen → OffLand Plus → „Plus ansehen“) und als Notiz:
 
 ```
-OffLand Plus unlocks optional extras: custom schedules for the Island Guard, the "Golden Lagoon" island style, Plus looks for residents and +10% daily points. All core features stay free. The paywall is in Settings → OffLand Plus. Restore Purchases is at the top of the paywall; Terms of Use (Apple standard EULA) and Privacy Policy are linked at the bottom.
+OffLand Plus unlocks optional extras: the world tour (4 more worlds with their own chapters), extended time statistics, custom schedules for the Island Guard, the "Golden Lagoon" island style, Plus looks for residents and +10% daily points. All core features stay free, including the family island. The paywall is in Settings → OffLand Plus. Restore Purchases is at the top of the paywall; Terms of Use (Apple standard EULA) and Privacy Policy are linked at the bottom.
 ```
 
 **5. App-Beschreibung:** Am Ende der Beschreibung (Abschnitt 3) diese Zeilen ergänzen, Apple verlangt die Links:

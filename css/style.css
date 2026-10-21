@@ -876,3 +876,8 @@ body.pw-open{overflow:hidden}
 .uk-tile{position:relative}.uk-star{position:absolute;top:4px;right:6px;font-style:normal;font-size:12px;color:#FFD27A;text-shadow:0 1px 2px rgba(0,0,0,.5)}
 .sh-wins{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 .sh-win{display:flex;align-items:center;gap:8px}.sh-win select{flex:1;min-width:0;min-height:40px;border-radius:12px;background:var(--ground);color:var(--ink);border:1px solid var(--line);padding:0 8px;font:600 15px var(--body)}
+/* Plus-Vorschau im Zeit-Tab */
+.plus-lock{position:relative;border-radius:22px;overflow:hidden;min-height:220px}
+.plus-blur{filter:blur(7px) saturate(.8);opacity:.55;pointer-events:none;user-select:none;max-height:340px;overflow:hidden}
+.plus-veil{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:20px;background:linear-gradient(rgba(20,21,31,.15),rgba(20,21,31,.75))}
+.plus-veil .btn{width:auto;padding-inline:22px}

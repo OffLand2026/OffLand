@@ -1653,6 +1653,7 @@ const KISTE_MAX=2;
 const kisteCost=id=>{const d=itemDef(id); return Math.max(50,Math.round((d?price(d):100)*.5/5)*5)};
 function travel(picks){
   if(!((S.found||0)>(S.world||0))) return;
+  if(plusLocked()) return plusPaywall("weltreise");   // Weltreise gehört zu Plus; wo man schon wohnt, bleibt man
   picks=(Array.isArray(picks)?picks:[]).filter(id=>hereItems().includes(id)).slice(0,KISTE_MAX);
   const cost=picks.reduce((a,id)=>a+kisteCost(id),0); if(cost>S.points) picks=[];
   const toId=WORLDS[(S.world||0)+1].id;
@@ -1705,7 +1706,7 @@ function viewReise(){
   return `<div class="card"><div class="row between"><p class="label">Weltreise</p><span class="small muted">Welt ${w+1} von ${WORLDS.length}</span></div>
     ${worldMapSvg()}
     <p><b>${esc(W.name)}</b> · <span class="muted">${esc(W.text)}</span></p>
-    ${(S.found||0)>w?`<p class="small" style="color:var(--lime);font-weight:700">Neue Insel entdeckt: ${esc(next.name)}!</p><button class="btn" id="travelBtn">Nach ${esc(next.name)} aufbrechen</button><p class="small muted" style="margin-top:-4px">Alle Bewohner und Tiere kommen mit. Gegenstände aus dem Laden bleiben hier, bis zu ${KISTE_MAX} Lieblingsstücke dürfen in der Umzugskiste mit.</p>`
+    ${(S.found||0)>w?`<p class="small" style="color:var(--lime);font-weight:700">Neue Insel entdeckt: ${esc(next.name)}!</p>${plusLocked()?`<p class="small" style="color:var(--amber);font-weight:700">★ Die Weltreise gehört zu OffLand Plus: 4 neue Welten mit eigenen Tieren, Großprojekten und Kapiteln.</p>`:""}<button class="btn" id="travelBtn">${plusLocked()?"Mit Plus aufbrechen":"Nach "+esc(next.name)+" aufbrechen"}</button><p class="small muted" style="margin-top:-4px">Alle Bewohner und Tiere kommen mit. Gegenstände aus dem Laden bleiben hier, bis zu ${KISTE_MAX} Lieblingsstücke dürfen in der Umzugskiste mit.</p>`
       :next?`<div class="bar"><i style="width:${built/curProjects().length*100}%;background:var(--amber)"></i></div><p class="small muted">${built} von ${curProjects().length} Großprojekten hier gebaut. Sind alle fertig, wird eine neue Insel am Horizont entdeckt.</p>`
       :`<p class="small" style="color:var(--lime);font-weight:700">Ihr habt das Ende der Welt erreicht. Was für eine Reise!</p>`}
   </div>`;
@@ -3197,6 +3198,13 @@ function zeitDid(){
   if(!it.length) return "";
   return `<div class="sec-h"><span>Was du daraus gemacht hast</span></div><div class="fy-row">${it.map(([e,c,n])=>`<div class="zt-did"><span class="zt-e">${e}</span><b>${c}×</b><i>${esc(n)}</i></div>`).join("")}</div>`;
 }
+/* Zeit-Tab ohne Plus: Inseljahr und Bestwerte verschwommen als Vorschau, darüber der Weg zu Plus */
+function zeitPlusTeaser(){
+  return `<div class="plus-lock"><div class="plus-blur" aria-hidden="true" inert>${zeitCal()||""}${zeitBest()||""}</div>
+    <div class="plus-veil"><p class="ps-star">★ OffLand Plus</p><p style="font:800 19px/1.2 var(--display)">Mehr aus deiner Zeit</p>
+      <p class="small muted">Dein Inseljahr als Kalender, Bestwerte, die Hochrechnung aufs Jahr und die Auswertung von Fokuszeit und App-Monstern.</p>
+      <button class="btn" data-pluspw="zeit">Plus ansehen</button></div></div>`;
+}
 function viewZeit(){
   const n=S.days.length;
   const saved=savedTotal();
@@ -3226,11 +3234,10 @@ function viewZeit(){
     <div class="cp"><i>Serie</i><b style="color:var(--amber)">${S.budgetStreak} ${S.budgetStreak===1?"Tag":"Tage"}</b></div>
   </div>
   ${zeitDid()}
-  ${zeitCal()}
-  ${zeitBest()}
+  ${plusLocked()?"":zeitCal()+zeitBest()}
   ${zeitCards(saved)}
   ${S.lastDay?`<div class="card"><button class="rowbtn" id="weekBtn" data-wk="${isoWeek(S.lastDay)}"><span class="plan-ic" style="background:#26233D;color:var(--lilac)"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h6a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4zM20 5h-6a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h6z"/></svg></span><span class="grow"><b>Wochenrückblick</b><span class="small muted">KW ${+isoWeek(S.lastDay).split("-W")[1]} ansehen</span></span><span class="muted">›</span></button></div>`:""}
-  <div class="card">
+  ${plusLocked()?zeitPlusTeaser():`<div class="card">
     <p class="label">Hochgerechnet aufs Jahr</p>
     <div class="row between small"><span>Mit deinem alten Schnitt</span><b class="num" style="white-space:nowrap">${Math.round(yearOld)} Tage</b></div>
     <div class="bar"><i style="width:${Math.min(100,yearOld/120*100)}%;background:var(--coral)"></i></div>
@@ -3242,7 +3249,7 @@ function viewZeit(){
   ${fc?`<details class="card zt-fold"><summary><span class="grow"><b>Fokuszeit</b><span class="small muted">insgesamt ${hm(S.focusMin||0)}</span></span><span class="muted zt-chev">›</span></summary>${fc}</details>`:""}
   <details class="card zt-fold"><summary><svg width="40" height="32" viewBox="-24 -34 48 40" aria-hidden="true">${monsterSvg((worst||apps[0]).a.m)}</svg><span class="grow"><b>App-Monster</b><span class="small muted">${worst?esc(worst.a.name)+" frisst am meisten: "+hm(worst.tot):"Noch keine Minuten pro App eingetragen"}</span></span><span class="muted zt-chev">›</span></summary>
   ${apps.map(({a,ds,tot,over})=>`<div class="row" style="padding:6px 0;border-top:1px solid var(--card2)"><svg width="44" height="36" viewBox="-24 -34 48 40" aria-hidden="true" style="${over?"":"opacity:.35"}">${monsterSvg(a.m)}</svg><div class="grow"><p><b>${esc(a.name)}</b> <span class="small muted">· Limit ${a.limit} min</span></p><p class="small muted">${ds.length?`${hm(tot)} in ${ds.length} Tagen · ${over}× ${esc(monName(a,false))} aufgetaucht`:"Noch nicht eingetragen"}</p></div></div>`).join("")}
-  <p class="small muted">Trag beim Tagesabschluss die Minuten pro App ein, dann siehst du hier, welche App die meiste Zeit frisst.</p></details>
+  <p class="small muted">Trag beim Tagesabschluss die Minuten pro App ein, dann siehst du hier, welche App die meiste Zeit frisst.</p></details>`}
   <p class="small muted" style="padding:0 4px">Die Umrechnungen sind Faustwerte, zum Beispiel 30 Minuten für einen Spaziergang, 90 Minuten für einen Kinofilm oder 8 Stunden für ein Buch mit 250 Seiten.</p>`;
 }
 /* Händlerschiff: ganz oben im Tab Bauen, solange es da ist */
@@ -3815,6 +3822,7 @@ function bind(){
   document.querySelectorAll("[data-kapsel]").forEach(x=>x.onclick=()=>{const c=S.capsules.find(y=>y.id===x.dataset.kapsel);if(c) capsuleSheet(c)});
   const rs=$("#resetBtn"); if(rs) rs.onclick=confirmReset;
   const tb=$("#travelBtn"); if(tb) tb.onclick=travelSheet;
+  document.querySelectorAll("[data-pluspw]").forEach(b=>b.onclick=()=>plusPaywall(b.dataset.pluspw));
   const ex=$("#exportBtn"); if(ex) ex.onclick=exportSave;
   const im=$("#importBtn"), imf=$("#importFile"); if(im&&imf){im.onclick=()=>imf.click();imf.onchange=()=>{if(imf.files[0]) importSave(imf.files[0])}}
   document.querySelectorAll("[data-buy]").forEach(btn=>btn.onclick=()=>{
@@ -4371,9 +4379,9 @@ function showPending(){
       <p class="label" style="color:var(--lime)">Neue Insel entdeckt</p><h2>${esc(W.name)}</h2>
       <p class="muted">${esc(W.text)} Dort warten neue Großprojekte, mehr Platz für Bewohner${W.animals?" und eine neue Tierart":""}.</p>
       ${saysHtml("bay",bayLine({type:"discovery",id:W.id}))}
-      <button class="btn" id="discGo">Jetzt aufbrechen</button>
+      ${plusLocked()?`<p class="small" style="color:var(--amber);font-weight:700">★ Die Weltreise gehört zu OffLand Plus</p><button class="btn" id="discGo">Mit Plus aufbrechen</button>`:`<button class="btn" id="discGo">Jetzt aufbrechen</button>`}
       <button class="btn ghost" id="discLater">Später, über Bauen → Weltreise</button></div></div>`;
-    $("#discGo").onclick=travel; $("#discLater").onclick=()=>{closeModal();render();showPending()};
+    $("#discGo").onclick=()=>plusLocked()?plusPaywall("weltreise"):travel(); $("#discLater").onclick=()=>{closeModal();render();showPending()};
     return;
   }
   if(ev.type==="travel"){
@@ -4815,6 +4823,7 @@ function importSave(file){
 }
 function travelSheet(){
   const next=WORLDS[(S.world||0)+1]; if(!next||!((S.found||0)>(S.world||0))) return;
+  if(plusLocked()) return plusPaywall("weltreise");
   const box=hereItems().filter(id=>itemDef(id)&&!itemDef(id).consumable);
   modal(`${worldMapSvg()}<p class="label" style="color:var(--lime)">Weltreise</p><h2>Nach ${esc(next.name)} aufbrechen?</h2>
     <p class="muted">${esc(next.text)} Alle Bewohner und Tiere kommen mit. Gegenstände aus dem Laden bleiben hier, auf der neuen Insel gibt es passende neue. Die Großprojekte hier bleiben gebaut, auf der neuen Insel geht es mit neuen weiter.</p>
@@ -4872,7 +4881,8 @@ function plusBadge(){                                                           
   return "★ Plus · "+(left<=1?"letzter Tag":"noch "+left+" Tage");
 }
 /* Was Plus bringt: steht so in der Plus-Woche, im Ende-Fenster und auf der Paywall */
-const PLUS_FEATS=[["🛡️","Insel-Schutz Pro","Eigene Zeitpläne: morgens, bei der Arbeit, nachts."],["🏝️","Goldene Lagune","Deine Insel in Gold und Türkis, mit Flamingos."],
+const PLUS_FEATS=[["🌍","Weltreise","4 neue Welten mit eigenen Tieren, Großprojekten und Kapiteln."],["🛡️","Insel-Schutz Pro","Eigene Zeitpläne: morgens, bei der Arbeit, nachts."],
+  ["📊","Mehr aus deiner Zeit","Inseljahr, Bestwerte, Hochrechnung und die Auswertung von Fokuszeit und Apps."],["🏝️","Goldene Lagune","Deine Insel in Gold und Türkis, mit Flamingos."],
   ["👑","Plus-Looks","Kronen, Goldbrillen, Goldketten und goldenes Fell."],["👨‍👩‍👧","Für die ganze Familie","Mit dem Familien-Abo bis zu 6 Personen."],["✨","+10 % Punkte jeden Tag","Und ein goldener Rahmen beim Teilen."]];
 function plusStartSheet(){
   CUR_EV=null; stat("plus_start");
@@ -4894,7 +4904,7 @@ function plusEndSheet(){
   CUR_EV=null; stat("plus_ende");
   sheet(`<p class="ps-gift" aria-hidden="true">👑</p><p class="ps-star">★ OffLand Plus</p>
     <h2 style="text-align:center">Deine Plus-Woche ist vorbei</h2>
-    <p class="muted" style="text-align:center">Alles Wichtige bleibt gratis: deine Insel, alle Bewohner, das Fokus-Boot. Plus-Looks, die du vergeben hast, behalten deine Bewohner.</p>
+    <p class="muted" style="text-align:center">Alles Wichtige bleibt gratis: deine Insel, alle Bewohner, das Fokus-Boot und die Familieninsel. Wo du schon wohnst, bleibst du, und Plus-Looks, die du vergeben hast, behalten deine Bewohner.</p>
     ${saysHtml("luc","Ich soll die Krone zurückgeben? Das besprechen wir noch.")}
     <button class="btn" id="peMore">Plus behalten</button><button class="btn ghost" data-ok>Ohne Plus weiterspielen</button>`);
   const b=$("#peMore"); if(b) b.onclick=()=>{closeModal(); plusPaywall("ende"); showPending()};
@@ -4923,6 +4933,7 @@ let PLUS_LIVE=(()=>{try{return localStorage.getItem("offland-plus-live")==="1"}c
 function plusLiveSet(v){PLUS_LIVE=!!v; try{v?localStorage.setItem("offland-plus-live","1"):localStorage.removeItem("offland-plus-live")}catch(e){}}
 const plusAvailable=()=>storeSimOn()||(!!PS_NATIVE&&PLUS_LIVE);
 const plusShown=()=>plusAvailable()||plusActive();
+const plusLocked=()=>plusAvailable()&&!plusActive();   // Plus-Inhalte gesperrt (vor dem Start der Abos ist alles frei)
 function plusApply(e){
   if(e&&e.active){
     const until=e.until?String(e.until).slice(0,10):addDays(today(),30);
@@ -4974,11 +4985,11 @@ async function plusPaywall(from){
   d.innerHTML=`<div class="pw-scroll">
     <div class="pw-top"><button class="pw-x" type="button" id="pwClose" aria-label="Schließen">✕</button><button class="pw-restore" type="button" id="pwRestore">Käufe wiederherstellen</button></div>
     <div class="pw-hero">${hero}</div>
-    <div class="pw-head"><span class="pw-badge">★ OffLand Plus</span><h2>Mach deine Insel <em>legendär.</em></h2><p>Mehr Insel, mehr Schutz, mehr Familie. Und jede Minute ohne Handy zählt ein bisschen mehr.</p></div>
+    <div class="pw-head"><span class="pw-badge">★ OffLand Plus</span><h2>Mach deine Insel <em>legendär.</em></h2><p>Neue Welten, eigene Zeitpläne, dein ganzes Inseljahr. Und jede Minute ohne Handy zählt ein bisschen mehr.</p></div>
     ${saved>=60?`<div class="pw-stat"><b class="num">${hm(saved)}</b><span>hast du in ${ds.length} ${ds.length===1?"Tag":"Tagen"} schon zurückgewonnen.${yearDays>=1?`<small>Weiter so ergibt das rund ${yearDays} ${yearDays===1?"Tag":"Tage"} im Jahr.</small>`:""}</span></div>`:""}
     <div class="pw-sec"><h3>Das bekommst du</h3><ul class="pw-feats">${PLUS_FEATS.map(([i,t,s])=>`<li><span class="pw-ic" aria-hidden="true">${i}</span><span><b>${t}</b><span>${s}</span></span></li>`).join("")}</ul></div>
     <div class="pw-sec"><h3>Gratis oder Plus</h3><table class="pw-cmp"><thead><tr><th></th><th>Gratis</th><th class="p">Plus</th></tr></thead><tbody>
-      ${[["Insel, Bewohner, Tagesbilanz","✓","✓"],["Fokus-Boot und Inselminute","✓","✓"],["Insel-Schutz","Feste Zeiten","Eigene Zeitpläne"],["Goldene Lagune","–","✓"],["Plus-Looks","–","✓"],["Punkte pro Tag","100 %","110 %"]]
+      ${[["Insel, Bewohner, Tagesbilanz","✓","✓"],["Familieninsel","✓","✓"],["Fokus-Boot und Inselminute","✓","✓"],["Weltreise","Heimatinseln","5 Welten"],["Zeit-Statistik","Diese Woche","Alles"],["Insel-Schutz","Feste Zeiten","Eigene Zeitpläne"],["Goldene Lagune","–","✓"],["Plus-Looks","–","✓"],["Punkte pro Tag","100 %","110 %"]]
         .map(([a,b,c])=>`<tr><td>${a}</td><td class="${b==="✓"?"y":b==="–"?"n":""}">${b}</td><td class="y">${c}</td></tr>`).join("")}</tbody></table></div>
     <div class="pw-sec"><h3>Wähle deinen Plan</h3><div class="pw-plans" role="radiogroup" aria-label="Plan">${plans.map(planBtn).join("")}</div></div>
     <div class="pw-sec" id="pwTl"></div>
