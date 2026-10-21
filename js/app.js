@@ -1786,6 +1786,7 @@ function stage(r){
   if(r.parents&&!r.job){const age=typeof S!=="undefined"&&S?S.dayCount-(r.born||0):5;return age<3?"baby":"kind"}
   return "erw";
 }
+const tierScale=r=>(r.parents?0.7:1)*(r.art==="Wal"?1.6:["Elch","Kamel","Eisbär"].includes(r.art)?1.1:1);   // große Tiere werden größer gezeichnet
 function figure(r,x,y){
   if(r.kind==="mensch"){
     const L=looks(r), st=stage(r), kid=st==="baby"?0.6:st==="kind"?0.74:1;
@@ -1840,7 +1841,7 @@ function figure(r,x,y){
       ${r.retired?`<path d="M-3.6 -16.4h2.6M1 -16.4h2.6M-1 -16.4h2" stroke="#3A3D58" stroke-width=".5" fill="none"/><circle cx="-1.8" cy="-16" r="1.5" fill="none" stroke="#3A3D58" stroke-width=".5"/><circle cx="1.8" cy="-16" r="1.5" fill="none" stroke="#3A3D58" stroke-width=".5"/>`:""}${st==="kind"?"</g>":""}
       ${st==="alt"?`<path d="M7.4 0v-9.4q0-1.8-1.8-1.8" stroke="#8A5A3B" stroke-width="1.1" fill="none" stroke-linecap="round"/>`:""}${r.phone?PHONE_FIG:""}</g>`;
   }
-  const s=(r.parents?0.7:1)*(r.art==="Wal"?1.6:["Elch","Kamel","Eisbär"].includes(r.art)?1.1:1);
+  const s=tierScale(r);
   return `<g transform="translate(${x} ${y}) scale(${s})"><title>${esc(r.name)} (${esc(r.art)})</title>${animalSvg(r.art,animalVar(r))}${gearSvg(r.art,r.gear)}</g>`;
 }
 const LV_EYES=["#7FE8FF","#FFD45A","#B8F25A","#FF8FB1","#C9A6FF"];
@@ -2929,7 +2930,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.63";
+const APP_VERSION="1.64";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -4461,7 +4462,7 @@ function lookPreview(r,draft){
   const tmp=Object.assign({},r,{sick:null,phone:false,lv:4,lvUp:null,lvFull:true});   // im Editor sieht man immer, wie jemand ganz zurück aussieht
   if(r.kind==="mensch") tmp.look=draft; else {tmp.fur=draft.fur; tmp.gear=tierGear(draft)}
   const adult=r.kind==="mensch"&&stage(r)!=="baby"&&stage(r)!=="kind";
-  const tier=r.kind!=="mensch", main=`<svg width="${tier?124:76}" height="${tier?104:adult?92:78}" viewBox="${r.kind==="mensch"?(stage(r)==="baby"?"-8.5 -15.5 17 17":stage(r)==="kind"?"-12 -25 24 26":"-13.5 -32.4 27 33.4"):tierVB(tmp.art,124/104)}" aria-hidden="true">${figure(tmp,0,0)}</svg>`;
+  const tier=r.kind!=="mensch", main=`<svg width="${tier?124:76}" height="${tier?104:adult?92:78}" viewBox="${r.kind==="mensch"?(stage(r)==="baby"?"-8.5 -15.5 17 17":stage(r)==="kind"?"-12 -25 24 26":"-13.5 -32.4 27 33.4"):tierVB(tmp.art,124/104,tierScale(tmp))}" aria-hidden="true">${figure(tmp,0,0)}</svg>`;
   if(!adult) return main;
   // Kleine Schatten-Vorschau: so leuchten die Augen, solange die Farbe noch fehlt
   const sh=Object.assign({},tmp,{lv:1,lvFull:false});
@@ -4502,7 +4503,7 @@ const TIER_LOOKS=[["Chillig",{specs:1,collar:3,cc:5}],["Rockstar",{specs:1,colla
   ["Sportlich",{specs:4,collar:1,cc:1}],["Pilot",{specs:2,collar:3,cc:11}],["Klassisch",{specs:0,collar:2,cc:8}],["Strand",{specs:1,collar:3,cc:15}],["Natur",{specs:0,collar:0,cc:0}]];
 const UK_TIER=[["looks","✨","Looks"],["fell","🎨","Fell"],["hals","🎀","Halsband"],["brille","🕶️","Brille"]];
 /* Enger Ausschnitt ums Tier, damit Brille und Halsband gut zu sehen sind */
-function tierVB(a,ratio){const B=ART_BOX[a]||[-12,-16,12,1], cx=(B[0]+B[2])/2, cy=(B[1]+B[3])/2, w=Math.max(B[2]-B[0],(B[3]-B[1])*ratio)+3, h=w/ratio;
+function tierVB(a,ratio,sc){const B=(ART_BOX[a]||[-12,-16,12,1]).map(v=>v*(sc||1)), cx=(B[0]+B[2])/2, cy=(B[1]+B[3])/2, w=Math.max(B[2]-B[0],(B[3]-B[1])*ratio)+3, h=w/ratio;
   return [cx-w/2,cy-h/2,w,h].map(v=>+v.toFixed(1)).join(" ")}
 function ukTier(r,d,ch,s){const g=Object.assign({},d,ch), vb=tierVB(r.art,1/.85);
   return `<svg width="${s}" height="${Math.round(s*.85)}" viewBox="${vb}" aria-hidden="true">${animalSvg(r.art,g.fur||0)}${gearSvg(r.art,g)}</svg>`}
