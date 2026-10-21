@@ -117,3 +117,20 @@ test("Aussehen aus Foto: Mensch und Tier, mit Rückgängig", async ({ page }) =>
   await page.click("#nameOk");
   expect(await page.evaluate(() => T.S.residents.find(x => x.id === "fk").fur)).toBe(2);
 });
+
+test("Umkleide-Vorschau: große Tiere (Wal, Elch, Kamel, Eisbär) passen ganz hinein", async ({ page }) => {
+  await newGame(page, "Mia");
+  for (const art of ["Wal", "Elch", "Kamel", "Eisbär", "Delfin"]) {
+    const box = await page.evaluate(a => {
+      document.getElementById("modalRoot").innerHTML = "";
+      T.S.residents.push({ id: "big" + a, name: "Bruno", kind: "tier", art: a, pair: null, status: "da", ret: 0, born: T.S.dayCount });
+      T.nameSheet({ type: "rename", id: "big" + a });
+      const s = document.querySelector("#lookPrev svg"), [x, y, w, h] = s.getAttribute("viewBox").split(" ").map(Number), b = s.getBBox();
+      return { vb: [x, y, x + w, y + h], bb: [b.x, b.y, b.x + b.width, b.y + b.height] };
+    }, art);
+    expect(box.bb[0], art).toBeGreaterThanOrEqual(box.vb[0] - .5);
+    expect(box.bb[1], art).toBeGreaterThanOrEqual(box.vb[1] - .5);
+    expect(box.bb[2], art).toBeLessThanOrEqual(box.vb[2] + .5);
+    expect(box.bb[3], art).toBeLessThanOrEqual(box.vb[3] + .5);
+  }
+});
