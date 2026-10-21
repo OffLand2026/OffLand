@@ -99,6 +99,7 @@ Für jeden Datentyp unten: **Verwendung zum Tracking → Nein**.
 | Diagnose → **Absturzdaten** (Fehlerberichte, nur mit Zustimmung) | App-Funktionalität | Nein |
 
 **Nicht** ankreuzen: Standort, Gesundheit & Fitness, Finanzen, Kontakte, Browserverlauf, Suchverlauf, Fotos, Audio, Käufe, sensible Daten, Werbedaten.
+„Käufe“ bleibt auch mit OffLand Plus frei: Ob ein Abo aktiv ist, prüft die App nur auf dem Gerät, es wird nicht an uns übertragen.
 
 Diese Angaben passen zum Datenschutz-Manifest in `ios/App/App/PrivacyInfo.xcprivacy` und zur Datenschutzerklärung unter offlandapp.com/datenschutz/.
 
@@ -153,3 +154,47 @@ Bundle IDs: com.offland2026.offland (app), com.offland2026.offland.ScreenTimeMon
 ```
 
 Nach der Freigabe: In Certificates, Identifiers & Profiles bei allen fünf App-IDs die Fähigkeit **Family Controls (Distribution)** aktivieren und den TestFlight-Lauf mit „Bildschirmzeit-Berechtigung einbauen“ starten.
+
+
+## 11. OffLand Plus: Abos in App Store Connect anlegen
+
+Die App fragt die Abos über StoreKit 2 ab (`ios/App/App/PlusStorePlugin.swift`). Solange die Produkte in App Store Connect fehlen, zeigt die Paywall in der iPhone-App „OffLand Plus ist gerade nicht erreichbar“.
+
+**Voraussetzung:** Unter **Geschäftliches** (Business) den **Vertrag für kostenpflichtige Apps** annehmen und Bank- und Steuerangaben hinterlegen. Ohne diesen Vertrag lassen sich keine Abos verkaufen, auch nicht testen.
+
+**1. Abo-Gruppe:** App → **Monetarisierung → Abonnements** → Gruppe **OffLand Plus** anlegen. Alle drei Abos kommen in diese eine Gruppe, damit man zwischen ihnen wechseln kann.
+
+**2. Abos** (Produkt-IDs exakt so, die App sucht genau diese):
+
+| Referenzname | Produkt-ID | Dauer | Preis (Vorschlag) | Einführungsangebot | Familienfreigabe |
+|---|---|---|---|---|---|
+| Plus Familie | `offland.plus.familie` | 1 Jahr | 44,99 € | 1 Woche kostenlos | **an** |
+| Plus Jährlich | `offland.plus.jahr` | 1 Jahr | 29,99 € | 1 Woche kostenlos | aus |
+| Plus Monatlich | `offland.plus.monat` | 1 Monat | 3,99 € | keins | aus |
+
+Reihenfolge der Stufen in der Gruppe: Familie oben, dann Jährlich, dann Monatlich. Die Preise auf der Paywall kommen automatisch vom App Store (auch in anderen Währungen); die Euro-Beträge im Code sind nur der Ersatz für Browser und Tests.
+
+**Familienfreigabe** heißt: Wer das Familien-Abo abschließt, teilt es mit bis zu 5 weiteren Personen seiner Apple-Familie. Die App erkennt das von selbst.
+
+**3. Anzeigename und Beschreibung** je Abo (Deutsch und Englisch), z. B.:
+- Jährlich: „OffLand Plus“ / „Insel-Schutz Pro, Goldene Lagune, Plus-Looks und 10 % mehr Punkte.“
+- EN: „OffLand Plus“ / „Island Guard Pro, Golden Lagoon, Plus looks and 10% more points.“
+- Familie: „OffLand Plus Familie“ / „Alles aus Plus für bis zu 6 Personen.“
+
+**4. Prüfungsinformationen** je Abo: Screenshot der Paywall (Einstellungen → OffLand Plus → „Plus ansehen“) und als Notiz:
+
+```
+OffLand Plus unlocks optional extras: custom schedules for the Island Guard, the "Golden Lagoon" island style, Plus looks for residents and +10% daily points. All core features stay free. The paywall is in Settings → OffLand Plus. Restore Purchases is at the top of the paywall; Terms of Use (Apple standard EULA) and Privacy Policy are linked at the bottom.
+```
+
+**5. App-Beschreibung:** Am Ende der Beschreibung (Abschnitt 3) diese Zeilen ergänzen, Apple verlangt die Links:
+
+```
+OffLand Plus ist ein optionales Abo (monatlich oder jährlich, Familien-Abo für bis zu 6 Personen) mit kostenloser Probewoche beim Jahresabo. Die Zahlung erfolgt über deine Apple-ID; das Abo verlängert sich automatisch, wenn du es nicht mindestens 24 Stunden vor Ablauf in den Einstellungen kündigst.
+Nutzungsbedingungen: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Datenschutz: https://offlandapp.com/datenschutz/
+```
+
+**6. Testen:** In TestFlight kosten Käufe nichts und Abos laufen im Zeitraffer (1 Jahr = 1 Stunde). Für eigene Sandbox-Tests unter **Benutzer und Zugriff → Sandbox** einen Testaccount anlegen.
+
+**7. Einreichen:** Die Abos zusammen mit der App-Version zur Prüfung schicken (beim ersten Mal auf der Versionsseite unter „In-App-Käufe und Abonnements“ auswählen).

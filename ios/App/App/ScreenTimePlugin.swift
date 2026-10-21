@@ -163,7 +163,11 @@ public class ScreenTimePlugin: CAPPlugin, CAPBridgedPlugin {
         let mode = call.getString("mode") ?? IslandShield.mode
         defaults?.set(mode, forKey: "shieldMode")
         if let u = call.getInt("unlock") { defaults?.set(u, forKey: "shieldUnlock") }
+        if let w = call.getArray("wins") {
+            IslandShield.saveWindows(w.compactMap { ($0 as? [Any])?.compactMap { ($0 as? NSNumber)?.intValue } }.filter { $0.count == 2 })
+        }
         IslandShield.scheduleEvening(mode == "evening")
+        IslandShield.scheduleWindows(mode == "plan")
         DeviceActivityCenter().stopMonitoring([IslandShield.relock])
         IslandShield.refresh()
         if mode != "off" {

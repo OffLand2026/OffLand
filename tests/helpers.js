@@ -3,7 +3,7 @@ const { test: base, expect } = require("@playwright/test");
 
 // Wird vor das letzte "})();" von app.js gesetzt, also noch innerhalb der App
 const EXPOSE = `window.T={get S(){return S},render,save,showPending,closeDay,makeWish,wishCheck,planAskSheet,planResult,
-  chapterSheet,chapterCheck,CHAPTERS,feedSheet,bayLine,lucLine,arrival,weekSheet,bayAlbumSheet,isoWeek,today,addDays,umfrageCheck,travel,travelSheet,SHOP,price,hereItems,nightAsk,festGoal,comebackCheck,MUSIC,calmMinute,calmEnd,nameSheet,lvOf,umzugPack,settingsSheet};\n`;
+  chapterSheet,chapterCheck,CHAPTERS,feedSheet,bayLine,lucLine,arrival,weekSheet,bayAlbumSheet,isoWeek,today,addDays,umfrageCheck,travel,travelSheet,SHOP,price,hereItems,nightAsk,festGoal,comebackCheck,MUSIC,calmMinute,calmEnd,nameSheet,lvOf,umzugPack,settingsSheet,plusPaywall,plusActive,scene};\n`;
 
 const test = base.extend({
   errors: async ({}, use) => { await use([]); },
@@ -24,6 +24,7 @@ async function dismiss(page, max = 25) {
   for (let i = 0; i < max; i++) {
     const ok = await page.$("#modalRoot [data-ok], #modalRoot #nameOk, #modalRoot [data-c=egal], #modalRoot #boatYes");
     if (!ok) return;
+    await ok.evaluate(e => e.scrollIntoView({ block: "nearest" }));   // lange Fenster: im Fenster scrollen, nicht die Seite
     await ok.click(); await page.waitForTimeout(60);
   }
 }
