@@ -60,8 +60,8 @@
 <div id="splash">
   <style>
     /* Startanimation: Das Handy geht aus, der Bildschirm wird zum Horizont, die Insel taucht auf, Mr. Bay und Lucifer kommen.
-       Beim ersten Öffnen die volle Fassung (ca. 6,5 s, überspringbar), danach im Schnelldurchlauf (ca. 2,3 s). Testen: ?intro=full / ?intro=short */
-    #splash{position:fixed;inset:0;z-index:9999;pointer-events:none;overflow:hidden;background:#000;--k:1;transition:opacity .8s ease,transform .8s ease}
+       Beim ersten Öffnen die volle Fassung (ca. 6,5 s, überspringbar), danach ab dem Meer (ca. 3 s). Testen: ?intro=full / ?intro=short */
+    #splash{position:fixed;inset:0;z-index:9999;pointer-events:none;overflow:hidden;background:#000;--k:1;--off:0;transition:opacity .8s ease,transform .8s ease}
     #splash>svg{position:absolute;inset:0;width:100%;height:100%;display:block;overflow:visible}
     #splash.out{opacity:0;transform:scale(1.06)}
     #splash.to-b{transition:none;animation:spPan 1.15s cubic-bezier(.65,0,.25,1) forwards}
@@ -74,8 +74,8 @@
     #splash .a,#splash .luc-tail,#splash .bay-wave,#splash .blink{transform-box:fill-box}
     #splash .a{animation-fill-mode:both;animation-timing-function:cubic-bezier(.2,.7,.2,1)}
     #splash:not(.play) .a{animation:none!important}
-    /* Zeitpunkte in Sekunden, mit --k für Zeitlupe */
-    #splash .d{animation-duration:calc(var(--dur)*var(--k)*1s);animation-delay:calc(var(--at)*var(--k)*1s)}
+    /* Zeitpunkte in Sekunden; --k = Tempo, --off = so viele Sekunden am Anfang überspringen (Kurzfassung) */
+    #splash .d{animation-duration:calc(var(--dur)*var(--k)*1s);animation-delay:calc((var(--at) - var(--off))*var(--k)*1s)}
     /* 1. Handy leuchtet, Mitteilungen ploppen */
     #splash #spPhone{animation-name:spxPhIn;transform-origin:center}
     @keyframes spxPhIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
@@ -90,7 +90,7 @@
     @keyframes spxCrt{0%{transform:none;filter:brightness(1)}55%{transform:scale(1,.012);filter:brightness(3)}100%{transform:scale(.0,.012);filter:brightness(3)}}
     #splash #spBody{animation-name:spxFade}
     @keyframes spxFade{to{opacity:0}}
-    #splash #spHorizon{transform-origin:center;animation:spxHz calc(.45s*var(--k)) calc(1.78s*var(--k)) both,spxFade calc(.6s*var(--k)) calc(2.5s*var(--k)) forwards}
+    #splash #spHorizon{transform-origin:center;animation:spxHz calc(.45s*var(--k)) calc((1.78s - var(--off)*1s)*var(--k)) both,spxFade calc(.6s*var(--k)) calc((2.5s - var(--off)*1s)*var(--k)) forwards}
     @keyframes spxHz{0%{opacity:0;transform:scaleX(.02)}20%{opacity:1}100%{opacity:1;transform:scaleX(1)}}
     /* 3. Meer und Himmel */
     #splash #spSea{animation-name:spxSeaIn;transform-origin:top}
@@ -115,7 +115,7 @@
     @keyframes spxBob{0%,100%{transform:none}50%{transform:translateY(-5px)}}
     #splash #spCat{animation-name:spxCatIn;animation-timing-function:cubic-bezier(.3,.6,.3,1)}
     @keyframes spxCatIn{from{opacity:0;transform:translateX(-260px)}20%{opacity:1}to{transform:none}}
-    #splash .bay-wave{animation:spxWaveHi calc(.42s*var(--k)) ease-in-out calc(4.75s*var(--k)) 3 both;transform-origin:0% 100%}
+    #splash .bay-wave{animation:spxWaveHi calc(.42s*var(--k)) ease-in-out calc((4.75s - var(--off)*1s)*var(--k)) 3 both;transform-origin:0% 100%}
     @keyframes spxWaveHi{0%,100%{transform:rotate(0)}50%{transform:rotate(-28deg)}}
     #splash .luc-tail{animation:spxTail 1.6s ease-in-out infinite;transform-origin:0% 100%}
     #splash .blink{animation:spxBlink 4s infinite;transform-origin:center}
@@ -274,8 +274,9 @@
   (function(){var t0=Date.now(),el=document.getElementById("splash"),q=location.search,skip=el.querySelector(".sp-skip");
     function seen(){try{return localStorage.getItem("offland-intro")==="1"}catch(e){return true}}
     var full=/intro=full/.test(q)||(!/intro=short/.test(q)&&!navigator.webdriver&&!seen());
-    var minT=full?6300:2300,maxT=full?9000:6000;
-    el.style.setProperty("--k",full?"1":".34");el.classList.add("play");
+    var minT=full?6300:3000,maxT=full?9000:6500;
+    // Kurzfassung: ab dem Meer (Handy-Teil übersprungen), in ruhigem Tempo
+    el.style.setProperty("--k",full?"1":".75");el.style.setProperty("--off",full?"0":"2.3");el.classList.add("play");
     if(full){try{localStorage.setItem("offland-intro","1")}catch(e){}}else skip.style.display="none";
     skip.addEventListener("click",function(){minT=0;skip.style.display="none"});
     function rm(){el&&el.remove();el=null}
