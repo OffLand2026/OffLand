@@ -30,6 +30,9 @@
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
 		4C9AB555D110DB711D085BCD /* ScreenTimePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4EBC061F4DE67607B6F5F98 /* ScreenTimePlugin.swift */; };
 		7B7F0E11C0FFEE0000000001 /* PlusStorePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B7F0E11C0FFEE0000000002 /* PlusStorePlugin.swift */; };
+		7B8F0E11C0FFEE0000000003 /* FocusActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B8F0E11C0FFEE0000000001 /* FocusActivity.swift */; };
+		7B8F0E11C0FFEE0000000004 /* FocusActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B8F0E11C0FFEE0000000001 /* FocusActivity.swift */; };
+		7B8F0E11C0FFEE0000000005 /* LiveIslandPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B8F0E11C0FFEE0000000002 /* LiveIslandPlugin.swift */; };
 		4D22ABE92AF431CB00220026 /* CapApp-SPM in Frameworks */ = {isa = PBXBuildFile; productRef = 4D22ABE82AF431CB00220026 /* CapApp-SPM */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
 		504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };
@@ -158,6 +161,8 @@
 		958DCC722DB07C7200EA8C5F /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
 		F4EBC061F4DE67607B6F5F98 /* ScreenTimePlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScreenTimePlugin.swift; sourceTree = "<group>"; };
 		7B7F0E11C0FFEE0000000002 /* PlusStorePlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlusStorePlugin.swift; sourceTree = "<group>"; };
+		7B8F0E11C0FFEE0000000001 /* FocusActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusActivity.swift; sourceTree = "<group>"; };
+		7B8F0E11C0FFEE0000000002 /* LiveIslandPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LiveIslandPlugin.swift; sourceTree = "<group>"; };
 		FB95950511687FBF385C4C21 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -214,6 +219,7 @@
 			isa = PBXGroup;
 			children = (
 				7A6F0E11C0FFEE0000000001 /* IslandShield.swift */,
+				7B8F0E11C0FFEE0000000001 /* FocusActivity.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -313,6 +319,7 @@
 				035C9D87DA31E0C679AA1470 /* MainViewController.swift */,
 				F4EBC061F4DE67607B6F5F98 /* ScreenTimePlugin.swift */,
 				7B7F0E11C0FFEE0000000002 /* PlusStorePlugin.swift */,
+				7B8F0E11C0FFEE0000000002 /* LiveIslandPlugin.swift */,
 				30611004ECAE9161FB7CEC35 /* App.entitlements */,
 				7A1F0E11C0FFEE0000000001 /* PrivacyInfo.xcprivacy */,
 				7D4F0E11C0FFEE0000000003 /* InfoPlist.strings */,
@@ -584,6 +591,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7C3F0E11C0FFEE0000000001 /* OffLandWidget.swift in Sources */,
+				7B8F0E11C0FFEE0000000004 /* FocusActivity.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -604,6 +612,8 @@
 				A89161ED8D41F7B078CEE5B5 /* MainViewController.swift in Sources */,
 				4C9AB555D110DB711D085BCD /* ScreenTimePlugin.swift in Sources */,
 				7B7F0E11C0FFEE0000000001 /* PlusStorePlugin.swift in Sources */,
+				7B8F0E11C0FFEE0000000005 /* LiveIslandPlugin.swift in Sources */,
+				7B8F0E11C0FFEE0000000003 /* FocusActivity.swift in Sources */,
 				7A6F0E11C0FFEE0000000003 /* IslandShield.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -794,6 +804,11 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-weak_framework",
+					ActivityKit,
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.offland2026.offland.Widget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -818,6 +833,11 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-weak_framework",
+					ActivityKit,
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.offland2026.offland.Widget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1001,6 +1021,11 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-weak_framework",
+					ActivityKit,
+				);
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" \"-DDEBUG\"";
 				PRODUCT_BUNDLE_IDENTIFIER = com.offland2026.offland;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1024,6 +1049,11 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-weak_framework",
+					ActivityKit,
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.offland2026.offland;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";

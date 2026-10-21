@@ -881,3 +881,99 @@ body.pw-open{overflow:hidden}
 .plus-blur{filter:blur(7px) saturate(.8);opacity:.55;pointer-events:none;user-select:none;max-height:340px;overflow:hidden}
 .plus-veil{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:20px;background:linear-gradient(rgba(20,21,31,.15),rgba(20,21,31,.75))}
 .plus-veil .btn{width:auto;padding-inline:22px}
+/* Saison-Inseln (Plus) */
+.ssn-flick{animation:ssnFlick 1.8s ease-in-out infinite}
+@keyframes ssnFlick{0%,100%{opacity:1}50%{opacity:.55}}
+.ssn-bat{animation:ssnBat .35s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:50% 50%}
+@keyframes ssnBat{to{transform:scaleY(.45)}}
+.ssn-fall{animation:ssnFall 7s linear infinite}
+@keyframes ssnFall{0%{transform:translate(0,-30px);opacity:0}15%{opacity:.9}100%{transform:translate(-26px,120px);opacity:0}}
+.ssn-list{display:flex;flex-direction:column;background:var(--ground);border-radius:18px;padding:4px 14px}
+.ssn-list>div{display:flex;gap:12px;align-items:center;min-height:52px;padding:6px 0;border-bottom:1px solid var(--line)}
+.ssn-list>div:last-child{border:none}
+.ssn-ic{width:40px;height:40px;flex:none;display:flex;align-items:center;justify-content:center;font-size:24px;background:var(--card2);border-radius:14px;overflow:hidden}
+.ssn-list p{font-size:14px;font-weight:600}.ssn-list p span{display:block;color:var(--muted);font-weight:500;font-size:12px}
+.ssn-gain{display:flex;gap:10px}.ssn-gain>div{flex:1;background:var(--ground);border-radius:16px;padding:10px 12px;display:flex;flex-direction:column}
+.ssn-gain b{font:800 24px var(--display);color:var(--lime)}.ssn-gain span{font-size:12px;color:var(--muted)}
+.ssn-stamp{align-self:center;width:118px;height:118px;border-radius:50%;border:5px solid var(--c);color:var(--c);display:flex;flex-direction:column;align-items:center;justify-content:center;transform:rotate(-8deg);animation:stamp .6s cubic-bezier(.2,1.4,.4,1) both;margin:6px 0}
+.ssn-stamp span{font-size:44px;line-height:1}.ssn-stamp small{font-weight:800;font-size:10px;letter-spacing:.6px;line-height:1.2;text-align:center;text-transform:uppercase;margin-top:4px}
+.ssn-stamps{margin-top:2px}
+/* Der Insel-Kurier (Plus) */
+.ku{background:#F4ECDC;color:#2A251C;border-radius:14px;padding:16px 16px 18px;display:flex;flex-direction:column;gap:12px;font-family:Georgia,'Times New Roman',serif;box-shadow:0 6px 24px rgba(0,0,0,.35)}
+.ku h2,.ku h3{font-family:Georgia,'Times New Roman',serif;letter-spacing:0;color:#1E1A13}
+.ku-mast{border-bottom:3px double #2A251C;padding-bottom:8px;text-align:center}
+.ku .ku-top{display:flex;justify-content:space-between;gap:6px;white-space:nowrap;font:700 10px var(--body);letter-spacing:.6px;text-transform:uppercase;color:#6B6150;border-bottom:1px solid #CFC3AA;padding-bottom:5px}
+.ku .ku-title{font:900 31px/1.05 Georgia,'Times New Roman',serif;letter-spacing:-.5px;margin-top:8px}
+.ku .ku-sub{font:italic 12px Georgia,serif;color:#6B6150;margin-top:3px}
+.ku-lead h2{font-size:24px;line-height:1.12;font-weight:900}
+.ku .ku-deck{font-style:italic;color:#4A4232;margin:6px 0 8px}
+.ku-pic{margin:0 0 8px;border:1px solid #CFC3AA;padding:4px;background:#EFE4CC}
+.ku-pic svg{display:block;width:100%;height:auto;filter:sepia(.85) contrast(1.05) brightness(.96)}
+.ku-pic figcaption{font:italic 11px Georgia,serif;color:#6B6150;padding-top:4px}
+.ku section{display:flex;flex-direction:column;gap:5px}
+.ku h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #2A251C;padding-bottom:3px}
+.ku p{font-size:14px;line-height:1.45}
+.ku-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ku-nums{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
+.ku-nums li{display:flex;flex-direction:column;line-height:1.15}.ku-nums b{font:900 18px Georgia,serif}.ku-nums span{font-size:11px;color:#6B6150}
+.ku-wx{display:flex;align-items:center;gap:6px}.ku-wx span{font-size:24px}.ku-wx b{font-size:14px}
+.ku-news{margin:0;padding-left:16px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.ku-box{background:#EADDC2;border-radius:6px;padding:10px 12px}
+.ku-col{flex-direction:row!important;gap:10px!important;align-items:flex-start}
+.ku-face{width:46px;height:46px;flex:none;border-radius:50%;background:#2E2A3D;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.ku-col div{flex:1;display:flex;flex-direction:column;gap:4px}.ku-col p{font-style:italic}.ku q{quotes:"„" "“"}:lang(en) .ku q{quotes:"“" "”"}
+.ku-ads{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.ku-ads p{border:1px solid #BDB096;padding:6px 8px;font-size:12px;line-height:1.35}
+.ku-ads p:first-child{grid-column:1/-1}
+/* Mein Inseljahr (Plus): Story über dem ganzen Bildschirm */
+.wp-modal{padding:0;align-items:stretch;background:#0B0C14}
+.wp{position:relative;width:100%;max-width:460px;height:100%;overflow:hidden;display:flex}
+.wp-s{position:absolute;inset:0;background:radial-gradient(130% 80% at 50% 0%,var(--bg) 0%,#14151F 85%);padding:calc(70px + env(safe-area-inset-top,0px)) 26px calc(34px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;justify-content:center;gap:14px;text-align:center;user-select:none}
+.wp-s>*{flex-shrink:0}
+.wp-s p{font-size:17px;line-height:1.45}
+.wp-bars{position:absolute;left:12px;right:12px;top:calc(12px + env(safe-area-inset-top,0px));display:flex;gap:4px;z-index:2}
+.wp-bars i{flex:1;height:3px;border-radius:2px;background:rgba(243,241,234,.25);overflow:hidden}
+.wp-bars i b{display:block;height:100%;width:0;background:#F3F1EA}
+.wp-bars i.done b{width:100%}
+.wp-bars i.on b{animation:wpBar 6.5s linear forwards}
+@keyframes wpBar{to{width:100%}}
+.wp-x{position:absolute;right:12px;top:calc(24px + env(safe-area-inset-top,0px));z-index:3;width:40px;height:40px;border-radius:20px;border:none;background:rgba(20,21,31,.5);color:var(--ink);font-size:17px}
+.wp-nav{position:absolute;top:50%;z-index:2;width:34px;height:56px;margin-top:-28px;border:none;background:transparent;color:rgba(243,241,234,.4);font-size:30px}
+.wp-nav.prev{left:0}.wp-nav.next{right:0}
+.wp-s .wp-k{font-size:13px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase;color:var(--amber)}
+.wp-s .wp-big{font:800 34px/1.1 var(--display);letter-spacing:-.8px}
+.wp-s .wp-num{font:800 64px/1 var(--display);letter-spacing:-1.5px;color:var(--lime)}
+.wp-num small{display:block;font-size:20px;letter-spacing:0;color:var(--ink);margin-top:8px;font-weight:700}
+.wp-scene{border-radius:22px;overflow:hidden;background:var(--sky);box-shadow:0 10px 40px rgba(0,0,0,.45)}
+.wp-scene svg{display:block;width:100%;height:auto}
+.wp-eq{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.wp-eq>div{background:rgba(20,21,31,.55);border-radius:18px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.wp-ic{width:28px;height:28px;color:var(--lime)}.wp-ic svg{width:100%;height:100%}
+.wp-eq b{font:800 26px var(--display)}.wp-eq i{font-style:normal;font-size:12px;color:var(--muted);line-height:1.2}
+.wp-cal{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;max-width:300px;margin:0 auto}
+.wp-cal i{width:16px;height:16px;border-radius:5px;background:#FF9C7A}.wp-cal i.ok{background:var(--lime)}
+.wp-figs{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+.wp-figs>div{display:flex;flex-direction:column;align-items:center;gap:2px;background:rgba(20,21,31,.55);border-radius:16px;padding:6px 8px 8px;min-width:76px}
+.wp-figs i{font-style:normal;font-size:12px;font-weight:700}
+.wp-boat{font-size:56px;animation:wave 2.4s ease-in-out infinite}
+.wp-s .wp-type{font-size:84px;line-height:1}
+.wp-blur{filter:blur(10px);opacity:.7}
+.wp-duo{display:flex;justify-content:center}
+.wp-duo .bay-wave{animation:pwWave .6s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:0% 100%}
+.wp-s .btn{width:100%}
+.wp-in{animation:wpIn .6s cubic-bezier(.2,.8,.3,1) both;animation-delay:var(--d,0s)}
+@keyframes wpIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.wp-list{display:flex;flex-direction:column;gap:6px}
+.wp-list .rowbtn{background:var(--ground);border-radius:14px;padding:10px 12px}
+/* Live-Insel (Plus): Vorschau des Sperrbildschirms */
+.li-phone{align-self:center;width:100%;max-width:300px;border-radius:34px;background:linear-gradient(170deg,#3B3F6B,#1B2340 55%,#14151F);padding:12px 12px 18px;display:flex;flex-direction:column;align-items:center;gap:8px;border:2px solid #2F3248}
+.li-island{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#000;color:#F3F1EA;border-radius:20px;height:32px;min-width:150px;padding:0 12px;font-size:14px}
+.li-island b{color:var(--lime);font-size:13px}
+.li-clock{font:700 54px/1 var(--display);color:#F3F1EA;margin:10px 0 6px}
+.li-card{width:100%;background:rgba(20,21,31,.88);border-radius:22px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;text-align:left}
+.li-row{display:flex;align-items:center;gap:10px}.li-row b{display:block;font-size:14px}.li-row span{font-size:12px;color:var(--muted)}
+.li-boat{font-size:26px}.li-time{font:800 24px var(--display);color:var(--lime)}
+.li-bar{position:relative;height:6px;border-radius:3px;background:var(--card2);margin:4px 6px 6px}
+.li-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--lime)}
+.li-bar span{position:absolute;top:-12px;margin-left:-9px;font-size:15px}
+.li-luc{font-size:12px;color:var(--lilac);font-weight:700}
