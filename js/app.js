@@ -1631,6 +1631,7 @@ function closeDay(min,quests,appMin){
   checkDiscovery();
   chapterCheck();
   bilanzCheck();
+  plusEndCheck();
   umfrageCheck();
   if(S.music===undefined&&S.sound!==false&&!S.pending.some(e=>e.type==="musicAsk")) S.pending.push({type:"musicAsk"});   // kommt gleich nach der Tagesbilanz
   if(netConfigured()&&statsDev().consent===undefined&&!S.pending.some(e=>e.type==="statsAsk")) S.pending.push({type:"statsAsk"});   // steht hinten an: kommt beim nächsten Öffnen mit der Freischaltung
@@ -1770,7 +1771,7 @@ function patSvg(p,c,name){
 }
 const STYLE_NAMES=["Kurz","Lang","Dutt","Zopf","Locken","Mütze","Stoppeln","Pferdeschwanz","Bob","Iro","Glatze","Zwei Zöpfe","Seitenscheitel","Tolle","Undercut","Spikes","Männerdutt","Twists","Surfer"];
 /* Extras: Schal, Brille, Sonnenbrille, Bommelmütze, Kappe, Blume, Stirnband */
-const ACC_NAMES=["Nichts","Schal","Brille","Sonnenbrille","Bommelmütze","Kappe","Blume","Stirnband"];
+const ACC_NAMES=["Nichts","Schal","Brille","Sonnenbrille","Bommelmütze","Kappe","Blume","Stirnband","Krone","Goldbrille","Sternenreif"];   // ab 8: Plus-Looks
 const TOP_NAMES=["Hoodie","Offene Jacke","Hemd","Bomberjacke"];
 const shadeC=(c,f)=>{const v=parseInt(c.slice(1),16);return "#"+[v>>16,v>>8&255,v&255].map(x=>Math.round(x*f).toString(16).padStart(2,"0")).join("")};
 /* Oberkörper der Erwachsenen: Grundform + Details je Oberteil (u = Verschiebung nach oben) */
@@ -1801,6 +1802,9 @@ function accSvg(a,c){
     case 5: return {body:"",head:`<path d="M-5.3 -17.3a5.3 4.8 0 0 1 10.6 0z" fill="${c}"/><path d="M-1.2 -17.6h8.6q.7 1.3-.6 1.5h-8z" fill="${c}"/><circle cx="0" cy="-21.9" r=".6" fill="#14151F" opacity=".4"/>`};
     case 6: return {body:"",head:`<g transform="translate(3.9 -20)">${[0,72,144,216,288].map(d=>`<circle cx="${(1.3*Math.cos(d*Math.PI/180)).toFixed(2)}" cy="${(1.3*Math.sin(d*Math.PI/180)).toFixed(2)}" r="1.05" fill="${c}"/>`).join("")}<circle r=".75" fill="#FFD27A"/></g>`};
     case 7: return {body:"",head:`<path d="M-5.2 -18.4q5.2-2.2 10.4 0v1.8q-5.2-2-10.4 0z" fill="${c}"/>`};
+    case 8: return {body:"",head:`<path d="M-4.3 -19.4l-.6-3.9 2 1.7 2.9-3 2.9 3 2-1.7-.6 3.9z" fill="#FFD27A" stroke="#E0A93C" stroke-width=".35" stroke-linejoin="round"/><circle cx="0" cy="-21.4" r=".6" fill="#E5484D"/><circle cx="-2.5" cy="-20.3" r=".4" fill="#5B8CD6"/><circle cx="2.5" cy="-20.3" r=".4" fill="#5BC0A8"/>`};
+    case 9: return {body:"",head:`<g fill="#FFD27A" fill-opacity=".3" stroke="#E0A93C" stroke-width=".7"><circle cx="-1.9" cy="-15.6" r="1.6"/><circle cx="1.9" cy="-15.6" r="1.6"/></g><path d="M-.3 -15.7h.6M-3.5 -15.8l-1.5-.4M3.5 -15.8l1.5-.4" stroke="#E0A93C" stroke-width=".6"/><path d="M-2.7 -16.4l.7-.5M1.1 -16.4l.7-.5" stroke="#FFF6D8" stroke-width=".35" stroke-linecap="round"/>`};
+    case 10: return {body:"",head:`<path d="M-5.3 -18.5q5.3-2.6 10.6 0" fill="none" stroke="#E0A93C" stroke-width=".7"/>${[[-3.4,-19.9,.9],[0,-21.4,1.15],[3.4,-19.9,.9]].map(([x,y,k])=>`<path transform="translate(${x} ${y}) scale(${k})" d="M0 -1.3l.38.85.92.1-.68.62.2.9L0 1.02l-.82.45.2-.9-.68-.62.92-.1z" fill="#FFD27A" stroke="#E0A93C" stroke-width=".18"/>`).join("")}`};
     default: return {body:"",head:""};
   }
 }
@@ -2198,14 +2202,15 @@ const FUR={
 };
 function animalVar(r,depth){
   const n=(FUR[r.art]||[{}]).length, h=hsh(r.id||r.name);
-  if(r.fur!=null&&r.fur<n) return r.fur;
+  if(r.fur!=null&&(r.fur<n||r.fur===99)) return r.fur;   // 99 = goldenes Fell (Plus)
   if(r.parents&&!depth&&h%3!==0){const p=S.residents.find(x=>x.id===r.parents[h%r.parents.length]);if(p&&p.art===r.art)return animalVar(p,1)}
   return h%n;
 }
 /* Tiere: Ursprung = Füße bzw. Wasserlinie, Blick nach links */
+const furGold=art=>{const k=Object.keys((FUR[art]||[])[1]||{}), G=["#F4C752","#D9A43A","#B8862B"]; return Object.fromEntries(k.map((c,i)=>[c,G[Math.min(i,2)]]))};
 function animalSvg(art,v){
   let out=animalShape(art);
-  const map=(FUR[art]||[])[v||0];
+  const map=v===99?furGold(art):(FUR[art]||[])[v||0];
   if(map) for(const k in map) out=out.split(k).join(map[k]);
   return out;
 }
@@ -2236,7 +2241,7 @@ const GEAR={Huhn:{e:[-5.6,-11.6],n:[-4.6,-8.2,-2.4,-10.2]},Ziege:{e:[-9.6,-14.4]
   Esel:{e:[-10.6,-15.6],n:[-9.55,-11.75,-5.65,-14.85]},Katze:{e:[-5.4,-10.6],e2:[-2.8,-10.6],n:[-3.8,-6,-0.6,-8.6]},Hund:{e:[-7,-12.6],n:[-4.8,-7.4,-2.2,-10.2]},
   Meerschweinchen:{e:[-7.4,-7.2],n:[-4.2,-3.4,-3.4,-9.4]},Hase:{e:[-5.8,-9.4],n:[-4.4,-5.6,-1.6,-7.8]},Robbe:{e:[3.6,-9.6],f:1},Delfin:{e:[-9.4,-8.4]},Wal:{e:[-10.4,-6.6]},
   Papagei:{e:[-3,-18],n:[-3.6,-14.4,3.4,-13.8]},Elch:{e:[-11,-19.6],n:[-8.84,-15.16,-5.16,-18.84]},Kamel:{e:[-12,-23],n:[-10.9,-16.9,-7.1,-18.1]},"Eisbär":{e:[-10.6,-12],n:[-4.9,-8,-3.9,-14]}};
-const COLLAR_NAMES=["Ohne","Halsband","Glöckchen","Halstuch","Fliege"], SPECS_NAMES=["Ohne","Sonnenbrille","Pilotenbrille","Herzbrille","Sportbrille"];
+const COLLAR_NAMES=["Ohne","Halsband","Glöckchen","Halstuch","Fliege","Goldkette"], SPECS_NAMES=["Ohne","Sonnenbrille","Pilotenbrille","Herzbrille","Sportbrille","Goldbrille"];   // jeweils das letzte: Plus
 const hasCollar=art=>!!(GEAR[art]&&GEAR[art].n);
 function gearSvg(art,g){
   const G=GEAR[art]; if(!G||!g) return "";
@@ -2246,7 +2251,8 @@ function gearSvg(art,g){
     const [x1,y1,x2,y2]=G.n, c=SHIRT[g.cc||0]||SHIRT[0], mx=(x1+x2)/2, my=(y1+y2)/2, L=Math.hypot(x2-x1,y2-y1)||1, ux=(x2-x1)/L, uy=(y2-y1)/L;
     let nx=-uy, ny=ux; if(ny<0||(Math.abs(ny)<.3&&nx>0)){nx=-nx;ny=-ny}
     const P=(k,j=0)=>`${f(mx+nx*k+ux*j)} ${f(my+ny*k+uy*j)}`, C=k=>`cx="${f(mx+nx*k)}" cy="${f(my+ny*k)}"`;
-    if(g.collar===3) s+=`<path d="M${x1} ${y1}L${x2} ${y2}L${P(2.8)}z" fill="${c}" stroke="${c}" stroke-width=".8" stroke-linejoin="round"/><circle ${C(1)} r=".35" fill="#F3F1EA" opacity=".8"/>`;
+    if(g.collar===5){s+=`<path d="M${x1} ${y1}L${x2} ${y2}" stroke="#E0A93C" stroke-width="1.2" stroke-linecap="round" stroke-dasharray=".6 .45"/><circle ${C(1.6)} r="1.15" fill="#FFD27A" stroke="#E0A93C" stroke-width=".3"/><path d="M${P(1.6,-.45)}L${P(1.6,.45)}" stroke="#E0A93C" stroke-width=".3"/>`;}
+    else if(g.collar===3) s+=`<path d="M${x1} ${y1}L${x2} ${y2}L${P(2.8)}z" fill="${c}" stroke="${c}" stroke-width=".8" stroke-linejoin="round"/><circle ${C(1)} r=".35" fill="#F3F1EA" opacity=".8"/>`;
     else s+=`<path d="M${x1} ${y1}L${x2} ${y2}" stroke="${c}" stroke-width="1.5" stroke-linecap="round"/>`;
     if(g.collar===1) s+=`<circle ${C(.9)} r=".55" fill="#FFD27A"/>`;
     if(g.collar===2) s+=`<circle ${C(1.3)} r="1" fill="#FFD27A" stroke="#C9A35A" stroke-width=".3"/><circle ${C(1.7)} r=".25" fill="#8A5A3B"/>`;
@@ -2255,11 +2261,12 @@ function gearSvg(art,g){
   if(g.specs){
     const back=G.f?-1:1, eyes=G.e2?[G.e,G.e2]:[G.e], ey=G.e[1];
     const outer=back>0?eyes.reduce((a,e)=>e[0]>a[0]?e:a):eyes.reduce((a,e)=>e[0]<a[0]?e:a);
-    const armC=g.specs===2?"#E0B04A":g.specs===3?"#C93E78":g.specs===4?"#8FB34F":"#14151F";
+    const armC=g.specs===2||g.specs===5?"#E0B04A":g.specs===3?"#C93E78":g.specs===4?"#8FB34F":"#14151F";
     const arm=`<path d="M${f(outer[0]+1.5*back)} ${f(outer[1]-.3)}L${f(outer[0]+3.6*back)} ${f(outer[1]-.9)}" stroke="${armC}" stroke-width=".45" stroke-linecap="round"/>`;
     const lens=([x,y])=>{switch(g.specs){
       case 2: return `<path d="M${f(x-1.7)} ${f(y-1)}h3.4q.2 2.4-1.7 2.6q-1.9-.2-1.7-2.6z" fill="#2C4770" stroke="#E0B04A" stroke-width=".35"/>`;
       case 3: return `<path d="M${f(x)} ${f(y+1.3)}l-1.6-1.6a.9 .9 0 0 1 1.6-1.1a.9 .9 0 0 1 1.6 1.1z" fill="#FF6FA8" stroke="#C93E78" stroke-width=".3"/>`;
+      case 5: return `<circle cx="${f(x)}" cy="${f(y)}" r="1.6" fill="#FFD27A" fill-opacity=".4" stroke="#E0A93C" stroke-width=".45"/><path d="M${f(x-.8)} ${f(y-.6)}l.5-.35" stroke="#FFF6D8" stroke-width=".3" stroke-linecap="round"/>`;
       default: return `<ellipse cx="${f(x)}" cy="${f(y)}" rx="1.65" ry="1.3" fill="#14151F" stroke="#3A3D58" stroke-width=".3"/><path d="M${f(x-.9)} ${f(y-.5)}l.6-.4" stroke="#F3F1EA" stroke-width=".35" stroke-linecap="round" opacity=".7"/>`;
     }};
     if(g.specs===4){const xs=eyes.map(e=>e[0]), a=Math.min(...xs)-1.9, w=Math.max(...xs)+1.9-a;
@@ -2426,7 +2433,7 @@ function layoutItems(cx,two,three,nTrees,extra,home){
   return out;
 }
 function scene(){
-  const W=curWorld(), T=W.theme||{}, home=W.id==="heimat";
+  const W=curWorld(), T=W.theme||{}, home=W.id==="heimat", lag=lagune();   // lag: Inselstil „Goldene Lagune“ (Plus)
   const two=has(W.isle2), three=has(W.isle3);
   const lastD=S.days[S.days.length-1];
   const clouds=S.glueck<40||(lastD&&lastD.min>S.budget&&!lastD.sunny);
@@ -2434,7 +2441,7 @@ function scene(){
   const sk=skyNow(), sea=season(), sleep=sleeping();
   const night=sk.k==="nacht"||sleep;
   let s=`<svg viewBox="0 0 360 240" role="img" aria-label="Deine Insel mit ${here().length} Bewohnern, Inselglück ${S.glueck} Prozent">`;
-  s+=`<rect width="360" height="240" fill="${clouds?"#2A2E40":night?"#1B2340":(!home&&sk.k==="tag")?T.sky:sk.sky}"/>`;
+  s+=`<rect width="360" height="240" fill="${clouds?"#2A2E40":night?"#1B2340":lag?(sk.k==="tag"?"#F7C98E":"#F2A98A"):(!home&&sk.k==="tag")?T.sky:sk.sky}"/>`;
   // Himmel sitzt tiefer, weil die Gesamtansicht oben 44 abschneidet
   s+=`<g transform="translate(0 38)">`;
   // Polarlicht
@@ -2451,15 +2458,20 @@ function scene(){
   const lvl=S.glueck<40?0:S.glueck<60?1:S.glueck<80?2:3, calm=clouds||night;
   // Tiefe: Nachbarinseln im Dunst hinter dem Meer (Heimat; andere Welten haben ihren eigenen Horizont)
   if(home) s+=`<g fill="${calm?"#2E4166":lvl?"#6E9FC6":"#8696A6"}" opacity=".55"><path d="M0 172c20-18 50-24 80-12l10 12z"/><path d="M290 172c18-14 44-18 70-8v8z"/></g>`;
-  s+=`<rect y="170" width="360" height="120" fill="${clouds?"#26314A":night?"#24375A":home?sk.sea:T.sea}"/>`;
+  s+=`<rect y="170" width="360" height="120" fill="${clouds?"#26314A":night?(lag?"#1E5568":"#24375A"):lag?"#22B5BE":home?sk.sea:T.sea}"/>`;
   let sand=clouds?"#BDB08C":"#E9D7A6", grass=clouds?"#5E8A5C":sea==="winter"?"#DDE6EE":sea==="herbst"?"#A9B86A":"#7FC57A";
   let leaf=clouds?"#4A7550":sea==="herbst"?"#E08A3C":sea==="winter"?"#5E8A6C":"#4E9A58";
   if(!home){sand=T.sand;grass=T.grass;leaf=T.leaf;if(clouds){sand="#BDB08C";grass="#7A8A70"}}
   if(home&&lvl===0&&sea!=="winter"){sand="#D6C9A4";grass="#B3A882";leaf="#9A8E7A"}   // karge Insel
+  if(lag&&!clouds){sand="#F2D27A";grass=sea==="winter"?"#E6EEDC":"#8ED16E";leaf="#3FA35A"}
   const cx=two?120:180;
   // Spiegelung und Glitzern im Wasser
   s+=`<ellipse cx="${cx}" cy="194" rx="100" ry="10" fill="${calm||!lvl?"#8FA0A8":"#9CD3C4"}" opacity="${calm?.12:lvl?.35:.2}"/>`;
-  if(!clouds) s+=`<g stroke="#F3F1EA" stroke-linecap="round" stroke-width="1.6" opacity="${night?.35:lvl?.75:.3}">${[[40,190,14],[90,206,10],[250,200,16],[310,190,10],[150,222,12],[220,230,9],[60,228,8],[332,216,12]].slice(0,lvl?8:4).map(([x,y,w],i)=>`<path class="glow" style="animation-delay:${i*.3}s" d="M${x} ${y}h${w}"/>`).join("")}</g>`;
+  if(lag&&!clouds){   // Lagune: Flamingos im flachen Wasser und goldenes Glitzern
+    s+=[[30,198,1],[54,206,-1]].map(([x,y,k])=>`<g transform="translate(${x} ${y}) scale(${k} 1)"><path d="M0 0v-9M2 0l-1-9" stroke="#E06A92" stroke-width=".9"/><ellipse cx="0" cy="-11" rx="4.2" ry="2.6" fill="#FF8FB1"/><path d="M3 -12q3-1 2-6t2-6" stroke="#FF8FB1" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="7" cy="-24" r="1.6" fill="#FF8FB1"/><path d="M8.4 -24l2.2 .9-.8 1z" fill="#2A2C3E"/></g>`).join("");
+    s+=`<g fill="#FFD27A">${[[90,200],[250,214],[320,198],[180,226]].map(([x,y],i)=>`<path class="glow" style="animation-delay:${i*.4}s" d="M${x} ${y-3}l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z"/>`).join("")}</g>`;
+  }
+  if(!clouds) s+=`<g stroke="${lag?"#FFE7A3":"#F3F1EA"}" stroke-linecap="round" stroke-width="1.6" opacity="${night?.35:lvl?.75:.3}">${[[40,190,14],[90,206,10],[250,200,16],[310,190,10],[150,222,12],[220,230,9],[60,228,8],[332,216,12]].slice(0,lvl?8:4).map(([x,y,w],i)=>`<path class="glow" style="animation-delay:${i*.3}s" d="M${x} ${y}h${w}"/>`).join("")}</g>`;
   s+=`<ellipse cx="${cx}" cy="176" rx="110" ry="20" fill="${sand}"/><path d="M${cx-96} 172c10-40 52-58 96-58s86 18 96 58z" fill="${grass}"/>`;
   // Blumenbogen oben auf der Kuppel: wächst mit dem Glück (hinter allem anderen gezeichnet)
   if(lvl>0&&sea!=="winter"&&(home||W.id==="tropen"||W.id==="fjord")){
@@ -2966,7 +2978,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.64";
+const APP_VERSION="1.65";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -3555,6 +3567,7 @@ function settingsHtml(){
     ${netOn()?`<label class="check" for="netPub"><input type="checkbox" id="netPub" ${S.online.pub?"checked":""}> Auch in der Rangliste für alle erscheinen</label>
     <p class="small muted">Ausschalten löscht alle Online-Daten dieses Kontos und trennt die Online-Freundschaften.</p>`:""}
   </div>`:""}
+  ${plusCard()}
   ${stCard()}
   ${shieldCard()}
   ${netConfigured()?backupCard():""}
@@ -4136,6 +4149,7 @@ function showPending(){
   if(ev.type==="week") return weekSheet(ev.wk);
   if(ev.type==="bilanz") return bilanzSheet(ev);
   if(ev.type==="plusStart") return plusStartSheet();
+  if(ev.type==="plusEnd") return plusEndSheet();
   if(ev.type==="planAsk") return planAskSheet(ev);
   if(ev.type==="chapter") return chapterSheet(ev.n,true);
   if(ev.type==="umfrage") return umfrageSheet(ev);
@@ -4530,7 +4544,7 @@ function umkleide(r,d){
     bart:`<p class="uk-h">Bart</p>${tiles("beard",BEARD_NAMES,(d.beard||0)%BEARD_NAMES.length,i=>({beard:i}))}`,
     shirt:sw(kid?"Shirt":"Oberteil","shirt",SHIRT,d.shirt),
     muster:`<p class="uk-h">Muster</p>${tiles("pat",PAT_NAMES,(d.pat||0)%PAT_NAMES.length,i=>({pat:i}))}`,
-    extras:`<p class="uk-h">Extras <span>mehrere möglich</span></p><div class="uk-grid">${ACC_NAMES.map((n,i)=>{const on=i?al.includes(i):!al.length;return `<button type="button" class="uk-tile${on?" on":""}" data-look="acc" data-v="${i}" aria-label="${n}" aria-pressed="${on}">${ukFig(r,d,{acc:i?accToggle(al.filter(x=>x!==i),i):[]},62)}<span>${n}</span></button>`}).join("")}</div>${sw("Farbe der Extras","accC",SHIRT,d.accC)}`,
+    extras:`<p class="uk-h">Extras <span>mehrere möglich</span></p><div class="uk-grid">${ACC_NAMES.map((n,i)=>{const on=i?al.includes(i):!al.length, pl=ACC_PLUS.has(i);return `<button type="button" class="uk-tile${on?" on":""}${pl?" uk-plus":""}" data-look="acc" data-v="${i}" aria-label="${n}${pl&&!plusActive()?" (Plus)":""}" aria-pressed="${on}">${ukFig(r,d,{acc:i?accToggle(al.filter(x=>x!==i),i):[]},62)}<span>${n}</span>${pl?`<i class="uk-star" aria-hidden="true">★</i>`:""}</button>`}).join("")}</div>${sw("Farbe der Extras","accC",SHIRT,d.accC)}`,
     augen:`${sw("Leuchtaugen (als Schatten)","eye",LV_EYES,(d.eye||0)%LV_EYES.length)}<p class="small muted">So leuchten die Augen, solange die Farbe noch fehlt. Unten links im Spiegel siehst du es.</p>`
   }[LOOK_PANE];
   return `<div class="uk"><div class="uk-rail" role="tablist">${panes.map(([k,e,n])=>`<button type="button" role="tab" class="uk-r${k===LOOK_PANE?" on":""}" data-pane="${k}" aria-selected="${k===LOOK_PANE}"><b aria-hidden="true">${e}</b><i>${n}</i></button>`).join("")}</div>
@@ -4550,11 +4564,12 @@ function umkleideTier(r,d){
   const nf=(FUR[r.art]||[{}]).length, col=hasCollar(r.art);
   const panes=UK_TIER.filter(p=>(p[0]!=="fell"||nf>1)&&(p[0]!=="hals"||col));
   if(!panes.some(p=>p[0]===LOOK_PANE)) LOOK_PANE="looks";
-  const tiles=(key,names,cur,ch)=>`<div class="uk-grid" role="radiogroup">${names.map((n,i)=>`<button type="button" class="uk-tile${i===cur?" on":""}" data-look="${key}" data-v="${i}" aria-label="${n}" aria-pressed="${i===cur}">${ukTier(r,d,ch(i),62)}<span>${n}</span></button>`).join("")}</div>`;
+  const tiles=(key,names,cur,ch,val)=>`<div class="uk-grid" role="radiogroup">${names.map((n,i)=>{const v=val?val(i):i, pl=plusLook(r,key,v)&&!plusActive();
+    return `<button type="button" class="uk-tile${i===cur?" on":""}${plusLook(r,key,v)?" uk-plus":""}" data-look="${key}" data-v="${v}" aria-label="${n}${pl?" (Plus)":""}" aria-pressed="${i===cur}">${ukTier(r,d,ch(i),62)}<span>${n}</span>${plusLook(r,key,v)?`<i class="uk-star" aria-hidden="true">★</i>`:""}</button>`}).join("")}</div>`;
   const sw=(label,key,list,sel)=>`<div class="sw-row" role="radiogroup" aria-label="${label}"><span class="small muted">${label}</span>${list.map((c,i)=>`<button type="button" class="sw${i===sel?" on":""}" data-look="${key}" data-v="${i}" style="background:${c}" aria-label="${label} ${i+1}" aria-pressed="${i===sel}"></button>`).join("")}</div>`;
   const body={
     looks:`<p class="uk-h">Fertige Looks <span>${TIER_LOOKS.length}</span></p><div class="uk-grid">${TIER_LOOKS.map(([n,l],i)=>`<button type="button" class="uk-tile lk" data-lookset="${i}" aria-label="Look ${n}">${ukTier(r,d,col?l:Object.assign({},l,{collar:0}),62)}<span>${n}</span></button>`).join("")}</div>`,
-    fell:`<p class="uk-h">Fellfarbe</p>${tiles("fur",Array.from({length:nf},(_,i)=>"Farbe "+(i+1)),d.fur||0,i=>({fur:i}))}`,
+    fell:`<p class="uk-h">Fellfarbe</p>${tiles("fur",Array.from({length:nf},(_,i)=>"Farbe "+(i+1)).concat(["Gold"]),d.fur===99?nf:d.fur||0,i=>({fur:i===nf?99:i}),i=>i===nf?99:i)}`,
     hals:`<p class="uk-h">Halsband</p>${tiles("collar",COLLAR_NAMES,d.collar||0,i=>({collar:i}))}${sw("Farbe","cc",SHIRT,d.cc||0)}`,
     brille:`<p class="uk-h">Brille</p>${tiles("specs",SPECS_NAMES,d.specs||0,i=>({specs:i}))}`
   }[LOOK_PANE];
@@ -4737,15 +4752,15 @@ function bindLookEditor(r,draft,onChange){
       if(t.dataset.photoUndo!=null){if(PHOTO_RES){for(const k of Object.keys(draft)) if(!(k in PHOTO_RES.prev)) delete draft[k]; Object.assign(draft,PHOTO_RES.prev); URL.revokeObjectURL(PHOTO_RES.url); PHOTO_RES=null} redraw(); return}
       if(r.kind!=="mensch"){
         if(t.dataset.lookset!=null) Object.assign(draft,TIER_LOOKS[+t.dataset.lookset][1]);
-        else if(t.dataset.dice!=null){const R=n=>Math.floor(Math.random()*n); Object.assign(draft,{fur:R((FUR[r.art]||[{}]).length),collar:hasCollar(r.art)&&Math.random()<.7?1+R(COLLAR_NAMES.length-1):0,cc:R(SHIRT.length),specs:Math.random()<.6?1+R(SPECS_NAMES.length-1):0})}
-        else if(t.dataset.look) draft[t.dataset.look]=+t.dataset.v;
+        else if(t.dataset.dice!=null){const R=n=>Math.floor(Math.random()*n); Object.assign(draft,{fur:R((FUR[r.art]||[{}]).length),collar:hasCollar(r.art)&&Math.random()<.7?1+R(COLLAR_FREE-1):0,cc:R(SHIRT.length),specs:Math.random()<.6?1+R(SPECS_FREE-1):0})}
+        else if(t.dataset.look){if(plusLook(r,t.dataset.look,+t.dataset.v)&&!plusActive()) return plusPaywall("looks"); draft[t.dataset.look]=+t.dataset.v}
         else return;
         if(!hasCollar(r.art)) draft.collar=0;
         redraw(); return}
       if(t.dataset.lookset!=null){Object.assign(draft,JSON.parse(JSON.stringify(LOOKS[+t.dataset.lookset][1]))); if(stage(r)==="kind") draft.beard=0; redraw(); return}
       if(t.dataset.dice!=null){const R=n=>Math.floor(Math.random()*n), kid=stage(r)==="kind";
-        Object.assign(draft,{skin:R(SKIN.length),hair:R(HAIR.length),style:R(STYLE_NAMES.length),shirt:R(SHIRT.length),pat:Math.random()<.4?0:R(PAT_NAMES.length),beard:kid||Math.random()<.6?0:R(BEARD_NAMES.length),acc:Math.random()<.5?[]:[1+R(ACC_NAMES.length-1)],accC:R(SHIRT.length)}); redraw(); return}
-      if(t.dataset.look){const k=t.dataset.look, v=+t.dataset.v; if(k==="acc") draft.acc=accToggle(draft.acc,v); else draft[k]=v; redraw()}
+        Object.assign(draft,{skin:R(SKIN.length),hair:R(HAIR.length),style:R(STYLE_NAMES.length),shirt:R(SHIRT.length),pat:Math.random()<.4?0:R(PAT_NAMES.length),beard:kid||Math.random()<.6?0:R(BEARD_NAMES.length),acc:Math.random()<.5?[]:[1+R(7)],accC:R(SHIRT.length)}); redraw(); return}
+      if(t.dataset.look){const k=t.dataset.look, v=+t.dataset.v; if(plusLook(r,k,v)&&!plusActive()&&!(k==="acc"&&accList(draft.acc).includes(v))) return plusPaywall("looks"); if(k==="acc") draft.acc=accToggle(draft.acc,v); else draft[k]=v; redraw()}
     };
     return;
   }
@@ -4824,7 +4839,7 @@ function confirmReset(){
 
 /* ---------- Freunde einladen, gemeinsame Ziele, OffLand Plus ----------
    Ohne Server: Einladungscode im Link, beide Seiten lösen den Code der anderen Person ein.
-   "Plus" ist eine Vorschau und wird später mit Apple-Abo und Server echt geprüft. */
+   Plus selbst: siehe Abschnitt „OffLand Plus“ unten (geschenkt oder als Abo über den App Store). */
 const APP_URL="https://offlandapp.com/";
 const INVITE_KEY="offline-insel-einladung";
 const GOAL_DAYS=7, PLUS_DAYS=30;
@@ -4834,8 +4849,15 @@ function myCode(){
   return S.code;
 }
 const inviteLink=()=>APP_URL+"?einladung="+myCode();
-const plusActive=()=>!!(S.plus&&S.plus.until>=today());
-function grantPlus(days){S.plus={until:addDays(plusActive()?S.plus.until:today(),days)}}
+/* ---------- OffLand Plus ----------
+   Plus gibt es auf drei Wegen: geschenkt (Plus-Woche zum Start, Monat fürs Einladen) in S.plus,
+   oder als Abo über den App Store in S.plusSub (iPhone-App, ios/App/App/PlusStorePlugin.swift).
+   Im Browser gibt es kein Abo; im Testmodus und in den Tests kauft eine Simulation. */
+const plusGift=()=>!!(S.plus&&S.plus.until>=today());
+const plusSubOn=()=>!!(S.plusSub&&S.plusSub.until>=today());
+const plusActive=()=>plusGift()||plusSubOn();
+const plusUntil=()=>[S.plus&&S.plus.until,S.plusSub&&S.plusSub.until].filter(Boolean).sort().pop()||today();
+function grantPlus(days){S.plus={until:addDays(plusGift()?S.plus.until:today(),days)}}
 /* Plus-Woche zum Start: neue Inseln bekommen 7 Tage Plus geschenkt, ohne Abo und ohne Zahlungsdaten */
 const PLUS_TRIAL=7;
 function plusTrialStart(){
@@ -4844,23 +4866,186 @@ function plusTrialStart(){
   S.pending.unshift({type:"plusStart"});
 }
 function plusBadge(){                                                                  // nur in der geschenkten Plus-Woche
-  if(!plusActive()||!S.plusTrial) return "";
+  if(!plusGift()||!S.plusTrial||plusSubOn()) return "";
   const left=Math.round((parse(S.plus.until)-parse(today()))/864e5)+1;
   if(left>PLUS_TRIAL) return "";                                                     // Plus wurde inzwischen verlängert
   return "★ Plus · "+(left<=1?"letzter Tag":"noch "+left+" Tage");
 }
+/* Was Plus bringt: steht so in der Plus-Woche, im Ende-Fenster und auf der Paywall */
+const PLUS_FEATS=[["🛡️","Insel-Schutz Pro","Eigene Zeitpläne: morgens, bei der Arbeit, nachts."],["🏝️","Goldene Lagune","Deine Insel in Gold und Türkis, mit Flamingos."],
+  ["👑","Plus-Looks","Kronen, Goldbrillen, Goldketten und goldenes Fell."],["👨‍👩‍👧","Für die ganze Familie","Mit dem Familien-Abo bis zu 6 Personen."],["✨","+10 % Punkte jeden Tag","Und ein goldener Rahmen beim Teilen."]];
 function plusStartSheet(){
   CUR_EV=null; stat("plus_start");
-  const f=[["🌍","Weltreise","Erkunde neue Inseln"],["🏡","Familieninsel","Gemeinsam mit deinen Liebsten"],["🦭","Seltene Tiere behalten"],["🛍️","Alle Deko im Inselladen"],["🃏","2 Joker pro Woche"],["📈","Langer Rückblick und Jahresbilanz"]];
   sheet(`<p class="ps-gift" aria-hidden="true">🎁</p><p class="ps-star">★ OffLand Plus</p>
     <h2 style="text-align:center">Deine erste Woche geht aufs Haus</h2>
     <p class="muted" style="text-align:center">${PLUS_TRIAL} Tage lang ist alles freigeschaltet. Probier aus, was deine Insel kann.</p>
     <div class="ps-days" aria-hidden="true">${"<i></i>".repeat(PLUS_TRIAL)}</div>
-    <div class="ps-feat">${f.map(([i,t,sub])=>`<div><span class="ic" aria-hidden="true">${i}</span><p>${t}${sub?`<small>${sub}</small>`:""}</p></div>`).join("")}</div>
+    <div class="ps-feat">${PLUS_FEATS.filter(f=>f[1]!=="Für die ganze Familie").map(([i,t,sub])=>`<div><span class="ic" aria-hidden="true">${i}</span><p>${t}<small>${sub}</small></p></div>`).join("")}</div>
     <div class="ps-safe"><span aria-hidden="true">🔒</span><p class="small muted"><b style="color:var(--ink)">Kein Abo, keine Zahlungsdaten.</b> Nach ${PLUS_TRIAL} Tagen spielst du einfach kostenlos weiter. Deine Insel und alle Bewohner bleiben dir.</p></div>
     ${saysHtml("bay","Willkommen auf OffLand! Die erste Woche bekommst du von mir das volle Programm. Ich hab sogar extra die Möwen geputzt.")}
     <button class="btn ps-go" data-ok>Los geht's</button>`);
 }
+/* Ende der geschenkten Plus-Woche: einmal freundlich Bescheid geben */
+function plusEndCheck(){
+  if(!S.plusTrial||S.plusEndSeen||plusActive()||!S.plus||S.plus.until>=today()) return;
+  S.plusEndSeen=today(); S.pending.push({type:"plusEnd"});
+}
+function plusEndSheet(){
+  CUR_EV=null; stat("plus_ende");
+  sheet(`<p class="ps-gift" aria-hidden="true">👑</p><p class="ps-star">★ OffLand Plus</p>
+    <h2 style="text-align:center">Deine Plus-Woche ist vorbei</h2>
+    <p class="muted" style="text-align:center">Alles Wichtige bleibt gratis: deine Insel, alle Bewohner, das Fokus-Boot. Plus-Looks, die du vergeben hast, behalten deine Bewohner.</p>
+    ${saysHtml("luc","Ich soll die Krone zurückgeben? Das besprechen wir noch.")}
+    <button class="btn" id="peMore">Plus behalten</button><button class="btn ghost" data-ok>Ohne Plus weiterspielen</button>`);
+  const b=$("#peMore"); if(b) b.onclick=()=>{closeModal(); plusPaywall("ende"); showPending()};
+}
+
+/* Abo-Produkte: IDs wie in App Store Connect (siehe docs/appstore.md). Preise kommen vom App Store, das hier ist nur der Ersatz. */
+const PLUS_PLANS=[
+  {plan:"year",id:"offland.plus.jahr",name:"Jährlich",price:"29,99 €",per:"pro Jahr",unit:"year",trial:7,tag:"BELIEBT · 2 MONATE GRATIS",value:29.99},
+  {plan:"family",id:"offland.plus.familie",name:"Familie",price:"44,99 €",per:"pro Jahr",unit:"year",trial:7,family:true,value:44.99},
+  {plan:"month",id:"offland.plus.monat",name:"Monatlich",price:"3,99 €",per:"pro Monat",unit:"month",trial:0,value:3.99}];
+const PS_NATIVE=(()=>{try{const C=window.Capacitor;return C&&C.isNativePlatform&&C.isNativePlatform()&&C.getPlatform()==="ios"&&C.registerPlugin?C.registerPlugin("PlusStore"):null}catch(e){return null}})();
+const storeSimOn=()=>!PS_NATIVE&&(!!(S&&S.testmode)||!!navigator.webdriver||(()=>{try{return localStorage.getItem("offland-store-sim")==="1"}catch(e){return false}})());
+const PS_SIM={
+  async products(){return {products:PLUS_PLANS.map(p=>({id:p.id,price:p.price,value:p.value,unit:p.unit,count:1,trialDays:S.plusSubUsed?0:p.trial,family:!!p.family}))}},
+  async purchase({id}){const p=PLUS_PLANS.find(x=>x.id===id); if(!p) throw new Error("Produkt fehlt");
+    const trial=!S.plusSubUsed&&p.trial>0, until=addDays(today(),trial?p.trial:p.unit==="year"?365:30);
+    S.plusSubSim={product:id,until,trial,family:!!p.family}; return Object.assign({result:"ok",active:true},S.plusSubSim)},
+  async status(){const s=S.plusSubSim; return s&&s.until>=today()?Object.assign({active:true},s):{active:false}},
+  async restore(){return this.status()},
+  async manage(){S.plusSubSim=null; return {shown:true,cancelled:true}}
+};
+const plusStore=()=>PS_NATIVE||(storeSimOn()?PS_SIM:null);
+function plusApply(e){
+  if(e&&e.active){
+    const until=e.until?String(e.until).slice(0,10):addDays(today(),30);
+    S.plusSub={id:e.product,until,trial:!!e.trial,family:!!e.family,at:today()}; S.plusSubUsed=true;
+  } else if(S.plusSub) S.plusSub=null;
+  if(!plusActive()) plusLapse();
+  save();
+}
+async function plusSync(){
+  const st=plusStore(); if(!st) return;
+  try{plusApply(await st.status())}catch(e){}
+}
+if(PS_NATIVE){try{PS_NATIVE.addListener("change",e=>{if(!S) return; plusApply(e); render()})}catch(e){}}
+/* Läuft Plus aus, schalten Plus-Funktionen leise zurück (Vergebenes behalten die Bewohner) */
+function plusLapse(){
+  if(S.isleStyle==="lagune") S.isleStyle=null;
+  if(S.shield&&S.shield.mode==="plan"){S.shield.mode="evening"; try{if(ST&&ST.shieldSet) ST.shieldSet({mode:"evening",unlock:S.shield.unlock||5,wins:[]})}catch(e){}}
+}
+const PLUS_TERMS="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/";
+/* Die Paywall: eigene Ebene über allem (auch über offenen Fenstern), Schließen ist immer sichtbar */
+let PW_PRODUCTS=null;
+async function plusPaywall(from){
+  if($("#plusPw")) return;
+  stat("paywall_"+(from||"x"));
+  const st=plusStore();
+  if(st){try{const r=await st.products({ids:PLUS_PLANS.map(p=>p.id)}); if(r&&r.products&&r.products.length) PW_PRODUCTS=r.products}catch(e){}}   // jedes Mal neu: Probezeit gibt es nur einmal
+  const plans=PLUS_PLANS.map(p=>{const q=(PW_PRODUCTS||[]).find(x=>x.id===p.id); return Object.assign({},p,q?{price:q.price,value:q.value,trial:q.trialDays||0,live:true}:{live:false})})
+    .filter(p=>!PW_PRODUCTS||p.live);
+  if(!plans.length) return toast("OffLand Plus ist gerade nicht erreichbar. Versuch es später noch mal.");
+  const yr=plans.find(p=>p.plan==="year"), mo=plans.find(p=>p.plan==="month");
+  if(yr&&mo){const fr=Math.floor(12-yr.value/mo.value); yr.tag=fr>=1?`BELIEBT · ${fr} ${fr===1?"MONAT":"MONATE"} GRATIS`:"BELIEBT"; if(/€/.test(yr.price)) yr.month=(yr.value/12).toLocaleString(LOC,{style:"currency",currency:"EUR"})}
+  let cur=(plans.find(p=>p.plan==="year")||plans[0]).plan;
+  const ds=S.days.slice(-14), saved=ds.reduce((a,d)=>a+Math.max(0,S.baseline-d.min),0), yearDays=ds.length?Math.round(saved/ds.length*365/1440):0;
+  const lu=`<g transform="translate(196 173) scale(2.3)">${lucSvg(true)}<path d="M-3.2 -17.4l-.5-3.8 1.9 1.7 1.8-2.6 1.8 2.6 1.9-1.7-.5 3.8z" fill="#FFD27A" stroke="#E0A93C" stroke-width=".35"/></g>`;
+  const hero=`<svg viewBox="0 0 360 208" aria-hidden="true"><defs><radialGradient id="pwGl" cx="50%" cy="60%" r="55%"><stop offset="0" stop-color="#FFD27A" stop-opacity=".35"/><stop offset="1" stop-color="#FFD27A" stop-opacity="0"/></radialGradient></defs>
+    <ellipse cx="180" cy="130" rx="190" ry="110" fill="url(#pwGl)"/>
+    <g fill="#FFD27A"><path class="pw-spark" d="M58 46l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/><path class="pw-spark" style="animation-delay:.8s" d="M300 34l1.6 4.8 4.8 1.6-4.8 1.6-1.6 4.8-1.6-4.8-4.8-1.6 4.8-1.6z"/><path class="pw-spark" style="animation-delay:1.5s" d="M318 112l1.4 4 4 1.4-4 1.4-1.4 4-1.4-4-4-1.4 4-1.4z"/></g>
+    <g class="pw-bob"><ellipse cx="180" cy="176" rx="132" ry="16" fill="#F2D27A"/><path d="M72 174c12-50 58-74 108-74s96 24 108 74z" fill="#8ED16E"/>
+    <path d="M92 172c-2-30 2-52 10-68" fill="none" stroke="#8A5A3B" stroke-width="6" stroke-linecap="round"/><g fill="#4E9A58"><path d="M102 104c-20-8-38-2-48 8 16-4 30-2 48-8z"/><path d="M102 104c-4-18-22-28-38-26 14 6 26 14 38 26z"/><path d="M102 104c10-16 30-22 44-14-16 2-30 6-44 14z"/><path d="M102 104c18-4 34 6 38 20-12-10-26-14-38-20z"/></g>
+    <rect x="244" y="96" width="18" height="72" rx="3" fill="#F3F1EA"/><rect x="244" y="112" width="18" height="8" fill="#FF9C7A"/><rect x="244" y="136" width="18" height="8" fill="#FF9C7A"/><rect x="240" y="86" width="26" height="12" rx="3" fill="#FFD27A"/><path d="M243 86l10-12 10 12z" fill="#F2A93B"/>
+    <g transform="translate(150 172) scale(2.9)">${baySvg(true)}</g>${lu}</g>
+    <g class="pw-bub"><rect x="206" y="8" width="112" height="54" rx="12" fill="#F3F1EA"/><path d="M216 60l-6 14 18-14z" fill="#F3F1EA"/><text x="216" y="24" font-family="Manrope, sans-serif" font-size="9" font-weight="800" fill="#7A5CC8">LUCIFER</text>
+    <text x="216" y="39" font-family="Manrope, sans-serif" font-size="10.5" font-weight="700" fill="#14151F">Ich hab Plus.</text><text x="216" y="53" font-family="Manrope, sans-serif" font-size="10.5" font-weight="700" fill="#14151F">Daher die Krone.</text></g></svg>`;
+  const planBtn=p=>`<button class="pw-plan" type="button" role="radio" aria-checked="${p.plan===cur}" data-pwplan="${p.plan}">${p.tag?`<span class="pw-tag">${p.tag}</span>`:""}<span class="pw-dot"></span>
+    <span><b class="pw-nm">${p.name}</b><span class="pw-sub">${p.family?"bis 6 Personen · ":""}${p.trial?p.trial+" Tage gratis, dann "+(p.unit==="year"?"jährlich":"monatlich"):"ohne Probezeit"}</span></span>
+    <span class="pw-pr"><b class="num">${p.price}</b><span>${p.per}${p.month?" · "+p.month+"/Monat":""}</span></span></button>`;
+  const d=document.createElement("div"); d.className="pw"; d.id="plusPw"; d.setAttribute("role","dialog"); d.setAttribute("aria-modal","true"); d.setAttribute("aria-label","OffLand Plus");
+  d.innerHTML=`<div class="pw-scroll">
+    <div class="pw-top"><button class="pw-x" type="button" id="pwClose" aria-label="Schließen">✕</button><button class="pw-restore" type="button" id="pwRestore">Käufe wiederherstellen</button></div>
+    <div class="pw-hero">${hero}</div>
+    <div class="pw-head"><span class="pw-badge">★ OffLand Plus</span><h2>Mach deine Insel <em>legendär.</em></h2><p>Mehr Insel, mehr Schutz, mehr Familie. Und jede Minute ohne Handy zählt ein bisschen mehr.</p></div>
+    ${saved>=60?`<div class="pw-stat"><b class="num">${hm(saved)}</b><span>hast du in ${ds.length} ${ds.length===1?"Tag":"Tagen"} schon zurückgewonnen.${yearDays>=1?`<small>Weiter so ergibt das rund ${yearDays} ${yearDays===1?"Tag":"Tage"} im Jahr.</small>`:""}</span></div>`:""}
+    <div class="pw-sec"><h3>Das bekommst du</h3><ul class="pw-feats">${PLUS_FEATS.map(([i,t,s])=>`<li><span class="pw-ic" aria-hidden="true">${i}</span><span><b>${t}</b><span>${s}</span></span></li>`).join("")}</ul></div>
+    <div class="pw-sec"><h3>Gratis oder Plus</h3><table class="pw-cmp"><thead><tr><th></th><th>Gratis</th><th class="p">Plus</th></tr></thead><tbody>
+      ${[["Insel, Bewohner, Tagesbilanz","✓","✓"],["Fokus-Boot und Inselminute","✓","✓"],["Insel-Schutz","Feste Zeiten","Eigene Zeitpläne"],["Goldene Lagune","–","✓"],["Plus-Looks","–","✓"],["Punkte pro Tag","100 %","110 %"]]
+        .map(([a,b,c])=>`<tr><td>${a}</td><td class="${b==="✓"?"y":b==="–"?"n":""}">${b}</td><td class="y">${c}</td></tr>`).join("")}</tbody></table></div>
+    <div class="pw-sec"><h3>Wähle deinen Plan</h3><div class="pw-plans" role="radiogroup" aria-label="Plan">${plans.map(planBtn).join("")}</div></div>
+    <div class="pw-sec" id="pwTl"></div>
+    <div class="pw-note"><span class="pw-av" aria-hidden="true">E&amp;F</span><p>„Wir sind Emily und Franziska. OffLand hat keine Werbung und deine Insel bleibt auf deinem Gerät. Plus hält die Insel am Leben.“<small>Gründerinnen von OffLand</small></p></div>
+    ${!st?`<p class="pw-web">OffLand Plus kannst du in der iPhone-App abschließen. Es gilt dann für deine Insel auf diesem Konto.</p>`:""}
+  </div>
+  <div class="pw-bottom"><button class="pw-cta" type="button" id="pwBuy"></button><p class="pw-fine" id="pwFine"></p>
+    <p class="pw-links"><a href="${PLUS_TERMS}" target="_blank" rel="noopener">Nutzungsbedingungen</a><a href="${APP_URL}datenschutz/" target="_blank" rel="noopener">Datenschutz</a></p></div>`;
+  document.body.appendChild(d); document.body.classList.add("pw-open");
+  const close=()=>{d.remove(); document.body.classList.remove("pw-open")};
+  const upd=()=>{const p=plans.find(x=>x.plan===cur);
+    d.querySelectorAll("[data-pwplan]").forEach(b=>b.setAttribute("aria-checked",String(b.dataset.pwplan===cur)));
+    $("#pwBuy").textContent=!st?"Plus in der iPhone-App holen":p.trial?p.trial+" Tage gratis testen":"Plus holen · "+p.price+" "+p.per;
+    $("#pwFine").innerHTML=p.trial?`Heute 0 €. Danach <b>${p.price} ${p.per}</b>${p.family?" für bis zu 6 Personen":""}. Jederzeit in den Einstellungen kündbar.`:`<b>${p.price} ${p.per}</b>, verlängert sich automatisch. Jederzeit kündbar.`;
+    $("#pwTl").hidden=!p.trial;
+    if(p.trial){const rem=Math.max(1,p.trial-2);
+      $("#pwTl").innerHTML=`<h3>So läuft die Probezeit</h3><ol class="pw-tl"><li><span aria-hidden="true">🔓</span><p><b>Heute</b>Alles freigeschaltet. Du zahlst jetzt nichts.</p></li>
+        <li><span aria-hidden="true">🔔</span><p><b>Tag ${rem}</b>Wir erinnern dich, dass die Probezeit bald endet.</p></li>
+        <li><span aria-hidden="true">⭐</span><p><b>Tag ${p.trial}</b>Plus beginnt: ${p.price} ${p.per}. Vorher jederzeit kündbar.</p></li></ol>`}};
+  upd();
+  d.querySelectorAll("[data-pwplan]").forEach(b=>b.onclick=()=>{cur=b.dataset.pwplan; upd()});
+  $("#pwClose").onclick=close;
+  d.addEventListener("keydown",e=>{if(e.key==="Escape") close()});
+  $("#pwRestore").onclick=async()=>{
+    if(!st) return toast("Käufe lassen sich in der iPhone-App wiederherstellen.");
+    try{const r=await st.restore(); plusApply(r); if(plusSubOn()){close(); render(); toast("★ Plus ist wieder aktiv.")} else toast("Es wurde kein aktives Abo gefunden.")}catch(e){toast("Wiederherstellen hat nicht geklappt. Versuch es später noch mal.")}
+  };
+  $("#pwBuy").onclick=async()=>{
+    if(!st) return toast("Öffne OffLand auf dem iPhone, dort kannst du Plus abschließen.");
+    const p=plans.find(x=>x.plan===cur), btn=$("#pwBuy"); btn.disabled=true; btn.textContent="Einen Moment …";
+    try{
+      const r=await st.purchase({id:p.id});
+      if(r&&r.result==="ok"&&r.active){plusApply(r); stat("plus_kauf_"+p.plan); close(); render();
+        if($("#modalRoot").innerHTML){toast("★ Willkommen bei Plus! Alles ist freigeschaltet."); if($("#plusCard")) settingsSheet()}   // offenes Fenster (Umkleide, Einstellungen) nicht wegnehmen
+        else plusWelcome(p)}
+      else if(r&&r.result==="pending"){toast("Der Kauf wartet noch auf eine Bestätigung."); close()}
+      else upd();
+    }catch(e){toast("Das hat nicht geklappt: "+String(e&&e.message||e).slice(0,80)); upd()}
+    btn.disabled=false;
+  };
+  setTimeout(()=>{const x=$("#pwClose"); if(x) x.focus()},50);
+}
+function plusWelcome(p){
+  sfx("project");
+  sheet(`<p class="ps-gift" aria-hidden="true">👑</p><p class="ps-star">★ Willkommen bei Plus</p>
+    <h2 style="text-align:center">Lucifer trägt jetzt Krone.</h2>
+    <p class="muted" style="text-align:center">${S.plusSub&&S.plusSub.trial?`Deine Probezeit läuft bis ${nice(S.plusSub.until)}. Wir erinnern dich vorher.`:"Plus ist aktiv. Danke, dass du die Insel am Leben hältst!"}</p>
+    <div class="ps-feat">${PLUS_FEATS.slice(0,3).map(([i,t,sub])=>`<div><span class="ic" aria-hidden="true">${i}</span><p>${t}<small>${sub}</small></p></div>`).join("")}</div>
+    <button class="btn" data-ok>Zur Insel</button>`);
+}
+/* Plus-Karte in den Einstellungen */
+function plusCard(){
+  const on=plusActive(), sub=plusSubOn()?S.plusSub:null, st=plusStore();
+  return `<div class="card plus-card" id="plusCard"><div class="row between"><p class="label" style="color:var(--amber)">★ OffLand Plus</p>${on?`<span class="chip plus">aktiv</span>`:""}</div>
+    ${on?`<p class="small">${sub?(sub.trial?"Probezeit bis ":"Abo läuft bis ")+nice(sub.until)+(sub.family?" · Familie":""):"Geschenkt bis "+nice(plusUntil())}</p>
+      <p class="small muted" style="margin-top:8px">Inselstil</p>
+      <div class="row fr-seg" role="radiogroup" aria-label="Inselstil">${[["","Klassisch"],["lagune","Goldene Lagune"]].map(([k,n])=>`<button type="button" class="${(S.isleStyle||"")===k?"on":""}" data-isle="${k}" aria-pressed="${(S.isleStyle||"")===k}">${n}</button>`).join("")}</div>
+      ${sub&&st?`<button class="btn ghost" id="plusManage" style="margin-top:8px">Abo verwalten oder kündigen</button>`:!sub?`<button class="btn secondary" id="plusMore" style="margin-top:8px">Plus verlängern</button>`:""}`
+    :`<p class="small muted">Insel-Schutz Pro, Goldene Lagune, Plus-Looks und mehr. Alles Wichtige bleibt gratis.</p>
+      <button class="btn secondary" id="plusMore" style="margin-top:6px">Plus ansehen</button>`}
+  </div>`;
+}
+function bindPlusCard(){
+  const m=$("#plusMore"); if(m) m.onclick=()=>plusPaywall("einstellungen");
+  document.querySelectorAll("[data-isle]").forEach(b=>b.onclick=()=>{if(!plusActive()) return plusPaywall("lagune"); S.isleStyle=b.dataset.isle||null; save(); toast(S.isleStyle?"Goldene Lagune an":"Klassische Insel"); settingsSheet()});
+  const g=$("#plusManage"); if(g) g.onclick=async()=>{const st=plusStore(); try{const r=await st.manage(); if(r&&r.cancelled){plusApply({active:false}); settingsSheet()} else setTimeout(plusSync,1500)}catch(e){}};
+}
+/* Plus-Looks: Extras 8–10 für Menschen, Goldkette und Goldbrille für Tiere, goldenes Fell */
+const ACC_PLUS=new Set([8,9,10]), COLLAR_FREE=5, SPECS_FREE=5, FUR_GOLD=99;
+function plusLook(r,k,v){
+  if(r.kind==="mensch") return k==="acc"&&ACC_PLUS.has(v);
+  return (k==="collar"&&v>=COLLAR_FREE)||(k==="specs"&&v>=SPECS_FREE)||(k==="fur"&&v===FUR_GOLD);
+}
+const lagune=()=>S.isleStyle==="lagune"&&plusActive();
 /* Gratis-Monat fürs Einladen: einmal pro Konto und einmal pro Gerät */
 const PLUS_DEV_KEY="offland-plus-freund";
 function friendPlusFree(){
@@ -4937,7 +5122,7 @@ function friendsCard(){
 }
 function friendsSheet(){
   const code=myCode();
-  modal(`<div class="row between"><div><p class="label" style="color:var(--lime)">Gemeinsam</p><h2>Freunde einladen</h2>${plusActive()?`<p class="small" style="color:var(--amber);font-weight:700">★ Plus bis ${nice(S.plus.until)}</p>`:""}</div></div>
+  modal(`<div class="row between"><div><p class="label" style="color:var(--lime)">Gemeinsam</p><h2>Freunde einladen</h2>${plusActive()?`<p class="small" style="color:var(--amber);font-weight:700">★ Plus bis ${nice(plusUntil())}</p>`:""}</div></div>
     <p class="muted">${friendPlusFree()?`Wer eine Freundin oder einen Freund einlädt, bekommt mit ihr oder ihm zusammen <b style="color:var(--ink)">einmalig einen Monat OffLand Plus</b> gratis. Dazu startet`:`Deinen Gratis-Monat Plus hast du schon bekommen. Mit jeder Einladung startet aber`} ein gemeinsames Ziel: ${GOAL_DAYS} Tage im Budget, dann gibt es +150 Punkte.</p>
     <div style="background:var(--ground);border-radius:16px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:4px">
       <span class="small muted">Dein Code</span><b class="num" style="font-size:30px;letter-spacing:.18em">${code}</b></div>
@@ -4947,7 +5132,7 @@ function friendsSheet(){
     <p class="err" id="frErr" role="alert"></p>
     <button class="btn secondary" id="frRedeem">Code einlösen</button>
     ${S.buddies.length?`<p class="label">Gemeinsame Ziele</p>${buddyRows()}`:""}
-    <p class="small muted">OffLand Plus ist eine Vorschau: +10 % Punkte pro Tag und ein goldener Rahmen beim Teilen. Später läuft es über ein Abo im App Store.</p>
+    <p class="small muted">OffLand Plus bringt Insel-Schutz Pro, die Goldene Lagune, Plus-Looks und +10 % Punkte am Tag. Den Monat gibt es geschenkt, danach gibt es Plus als Abo in der iPhone-App.</p>
     ${netConfigured()?`<button class="btn secondary" id="frRank">Freunde und Ranglisten</button>`:""}
     <button class="btn ghost" id="frClose">Schließen</button>`);
   $("#frShare").onclick=()=>shareText("Spiel mit mir OffLand! Weniger Handy, mehr Insel. Mit meinem Code "+code+" bekommen wir ein gemeinsames Ziel, und wer noch kein Plus bekommen hat, einen Monat gratis.",inviteLink());
@@ -5274,7 +5459,7 @@ function viewFreunde(){
   const fam=famCard();
   if(fam) h+=`<div class="sec-h"><span>Familie</span></div>`+fam;
   h+=`<div class="sec-h"><span>Freund:innen</span></div>
-  <div class="card"><div class="row between"><p class="label">Gemeinsame Ziele</p>${plusActive()?`<span class="chip" style="color:var(--amber)">★ Plus bis ${nice(S.plus.until)}</span>`:""}</div>
+  <div class="card"><div class="row between"><p class="label">Gemeinsame Ziele</p>${plusActive()?`<span class="chip" style="color:var(--amber)">★ Plus bis ${nice(plusUntil())}</span>`:""}</div>
     ${S.buddies.length?`<p class="small muted">Je ${GOAL_DAYS} Tage im Budget, dann gibt es +150 Punkte. Jede Seite zählt ihre eigenen Tage.</p>${buddyRows(true)}`
       :`<p class="small muted">Noch keine. Lade jemanden ein: Ihr bekommt ${plusOffer(true)}ein gemeinsames Ziel von ${GOAL_DAYS} guten Tagen.</p>`}
     <div class="row"><button class="btn secondary grow" id="shareBtn">Insel teilen</button><button class="btn grow" id="friendsBtn">Einladen</button></div>
@@ -5808,7 +5993,11 @@ async function stFill(){
 /* ---------- Insel-Schutz: beim Öffnen gewählter Apps steht erst die Insel in der Tür ----------
    iPhone-App: Apples Bildschirmzeit-Sperre („Shield“) mit eigenen Texten (ios/App/Shared/IslandShield.swift,
    Erweiterungen ShieldConfig und ShieldAction). In der Web-Version simuliert, mit einer Vorschau. */
-const SHIELD_MODES=[["off","Aus"],["always","Immer"],["evening","Abends ab 21 Uhr"],["focus","Bei Fokus-Bootsfahrt"]];
+const SHIELD_MODES=[["off","Aus"],["always","Immer"],["evening","Abends ab 21 Uhr"],["focus","Bei Fokus-Bootsfahrt"],["plan","Eigene Zeitpläne ★"]];
+/* Insel-Schutz Pro (Plus): bis zu 4 eigene Zeitfenster, Minuten ab Mitternacht; Ende vor Anfang = über Mitternacht */
+const SHIELD_PRESETS=[["Morgens",360,540],["Arbeit",540,1020],["Nachts",1320,420]];
+const shWins=()=>(S.shield&&S.shield.wins)||[];
+const hhmm=m=>String(Math.floor(m/60)%24).padStart(2,"0")+":"+String(m%60).padStart(2,"0");
 const SHIELD_SIM_APPS=[["insta","Instagram",1],["tiktok","TikTok",1],["yt","YouTube",1],["snap","Snapchat",0],["safari","Safari",0],["games","Spiele",0]];
 Object.assign(ST_SIM,{
   async shieldPick(){
@@ -5820,7 +6009,7 @@ Object.assign(ST_SIM,{
     if(!sel) return {ok:false};
     S.shield=Object.assign(S.shield||{},{sim:sel}); save(); return {ok:true,count:sel.length};
   },
-  async shieldSet({mode,unlock}){S.shield=Object.assign(S.shield||{},{mode,unlock:unlock||(S.shield&&S.shield.unlock)||5}); save(); return {mode}},
+  async shieldSet({mode,unlock,wins}){S.shield=Object.assign(S.shield||{},{mode,unlock:unlock||(S.shield&&S.shield.unlock)||5},wins?{wins}:{}); save(); return {mode}},
   async shieldFocus(){return {}},
   async shieldInfo(){},
   async shieldStats({day}={}){const d=day||today(), t=(S.shield&&S.shield.simDay===d&&S.shield.simCnt)||{res:0,open:0};
@@ -5885,6 +6074,10 @@ function shieldCard(){
     <div class="row between"><span class="small"><b>${cnt?cnt+(cnt===1?" App gewählt":" Apps gewählt"):"Noch keine Apps gewählt"}</b></span><button class="btn secondary" id="shPick" style="width:auto;padding:8px 14px">Apps wählen</button></div>
     <p class="small muted" style="margin-top:10px">Wann</p>
     <div class="row fr-seg shield-seg" role="radiogroup" aria-label="Wann der Insel-Schutz gilt">${SHIELD_MODES.map(([k,n])=>`<button type="button" class="${mode===k?"on":""}" data-shmode="${k}" aria-pressed="${mode===k}">${n}</button>`).join("")}</div>
+    ${mode==="plan"?`<div class="sh-wins">${shWins().map(([a,b],i)=>`<div class="sh-win"><select data-shw="${i}" data-k="0" aria-label="Zeitplan ${i+1} von">${Array.from({length:48},(_,k)=>k*30).map(m=>`<option value="${m}"${m===a?" selected":""}>${hhmm(m)}</option>`).join("")}</select><span aria-hidden="true">–</span>
+      <select data-shw="${i}" data-k="1" aria-label="Zeitplan ${i+1} bis">${Array.from({length:48},(_,k)=>k*30+30).map(m=>`<option value="${m}"${m===(b||1440)?" selected":""}>${m===1440?"24:00":hhmm(m)}</option>`).join("")}</select>
+      <button type="button" class="iconbtn" data-shdel="${i}" aria-label="Zeitplan ${i+1} löschen">✕</button></div>`).join("")||`<p class="small muted">Noch kein Zeitplan.</p>`}
+      ${shWins().length<4?`<div class="row" style="flex-wrap:wrap;gap:6px">${SHIELD_PRESETS.map(([n,a,b],i)=>`<button type="button" class="chip" data-shadd="${i}">+ ${n} ${hhmm(a)}–${b===1440?"24:00":hhmm(b)}</button>`).join("")}</div>`:""}</div>`:""}
     ${mode!=="off"?`<p class="small muted" style="margin-top:10px">„Trotzdem öffnen“ gibt frei für</p>
     <div class="row fr-seg" role="radiogroup" aria-label="Freigabe">${[1,5,15].map(m=>`<button type="button" class="${(sh.unlock||5)===m?"on":""}" data-shunlock="${m}" aria-pressed="${(sh.unlock||5)===m}">${m} min</button>`).join("")}</div>`:""}
     ${st&&(st.resisted||st.opened)?`<p class="small" style="margin-top:10px">Heute <b style="color:var(--lime)">${st.resisted}× widerstanden</b> · ${st.opened}× trotzdem geöffnet</p>`:""}
@@ -5894,12 +6087,20 @@ function shieldCard(){
 function bindShieldCard(){
   const re=()=>shieldRefresh(true).then(()=>settingsSheet());
   const a=$("#shAllow"); if(a) a.onclick=async()=>{try{await ST.authorize();await stStatus();const r=await ST.shieldPick();if(r&&r.ok&&(!S.shield||!S.shield.mode||S.shield.mode==="off")){S.shield=Object.assign(S.shield||{},{mode:"always"});await ST.shieldSet({mode:"always",unlock:S.shield.unlock||5})}save()}catch(e){toast(String(e&&e.message||e).slice(0,120))} re()};
-  const p=$("#shPick"); if(p) p.onclick=async()=>{try{const r=await ST.shieldPick();if(r&&r.ok&&S.shield&&S.shield.mode&&S.shield.mode!=="off") await ST.shieldSet({mode:S.shield.mode,unlock:S.shield.unlock||5})}catch(e){} re()};
-  document.querySelectorAll("[data-shmode]").forEach(b=>b.onclick=async()=>{const mode=b.dataset.shmode; S.shield=Object.assign(S.shield||{},{mode}); save();
-    try{await ST.shieldSet({mode,unlock:S.shield.unlock||5});if(mode==="focus") await ST.shieldFocus({on:!!S.boat})}catch(e){}
+  const p=$("#shPick"); if(p) p.onclick=async()=>{try{const r=await ST.shieldPick();if(r&&r.ok&&S.shield&&S.shield.mode&&S.shield.mode!=="off") await ST.shieldSet({mode:S.shield.mode,unlock:S.shield.unlock||5,wins:shWins()})}catch(e){} re()};
+  document.querySelectorAll("[data-shmode]").forEach(b=>b.onclick=async()=>{const mode=b.dataset.shmode;
+    if(mode==="plan"&&!plusActive()) return plusPaywall("schutz");
+    S.shield=Object.assign(S.shield||{},{mode}); if(mode==="plan"&&!shWins().length) S.shield.wins=[[360,540],[1260,1440]]; save();
+    try{await ST.shieldSet({mode,unlock:S.shield.unlock||5,wins:shWins()});if(mode==="focus") await ST.shieldFocus({on:!!S.boat})}catch(e){}
     toast(mode==="off"?"Insel-Schutz aus":"Insel-Schutz: "+SHIELD_MODES.find(x=>x[0]===mode)[1]); re()});
   document.querySelectorAll("[data-shunlock]").forEach(b=>b.onclick=async()=>{const unlock=+b.dataset.shunlock; S.shield=Object.assign(S.shield||{},{unlock}); save();
-    try{await ST.shieldSet({mode:S.shield.mode||"off",unlock})}catch(e){} re()});
+    try{await ST.shieldSet({mode:S.shield.mode||"off",unlock,wins:shWins()})}catch(e){} re()});
+  const wset=async()=>{try{await ST.shieldSet({mode:"plan",unlock:S.shield.unlock||5,wins:shWins()})}catch(e){} save(); re()};
+  document.querySelectorAll("[data-shw]").forEach(sel=>sel.onchange=()=>{const w=shWins()[+sel.dataset.shw]; if(!w) return; w[+sel.dataset.k]=+sel.value;
+    if(((w[1]-w[0])+1440)%1440<30) w[1]=(w[0]+60)%1440||1440;   // mindestens 30 Minuten (Apple braucht 15)
+    wset()});
+  document.querySelectorAll("[data-shdel]").forEach(b=>b.onclick=()=>{S.shield.wins=shWins().filter((_,i)=>i!==+b.dataset.shdel); wset()});
+  document.querySelectorAll("[data-shadd]").forEach(b=>b.onclick=()=>{const [,a,e]=SHIELD_PRESETS[+b.dataset.shadd]; S.shield.wins=shWins().concat([[a,e]]).slice(0,4); wset()});
   const v=$("#shPrev"); if(v) v.onclick=shieldPreview;
 }
 
@@ -6318,7 +6519,8 @@ function login(p){
   document.body.classList.remove("start"); $("#start").innerHTML="";
   closeModal(); render(); window.scrollTo(0,0);
   if(S.setup){chapterCheck(true);save()}
-  statsActive(); statsFlushSoon(); comebackCheck();
+  statsActive(); statsFlushSoon(); comebackCheck(); if(S.setup) plusEndCheck();
+  plusSync().then(()=>{if(!plusActive()&&(S.isleStyle||(S.shield&&S.shield.mode==="plan"))){plusLapse();save();render()}});
   if(!S.storySeen) storySheet(!!S.setup); else showPending();
   if(S.setup&&pendingInvite()&&!$("#modalRoot").innerHTML) inviteSheet();
   if(S.setup&&famInvite()&&!S.family&&!$("#modalRoot").innerHTML) famJoinSheet(famInvite());
@@ -6444,7 +6646,7 @@ function pinPrompt(p,onOk){
 function accountSheet(){
   if(!ACC) return;
   modal(`<div class="row">${avatarSvg(ACC.avatar,56)}<div class="grow"><p class="label">Konto</p><h2>${esc(ACC.name)}</h2><p class="small muted">${ACC.pin?"Mit PIN geschützt":"Ohne PIN"} · seit ${new Date(ACC.created).toLocaleDateString(LOC)}</p></div></div>
-    ${plusActive()?`<p class="small" style="color:var(--amber);font-weight:700">★ OffLand Plus bis ${nice(S.plus.until)}</p>`:""}
+    ${plusActive()?`<p class="small" style="color:var(--amber);font-weight:700">★ OffLand Plus bis ${nice(plusUntil())}</p>`:""}
     <button class="btn secondary" id="accSettings">⚙︎ Einstellungen</button>
     <button class="btn secondary" id="accSupport">Hilfe und Support</button>
     <div class="row"><button class="btn secondary grow" id="accShare">Insel teilen</button><button class="btn secondary grow" id="accFriends">Freunde einladen</button></div>
@@ -6466,6 +6668,7 @@ function settingsSheet(){
     <button class="btn secondary" id="setBack">Zurück zum Konto</button>
     <button class="btn" id="setDone">Fertig</button>`);
   bind();
+  bindPlusCard();
   const done=()=>{closeModal();render();showPending()};
   $("#setClose").onclick=done; $("#setDone").onclick=done;
   let vt=0; const vl=$("#verLine"); if(vl) vl.onclick=()=>{if(++vt<7)return; vt=0; const on=localStorage.getItem("offland-dev")!=="1";

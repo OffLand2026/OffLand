@@ -14,7 +14,7 @@ enum IslandShield {
     static let relock = DeviceActivityName("offland.shield.relock")
     static let eveningHour = 21
 
-    /// "off", "always", "evening" (ab 21 Uhr) oder "focus" (während der Fokus-Bootsfahrt)
+    /// "off", "always", "evening" (ab 21 Uhr), "focus" (während der Fokus-Bootsfahrt) oder "plan" (eigene Zeitfenster, Plus)
     static var mode: String { defaults?.string(forKey: "shieldMode") ?? "off" }
     /// Wie lange „Trotzdem öffnen“ freigibt (Minuten Nutzung)
     static var unlockMinutes: Int { let v = defaults?.integer(forKey: "shieldUnlock") ?? 0; return v > 0 ? v : 5 }
@@ -36,7 +36,39 @@ enum IslandShield {
         case "always": return true
         case "evening": return Calendar.current.component(.hour, from: date) >= eveningHour
         case "focus": return defaults?.bool(forKey: "shieldFocusOn") ?? false
+        case "plan": return inWindow(date)
         default: return false
+        }
+    }
+
+    // MARK: Eigene Zeitfenster (Plus): Minuten ab Mitternacht, Ende vor Anfang = über Mitternacht
+
+    static var windows: [(Int, Int)] {
+        guard let a = defaults?.array(forKey: "shieldWins") as? [[Int]] else { return [] }
+        return a.compactMap { $0.count == 2 ? ($0[0], $0[1]) : nil }
+    }
+    static func saveWindows(_ w: [[Int]]) { defaults?.set(Array(w.prefix(4)), forKey: "shieldWins") }
+    static func inWindow(_ date: Date) -> Bool {
+        let c = Calendar.current.dateComponents([.hour, .minute], from: date)
+        let m = (c.hour ?? 0) * 60 + (c.minute ?? 0)
+        return windows.contains { s, e in
+            let end = e >= 1440 ? 1440 : e
+            return s < end ? (m >= s && m < end) : (m >= s || m < end)
+        }
+    }
+    static func windowName(_ i: Int) -> DeviceActivityName { DeviceActivityName("offland.shield.w\(i)") }
+    static func isWindow(_ a: DeviceActivityName) -> Bool { a.rawValue.hasPrefix("offland.shield.w") }
+    /// Für jedes Fenster ein täglicher Zeitplan; Beginn und Ende schalten den Schutz in der Monitor-Erweiterung
+    static func scheduleWindows(_ on: Bool) {
+        let c = DeviceActivityCenter()
+        c.stopMonitoring((0..<4).map(windowName))
+        guard on else { return }
+        for (i, w) in windows.prefix(4).enumerated() {
+            let e = w.1 >= 1440 ? 1439 : w.1   // 24:00 heißt hier 23:59
+            try? c.startMonitoring(windowName(i), during: DeviceActivitySchedule(
+                intervalStart: DateComponents(hour: w.0 / 60, minute: w.0 % 60),
+                intervalEnd: DateComponents(hour: e / 60, minute: e % 60),
+                repeats: true))
         }
     }
     static func apply() {
@@ -53,7 +85,7 @@ enum IslandShield {
         store.shield.webDomainCategories = nil
     }
     /// Schutz an oder aus, je nach Modus und Uhrzeit
-    static func refresh() { if shouldShield() { apply() } else { clear() } }
+    static func refresh(_ date: Date = Date()) { if shouldShield(date) { apply() } else { clear() } }
 
     /// Abendmodus: Apple startet und beendet ihn über einen täglichen Zeitplan (Monitor-Erweiterung)
     static func scheduleEvening(_ on: Bool) {

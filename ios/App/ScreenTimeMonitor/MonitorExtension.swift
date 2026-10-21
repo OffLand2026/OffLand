@@ -4,13 +4,13 @@ import WidgetKit
 
 /// Läuft im Hintergrund, auch wenn OffLand geschlossen ist. Bei jeder erreichten Schwelle
 /// (15, 30, 45 … Minuten Bildschirmzeit heute) wird der höchste Wert pro Tag gemerkt.
-/// Außerdem schaltet sie den Insel-Schutz: abends an und aus, nach „Trotzdem öffnen“ wieder an.
+/// Außerdem schaltet sie den Insel-Schutz: abends und in eigenen Zeitfenstern an und aus, nach „Trotzdem öffnen“ wieder an.
 class MonitorExtension: DeviceActivityMonitor {
     private let defaults = UserDefaults(suiteName: "group.com.offland2026.offland")
 
     override func intervalDidStart(for activity: DeviceActivityName) {
         super.intervalDidStart(for: activity)
-        if activity == IslandShield.evening { IslandShield.refresh(); return }
+        if activity == IslandShield.evening || IslandShield.isWindow(activity) { IslandShield.refresh(Date().addingTimeInterval(30)); return }
         if activity == IslandShield.relock { return }
         let key = "st_" + MonitorExtension.dayKey(Date())
         if defaults?.object(forKey: key) == nil { defaults?.set(0, forKey: key) }
@@ -23,6 +23,9 @@ class MonitorExtension: DeviceActivityMonitor {
             if IslandShield.mode == "evening" { IslandShield.clear() } else { IslandShield.refresh() }
         } else if activity == IslandShield.relock {
             IslandShield.refresh()
+        } else if IslandShield.isWindow(activity) {
+            // Zeitfenster vorbei: Schutz aus, außer ein anderes Fenster läuft gerade
+            IslandShield.refresh(Date().addingTimeInterval(30))
         }
     }
 

@@ -7,8 +7,8 @@ test("Neue Insel startet mit 7 Tagen Plus", async ({ page }) => {
   await page.click("#newAcc"); await page.fill("#accName", "Pia"); await page.click("#accCreate");
   await page.click("#storySkip"); await page.click("#startBtn");
   await expect(page.locator("#modalRoot h2")).toHaveText("Deine erste Woche geht aufs Haus");
-  await expect(page.locator(".ps-feat > div").first()).toContainText("Weltreise");
-  await expect(page.locator(".ps-feat > div").nth(1)).toContainText("Familieninsel");
+  await expect(page.locator(".ps-feat > div").first()).toContainText("Insel-Schutz Pro");
+  await expect(page.locator(".ps-feat > div").nth(1)).toContainText("Goldene Lagune");
   if (process.env.SHOTS) await page.screenshot({ path: process.env.SHOTS + "/plusstart.png" });
   await page.click("text=Los geht's");
   await dismiss(page);

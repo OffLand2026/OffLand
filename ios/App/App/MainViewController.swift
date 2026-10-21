@@ -7,6 +7,7 @@ class MainViewController: CAPBridgeViewController {
     override open func capacitorDidLoad() {
         bridge?.registerPluginInstance(ScreenTimePlugin())
         bridge?.registerPluginInstance(FocusAlarmPlugin())
+        bridge?.registerPluginInstance(PlusStorePlugin())
     }
 }
 
