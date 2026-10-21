@@ -175,4 +175,24 @@ test.describe("Ohne App Store (Webseite heute)", () => {
     await page.evaluate(() => { T.S.found = 1; T.S.pending = [{ type: "discovery", world: 1 }]; T.showPending(); });
     await expect(page.locator("#discGo")).toHaveText("Jetzt aufbrechen");
   });
+  test("Entwickler: Plus anzeigen, freischalten und entfernen", async ({ page }) => {
+    await newGame(page, "Mia");
+    await page.evaluate(() => { T.S.pending = []; document.getElementById("modalRoot").innerHTML = ""; T.settingsSheet(); });
+    await expect(page.locator("#plusCard")).toHaveCount(0);
+    await expect(page.locator("#devPlus")).toContainText("kein Plus");
+    // Plus anzeigen: Simulation an, Paywall und Plus-Karte sind da
+    await page.check("#devPlusSim");
+    await expect(page.locator("#plusCard")).toContainText("Plus ansehen");
+    await page.click("#plusMore");
+    await expect(page.locator("#plusPw")).toBeVisible();
+    await page.click("#pwClose");
+    // freischalten und entfernen
+    await page.click("#devPlusOn");
+    await expect(page.locator("#devPlus")).toContainText("aktiv bis");
+    expect(await page.evaluate(() => T.plusActive())).toBe(true);
+    await page.click("#devPlusOff");
+    await expect(page.locator("#devPlus")).toContainText("kein Plus");
+    await page.uncheck("#devPlusSim");
+    await expect(page.locator("#plusCard")).toHaveCount(0);
+  });
 });

@@ -3599,6 +3599,11 @@ function settingsHtml(){
     <button class="btn ghost" id="sim10">10 Tage gemischt</button>
     <button class="btn ghost" id="resetBtn">Spielstand zurücksetzen</button>`:""}
   </div>`:""}
+  ${devMode()?`<div class="card" id="devPlus"><p class="label" style="color:var(--amber)">★ Plus (Entwickler)</p>
+    <label class="check" for="devPlusSim"><input type="checkbox" id="devPlusSim" ${storeSimForced()?"checked":""}> Plus anzeigen und testen (Kauf nur simuliert, kostet nichts)</label>
+    <p class="small muted">Status: ${plusActive()?"aktiv bis "+nice(plusUntil())+(plusSubOn()?" (Abo"+(S.plusSub.trial?", Probezeit":"")+")":" (geschenkt)"):"kein Plus"}</p>
+    <div class="row"><button class="btn secondary grow" id="devPlusOn">30 Tage freischalten</button><button class="btn ghost grow" id="devPlusOff">Plus entfernen</button></div>
+  </div>`:""}
   <p class="small muted" style="text-align:center"><a href="impressum/" style="color:inherit">Impressum</a> · <a href="datenschutz/" style="color:inherit">Datenschutz</a></p>
   <p class="small muted" id="verLine" style="text-align:center;padding:8px;user-select:none">OffLand · Version ${APP_VERSION}${devMode()?" · Entwicklermodus":""}</p>`;
 }
@@ -3823,6 +3828,9 @@ function bind(){
   const rs=$("#resetBtn"); if(rs) rs.onclick=confirmReset;
   const tb=$("#travelBtn"); if(tb) tb.onclick=travelSheet;
   document.querySelectorAll("[data-pluspw]").forEach(b=>b.onclick=()=>plusPaywall(b.dataset.pluspw));
+  const dps=$("#devPlusSim"); if(dps) dps.onchange=()=>{try{dps.checked?localStorage.setItem("offland-store-sim","1"):localStorage.removeItem("offland-store-sim")}catch(e){} if(!dps.checked) plusSync(); save(); settingsSheet()};
+  const dpo=$("#devPlusOn"); if(dpo) dpo.onclick=()=>{grantPlus(30); save(); toast("★ Plus für 30 Tage freigeschaltet"); settingsSheet()};
+  const dpx=$("#devPlusOff"); if(dpx) dpx.onclick=()=>{S.plus=null; S.plusSub=null; S.plusSubSim=null; S.plusSubUsed=false; plusLapse(); save(); toast("Plus entfernt"); settingsSheet()};
   const ex=$("#exportBtn"); if(ex) ex.onclick=exportSave;
   const im=$("#importBtn"), imf=$("#importFile"); if(im&&imf){im.onclick=()=>imf.click();imf.onchange=()=>{if(imf.files[0]) importSave(imf.files[0])}}
   document.querySelectorAll("[data-buy]").forEach(btn=>btn.onclick=()=>{
@@ -4916,7 +4924,9 @@ const PLUS_PLANS=[
   {plan:"family",id:"offland.plus.familie",name:"Familie",price:"44,99 €",per:"pro Jahr",unit:"year",trial:7,family:true,value:44.99},
   {plan:"month",id:"offland.plus.monat",name:"Monatlich",price:"3,99 €",per:"pro Monat",unit:"month",trial:0,value:3.99}];
 const PS_NATIVE=(()=>{try{const C=window.Capacitor;return C&&C.isNativePlatform&&C.isNativePlatform()&&C.getPlatform()==="ios"&&C.registerPlugin?C.registerPlugin("PlusStore"):null}catch(e){return null}})();
-const storeSimOn=()=>!PS_NATIVE&&(!!(S&&S.testmode)||!!navigator.webdriver||(()=>{try{return localStorage.getItem("offland-store-sim")==="1"}catch(e){return false}})());
+// Entwickler: Plus-Simulation auch in der iPhone-App, unabhängig vom App Store (Einstellungen → Entwicklermodus)
+const storeSimForced=()=>{try{return localStorage.getItem("offland-store-sim")==="1"}catch(e){return false}};
+const storeSimOn=()=>storeSimForced()||(!PS_NATIVE&&(!!(S&&S.testmode)||!!navigator.webdriver));
 const PS_SIM={
   async products(){return {products:PLUS_PLANS.map(p=>({id:p.id,price:p.price,value:p.value,unit:p.unit,count:1,trialDays:S.plusSubUsed?0:p.trial,family:!!p.family}))}},
   async purchase({id}){const p=PLUS_PLANS.find(x=>x.id===id); if(!p) throw new Error("Produkt fehlt");
@@ -4926,7 +4936,7 @@ const PS_SIM={
   async restore(){return this.status()},
   async manage(){S.plusSubSim=null; return {shown:true,cancelled:true}}
 };
-const plusStore=()=>PS_NATIVE||(storeSimOn()?PS_SIM:null);
+const plusStore=()=>storeSimOn()?PS_SIM:(PS_NATIVE||null);
 /* Schalter: Plus (Plus-Woche, Paywall, Plus-Karte, gesperrte Plus-Teile) erscheint erst, wenn der App Store
    die Abos wirklich liefert. Bis dahin sieht niemand Plus, und es schaltet sich später ohne Update frei. */
 let PLUS_LIVE=(()=>{try{return localStorage.getItem("offland-plus-live")==="1"}catch(e){return false}})();
@@ -4947,7 +4957,7 @@ async function plusSync(){
   try{const r=await st.products({ids:PLUS_PLANS.map(p=>p.id)}); plusLiveSet(r&&r.products&&r.products.length)}catch(e){}
   try{plusApply(await st.status())}catch(e){}
 }
-if(PS_NATIVE){try{PS_NATIVE.addListener("change",e=>{if(!S) return; plusApply(e); render()})}catch(e){}}
+if(PS_NATIVE){try{PS_NATIVE.addListener("change",e=>{if(!S||storeSimOn()) return; plusApply(e); render()})}catch(e){}}
 /* Läuft Plus aus, schalten Plus-Funktionen leise zurück (Vergebenes behalten die Bewohner) */
 function plusLapse(){
   if(S.isleStyle==="lagune") S.isleStyle=null;
