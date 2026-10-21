@@ -8,6 +8,7 @@ class MainViewController: CAPBridgeViewController {
         bridge?.registerPluginInstance(ScreenTimePlugin())
         bridge?.registerPluginInstance(FocusAlarmPlugin())
         bridge?.registerPluginInstance(PlusStorePlugin())
+        bridge?.registerPluginInstance(LiveIslandPlugin())
     }
 }
 

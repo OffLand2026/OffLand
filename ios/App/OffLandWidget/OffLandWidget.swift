@@ -153,7 +153,6 @@ struct OffLandWidgetView: View {
     }
 }
 
-@main
 struct OffLandWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "OffLandWidget", provider: IslandProvider()) { entry in
@@ -162,5 +161,134 @@ struct OffLandWidget: Widget {
         .configurationDisplayName((Locale.preferredLanguages.first ?? "de").hasPrefix("de") ? "Deine Insel" : "Your island")
         .description((Locale.preferredLanguages.first ?? "de").hasPrefix("de") ? "Glück und Serie deiner OffLand-Insel auf einen Blick." : "Your OffLand island's happiness and streak at a glance.")
         .supportedFamilies([.systemSmall, .systemMedium, .accessoryRectangular])
+    }
+}
+
+@main
+struct OffLandWidgets: WidgetBundle {
+    var body: some Widget {
+        OffLandWidget()
+        if #available(iOSApplicationExtension 16.1, *) {
+            FocusLiveActivity()
+        }
+    }
+}
+
+// MARK: - Live-Insel (Plus): Fokus-Bootsfahrt auf dem Sperrbildschirm und in der Dynamic Island
+
+enum FocusLive {
+    static let lime = Color(red: 0.78, green: 0.95, blue: 0.41)
+    static let lilac = Color(red: 0.71, green: 0.64, blue: 1.0)
+    static let ink = Color(red: 0.95, green: 0.95, blue: 0.92)
+    static let muted = Color(red: 0.64, green: 0.65, blue: 0.74)
+    static let ground = Color(red: 0.08, green: 0.08, blue: 0.12)
+}
+
+@available(iOSApplicationExtension 16.1, *)
+struct FocusTimer: View {
+    let a: FocusActivityAttributes
+    let s: FocusActivityAttributes.ContentState
+    var body: some View {
+        if s.done {
+            Text("✓")
+        } else {
+            Text(timerInterval: a.start...max(s.end, a.start.addingTimeInterval(1)), countsDown: true)
+                .monospacedDigit()
+                .multilineTextAlignment(.trailing)
+        }
+    }
+}
+
+@available(iOSApplicationExtension 16.1, *)
+struct FocusBar: View {
+    let a: FocusActivityAttributes
+    let s: FocusActivityAttributes.ContentState
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            if s.done {
+                Text(a.doneText).font(.headline).foregroundColor(FocusLive.lime)
+            } else {
+                ProgressView(timerInterval: a.start...max(s.end, a.start.addingTimeInterval(1)), countsDown: false) {
+                    EmptyView()
+                } currentValueLabel: {
+                    EmptyView()
+                }
+                .tint(FocusLive.lime)
+            }
+            HStack(spacing: 6) {
+                Text("🐈‍⬛")
+                Text(a.watch).font(.caption.bold()).foregroundColor(FocusLive.lilac).lineLimit(1)
+                Spacer(minLength: 4)
+                Text(a.title).font(.caption2).foregroundColor(FocusLive.muted).lineLimit(1)
+            }
+        }
+    }
+}
+
+@available(iOSApplicationExtension 16.1, *)
+struct FocusLockView: View {
+    let a: FocusActivityAttributes
+    let s: FocusActivityAttributes.ContentState
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 12) {
+                Text("⛵").font(.system(size: 34))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(a.task).font(.headline).foregroundColor(FocusLive.ink).lineLimit(1)
+                    Text(a.who.isEmpty ? a.title : a.who).font(.subheadline).foregroundColor(FocusLive.muted).lineLimit(1)
+                }
+                Spacer(minLength: 6)
+                FocusTimer(a: a, s: s)
+                    .font(.system(size: 30, weight: .heavy, design: .rounded))
+                    .foregroundColor(FocusLive.lime)
+                    .frame(maxWidth: 120, alignment: .trailing)
+            }
+            FocusBar(a: a, s: s)
+        }
+        .padding(16)
+    }
+}
+
+@available(iOSApplicationExtension 16.1, *)
+struct FocusLiveActivity: Widget {
+    var body: some WidgetConfiguration {
+        ActivityConfiguration(for: FocusActivityAttributes.self) { context in
+            FocusLockView(a: context.attributes, s: context.state)
+                .activityBackgroundTint(FocusLive.ground)
+                .activitySystemActionForegroundColor(FocusLive.ink)
+        } dynamicIsland: { context in
+            let a = context.attributes, s = context.state
+            return DynamicIsland {
+                DynamicIslandExpandedRegion(.leading) {
+                    Text("⛵").font(.system(size: 30)).padding(.leading, 4)
+                }
+                DynamicIslandExpandedRegion(.trailing) {
+                    FocusTimer(a: a, s: s)
+                        .font(.system(size: 24, weight: .heavy, design: .rounded))
+                        .foregroundColor(FocusLive.lime)
+                        .frame(maxWidth: 96, alignment: .trailing)
+                        .padding(.trailing, 4)
+                }
+                DynamicIslandExpandedRegion(.center) {
+                    VStack(spacing: 1) {
+                        Text(a.task).font(.headline).lineLimit(1)
+                        Text(a.who.isEmpty ? a.title : a.who).font(.caption).foregroundColor(FocusLive.muted).lineLimit(1)
+                    }
+                }
+                DynamicIslandExpandedRegion(.bottom) {
+                    FocusBar(a: a, s: s).padding(.horizontal, 4)
+                }
+            } compactLeading: {
+                Text("⛵")
+            } compactTrailing: {
+                FocusTimer(a: a, s: s)
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .foregroundColor(FocusLive.lime)
+                    .frame(maxWidth: 44)
+            } minimal: {
+                Text("⛵")
+            }
+            .keylineTint(FocusLive.lime)
+        }
     }
 }

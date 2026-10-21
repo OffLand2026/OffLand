@@ -895,7 +895,8 @@ function extras(day,diff,quests,dreamt){
   }
   // Monats-Zeitkapsel
   const mon=day.slice(0,7);
-  if(S.lastMonth&&S.lastMonth!==mon){const cap=makeCapsule(S.lastMonth);S.capsules.push(cap);S.pending.push({type:"kapsel",id:cap.id})}
+  if(S.lastMonth&&S.lastMonth!==mon){const cap=makeCapsule(S.lastMonth);S.capsules.push(cap);S.pending.push({type:"kapsel",id:cap.id});
+    const y=S.lastMonth.slice(0,4); if(y!==mon.slice(0,4)&&wrapDays(y)>=WRAP_MIN.y) S.pending.push({type:"wrap",per:y})}   // Neujahr: das Inseljahr als Story
   S.lastMonth=mon;
   shareProgress();
 }
@@ -1161,7 +1162,7 @@ function weekSheet(wk){
      <div><b class="num">${w.plans}</b><span class="small muted">${w.plans===1?"Vorhaben":"Vorhaben"} geschafft</span></div><div><b class="num">${hm(w.focus)}</b><span class="small muted">Fokuszeit</span></div></div>
      ${w.events.length?`<ul class="wr-ev">${w.events.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>`:`<p class="small muted">Eine ruhige Woche auf der Insel.</p>`}`,
     `<p class="label" style="color:var(--lime)">Teil deine Woche</p><div class="wr-share"><p class="small muted">KW ${kw}</p><p class="big num" style="color:var(--lime)">${w.good}/${w.ds.length}</p><p>Tage im Budget${w.saved?`, <b>${hm(w.saved)}</b> weniger am Handy`:""}</p></div>
-     <button class="btn secondary" id="wrShare">Teilen</button>`];
+     <button class="btn secondary" id="wrShare">Teilen</button>${plusShown()?`<button class="btn" id="wrKurier">📰 Insel-Kurier lesen ${plusActive()?"":`<i class="uk-star" style="position:static">★</i>`}</button>`:""}`];
   sheet(`<div class="wr" id="wr">${slides.map(x=>`<section class="wr-s">${x}</section>`).join("")}</div>
     <div class="wr-dots" aria-hidden="true">${slides.map((_,i)=>`<i${i?"":" class=\"on\""}></i>`).join("")}</div>
     <div class="row"><button class="btn ghost grow" id="wrClose">Schließen</button><button class="btn grow" id="wrNext">Weiter</button></div>`);
@@ -1172,6 +1173,7 @@ function weekSheet(wk){
   $("#wrNext").onclick=()=>{const i=idx(); if(i>=slides.length-1) return done(); box.scrollTo({left:(i+1)*box.clientWidth,behavior:"smooth"})};
   $("#wrClose").onclick=done;
   $("#wrShare").onclick=()=>shareText(shareTxt,inviteLink());
+  const wku=$("#wrKurier"); if(wku) wku.onclick=()=>kurierSheet(wk);
 }
 /* Fokuszeit: Wochenzeile auf der Karte und Statistik im Tab Zeit */
 function focusWeek(){const wk=isoWeek(today());return (S.focusLog||[]).filter(f=>isoWeek(f.day)===wk)}
@@ -1231,7 +1233,7 @@ function startBoat(dur,cat,task){
   const crew=adults().find(r=>r.job==="fischer")||pick(adults())||null;
   stat("boot"); S.boat={start:Date.now(),dur,crew:crew?crew.id:null,left:0,cat:cat||"ruhe",task:task||""}; save();
   if(S.alarm!==false){const keep=S.sound;S.sound=true;audio();S.sound=keep}   // Ton jetzt freischalten, solange getippt wurde
-  alarmSchedule(S.boat);
+  alarmSchedule(S.boat); liveStart(S.boat);
   if(S.shield&&S.shield.mode==="focus"&&ST&&ST.shieldFocus) ST.shieldFocus({on:true}).catch(()=>{});
   const el=document.documentElement;
   if(el.requestFullscreen&&!document.fullscreenElement) el.requestFullscreen().catch(()=>{});
@@ -1244,7 +1246,7 @@ function finishBoat(){
   if(S.shield&&S.shield.mode==="focus"&&ST&&ST.shieldFocus) ST.shieldFocus({on:false}).catch(()=>{});
   const late=Date.now()-(b.start+b.dur*60000)>5000;          // in der iPhone-App hat dann schon die Mitteilung geklingelt
   if(!document.hidden&&!(FA&&late)) ringAlarm();
-  alarmCancel();
+  alarmCancel(); liveEnd(true);
   S.pending.push({type:"boat",dur:b.dur,crew:b.crew,left:b.left||0,cat:b.cat||null,task:b.task||""});
   save(); render(); showPending();
 }
@@ -1332,7 +1334,7 @@ function renderFocus(){
     modal(`<h2>Bootsfahrt abbrechen?</h2><p class="muted">Das Boot kehrt ohne Fang zurück. Punkte und Baumaterial gibt es nur, wenn du durchhältst.</p>
       <div class="row"><button class="btn grow" id="stopNo">Weiterfahren</button><button class="btn secondary grow" id="stopYes">Abbrechen</button></div>`);
     $("#stopNo").onclick=closeModal;
-    $("#stopYes").onclick=()=>{S.boat=null;alarmCancel();if(S.shield&&S.shield.mode==="focus"&&ST&&ST.shieldFocus)ST.shieldFocus({on:false}).catch(()=>{});log("Bootsfahrt abgebrochen.","info");save();closeModal();render()};
+    $("#stopYes").onclick=()=>{S.boat=null;alarmCancel();liveEnd(false);if(S.shield&&S.shield.mode==="focus"&&ST&&ST.shieldFocus)ST.shieldFocus({on:false}).catch(()=>{});log("Bootsfahrt abgebrochen.","info");save();closeModal();render()};
     $("#stopNo").focus();
   };
   updateFocus();
@@ -1529,7 +1531,7 @@ function closeDay(min,quests,appMin){
   S.monsters=monsters;
   S.days.push({day,min,quests,glueck:S.glueck,sunny,pts,apps:appMin,monsters,by:MY_ID||null});
   statsActive(); stat("tag"); stat(diff>=0?"tag_gut":"tag_schlecht"); if([1,3,7,14,30,60,100].includes(S.days.length)) stat("tage_"+S.days.length); statsChange(min);
-  festCheck(day); jubiCheck(); baseCheck();
+  festCheck(day); jubiCheck(); baseCheck(); seasonDay(diff>=0);
   S.lastDay=day; S.dayCount++;
   S.guests=(S.guests||[]).filter(g=>g.until>S.dayCount);                  // Besuch bleibt zwei Tage
   unlockCheck();
@@ -1632,6 +1634,7 @@ function closeDay(min,quests,appMin){
   chapterCheck();
   bilanzCheck();
   plusEndCheck();
+  seasonCheck();
   umfrageCheck();
   if(S.music===undefined&&S.sound!==false&&!S.pending.some(e=>e.type==="musicAsk")) S.pending.push({type:"musicAsk"});   // kommt gleich nach der Tagesbilanz
   if(netConfigured()&&statsDev().consent===undefined&&!S.pending.some(e=>e.type==="statsAsk")) S.pending.push({type:"statsAsk"});   // steht hinten an: kommt beim nächsten Öffnen mit der Freischaltung
@@ -1772,7 +1775,7 @@ function patSvg(p,c,name){
 }
 const STYLE_NAMES=["Kurz","Lang","Dutt","Zopf","Locken","Mütze","Stoppeln","Pferdeschwanz","Bob","Iro","Glatze","Zwei Zöpfe","Seitenscheitel","Tolle","Undercut","Spikes","Männerdutt","Twists","Surfer"];
 /* Extras: Schal, Brille, Sonnenbrille, Bommelmütze, Kappe, Blume, Stirnband */
-const ACC_NAMES=["Nichts","Schal","Brille","Sonnenbrille","Bommelmütze","Kappe","Blume","Stirnband","Krone","Goldbrille","Sternenreif"];   // ab 8: Plus-Looks
+const ACC_NAMES=["Nichts","Schal","Brille","Sonnenbrille","Bommelmütze","Kappe","Blume","Stirnband","Krone","Goldbrille","Sternenreif","Hexenhut","Weihnachtsmütze","Sonnenhut","Blumenkranz"];   // ab 8: Plus-Looks, ab 11: Saison-Looks
 const TOP_NAMES=["Hoodie","Offene Jacke","Hemd","Bomberjacke"];
 const shadeC=(c,f)=>{const v=parseInt(c.slice(1),16);return "#"+[v>>16,v>>8&255,v&255].map(x=>Math.round(x*f).toString(16).padStart(2,"0")).join("")};
 /* Oberkörper der Erwachsenen: Grundform + Details je Oberteil (u = Verschiebung nach oben) */
@@ -1786,7 +1789,7 @@ function topSvg(t,c,u){
 }
 /* Mehrere Extras auf einmal: gespeichert als Liste (früher eine einzelne Zahl).
    Brillen schließen sich gegenseitig aus, ebenso alles, was oben auf dem Kopf sitzt. */
-const ACC_GROUPS=[[2,3],[4,5,7]];
+const ACC_GROUPS=[[2,3],[4,5,7,11,12,13,14]];
 function accList(a){return (Array.isArray(a)?a:a?[a]:[]).map(Number).filter((v,i,l)=>v>0&&v<ACC_NAMES.length&&l.indexOf(v)===i).sort((x,y)=>x-y).slice(0,ACC_NAMES.length-1)}
 function accToggle(a,v){
   if(!v) return [];
@@ -1806,6 +1809,10 @@ function accSvg(a,c){
     case 8: return {body:"",head:`<path d="M-4.3 -19.4l-.6-3.9 2 1.7 2.9-3 2.9 3 2-1.7-.6 3.9z" fill="#FFD27A" stroke="#E0A93C" stroke-width=".35" stroke-linejoin="round"/><circle cx="0" cy="-21.4" r=".6" fill="#E5484D"/><circle cx="-2.5" cy="-20.3" r=".4" fill="#5B8CD6"/><circle cx="2.5" cy="-20.3" r=".4" fill="#5BC0A8"/>`};
     case 9: return {body:"",head:`<g fill="#FFD27A" fill-opacity=".3" stroke="#E0A93C" stroke-width=".7"><circle cx="-1.9" cy="-15.6" r="1.6"/><circle cx="1.9" cy="-15.6" r="1.6"/></g><path d="M-.3 -15.7h.6M-3.5 -15.8l-1.5-.4M3.5 -15.8l1.5-.4" stroke="#E0A93C" stroke-width=".6"/><path d="M-2.7 -16.4l.7-.5M1.1 -16.4l.7-.5" stroke="#FFF6D8" stroke-width=".35" stroke-linecap="round"/>`};
     case 10: return {body:"",head:`<path d="M-5.3 -18.5q5.3-2.6 10.6 0" fill="none" stroke="#E0A93C" stroke-width=".7"/>${[[-3.4,-19.9,.9],[0,-21.4,1.15],[3.4,-19.9,.9]].map(([x,y,k])=>`<path transform="translate(${x} ${y}) scale(${k})" d="M0 -1.3l.38.85.92.1-.68.62.2.9L0 1.02l-.82.45.2-.9-.68-.62.92-.1z" fill="#FFD27A" stroke="#E0A93C" stroke-width=".18"/>`).join("")}`};
+    case 11: return {body:"",head:`<ellipse cx="0" cy="-18.6" rx="7.6" ry="1.6" fill="#2E2348"/><path d="M-4.2 -19q1-5.6 3.4-8.4q1.6-1.8 4.6-1.4q-2.4.6-3 2.6q-.8 2.6.3 7.2z" fill="#2E2348"/><path d="M-4 -19.6q4 .8 8 0l-.3-1.5q-3.7.8-7.4 0z" fill="${c}"/>`};
+    case 12: return {body:"",head:`<path d="M-5.2 -17.8q0-5.8 5.2-6.2q3.8-.2 6.2 3.4l1 3.2-1.5.2-1.7-2.8.8 2.2z" fill="#E5484D"/><rect x="-5.9" y="-19" width="11.8" height="2.7" rx="1.35" fill="#F3F1EA"/><circle cx="7.3" cy="-16.3" r="1.6" fill="#F3F1EA"/>`};
+    case 13: return {body:"",head:`<ellipse cx="0" cy="-18.3" rx="8.2" ry="1.9" fill="#E8C77A"/><path d="M-4.3 -18.6q0-4.4 4.3-4.6q4.3.2 4.3 4.6z" fill="#E8C77A"/><path d="M-4.2 -19.6h8.4v1.3h-8.4z" fill="${c}"/><path d="M-6.6 -18.6q6.6 1.4 13.2 0" stroke="#C9A85A" stroke-width=".4" fill="none"/>`};
+    case 14: return {body:"",head:`<path d="M-5.3 -18.6q5.3-3.6 10.6 0" stroke="#4E9A58" stroke-width=".9" fill="none"/>${[[-4.6,-18.9],[-2.6,-20.6],[0,-21.3],[2.6,-20.6],[4.6,-18.9]].map(([x,y],i)=>`<circle cx="${x}" cy="${y}" r="1.25" fill="${[c,"#FFD27A","#FFB3C7",c,"#F3F1EA"][i]}"/><circle cx="${x}" cy="${y}" r=".45" fill="#FFF6D8"/>`).join("")}`};
     default: return {body:"",head:""};
   }
 }
@@ -2439,7 +2446,7 @@ function scene(){
   const lastD=S.days[S.days.length-1];
   const clouds=S.glueck<40||(lastD&&lastD.min>S.budget&&!lastD.sunny);
   const nTrees=1+Math.min(3,Math.floor(savedTotal()/600));
-  const sk=skyNow(), sea=season(), sleep=sleeping();
+  const sk=skyNow(), sea=season(), sleep=sleeping(), ssn=seasonShown();   // ssn: Saison-Insel (Plus)
   const night=sk.k==="nacht"||sleep;
   let s=`<svg viewBox="0 0 360 240" role="img" aria-label="Deine Insel mit ${here().length} Bewohnern, Inselglück ${S.glueck} Prozent">`;
   s+=`<rect width="360" height="240" fill="${clouds?"#2A2E40":night?"#1B2340":lag?(sk.k==="tag"?"#F7C98E":"#F2A98A"):(!home&&sk.k==="tag")?T.sky:sk.sky}"/>`;
@@ -2450,7 +2457,8 @@ function scene(){
   if(night&&!clouds){s+=`<g fill="#F3F1EA"><circle cx="30" cy="24" r="1.6"/><circle cx="110" cy="40" r="1.2"/><circle cx="200" cy="18" r="1.8"/><circle cx="300" cy="44" r="1.3"/><circle cx="250" cy="70" r="1"/></g><circle cx="286" cy="34" r="14" fill="#F3F1EA"/><circle cx="293" cy="29" r="13" fill="#1B2340"/>`}
   s+=`</g>`;
   // Sonne unter die abgeschnittene Kante und weg vom Pfeil rechts oben
-  if(!(night&&!clouds)&&sk.sun&&!clouds) s+=`<circle cx="${sk.sun[0]>180?sk.sun[0]-34:sk.sun[0]+52}" cy="${Math.max(sk.sun[1],72)}" r="16" fill="${sk.sun[2]}"/>`;
+  if(!(night&&!clouds)&&sk.sun&&!clouds){const sx=sk.sun[0]>180?sk.sun[0]-34:sk.sun[0]+52, sy=Math.max(sk.sun[1],72);
+    s+=`<circle cx="${sx}" cy="${sy}" r="16" fill="${sk.sun[2]}"/>`+(ssn&&ssn.id==="sommer"?sunShades(sx,sy):"")}
   if(owns("regenbogen")&&!night) s+=`<g fill="none" stroke-width="5" opacity=".75"><path d="M40 170a140 120 0 0 1 280 0" stroke="#FF9C7A"/><path d="M46 170a134 114 0 0 1 268 0" stroke="#FFD27A"/><path d="M52 170a128 108 0 0 1 256 0" stroke="#C8F169"/><path d="M58 170a122 102 0 0 1 244 0" stroke="#7CB8E8"/><path d="M64 170a116 96 0 0 1 232 0" stroke="#B6A4FF"/></g>`;
   // Zugvögel
   if(S.birds>0) s+=`<g class="drift" style="animation-duration:5s">${[0,1,2,3,4].map(i=>`<path d="M${120+i*16} ${50+Math.abs(i-2)*8}q5-5 10 0q5-5 10 0" stroke="${night?"#F3F1EA":"#14151F"}" stroke-width="2" fill="none" stroke-linecap="round"/>`).join("")}</g>`;
@@ -2524,6 +2532,7 @@ function scene(){
   if(S.trader) s+=`<g class="wave"><path d="M20 212h56l-8 12H28z" fill="#8A5A3B"/><path d="M48 212v-36l24 32z" fill="#FFD27A"/><path d="M48 180h20M48 190h22M48 200h24" stroke="#FF9C7A" stroke-width="3"/><path d="M46 212v-30l-18 28z" fill="#F3F1EA"/></g>`;
   // Fokus-Boot draußen auf See
   if(S.boat) s+=`<g class="wave"><path d="M290 186h30l-5 7h-20z" fill="#FF9C7A"/><path d="M305 186v-16l9 13z" fill="#F3F1EA"/></g>`;
+  if(ssn) s+=seasonGround(ssn,cx,home,night,two);
   // Bewohner
   const people=here();
   // Plätze über die ganze Insel verteilt (hinten → vorne), abwechselnd auf alle Inseln
@@ -2579,7 +2588,8 @@ function scene(){
   const mPos=[[110,222],[200,230],[310,214],[60,230]];
   (S.monsters||[]).forEach((id,i)=>{const a=S.apps.find(x=>x.id===id);if(!a)return;const p=mPos[i%4];s+=`<g transform="translate(${p[0]} ${p[1]})"><g class="wave"><title>${esc(monName(a,false))}</title>${monsterSvg(a.m)}</g></g>`});
   if(sleep) s+=`<g font-family="Bricolage Grotesque, sans-serif" font-weight="800" fill="#F3F1EA"><text x="${cx+64}" y="128" font-size="10" class="heart">z</text><text x="${cx+70}" y="118" font-size="13" class="heart" style="animation-delay:.8s">z</text><text x="${cx+78}" y="106" font-size="16" class="heart" style="animation-delay:1.6s">Z</text></g>`;
-  if(sea==="winter"&&!clouds) s+=`<g fill="#F3F1EA">${Array.from({length:14},(_,i)=>`<g class="rain" style="animation-duration:3s;animation-delay:${(i*.23)%3}s"><circle cx="${12+i*25}" cy="${30+(i*37)%110}" r="1.6"/></g>`).join("")}</g>`;
+  if(ssn) s+=seasonSky(ssn,night);
+  if((sea==="winter"||ssn&&ssn.id==="advent")&&!clouds) s+=`<g fill="#F3F1EA">${Array.from({length:14},(_,i)=>`<g class="rain" style="animation-duration:3s;animation-delay:${(i*.23)%3}s"><circle cx="${12+i*25}" cy="${30+(i*37)%110}" r="1.6"/></g>`).join("")}</g>`;
   if(clouds) s+=`<g transform="translate(0 30)">${cloudsSvg()}</g>`;
   return s+"</svg>";
 }
@@ -2962,6 +2972,9 @@ function forYou(wisher){
   if(S.wish&&wisher){const w=S.wish, type=w.type||"item";
     it.push(`<div class="fy"><p class="k" style="color:var(--lilac)">Wunsch von ${esc(wisher.name)}</p><b>${esc(wishText(w))}</b><p class="small muted">+${w.pts||30} Punkte · +${w.gl||6} % Glück${type==="streak"?` · ${w.have}/${w.need} Tage`:""}</p>${type==="item"?`<button class="linkbtn" id="wishShop">Zum Laden ›</button>`:""}</div>`)}
   const fc=festCard(); if(fc) it.push(fc);
+  const sf=seasonFy(); if(sf) it.push(sf);
+  if(plusShown()&&S.weekReady&&today()<=S.weekReady.until) it.push(`<div class="fy"><p class="k" style="color:#E8D3A8">📰 Neue Ausgabe</p><b>Der Insel-Kurier · KW ${+S.weekReady.wk.split("-W")[1]}</b><button class="linkbtn" id="kuReadyBtn">Lesen ›</button></div>`);
+  const yr=today().slice(0,4); if(plusShown()&&today().slice(5)>="12-15"&&wrapDays(yr)>=WRAP_MIN.y) it.push(`<div class="fy"><p class="k" style="color:var(--amber)">★ Neu</p><b>Dein Inseljahr ${yr}</b><button class="linkbtn" id="wrapYearBtn" data-per="${yr}">Story ansehen ›</button></div>`);
   if(S.weekReady&&today()<=S.weekReady.until)
     it.push(`<div class="fy"><p class="k" style="color:var(--lime)">Neu</p><b>Inselwoche KW ${+S.weekReady.wk.split("-W")[1]}</b><button class="linkbtn" id="weekReadyBtn">Ansehen ›</button></div>`);
   const f=nextFeature(); if(f&&S.setup){const left=f.day-S.dayCount;
@@ -2979,7 +2992,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.66";
+const APP_VERSION="1.67";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -3236,7 +3249,7 @@ function viewZeit(){
   ${zeitDid()}
   ${plusLocked()?"":zeitCal()+zeitBest()}
   ${zeitCards(saved)}
-  ${S.lastDay?`<div class="card"><button class="rowbtn" id="weekBtn" data-wk="${isoWeek(S.lastDay)}"><span class="plan-ic" style="background:#26233D;color:var(--lilac)"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h6a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4zM20 5h-6a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h6z"/></svg></span><span class="grow"><b>Wochenrückblick</b><span class="small muted">KW ${+isoWeek(S.lastDay).split("-W")[1]} ansehen</span></span><span class="muted">›</span></button></div>`:""}
+  ${S.lastDay?`<div class="card"><button class="rowbtn" id="weekBtn" data-wk="${isoWeek(S.lastDay)}"><span class="plan-ic" style="background:#26233D;color:var(--lilac)"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h6a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4zM20 5h-6a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h6z"/></svg></span><span class="grow"><b>Wochenrückblick</b><span class="small muted">KW ${+isoWeek(S.lastDay).split("-W")[1]} ansehen</span></span><span class="muted">›</span></button>${kurierBtn(isoWeek(S.lastDay))}${wrapBtn()}</div>`:""}
   ${plusLocked()?zeitPlusTeaser():`<div class="card">
     <p class="label">Hochgerechnet aufs Jahr</p>
     <div class="row between small"><span>Mit deinem alten Schnitt</span><b class="num" style="white-space:nowrap">${Math.round(yearOld)} Tage</b></div>
@@ -3524,7 +3537,11 @@ function albumPass(){
   const yr=MFEST.map((x,i)=>{const m=y+"-"+String(i+1).padStart(2,"0");return {m,x,ok:got.includes(m),now:m===cur,past:m<cur}});
   return `<div class="sec-h"><span>Inselpass ${y}</span><span class="num" style="text-transform:none;letter-spacing:0;color:var(--lime)">${yr.filter(z=>z.ok).length} ${yr.filter(z=>z.ok).length===1?"Stempel":"Stempel"}</span></div>
   <div class="card alb-pass"><div class="alb-stamps">${yr.map((z,i)=>`<div class="alb-st${z.ok?" ok":z.now?" now":z.past?" miss":""}" style="--c:${["#FFB86B","#B9A6FF","#C8F169","#7FD4E8","#FF9C7A"][i%5]};transform:rotate(${[-8,5,-3,7,-6,4][i%6]}deg)" title="${esc(z.x.n)}"><span>${z.ok?z.x.e:z.now?"…":""}</span><small>${TR(MONTH_N[i]).slice(0,3).toUpperCase()}</small></div>`).join("")}</div>
-    <p class="small muted">Jeden Monat ein Fest-Stempel, wenn deine Insel ihr Monatsziel schafft.${got.length>yr.filter(z=>z.ok).length?` Insgesamt ${got.length} Stempel gesammelt.`:""}</p></div>`;
+    <p class="small muted">Jeden Monat ein Fest-Stempel, wenn deine Insel ihr Monatsziel schafft.${got.length>yr.filter(z=>z.ok).length?` Insgesamt ${got.length} Stempel gesammelt.`:""}</p>
+    ${plusShown()||(S.seasonStamps||[]).length?`<p class="small" style="font-weight:700;margin-top:4px">Saisonstempel${plusActive()?"":` <i class="uk-star" style="position:static">★</i>`}</p>
+    <div class="alb-stamps ssn-stamps">${SEASONS.map((z,i)=>{const ok=(S.seasonStamps||[]).includes(z.id+"-"+y), now=(seasonNow()||{}).id===z.id;
+      return `<div class="alb-st${ok?" ok":now?" now":""}" style="--c:${z.c};transform:rotate(${[-6,4,-3,6][i]}deg)" title="${esc(z.n)}"><span>${ok?z.e:now?"…":""}</span><small>${TR(z.k).toUpperCase()}</small></div>`}).join("")}</div>
+    <p class="small muted">Mit Plus: ${SEASON_GOOD} gute Tage in einer Saison bringen ihren Stempel.</p>`:""}</div>`;
 }
 function kapselSheet(){
   const cs=S.capsules.slice().reverse();
@@ -3603,6 +3620,8 @@ function settingsHtml(){
     <label class="check" for="devPlusSim"><input type="checkbox" id="devPlusSim" ${storeSimForced()?"checked":""}> Plus anzeigen und testen (Kauf nur simuliert, kostet nichts)</label>
     <p class="small muted">Status: ${plusActive()?"aktiv bis "+nice(plusUntil())+(plusSubOn()?" (Abo"+(S.plusSub.trial?", Probezeit":"")+")":" (geschenkt)"):"kein Plus"}</p>
     <div class="row"><button class="btn secondary grow" id="devPlusOn">30 Tage freischalten</button><button class="btn ghost grow" id="devPlusOff">Plus entfernen</button></div>
+    <label class="field" for="devSeason">Saison-Insel<select id="devSeason">${[["","Nach Datum"],...SEASONS.map(z=>[z.id,z.e+" "+z.n]),["aus","Keine"]].map(([v,n])=>`<option value="${v}"${seasonForced()===v?" selected":""}>${n}</option>`).join("")}</select></label>
+    <div class="row" style="flex-wrap:wrap"><button class="btn ghost grow" id="devSsn">Saison-Fenster</button><button class="btn ghost grow" id="devWrap">Inseljahr-Story</button><button class="btn ghost grow" id="devKurier">Insel-Kurier</button><button class="btn ghost grow" id="devLive">Live-Insel</button></div>
   </div>`:""}
   <p class="small muted" style="text-align:center"><a href="impressum/" style="color:inherit">Impressum</a> · <a href="datenschutz/" style="color:inherit">Datenschutz</a></p>
   <p class="small muted" id="verLine" style="text-align:center;padding:8px;user-select:none">OffLand · Version ${APP_VERSION}${devMode()?" · Entwicklermodus":""}</p>`;
@@ -3798,6 +3817,11 @@ function bind(){
   const kb=$("#kapselBtn"); if(kb) kb.onclick=kapselSheet;
   document.querySelectorAll("[data-feed]").forEach(b=>b.onclick=()=>feedSheet(b.dataset.feed));
   const wrr=$("#weekReadyBtn"); if(wrr) wrr.onclick=()=>weekSheet(S.weekReady.wk);
+  const kur=$("#kuReadyBtn"); if(kur) kur.onclick=()=>kurierSheet(S.weekReady.wk);
+  const sfy=$("#ssnFy"); if(sfy) sfy.onclick=()=>{const z=seasonNow(); if(z) seasonSheet(z.id)};
+  const wyr=$("#wrapYearBtn"); if(wyr) wyr.onclick=()=>wrapSheet(wyr.dataset.per);
+  const kub=$("#kuBtn"); if(kub) kub.onclick=()=>kurierSheet(kub.dataset.wk);
+  const wpb=$("#wrapBtn"); if(wpb) wpb.onclick=wrapListSheet;
   const vo=$("#vacOff"); if(vo) vo.onclick=()=>setVacation(false);
   const dt=$("#deathToggle"); if(dt) dt.onchange=()=>{S.natDeath=dt.checked;save()};
   document.querySelectorAll("[data-tea]").forEach(x=>x.onclick=()=>giveTea(x.dataset.tea));
@@ -3830,6 +3854,11 @@ function bind(){
   document.querySelectorAll("[data-pluspw]").forEach(b=>b.onclick=()=>plusPaywall(b.dataset.pluspw));
   const dps=$("#devPlusSim"); if(dps) dps.onchange=()=>{try{dps.checked?localStorage.setItem("offland-store-sim","1"):localStorage.removeItem("offland-store-sim")}catch(e){} if(!dps.checked) plusSync(); save(); settingsSheet()};
   const dpo=$("#devPlusOn"); if(dpo) dpo.onclick=()=>{grantPlus(30); save(); toast("★ Plus für 30 Tage freigeschaltet"); settingsSheet()};
+  const dss=$("#devSeason"); if(dss) dss.onchange=()=>{try{dss.value?localStorage.setItem("offland-season",dss.value):localStorage.removeItem("offland-season")}catch(e){} render(); settingsSheet()};
+  const dsb=$("#devSsn"); if(dsb) dsb.onclick=()=>{const z=seasonNow(); z?seasonSheet(z.id):toast("Gerade ist keine Saison. Wähl oben eine aus.")};
+  const dwr=$("#devWrap"); if(dwr) dwr.onclick=()=>{const ps=wrapPeriods(); ps.length?wrapListSheet():toast("Für einen Rückblick braucht es "+WRAP_MIN.m+" eingetragene Tage in einem Monat.")};
+  const dku=$("#devKurier"); if(dku) dku.onclick=()=>S.lastDay?kurierSheet(isoWeek(S.lastDay)):toast("Trag zuerst einen Tag ein.");
+  const dlv=$("#devLive"); if(dlv) dlv.onclick=livePreviewSheet;
   const dpx=$("#devPlusOff"); if(dpx) dpx.onclick=()=>{S.plus=null; S.plusSub=null; S.plusSubSim=null; S.plusSubUsed=false; plusLapse(); save(); toast("Plus entfernt"); settingsSheet()};
   const ex=$("#exportBtn"); if(ex) ex.onclick=exportSave;
   const im=$("#importBtn"), imf=$("#importFile"); if(im&&imf){im.onclick=()=>imf.click();imf.onchange=()=>{if(imf.files[0]) importSave(imf.files[0])}}
@@ -4166,6 +4195,10 @@ function showPending(){
   if(ev.type==="bilanz") return bilanzSheet(ev);
   if(ev.type==="plusStart") return plusStartSheet();
   if(ev.type==="plusEnd") return plusEndSheet();
+  if(ev.type==="season") return seasonSheet(ev.id);
+  if(ev.type==="seasonFest") return seasonFestSheet(ev.id);
+  if(ev.type==="seasonStamp") return seasonStampSheet(ev.id);
+  if(ev.type==="wrap") return plusShown()&&wrapData(ev.per)?wrapSheet(ev.per):showPending();
   if(ev.type==="planAsk") return planAskSheet(ev);
   if(ev.type==="chapter") return chapterSheet(ev.n,true);
   if(ev.type==="umfrage") return umfrageSheet(ev);
@@ -4404,7 +4437,8 @@ function showPending(){
       <p>Neue Großprojekte warten im Tab <b>Bauen</b>${W.animals?`, und bald zieht vielleicht ein <b>${esc(W.animals[0])}</b> ein`:""}. Als Umzugsgeld gibt es <b>+100 Punkte</b>.</p>
       <button class="btn" data-ok>Insel erkunden</button>`);
   }
-  if(ev.type==="kapsel"){const c=S.capsules.find(x=>x.id===ev.id);if(c) return capsuleSheet(c,true);return showPending()}
+  if(ev.type==="kapsel"){const c=S.capsules.find(x=>x.id===ev.id);if(c&&plusActive()&&wrapDays(c.month)>=WRAP_MIN.m) return wrapSheet(c.month);   // Plus: Monatsrückblick als Story
+    if(c) return capsuleSheet(c,true);return showPending()}
   if(ev.type==="boat"){
     const crew=ev.crew?S.residents.find(x=>x.id===ev.crew):null;
     $("#modalRoot").innerHTML=`<div class="modal"><div class="sheet" role="dialog" aria-modal="true">
@@ -4560,7 +4594,7 @@ function umkleide(r,d){
     bart:`<p class="uk-h">Bart</p>${tiles("beard",BEARD_NAMES,(d.beard||0)%BEARD_NAMES.length,i=>({beard:i}))}`,
     shirt:sw(kid?"Shirt":"Oberteil","shirt",SHIRT,d.shirt),
     muster:`<p class="uk-h">Muster</p>${tiles("pat",PAT_NAMES,(d.pat||0)%PAT_NAMES.length,i=>({pat:i}))}`,
-    extras:`<p class="uk-h">Extras <span>mehrere möglich</span></p><div class="uk-grid">${ACC_NAMES.map((n,i)=>{const on=i?al.includes(i):!al.length, pl=ACC_PLUS.has(i); if(pl&&!plusShown()) return "";return `<button type="button" class="uk-tile${on?" on":""}${pl?" uk-plus":""}" data-look="acc" data-v="${i}" aria-label="${n}${pl&&!plusActive()?" (Plus)":""}" aria-pressed="${on}">${ukFig(r,d,{acc:i?accToggle(al.filter(x=>x!==i),i):[]},62)}<span>${n}</span>${pl?`<i class="uk-star" aria-hidden="true">★</i>`:""}</button>`}).join("")}</div>${sw("Farbe der Extras","accC",SHIRT,d.accC)}`,
+    extras:`<p class="uk-h">Extras <span>mehrere möglich</span></p><div class="uk-grid">${ACC_NAMES.map((n,i)=>{const on=i?al.includes(i):!al.length, pl=ACC_PLUS.has(i); if(pl&&!plusShown()||!on&&!seasonLookOk(i)) return "";return `<button type="button" class="uk-tile${on?" on":""}${pl?" uk-plus":""}" data-look="acc" data-v="${i}" aria-label="${n}${pl&&!plusActive()?" (Plus)":""}" aria-pressed="${on}">${ukFig(r,d,{acc:i?accToggle(al.filter(x=>x!==i),i):[]},62)}<span>${n}</span>${pl?`<i class="uk-star" aria-hidden="true">★</i>`:""}</button>`}).join("")}</div>${sw("Farbe der Extras","accC",SHIRT,d.accC)}`,
     augen:`${sw("Leuchtaugen (als Schatten)","eye",LV_EYES,(d.eye||0)%LV_EYES.length)}<p class="small muted">So leuchten die Augen, solange die Farbe noch fehlt. Unten links im Spiegel siehst du es.</p>`
   }[LOOK_PANE];
   return `<div class="uk"><div class="uk-rail" role="tablist">${panes.map(([k,e,n])=>`<button type="button" role="tab" class="uk-r${k===LOOK_PANE?" on":""}" data-pane="${k}" aria-selected="${k===LOOK_PANE}"><b aria-hidden="true">${e}</b><i>${n}</i></button>`).join("")}</div>
@@ -4801,9 +4835,11 @@ function capsuleSheet(c,fresh){
       <p class="label" style="color:var(--lilac)">Zeitkapsel</p><h2>${esc(c.title)}</h2>
       ${c.lines.map(l=>`<p>${esc(l)}</p>`).join("")}
       <div class="bar"><i style="width:${c.total?c.good/c.total*100:0}%"></i></div><p class="small muted">${c.good} von ${c.total} Tagen im Budget</p></div></div>
+    ${plusShown()&&wrapDays(c.month)>=WRAP_MIN.m?`<button class="btn" id="capStory">▶ Als Story ansehen ${plusActive()?"":`<i class="uk-star" style="position:static">★</i>`}</button>`:""}
     <button class="btn secondary" id="capCopy">Text kopieren zum Teilen</button>
     <p class="small muted" id="capTxt" style="user-select:all">${esc(text)}</p>
     <button class="btn" data-ok>${fresh?"In die Sammlung":"Schließen"}</button>`);
+  const cst=$("#capStory"); if(cst) cst.onclick=()=>wrapSheet(c.month);
   $("#capCopy").onclick=()=>{try{navigator.clipboard.writeText(text).then(()=>toast("Kopiert"),()=>toast("Bitte den Text unten markieren und kopieren"))}catch(e){toast("Bitte den Text unten markieren und kopieren")}};
 }
 function visitSheet(fid){
@@ -4889,8 +4925,10 @@ function plusBadge(){                                                           
   return "★ Plus · "+(left<=1?"letzter Tag":"noch "+left+" Tage");
 }
 /* Was Plus bringt: steht so in der Plus-Woche, im Ende-Fenster und auf der Paywall */
-const PLUS_FEATS=[["🌍","Weltreise","4 neue Welten mit eigenen Tieren, Großprojekten und Kapiteln."],["🛡️","Insel-Schutz Pro","Eigene Zeitpläne: morgens, bei der Arbeit, nachts."],
-  ["📊","Mehr aus deiner Zeit","Inseljahr, Bestwerte, Hochrechnung und die Auswertung von Fokuszeit und Apps."],["🏝️","Goldene Lagune","Deine Insel in Gold und Türkis, mit Flamingos."],
+const PLUS_FEATS=[["🌍","Weltreise","4 neue Welten mit eigenen Tieren, Großprojekten und Kapiteln."],["🎃","Saison-Inseln","Halloween, Weihnachten, Sommer und Ostern: Deine Insel verwandelt sich, mit Saison-Looks und Stempeln."],
+  ["▶️","Mein Inseljahr","Dein Monat und dein Jahr als Story, mit Bild zum Teilen."],["⛵","Live-Insel","Die Bootsfahrt als Countdown auf dem Sperrbildschirm und in der Dynamic Island."],
+  ["📰","Der Insel-Kurier","Jede Woche die Inselzeitung von Mr. Bay: Schlagzeilen, Klatsch und Lucifers Kolumne."],["🛡️","Insel-Schutz Pro","Eigene Zeitpläne: morgens, bei der Arbeit, nachts."],
+  ["📊","Mehr aus deiner Zeit","Kalender, Bestwerte, Hochrechnung und die Auswertung von Fokuszeit und Apps."],["🏝️","Goldene Lagune","Deine Insel in Gold und Türkis, mit Flamingos."],
   ["👑","Plus-Looks","Kronen, Goldbrillen, Goldketten und goldenes Fell."],["👨‍👩‍👧","Für die ganze Familie","Mit dem Familien-Abo bis zu 6 Personen."],["✨","+10 % Punkte jeden Tag","Und ein goldener Rahmen beim Teilen."]];
 function plusStartSheet(){
   CUR_EV=null; stat("plus_start");
@@ -4999,7 +5037,7 @@ async function plusPaywall(from){
     ${saved>=60?`<div class="pw-stat"><b class="num">${hm(saved)}</b><span>hast du in ${ds.length} ${ds.length===1?"Tag":"Tagen"} schon zurückgewonnen.${yearDays>=1?`<small>Weiter so ergibt das rund ${yearDays} ${yearDays===1?"Tag":"Tage"} im Jahr.</small>`:""}</span></div>`:""}
     <div class="pw-sec"><h3>Das bekommst du</h3><ul class="pw-feats">${PLUS_FEATS.map(([i,t,s])=>`<li><span class="pw-ic" aria-hidden="true">${i}</span><span><b>${t}</b><span>${s}</span></span></li>`).join("")}</ul></div>
     <div class="pw-sec"><h3>Gratis oder Plus</h3><table class="pw-cmp"><thead><tr><th></th><th>Gratis</th><th class="p">Plus</th></tr></thead><tbody>
-      ${[["Insel, Bewohner, Tagesbilanz","✓","✓"],["Familieninsel","✓","✓"],["Fokus-Boot und Inselminute","✓","✓"],["Weltreise","Heimatinseln","5 Welten"],["Zeit-Statistik","Diese Woche","Alles"],["Insel-Schutz","Feste Zeiten","Eigene Zeitpläne"],["Goldene Lagune","–","✓"],["Plus-Looks","–","✓"],["Punkte pro Tag","100 %","110 %"]]
+      ${[["Insel, Bewohner, Tagesbilanz","✓","✓"],["Familieninsel","✓","✓"],["Fokus-Boot und Inselminute","✓","✓"],["Weltreise","Heimatinseln","5 Welten"],["Saison-Inseln","–","✓"],["Mein Inseljahr als Story","–","✓"],["Live-Insel","–","✓"],["Der Insel-Kurier","–","✓"],["Zeit-Statistik","Diese Woche","Alles"],["Insel-Schutz","Feste Zeiten","Eigene Zeitpläne"],["Goldene Lagune","–","✓"],["Plus-Looks","–","✓"],["Punkte pro Tag","100 %","110 %"]]
         .map(([a,b,c])=>`<tr><td>${a}</td><td class="${b==="✓"?"y":b==="–"?"n":""}">${b}</td><td class="y">${c}</td></tr>`).join("")}</tbody></table></div>
     <div class="pw-sec"><h3>Wähle deinen Plan</h3><div class="pw-plans" role="radiogroup" aria-label="Plan">${plans.map(planBtn).join("")}</div></div>
     <div class="pw-sec" id="pwTl"></div>
@@ -5058,6 +5096,8 @@ function plusCard(){
     ${on?`<p class="small">${sub?(sub.trial?"Probezeit bis ":"Abo läuft bis ")+nice(sub.until)+(sub.family?" · Familie":""):"Geschenkt bis "+nice(plusUntil())}</p>
       <p class="small muted" style="margin-top:8px">Inselstil</p>
       <div class="row fr-seg" role="radiogroup" aria-label="Inselstil">${[["","Klassisch"],["lagune","Goldene Lagune"]].map(([k,n])=>`<button type="button" class="${(S.isleStyle||"")===k?"on":""}" data-isle="${k}" aria-pressed="${(S.isleStyle||"")===k}">${n}</button>`).join("")}</div>
+      ${LI_NATIVE?`<label class="check" for="liveTgl" style="margin-top:6px"><input type="checkbox" id="liveTgl" ${S.liveIsland!==false?"checked":""}> Live-Insel: Bootsfahrt auf dem Sperrbildschirm</label>`:""}
+      <button class="btn ghost" id="livePrev" style="margin-top:4px">Live-Insel ansehen</button>
       ${sub&&st?`<button class="btn ghost" id="plusManage" style="margin-top:8px">Abo verwalten oder kündigen</button>`:!sub&&plusAvailable()?`<button class="btn secondary" id="plusMore" style="margin-top:8px">Plus verlängern</button>`:""}`
     :`<p class="small muted">Insel-Schutz Pro, Goldene Lagune, Plus-Looks und mehr. Alles Wichtige bleibt gratis.</p>
       ${plusAvailable()?`<button class="btn secondary" id="plusMore" style="margin-top:6px">Plus ansehen</button>`:""}`}
@@ -5066,15 +5106,409 @@ function plusCard(){
 function bindPlusCard(){
   const m=$("#plusMore"); if(m) m.onclick=()=>plusPaywall("einstellungen");
   document.querySelectorAll("[data-isle]").forEach(b=>b.onclick=()=>{if(!plusActive()) return plusPaywall("lagune"); S.isleStyle=b.dataset.isle||null; save(); toast(S.isleStyle?"Goldene Lagune an":"Klassische Insel"); settingsSheet()});
+  const lt=$("#liveTgl"); if(lt) lt.onchange=()=>{S.liveIsland=lt.checked; save(); if(!lt.checked) liveEnd(false); else if(S.boat) liveStart(S.boat)};
+  const lp=$("#livePrev"); if(lp) lp.onclick=livePreviewSheet;
   const g=$("#plusManage"); if(g) g.onclick=async()=>{const st=plusStore(); try{const r=await st.manage(); if(r&&r.cancelled){plusApply({active:false}); settingsSheet()} else setTimeout(plusSync,1500)}catch(e){}};
 }
 /* Plus-Looks: Extras 8–10 für Menschen, Goldkette und Goldbrille für Tiere, goldenes Fell */
-const ACC_PLUS=new Set([8,9,10]), COLLAR_FREE=5, SPECS_FREE=5, FUR_GOLD=99;
+const ACC_PLUS=new Set([8,9,10,11,12,13,14]), COLLAR_FREE=5, SPECS_FREE=5, FUR_GOLD=99;
 function plusLook(r,k,v){
   if(r.kind==="mensch") return k==="acc"&&ACC_PLUS.has(v);
   return (k==="collar"&&v>=COLLAR_FREE)||(k==="specs"&&v>=SPECS_FREE)||(k==="fur"&&v===FUR_GOLD);
 }
 const lagune=()=>S.isleStyle==="lagune"&&plusActive();
+/* ---------- Saison-Inseln (Plus) ----------
+   Zu Ostern, im Sommer, zu Halloween und im Advent verwandelt sich die Insel: Deko am Strand und am Himmel,
+   ein Saison-Look für die Bewohner (bleibt nach der Saison), ein Festtag und ein Stempel für 5 gute Tage in der Saison.
+   Entwickler: Saison in den Einstellungen erzwingen (localStorage „offland-season“, „aus“ = keine). */
+const SEASONS=[
+  {id:"fruehling",n:"Frühlingsinsel",k:"Frühling",e:"🌸",from:"03-20",to:"04-30",acc:14,c:"#FFB3C7",festN:"Ostersonntag",
+    txt:"Bunte Eier im Gras, Tulpen am Strand und Blüten in der Luft. Und ein Blumenkranz für alle, die mögen.",
+    bay:"Ich hab 40 Eier versteckt. Ich weiß noch, wo 12 sind.",
+    fest:"Die ganze Insel sucht Eier. Mr. Bay hat den Überblick verloren, Lucifer hat einen Verdacht.",
+    luc:"Ich hab die Eier nicht angerührt. Nur angestarrt. Sehr lange."},
+  {id:"sommer",n:"Sommerinsel",k:"Sommer",e:"🏖️",from:"07-01",to:"08-31",acc:13,c:"#FFD27A",festDay:"08-01",festN:"Sommerfest",
+    txt:"Sonnenschirm, Sandburg und ein Wasserball in der Brandung. Die Sonne trägt jetzt Sonnenbrille.",
+    bay:"Ich hab Sonnencreme für alle besorgt. Lichtschutzfaktor Bürgermeister.",
+    fest:"Sommerfest am Strand: Musik, Melonen und ein Sonnenuntergang, den keiner durchs Handy anschaut.",
+    luc:"Sand ist eine einzige große Katzentoilette. Ich sag's ja nur."},
+  {id:"halloween",n:"Halloween-Insel",k:"Halloween",e:"🎃",from:"10-15",to:"11-02",acc:11,c:"#FF9C3B",festDay:"10-31",festN:"Halloween-Nacht",
+    txt:"Kürbisse leuchten am Strand, Fledermäuse kreisen über der Insel und ein kleines Gespenst schwebt vorbei.",
+    bay:"Das Gespenst ist harmlos. Es hat nur Angst vor Push-Nachrichten.",
+    fest:"Süßes oder Saures! Alle ziehen verkleidet über die Insel, und die Kürbisse leuchten bis Mitternacht.",
+    luc:"Schwarze Katze an Halloween. Endlich nimmt mich jemand ernst."},
+  {id:"advent",n:"Weihnachtsinsel",k:"Advent",e:"🎄",from:"12-01",to:"12-26",acc:12,c:"#7FD4A8",festDay:"12-24",festN:"Heiligabend",
+    txt:"Ein Tannenbaum am Strand, Lichterketten an der Hütte, Geschenke im Sand und Schnee über dem Meer.",
+    bay:"Die Lichterkette hab ich selbst aufgehängt. Sie blinkt im Takt meines Herzens. Etwas unregelmäßig.",
+    fest:"Heiligabend auf OffLand: Alle sitzen zusammen unterm Baum. Keiner schaut aufs Handy, alle schauen in die Lichter.",
+    luc:"Ich hab mich in den Karton gesetzt. Das Geschenk war mir egal."}];
+const SEASON_GOOD=5, ACC_SEASON=new Set(SEASONS.map(s=>s.acc));
+let SSN_PREVIEW=null;   // Vorschau im Saison-Fenster, auch ohne Plus
+function seasonForced(){try{return localStorage.getItem("offland-season")||""}catch(e){return ""}}
+function seasonNow(){
+  const f=seasonForced(); if(f) return SEASONS.find(s=>s.id===f)||null;
+  if(navigator.webdriver) return null;                     // automatische Tests: nicht vom Datum abhängig
+  const md=today().slice(5); return SEASONS.find(s=>md>=s.from&&md<=s.to)||null;
+}
+const seasonShown=()=>SSN_PREVIEW||(plusActive()?seasonNow():null);   // was die Insel gerade trägt
+const seasonKey=s=>s.id+"-"+today().slice(0,4);
+function easterDay(y){   // Ostersonntag (gregorianisch) als „MM-TT“
+  const a=y%19,b=Math.floor(y/100),c=y%100,h=(19*a+b-Math.floor(b/4)-Math.floor((b-Math.floor((b+8)/25)+1)/3)+15)%30,
+    l=(32+2*(b%4)+2*Math.floor(c/4)-h-c%4)%7,m=Math.floor((a+11*h+22*l)/451),n=h+l-7*m+114;
+  return String(Math.floor(n/31)).padStart(2,"0")+"-"+String(n%31+1).padStart(2,"0");
+}
+const seasonFestDay=s=>s.festDay||easterDay(+today().slice(0,4));
+const seasonLookOk=i=>!ACC_SEASON.has(i)||(S.seasonLooks||[]).includes(i)||(seasonNow()||{}).acc===i;   // Saison-Looks: in der Saison oder schon gesammelt
+function seasonCheck(){
+  const s=seasonNow(); if(!s||!S.setup||!plusShown()) return;
+  const k=seasonKey(s), seen=S.seasonSeen||(S.seasonSeen={});
+  if(!seen[k]&&S.dayCount>=2){seen[k]=today(); S.pending.push({type:"season",id:s.id})}
+  if(!plusActive()) return;
+  const lk=S.seasonLooks||(S.seasonLooks=[]); if(!lk.includes(s.acc)) lk.push(s.acc);
+  if(!seen[k+"-fest"]&&today().slice(5)===seasonFestDay(s)){
+    seen[k+"-fest"]=today(); S.points+=25; glAdd(3);
+    log(s.festN+" auf der Insel! +25 Punkte, +3 % Glück.","good"); chron([],s.festN+" auf der Insel gefeiert.");
+    S.pending.push({type:"seasonFest",id:s.id});
+  }
+}
+function seasonDay(good){   // gute Tage in der Saison sammeln den Saisonstempel
+  const s=plusActive()&&seasonNow(); if(!s||!good) return;
+  const k=seasonKey(s), g=S.seasonGood||(S.seasonGood={}), st=S.seasonStamps||(S.seasonStamps=[]);
+  g[k]=(g[k]||0)+1;
+  if(g[k]>=SEASON_GOOD&&!st.includes(k)){st.push(k); stat("saison_stempel"); log("Saisonstempel: "+SEASON_GOOD+" gute Tage auf der "+s.n+".","good"); chron([],"Saisonstempel der "+s.n+" geholt."); S.pending.push({type:"seasonStamp",id:s.id})}
+}
+function seasonSheet(id){
+  const s=SEASONS.find(x=>x.id===id); if(!s) return showPending();
+  CUR_EV=null; const on=plusActive(); stat("saison_"+s.id+(on?"":"_gesperrt"));
+  const got=Math.min(SEASON_GOOD,(S.seasonGood||{})[seasonKey(s)]||0), who=here().find(r=>r.kind==="mensch"&&stage(r)==="erw");
+  SSN_PREVIEW=s; let pic=""; try{pic=scene()}finally{SSN_PREVIEW=null}
+  const hat=who?`<svg viewBox="${figVB(who)}" width="40" height="40" aria-hidden="true">${figure(Object.assign({},who,{look:Object.assign({},who.look,{acc:[s.acc]})}),0,0)}</svg>`:s.e;
+  sheet(`<div class="anim ssn-pic">${pic}</div>
+    <p class="label" style="color:${s.c}">${s.e} ${s.n} · bis ${nice(today().slice(0,4)+"-"+s.to)}</p>
+    <h2>${on?"Deine Insel hat sich verwandelt":"Die "+s.n+" ist da"}</h2>
+    <p class="muted">${s.txt}</p>
+    <div class="ssn-list"><div><span class="ssn-ic">${hat}</span><p><b>Saison-Look: ${ACC_NAMES[s.acc]}</b><span>${on?"Neu in der Umkleide unter Extras. Bleibt dir auch nach der Saison.":"Für alle Bewohner, in der Umkleide unter Extras."}</span></p></div>
+      <div><span class="ssn-ic">${s.e}</span><p><b>${s.festN} am ${nice(today().slice(0,4)+"-"+seasonFestDay(s))}</b><span>Ein Festtag mit Extrapunkten für die ganze Insel.</span></p></div>
+      <div><span class="ssn-ic">🏅</span><p><b>Saisonstempel</b><span>Für ${SEASON_GOOD} gute Tage in der Saison.${on?" Bisher: "+got+" von "+SEASON_GOOD+".":""}</span></p></div></div>
+    ${saysHtml("bay",s.bay)}
+    ${on?`<button class="btn" data-ok>Zur ${s.n}</button>`:`<button class="btn" id="ssnPlus">Mit Plus verwandeln</button><button class="btn ghost" data-ok>Später</button>`}`);
+  const b=$("#ssnPlus"); if(b) b.onclick=()=>{closeModal(); render(); plusPaywall("saison")};
+}
+function seasonFestSheet(id){
+  const s=SEASONS.find(x=>x.id===id); if(!s) return showPending();
+  CUR_EV=null; stat("saison_fest");
+  sheet(`<div class="anim ssn-pic">${scene()}</div><p class="label" style="color:${s.c}">${s.e} ${s.festN}</p>
+    <h2>Heute wird gefeiert!</h2><p class="muted">${s.fest}</p>
+    <div class="ssn-gain"><div><b class="num">+25</b><span>Punkte</span></div><div><b class="num">+3 %</b><span>Inselglück</span></div></div>
+    ${saysHtml("luc",s.luc)}<button class="btn" data-ok>Mitfeiern</button>`);
+}
+function seasonStampSheet(id){
+  const s=SEASONS.find(x=>x.id===id); if(!s) return showPending();
+  CUR_EV=null; sfx("project");
+  sheet(`<div class="ssn-stamp" style="--c:${s.c}" aria-hidden="true"><span>${s.e}</span><small>${s.k}<br>${today().slice(0,4)}</small></div>
+    <p class="label" style="color:${s.c}">Saisonstempel</p><h2>${SEASON_GOOD} gute Tage auf der ${s.n}</h2>
+    <p class="muted">Der Stempel ist jetzt in deinem Inselpass. Jede Saison gibt es einen neuen.</p>
+    ${saysHtml("bay","Den hab ich extra mit Goldtinte gestempelt. Also mit gelber. Aber sehr überzeugt.")}
+    <button class="btn" data-ok>In den Inselpass</button>`);
+}
+/* Saison-Deko in der Szene: am Strand (vor den Bewohnern gezeichnet) und am Himmel */
+function seasonGround(s,cx,home,night,two){
+  const f=(x,y,k,b)=>`<g transform="translate(${x} ${y}) scale(${k})">${b}</g>`;
+  const ship=home&&two&&has("schiff"), sp=[[cx-70,191],[cx-14,193],[cx+28,192],[cx+68,190]].filter(([x])=>!(ship&&x>=150&&x<=206));   // freie Plätze vorn am Strand (nicht am Schiff)
+  const at=(i,k,b,dx)=>{const p=sp[i]||sp[1]; return f(p[0]+(dx||0),p[1],k,b)};
+  if(s.id==="halloween"){
+    const pump=`<ellipse cy="-4.3" rx="6.3" ry="4.5" fill="#F28C28"/><path d="M0 -8.6v8.6M-3.3 -8q-1.7 3.8 0 7.8M3.3 -8q1.7 3.8 0 7.8" stroke="#D2691E" stroke-width=".7" fill="none"/><path d="M-.7 -8.4l.3-2.7 1.5-.4-.5 3.1z" fill="#5A7A34"/>`
+      +`<path${night?' class="ssn-flick"':""} d="M-3.6 -5.6l1.3-1.8 1 1.8zM3.6 -5.6l-1.3-1.8-1 1.8zM-3.3 -3.3q3.3 2.1 6.6 0l-.9 1.1-.8-.6-.9.8-.9-.8-.9.8-.8-.6z" fill="${night?"#FFD27A":"#6A3410"}"/>`;
+    return at(0,1.4,pump)+at(2,1.1,pump)+at(3,1.25,pump)
+      +`<g class="bob" style="animation-duration:3.4s">${f(cx-94,140,1,`<path d="M-6 7v-8a6 6 0 0 1 12 0v8l-2-1.6-2 1.6-2-1.6-2 1.6-2-1.6z" fill="#F3F1EA" opacity=".93"/><circle cx="-2.1" cy="-1.4" r="1" fill="#14151F"/><circle cx="2.1" cy="-1.4" r="1" fill="#14151F"/><ellipse cx="0" cy="2" rx="1" ry="1.3" fill="#14151F"/>`)}</g>`;
+  }
+  if(s.id==="advent"){
+    const tree=`<path d="M-1.2 0v-3h2.4v3z" fill="#8A5A3B"/><path d="M0 -24l-6 8h3l-5 7h3.4l-6 8h21.2l-6-8h3.4l-5-7h3z" fill="#2F7A4E"/>`
+      +[[-4,-6,"#FF6B5A"],[3.5,-8,"#FFD27A"],[-1.5,-12,"#7FD4E8"],[2,-16,"#FF6B5A"],[-2.5,-18.5,"#FFD27A"],[5.5,-3.5,"#7FD4E8"],[-6.5,-3,"#C8F169"]].map(([x,y,c],i)=>`<circle class="ssn-flick" style="animation-delay:${i*.3}s" cx="${x}" cy="${y}" r=".9" fill="${c}"/>`).join("")
+      +`<path d="M0 -27.6l.9 2 2.1.2-1.6 1.4.5 2.1L0 -23l-1.9 1.1.5-2.1-1.6-1.4 2.1-.2z" fill="#FFD27A"/>`;
+    const gift=(c,r)=>`<rect x="-3.4" y="-6" width="6.8" height="6" rx=".6" fill="${c}"/><path d="M0 -6v6M-3.4 -3h6.8" stroke="${r}" stroke-width="1"/><path d="M0 -6q-2.4-2.4-3-.4M0 -6q2.4-2.4 3-.4" stroke="${r}" stroke-width=".9" fill="none"/>`;
+    let o=f(cx-100,183,1.25,tree)+at(1,1.3,gift("#E5484D","#FFD27A"),-5)+at(1,1.05,gift("#7FD4E8","#F3F1EA"),6)+at(3,1.2,gift("#B6A4FF","#F3F1EA"));
+    if(home){o+=`<path d="M${cx+27} 138.6l23-17 23 17" fill="none" stroke="#2F4A3A" stroke-width=".7"/>`;   // Lichterkette am Dach der Hütte
+      for(let i=0;i<=10;i++){const t=i/10, x=t<=.5?cx+27+t*46:cx+50+(t-.5)*46, y=(t<=.5?138.6-t*34:121.6+(t-.5)*34)+1.4;
+      o+=`<circle class="ssn-flick" style="animation-delay:${(i%4)*.35}s" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="1.7" fill="${["#FF6B5A","#FFD27A","#7FD4E8","#C8F169"][i%4]}"/>`}}
+    return o;
+  }
+  if(s.id==="sommer"){
+    const umb=`<path d="M0 0v-19" stroke="#8A5A3B" stroke-width="1.3"/><path d="M-12 -17q12-11 24 0z" fill="#FF9C7A"/><path d="M-4 -17q4-11 8 0z" fill="#F3F1EA"/><path d="M3 1l12-1-2 3H1z" fill="#7FD4E8"/>`;
+    const castle=`<path d="M-8 0v-6h16v6z" fill="#D9B870"/><path d="M-8 -6v-3h1.6v1.4h1.6v-1.4h1.6v3zM3.2 -6v-3h1.6v1.4h1.6v-1.4h1.6v3z" fill="#D9B870"/><path d="M-2.4 -6v-7h4.8v7z" fill="#E3C77E"/><path d="M-2.4 -13v-2h1.6v1h1.6v-1h1.6v2z" fill="#E3C77E"/><path d="M0 -15v-5" stroke="#8A5A3B" stroke-width=".6"/><path d="M0 -20l4 1.3-4 1.3z" fill="#FF6B5A"/><path d="M-1 0v-2.4a1 1 0 0 1 2 0v2.4z" fill="#A88A4E"/>`;
+    const ball=`<circle r="4.2" fill="#F3F1EA"/><path d="M0 -4.2a4.2 4.2 0 0 1 4.2 4.2H0z" fill="#FF6B5A"/><path d="M0 0v4.2a4.2 4.2 0 0 1-4.2-4.2z" fill="#5B8CD6"/><path d="M-4.2 0a4.2 4.2 0 0 1 4.2-4.2V0z" fill="#FFD27A"/>`;
+    return at(0,1.3,umb)+at(2,1.2,castle)+`<g class="wave">${f(cx>150?62:96,210,1.2,ball)}</g>`;
+  }
+  const egg=(c,d)=>`<ellipse cy="-2.8" rx="2.2" ry="2.8" fill="${c}"/><path d="M-2.1 -2.6q2.1 1 4.2 0" stroke="${d}" stroke-width=".7" fill="none"/><path d="M-1.8 -4q1.8 .8 3.6 0" stroke="${d}" stroke-width=".5" stroke-dasharray=".8 .8" fill="none"/>`;
+  const tulip=c=>`<path d="M0 0v-7" stroke="#4E9A58" stroke-width=".9"/><path d="M0 -3q-2.6-1.6-3-4" stroke="#4E9A58" stroke-width=".8" fill="none"/><path d="M-2 -10.4v2.4q2 2.2 4 0v-2.4l-1 1-1-1.4-1 1.4z" fill="${c}"/>`;
+  const bunny=`<ellipse cx="0" cy="-3" rx="4" ry="3" fill="#F3F1EA"/><circle cx="3.4" cy="-6.2" r="2.4" fill="#F3F1EA"/><ellipse cx="2.6" cy="-10.4" rx=".9" ry="2.8" fill="#F3F1EA"/><ellipse cx="4.4" cy="-10" rx=".9" ry="2.6" fill="#F3F1EA" transform="rotate(14 4.4 -10)"/><ellipse cx="2.6" cy="-10.2" rx=".4" ry="1.8" fill="#FFB3C7"/><circle cx="4.2" cy="-6.6" r=".45" fill="#14151F"/><circle cx="-4" cy="-3.4" r="1.2" fill="#FFFFFF"/>`;
+  return at(0,1.5,egg("#FFB3C7","#B6A4FF"),-6)+at(0,1.3,egg("#C8F169","#FF9C7A"),5)+at(2,1.5,egg("#7FD4E8","#FFD27A"))+at(3,1.4,egg("#FFD27A","#FF9C7A"))
+    +at(1,1.3,tulip("#FF6B5A"),-6)+at(1,1.1,tulip("#FFD27A"))+at(1,1.3,tulip("#B6A4FF"),6)+f(cx-100,183,1.4,bunny);
+}
+function seasonSky(s,night){
+  if(s.id==="halloween") return `<g fill="${night?"#0B0C14":"#2A2235"}">${[[64,70,1],[96,58,.8],[268,76,.9]].map(([x,y,k],i)=>`<g class="drift" style="animation-duration:${6+i*2}s;animation-delay:${-i*1.3}s"><g transform="translate(${x} ${y}) scale(${k})"><g class="ssn-bat" style="animation-delay:${i*.15}s"><path d="M0 0c-1.6-2.6-4.6-3.4-8-2.2 1.4.6 2 1.6 2 2.8-1-.8-2.6-.8-3.8.2 2.6.2 4.4 1.2 5.2 2.6.8-.8 2.4-1.4 4.6-1.4s3.8.6 4.6 1.4c.8-1.4 2.6-2.4 5.2-2.6-1.2-1-2.8-1-3.8-.2 0-1.2.6-2.2 2-2.8-3.4-1.2-6.4-.4-8 2.2z"/></g></g></g>`).join("")}</g>`;
+  if(s.id==="fruehling") return `<g fill="#FFB3C7">${Array.from({length:10},(_,i)=>{const x=18+i*34, y=40+(i*29)%70;
+    return `<g class="ssn-fall" style="animation-duration:${6+i%4}s;animation-delay:${-((i*1.7)%8).toFixed(1)}s"><ellipse cx="${x}" cy="${y}" rx="1.8" ry="1.1" transform="rotate(${i*37} ${x} ${y})"/></g>`}).join("")}</g>`;
+  return "";
+}
+const sunShades=(x,y)=>`<g transform="translate(${x} ${y})"><path d="M-11 -2h22" stroke="#14151F" stroke-width="1.4"/><rect x="-10" y="-3.6" width="8.6" height="6" rx="2.6" fill="#14151F"/><rect x="1.4" y="-3.6" width="8.6" height="6" rx="2.6" fill="#14151F"/><path d="M-6 4.6q6 4 12 0" stroke="#B5651D" stroke-width="1.3" fill="none" stroke-linecap="round"/></g>`;
+function seasonFy(){   // Karte „Für dich“ während einer Saison
+  const s=seasonNow(); if(!s||!plusShown()||!S.setup) return "";
+  if(!plusActive()) return `<div class="fy"><p class="k" style="color:${s.c}">${s.e} ${s.n}</p><b>Verwandle deine Insel</b><button class="linkbtn" id="ssnFy">Ansehen ›</button></div>`;
+  const got=Math.min(SEASON_GOOD,(S.seasonGood||{})[seasonKey(s)]||0), done=(S.seasonStamps||[]).includes(seasonKey(s));
+  return `<div class="fy"><p class="k" style="color:${s.c}">${s.e} ${s.n}</p><b>${done?"Saisonstempel geholt":"Saisonstempel "+got+" / "+SEASON_GOOD}</b><p class="small muted">noch bis ${nice(today().slice(0,4)+"-"+s.to)}</p><button class="linkbtn" id="ssnFy">Ansehen ›</button></div>`;
+}
+
+/* ---------- Der Insel-Kurier (Plus) ----------
+   Jeden Sonntag die Inselzeitung von Mr. Bay: Schlagzeile der Woche, Meldungen, Zahlen, Inselgeflüster,
+   Lucifers Kolumne, Wetter und Kleinanzeigen. Aus der Woche zusammengesetzt, jede Ausgabe bleibt gleich. */
+const KU_HEAD=[
+  [/^Hochzeit: (.+) und (.+)\.$/,m=>["Hochzeit auf OffLand!",m[1]+" und "+m[2]+" haben Ja gesagt. Die Möwen haben Reis geworfen. Es war Brot."]],
+  [/^(.+) ist geboren\.$/,m=>["Willkommen, "+m[1]+"!","Nachwuchs auf der Insel. Mr. Bay hat schon ein Lätzchen mit Inselwappen bestellt."]],
+  [/^Großprojekt fertig: (.+)\.$/,m=>["Feierlich eröffnet: "+m[1],"Gebaut aus lauter Minuten ohne Handy. Mr. Bay hat das Band durchgeschnitten, Lucifer hatte die Schere versteckt."]],
+  [/^(.+) und (.+) haben sich verliebt\.$/,m=>["Verliebt: "+m[1]+" und "+m[2],"Gesehen am Steg, Hand in Hand. Die Redaktion schweigt diskret. Also fast."]],
+  [/^(.+?) \(.+\) ist eingezogen\.$/,m=>["Neu auf der Insel: "+m[1],m[1]+" hat schon ausgepackt und kennt alle Möwen beim Namen."]],
+  [/von der Möweninsel zurückgekehrt\.$/,()=>["Heimkehr von der Möweninsel","Mit Koffern, Muscheln und vielen Geschichten. Die Insel ist wieder vollzählig."]],
+  [/^Polarlicht/,()=>["Polarlicht über OffLand","Grün, lila, wunderschön. Und niemand hat es durchs Handy angeschaut."]],
+  [/^Inselfest/,()=>["Inselfest am Strand!","Nach einer starken Woche wurde bis spät gefeiert. Die Musik kam von den Möwen."]]];
+const KU_G1=[a=>a+" soll heimlich ein ganzes Buch zu Ende gelesen haben. Die Redaktion ist beeindruckt.",
+  a=>"Wer hat die letzte Kokosnuss gegessen? Alle Spuren führen zu "+a+". "+a+" bestreitet alles.",
+  a=>a+" wurde beim Summen gehört. Laut Ohrenzeugen war es fast der richtige Ton.",
+  a=>"Unbestätigten Berichten zufolge plant "+a+" ein Picknick. Die Möwen sind schon informiert.",
+  a=>a+" hat diese Woche angeblich dreimal laut gelacht, ganz ohne lustiges Video.",
+  a=>a+" hat am Strand einen Stein gefunden, der aussieht wie Mr. Bay. Mr. Bay sieht keine Ähnlichkeit."];
+const KU_G2=[(a,b)=>"Man munkelt, "+a+" und "+b+" wurden beim Sonnenuntergang am Steg gesehen. Ohne Handy.",
+  (a,b)=>a+" hat "+b+" beim Muschelweitwurf geschlagen. "+b+" verlangt eine Revanche.",
+  (a,b)=>a+" und "+b+" streiten, wer den schönsten Sonnenuntergang gesehen hat. Keiner hat ein Foto. Beide haben recht.",
+  (a,b)=>"Hat "+a+" für "+b+" gekocht? Zeugen berichten von verdächtig gutem Duft aus der Hütte."];
+const KU_LUC=[["Diese Woche wenig Handy, viel Insel. Ich habe nichts zu kritisieren. Das ärgert mich.","Ihr wart so oft offline, dass ich mich fast gelangweilt hätte. Fast.",
+  "Gute Woche. Ich gebe das nur zu, weil niemand diese Kolumne liest.","Man hat mich gefragt, wie ich die Woche fand. Ich hab mich in die Sonne gelegt. Das heißt: gut."],
+  ["Zu viel Bildschirm diese Woche. Ich sage nichts. Ich schaue nur. Lange.","Ich hab mich dreimal auf das Handy gelegt. Gern geschehen.",
+  "Nächste Woche wird besser. Sagt mein Bauchgefühl, und mein Bauch ist sehr klug.","Ein Handy ist ein Stein, der leuchtet. Ich bevorzuge Steine, die warm sind."]];
+const KU_BAY=["Liebe Insel, ich bin stolz auf euch. Und ein kleines bisschen auf mich, weil ich das hier jede Woche schreibe.",
+  "Jede Minute ohne Handy ist eine Minute für uns. Ich hab nachgerechnet: Das sind ganz schön viele.",
+  "Meine Tür steht immer offen. Die Hütte hat zwar keine Tür, aber Sie wissen, was ich meine.",
+  "Nächste Woche plane ich etwas Großes. Was genau, weiß ich noch nicht. Aber groß.",
+  "Ein Bürgermeister ist nur so gut wie seine Insel. Ich bin also ziemlich gut."];
+const KU_WX=[[6,"☀️","Sonnig","Fernsicht bis zum Festland, leichte Brise aus Richtung Hängematte."],[4,"⛅","Heiter bis wolkig","Hier und da eine Wolke, sonst bestes Inselwetter."],
+  [2,"🌦️","Wechselhaft","Gelegentliche Bildschirmschauer, zum Abend hin klart es auf."],[0,"🌧️","Regnerisch","Die Möwen tragen Gummistiefel. Nächste Woche soll es besser werden."]];
+const KU_ADS=["Verschenke 37 ungelesene Benachrichtigungen. Nur an Selbstabholer.","Suche Ruhe. Biete Handy. Chiffre 404.","Hängematte, kaum benutzt, sucht Mensch mit Zeit.",
+  "Lucifer vermietet seinen Sonnenplatz. Nicht. Niemals. Anfragen zwecklos.","Tausche WLAN-Passwort gegen einen guten Sonnenuntergang.","Gefunden: ein Ladekabel am Strand. Der Besitzer darf es gern vergessen.",
+  "Möwe sucht Pommes. Ernst gemeinte Angebote an den Hafen.","Mr. Bay sucht Helfer fürs nächste Inselfest. Gute Laune mitbringen, Handy zu Hause lassen.",
+  "Biete Gesellschaft beim Sonnenaufgang. Bitte pünktlich, die Sonne wartet nicht.","Verkaufe Selfie-Stick. Nie wieder gebraucht."];
+function kurierData(wk){
+  const w=weekData(wk); if(!w) return null;
+  const end=addDays(w.mon,6), ch=S.chronicle.filter(c=>c.day&&c.day>=w.mon&&c.day<=end), n=w.ds.length;
+  const ord=(a,salt)=>a.map((x,i)=>[x,hsh(wk+salt+i)]).sort((p,q)=>p[1]-q[1]).map(p=>p[0]);
+  let head=null, used=null;
+  for(const [re,f] of KU_HEAD){const c=ch.slice().reverse().find(x=>re.test(x.text)); if(c){head=f(c.text.match(re)); used=c; break}}
+  if(!head) head=w.good===n&&n>=5?["Perfekte Woche: "+n+" von "+n+" Tagen im Ziel","Die Insel strahlt. Die Möwen sprechen von einem historischen Ereignis."]
+    :w.saved>=600?[hm(w.saved)+" zurückerobert","So viel Zeit hat die Insel diese Woche dem Handy abgenommen. Die Redaktion ist sprachlos. Fast."]
+    :w.good*2>=n?["Gute Woche auf OffLand",w.good+" von "+n+" Tagen im Ziel. Die Insel ist zufrieden, die Hängematte ausgebucht."]
+    :["Stürmische Woche, starke Insel","Nicht jeder Tag lief nach Plan. Aber die Insel hält zusammen, und nächste Woche ist eine neue."];
+  const eq=equivTop(w.saved);
+  const lead=w.good+" von "+n+" Tagen lag die Insel im Ziel."+(w.saved?" Zusammen "+hm(w.saved)+" weniger am Handy als früher.":"")+(eq.length?" Das reicht für "+eqText(eq.slice(0,2))+".":"")
+    +(w.pavg==null?"":w.pavg>w.avg+5?" Besser als in der Vorwoche!":w.pavg<w.avg-5?" Die Vorwoche war etwas stärker, aber das holt die Insel wieder auf.":"");
+  const ppl=ord(here().filter(r=>r.kind==="mensch").map(r=>r.name),"p"), gossip=[];
+  if(ppl.length>=2) gossip.push(KU_G2[hsh(wk+"g2")%KU_G2.length](ppl[0],ppl[1]));
+  if(ppl.length) gossip.push(KU_G1[hsh(wk+"g1")%KU_G1.length](ppl[ppl.length>2?2:0]));
+  const g7=Math.round(w.good/n*7), wx=KU_WX.find(x=>g7>=x[0]), m=parse(w.mon).getMonth();
+  const temp=[3,4,9,13,17,22,25,26,21,15,9,5][m]+hsh(wk+"t")%4;
+  const firstMon=addDays(S.days[0].day,-((parse(S.days[0].day).getDay()+6)%7));
+  return {wk,w,n,kw:+wk.split("-W")[1],nr:Math.max(1,Math.round((parse(w.mon)-parse(firstMon))/(7*864e5))+1),
+    range:parse(w.mon).toLocaleDateString(LOC,{day:"numeric",month:"numeric"})+"–"+parse(end).toLocaleDateString(LOC,{day:"numeric",month:"numeric"}),
+    head,lead,news:ch.filter(c=>c!==used).slice(-3).map(c=>c.text),gossip,wx,temp,
+    luc:pickSeed(KU_LUC[w.good*2>=n?0:1],wk+"l"),bay:pickSeed(KU_BAY,wk+"b"),ads:ord(KU_ADS,"a").slice(0,3)};
+}
+const pickSeed=(a,seed)=>a[hsh(seed)%a.length];
+function kurierSheet(wk){
+  if(plusLocked()) return plusPaywall("kurier");
+  const k=kurierData(wk); if(!k) return toast("Für diese Woche gibt es noch keine Ausgabe.");
+  CUR_EV=null; stat("kurier");
+  const w=k.w, nums=[[w.good+"/"+k.n,"Tage im Ziel"],[hm(w.saved),"weniger am Handy"],[hm(w.focus),"Fokuszeit"],["+"+w.pts,"Punkte"]];
+  sheet(`<article class="ku" aria-label="Der Insel-Kurier">
+    <header class="ku-mast"><p class="ku-top"><span>Nr. ${k.nr}</span><span>KW ${k.kw} · ${esc(k.range)}</span><span>1 Muschel</span></p>
+      <p class="ku-title">Der Insel-Kurier</p><p class="ku-sub">Unabhängig · handyfrei · herausgegeben von Mr. Bay</p></header>
+    <section class="ku-lead"><h2>${esc(k.head[0])}</h2><p class="ku-deck">${esc(k.head[1])}</p>
+      <figure class="ku-pic">${scene()}<figcaption>Unser Bild der Woche: die Insel mit ${here().length} Bewohnern</figcaption></figure>
+      <p>${esc(k.lead)}</p></section>
+    <div class="ku-cols"><section><h3>Zahlen der Woche</h3><ul class="ku-nums">${nums.map(([v,t])=>`<li><b class="num">${v}</b><span>${t}</span></li>`).join("")}</ul></section>
+      <section><h3>Inselwetter</h3><p class="ku-wx"><span aria-hidden="true">${k.wx[1]}</span><b>${k.wx[2]}, ${k.temp} Grad</b></p><p>${k.wx[3]}</p></section></div>
+    ${k.news.length?`<section><h3>Meldungen</h3><ul class="ku-news">${k.news.map(t=>`<li>${esc(t)}</li>`).join("")}</ul></section>`:""}
+    ${k.gossip.length?`<section class="ku-box"><h3>Inselgeflüster</h3>${k.gossip.map(t=>`<p>${esc(t)}</p>`).join("")}</section>`:""}
+    <section class="ku-col"><span class="ku-face">${lucPic(42)}</span><div><h3>Lucifers Ecke</h3><p><q>${esc(k.luc)}</q></p></div></section>
+    <section class="ku-col"><span class="ku-face">${bayPic(42)}</span><div><h3>Der Bürgermeister meint</h3><p><q>${esc(k.bay)}</q></p></div></section>
+    <section><h3>Kleinanzeigen</h3><div class="ku-ads">${k.ads.map(t=>`<p>${esc(t)}</p>`).join("")}</div></section>
+  </article>
+  <div class="row"><button class="btn secondary grow" id="kuShare">Teilen</button><button class="btn grow" data-ok>Zur Insel</button></div>`);
+  $("#kuShare").onclick=()=>shareText("Der Insel-Kurier, KW "+k.kw+": "+k.head[0]+" 🌴",inviteLink());
+}
+const kurierBtn=wk=>plusShown()?`<button class="rowbtn" id="kuBtn" data-wk="${wk}"><span class="plan-ic" style="background:#3A3122;color:#F3E6C8" aria-hidden="true">📰</span><span class="grow"><b>Der Insel-Kurier${plusActive()?"":` <i class="uk-star" style="position:static">★</i>`}</b><span class="small muted">Die Inselzeitung zur KW ${+wk.split("-W")[1]}</span></span><span class="muted">›</span></button>`:"";
+
+/* ---------- Mein Inseljahr (Plus) ----------
+   Dein Monat und dein Jahr als Story: gewonnene Zeit, gute Tage, Serie, neue Bewohner, Fokus-Boot,
+   deine Inselpersönlichkeit und ein Bild zum Teilen. Ohne Plus gibt es die ersten zwei Seiten als Vorgeschmack. */
+const WRAP_MIN={m:5,y:14}, WRAP_MS=6500;   // eingetragene Tage für einen Rückblick, Zeit pro Seite
+const WD_N=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+const WRAP_TYPES={
+  leuchtturm:["🗼","Der Leuchtturm","Du stehst. Egal wie stürmisch es draußen ist, du bleibst im Ziel und zeigst anderen den Weg."],
+  fest:["🎉","Das Inselfest","Bei dir ist immer was los. Neue Gesichter, volle Insel, gute Stimmung."],
+  boot:["⛵","Das Fokus-Boot","Wenn du loslegst, dann richtig. Handy weg, Segel hoch, Ziel erreicht."],
+  welle:["🌊","Die Welle","Erst Anlauf, dann Schwung. Du bist mit jeder Woche stärker geworden."],
+  palme:["🌴","Die Palme","Du biegst dich manchmal, aber du brichst nie. Und du richtest dich immer wieder auf."]};
+const wrapName=per=>per.length===4?"Dein Inseljahr "+per:"Dein "+monthName(per);
+const wrapDays=per=>S.days.filter(d=>d.day.startsWith(per)).length;
+function wrapPeriods(){   // neueste zuerst, das Jahr vor seinen Monaten
+  const ks=[...new Set(S.days.map(d=>d.day.slice(0,7)))], ys=[...new Set(ks.map(m=>m.slice(0,4)))];
+  return ys.sort().reverse().flatMap(y=>(wrapDays(y)>=WRAP_MIN.y?[y]:[]).concat(ks.filter(m=>m.startsWith(y)&&wrapDays(m)>=WRAP_MIN.m).sort().reverse()));
+}
+function wrapData(per){
+  const ds=S.days.filter(d=>d.day.startsWith(per)).sort((a,b)=>a.day<b.day?-1:1), n=ds.length; if(!n) return null;
+  const inP=d=>!!d&&d.startsWith(per), year=per.length===4, ok=d=>d.min<=S.budget;
+  let streak=0, cur=0, prev=null;
+  ds.forEach(d=>{cur=ok(d)?(cur&&prev&&addDays(prev,1)===d.day?cur+1:1):0; prev=d.day; streak=Math.max(streak,cur)});
+  const by=[[],[],[],[],[],[],[]]; ds.forEach(d=>by[(parse(d.day).getDay()+6)%7].push(d.min));
+  const wd=by.map((l,i)=>[i,l.length>=2?l.reduce((a,b)=>a+b,0)/l.length:Infinity]).sort((a,b)=>a[1]-b[1])[0];
+  const ch=S.chronicle.filter(c=>inP(c.day));
+  const newR=[...new Set(ch.filter(c=>/ ist eingezogen\.$| ist geboren\.$/.test(c.text)).map(c=>c.ids[0]))].map(id=>S.residents.find(r=>r.id===id)).filter(Boolean);
+  const fl=(S.focusLog||[]).filter(f=>inP(f.day)), focus=fl.reduce((a,f)=>a+f.min,0);
+  const fc=FOCUS_CATS.map(([id,nm])=>[nm,fl.filter(f=>f.cat===id).reduce((a,f)=>a+f.min,0)]).sort((a,b)=>b[1]-a[1])[0];
+  const half=Math.floor(n/2), avg=l=>l.reduce((a,d)=>a+d.min,0)/Math.max(1,l.length), good=ds.filter(ok).length;
+  const type=good/n>=.8?"leuchtturm":newR.length>=(year?6:3)?"fest":focus>=(year?1500:240)||fl.length>=(year?30:6)?"boot":n>=6&&avg(ds.slice(half))<=avg(ds.slice(0,half))*.85?"welle":"palme";
+  return {per,year,ds,n,good,streak,newR,focus,fn:fl.length,type,
+    saved:ds.reduce((a,d)=>a+Math.max(0,S.baseline-d.min),0),wd:wd[1]<Infinity?wd[0]:null,best:ds.reduce((a,d)=>d.min<a.min?d:a,ds[0]),
+    built:(S.builtLog||[]).filter(b=>inP(b.day)).length,fc:fc&&fc[1]?fc[0]:null};
+}
+function wrapSlides(w){
+  const T=WRAP_TYPES[w.type], eq=equivTop(w.saved), q=w.good/w.n, at=(d,h)=>`<div class="wp-in" style="--d:${d}s">${h}</div>`;
+  const figs=w.newR.slice(0,6).map((r,i)=>`<div class="wp-in" style="--d:${(.35+i*.12).toFixed(2)}s"><svg viewBox="${figVB(r)}" width="54" height="54" aria-hidden="true">${figure(r,0,0)}</svg><i>${esc(r.name)}</i></div>`).join("");
+  const bld=w.built?" "+w.built+" "+(w.built===1?"Großprojekt":"Großprojekte")+" fertig gebaut.":"";
+  return [
+    {bg:"#2E2357",h:`<p class="wp-k wp-in">${w.year?"Dein Jahresrückblick":"Dein Monatsrückblick"}</p><h2 class="wp-big wp-in" style="--d:.15s">${esc(wrapName(w.per))}</h2>
+      <div class="wp-scene wp-in" style="--d:.3s">${scene()}</div>${at(.5,`<p>${w.n} Tage eingetragen. Mr. Bay hat alles nachgerechnet.</p>`)}`},
+    {bg:"#21402A",h:`<p class="wp-k wp-in">Zurückgeholt</p><p class="wp-num wp-in" style="--d:.15s">${w.saved?hm(w.saved):"0 min"}</p>
+      ${at(.3,`<p>${w.saved?"weniger am Handy als mit deinem alten Schnitt.":"Noch kein Vorsprung. Aber du warst "+w.n+" Tage dabei, und das zählt."}</p>`)}
+      ${eq.length?`<div class="wp-eq">${eq.map((x,i)=>at((.5+i*.15).toFixed(2),`<span class="wp-ic">${actIcon(x.a)}</span><b class="num">${x.c}</b><i>${esc(x.c===1?SING[x.a.n]||x.a.n:x.a.n)}</i>`)).join("")}</div>`:""}`},
+    {bg:"#4A3018",h:`<p class="wp-k wp-in">Im Ziel</p><p class="wp-num wp-in" style="--d:.15s">${w.good}<small> von ${w.n} Tagen</small></p>
+      <div class="wp-cal wp-in" style="--d:.3s" aria-hidden="true">${w.ds.map(d=>`<i class="${d.min<=S.budget?"ok":""}"></i>`).join("")}</div>
+      ${at(.45,`<p>${q>=.7?"Das ist richtig stark.":q>=.4?"Fast die Hälfte und mehr. Da geht noch was, und du bist auf dem Weg.":"Jeder gute Tag zählt. Und es werden mehr."}</p>`)}`},
+    {bg:"#173E4A",h:`<p class="wp-k wp-in">Deine längste Serie</p><p class="wp-num wp-in" style="--d:.15s">${w.streak}<small> ${w.streak===1?"Tag":"Tage am Stück"}</small></p>
+      ${w.wd!=null?at(.35,`<p>Dein stärkster Wochentag: <b>${WD_N[w.wd]}</b></p>`):""}${at(.5,`<p>Bester Tag: ${nice(w.best.day)} mit nur <b>${hm(w.best.min)}</b> am Handy.</p>`)}`},
+    {bg:"#3E2346",h:w.newR.length?`<p class="wp-k wp-in">Neu auf deiner Insel</p><p class="wp-num wp-in" style="--d:.15s">${w.newR.length}<small> ${w.newR.length===1?"neuer Bewohner":"neue Bewohner"}</small></p><div class="wp-figs">${figs}</div>${bld?at(1,`<p>${bld.trim()}</p>`):""}`
+      :`<p class="wp-k wp-in">Deine Insel</p><p class="wp-num wp-in" style="--d:.15s">${here().length}<small> Bewohner</small></p>${at(.3,`<p>${bld?bld.trim():"Alle sind geblieben. Auch das ist eine Leistung."}</p>`)}`},
+    w.focus?{bg:"#1C2A4A",h:`<p class="wp-k wp-in">Fokus-Boot</p><p class="wp-num wp-in" style="--d:.15s">${hm(w.focus)}</p>
+      ${at(.3,`<p>Fokuszeit in ${w.fn} ${w.fn===1?"Fahrt":"Fahrten"}${w.fc?`. Am meisten: <b>${esc(w.fc)}</b>`:""}.</p>`)}<div class="wp-boat wp-in" style="--d:.45s" aria-hidden="true">⛵</div>`}:null,
+    {bg:"#4A3D16",h:`<p class="wp-k wp-in">Deine Inselpersönlichkeit</p><p class="wp-type wp-in" style="--d:.2s" aria-hidden="true">${T[0]}</p><h2 class="wp-big wp-in" style="--d:.4s">${T[1]}</h2>${at(.6,`<p>${T[2]}</p>`)}`},
+    {bg:"#2E2357",end:1,h:`<p class="wp-k wp-in">${esc(wrapName(w.per))}</p><h2 class="wp-big wp-in" style="--d:.1s">Danke fürs Offline-Sein!</h2>
+      <div class="wp-duo wp-in" style="--d:.3s" aria-hidden="true"><svg viewBox="-24 -25 48 27" width="190"><g transform="translate(-10 0)">${baySvg(true)}</g><g transform="translate(11 0)">${lucSvg(true)}</g></svg></div>
+      ${at(.45,`<p>${T[0]} ${T[1]} · ${w.saved?hm(w.saved)+" zurückgeholt":w.good+" gute Tage"}</p>`)}
+      <button class="btn wp-in" style="--d:.55s" id="wpShare" type="button">Bild teilen</button><button class="btn ghost wp-in" style="--d:.65s" type="button" data-ok>Fertig</button>`}
+  ].filter(Boolean);
+}
+let WP_T=null;
+function wrapSheet(per){
+  const w=wrapData(per); if(!w) return showPending();
+  CUR_EV=null; const on=!plusLocked(); stat("inseljahr_"+(w.year?"jahr":"monat")+(on?"":"_gesperrt"));
+  const all=wrapSlides(w), lock={bg:"#2A2140",end:1,h:`<p class="ps-star wp-in">★ OffLand Plus</p><h2 class="wp-big wp-in" style="--d:.15s">Da kommt noch mehr</h2>
+      ${`<p class="wp-in" style="--d:.3s">Deine Serie, deine neuen Bewohner, dein Fokus-Boot und deine Inselpersönlichkeit. Mit Plus siehst du deinen ganzen Rückblick und kannst ihn teilen.</p>`}
+      <p class="wp-type wp-in wp-blur" style="--d:.45s" aria-hidden="true">${WRAP_TYPES[w.type][0]}</p>
+      <button class="btn wp-in" style="--d:.55s" type="button" id="wpPlus">Plus ansehen</button><button class="btn ghost wp-in" style="--d:.65s" type="button" data-ok>Schließen</button>`};
+  const sl=on?all:all.slice(0,2).concat(lock);
+  $("#modalRoot").innerHTML=`<div class="modal wp-modal"><div class="wp" role="dialog" aria-modal="true" aria-label="${esc(wrapName(per))}">
+    <div class="wp-bars" aria-hidden="true">${sl.map(()=>"<i><b></b></i>").join("")}</div>
+    <button class="wp-x" type="button" data-ok aria-label="Schließen">✕</button>
+    ${sl.map((s,i)=>`<section class="wp-s" style="--bg:${s.bg}"${i?" hidden":""}>${s.h}</section>`).join("")}
+    <button class="wp-nav prev" type="button" aria-label="Zurück">‹</button><button class="wp-nav next" type="button" aria-label="Weiter">›</button></div></div>`;
+  const box=$("#modalRoot .wp"), secs=[...box.querySelectorAll(".wp-s")], bars=[...box.querySelectorAll(".wp-bars i")];
+  let i=0;
+  const go=k=>{
+    if(k<0||k>=secs.length) return; i=k; clearTimeout(WP_T);
+    secs.forEach((s,j)=>s.hidden=j!==i);
+    bars.forEach((b,j)=>{b.className=j<i?"done":""; const x=b.firstChild; x.style.animation="none"; void x.offsetWidth; x.style.animation=""; if(j===i) b.className="on"});
+    if(!sl[i].end) WP_T=setTimeout(()=>go(i+1),WRAP_MS);
+  };
+  const close=()=>{clearTimeout(WP_T); closeModal(); render(); showPending()};
+  box.querySelectorAll("[data-ok]").forEach(b=>b.onclick=close);
+  box.querySelector(".wp-nav.prev").onclick=()=>go(i-1); box.querySelector(".wp-nav.next").onclick=()=>go(i+1);
+  box.addEventListener("click",e=>{if(e.target.closest("button,a")) return; const r=box.getBoundingClientRect(); go(e.clientX-r.left<r.width/3?i-1:i+1)});
+  box.addEventListener("keydown",e=>{if(e.key==="ArrowRight") go(i+1); else if(e.key==="ArrowLeft") go(i-1); else if(e.key==="Escape") close()});
+  const sh=$("#wpShare"); if(sh) sh.onclick=async()=>{sh.disabled=true; clearTimeout(WP_T);
+    try{await shareBlob(await wrapImage(w),"offland-"+w.per+".png",(w.year?"Mein OffLand-Jahr "+w.per:"Mein "+monthName(w.per)+" auf OffLand")+": "+(w.saved?hm(w.saved)+" weniger am Handy, ":"")+w.good+" gute Tage. 🌴 "+inviteLink())}catch(e){toast("Das Bild konnte nicht erstellt werden.")}
+    sh.disabled=false};
+  const pp=$("#wpPlus"); if(pp) pp.onclick=()=>{clearTimeout(WP_T); closeModal(); render(); plusPaywall("inseljahr")};
+  go(0); setTimeout(()=>{const x=box.querySelector(".wp-x"); if(x) x.focus()},50);
+}
+async function shareBlob(blob,name,text){
+  const file=new File([blob],name,{type:"image/png"});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],text})}catch(e){} return}
+  const u=URL.createObjectURL(blob), a=document.createElement("a"); a.href=u; a.download=name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(u),2000); toast("Bild gespeichert");
+}
+async function wrapImage(w){
+  const Wd=1080,Ht=1920, cv=document.createElement("canvas"); cv.width=Wd; cv.height=Ht;
+  const c=cv.getContext("2d"), T=WRAP_TYPES[w.type];
+  try{await document.fonts.ready}catch(e){}
+  const g=c.createLinearGradient(0,0,0,Ht); g.addColorStop(0,"#2E2357"); g.addColorStop(1,"#14151F"); c.fillStyle=g; c.fillRect(0,0,Wd,Ht);
+  c.font="800 76px 'Bricolage Grotesque', sans-serif"; c.textAlign="left";
+  const w1=c.measureText("Off").width, w2=c.measureText("Land").width, lx=(Wd-w1-w2)/2;
+  c.fillStyle="#F3F1EA"; c.fillText("Off",lx,150); c.fillStyle="#C8F169"; c.fillText("Land",lx+w1,150); c.textAlign="center";
+  c.fillStyle="#FFD27A"; c.font="800 44px Manrope, sans-serif"; c.fillText(TR(w.year?"Mein Inseljahr "+w.per:"Mein "+monthName(w.per)).toUpperCase(),Wd/2,236);
+  const svg=scene().replace('<svg viewBox="0 0 360 240"','<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="593" viewBox="18 48 324 192"');
+  const img=new Image(); img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg); await img.decode();
+  c.save(); c.beginPath(); c.roundRect(40,290,1000,593,56); c.clip(); c.drawImage(img,40,290,1000,593); c.restore();
+  c.lineWidth=10; c.strokeStyle="#FFD27A"; c.beginPath(); c.roundRect(40,290,1000,593,56); c.stroke();
+  c.fillStyle="#C8F169"; c.font="800 150px 'Bricolage Grotesque', sans-serif"; c.fillText(w.saved?hm(w.saved):w.good+"",Wd/2,1080);
+  c.fillStyle="#F3F1EA"; c.font="700 46px Manrope, sans-serif"; c.fillText(w.saved?"weniger am Handy":"gute Tage",Wd/2,1150);
+  [[w.good+"/"+w.n,"Tage im Ziel"],[String(w.streak),w.streak===1?"Tag Serie":"Tage Serie"],[String(w.newR.length),w.newR.length===1?"neuer Bewohner":"neue Bewohner"]].forEach(([v,t],i)=>{
+    const x=60+i*330; c.fillStyle="#26233D"; c.beginPath(); c.roundRect(x,1210,300,190,40); c.fill();
+    c.fillStyle="#F3F1EA"; c.font="800 72px 'Bricolage Grotesque', sans-serif"; c.fillText(v,x+150,1300);
+    c.fillStyle="#A4A6BD"; c.font="600 32px Manrope, sans-serif"; c.fillText(t,x+150,1352)});
+  c.font="96px sans-serif"; c.fillText(T[0],Wd/2,1530);
+  c.fillStyle="#FFD27A"; c.font="800 56px 'Bricolage Grotesque', sans-serif"; c.fillText(T[1],Wd/2,1610);
+  c.fillStyle="#26233D"; c.beginPath(); c.roundRect(140,1680,800,140,70); c.fill();
+  c.fillStyle="#F3F1EA"; c.font="700 42px Manrope, sans-serif"; c.fillText("Spiel mit: Code "+myCode(),Wd/2,1746);
+  c.fillStyle="#A4A6BD"; c.font="500 32px Manrope, sans-serif"; c.fillText(APP_URL.replace(/^https:\/\//,"").replace(/\/$/,""),Wd/2,1794);
+  c.fillStyle="#FFD27A"; c.font="800 34px Manrope, sans-serif"; c.fillText("★ PLUS",Wd/2,1880);
+  return await new Promise(res=>cv.toBlob(res,"image/png"));
+}
+function wrapListSheet(){
+  const ps=wrapPeriods();
+  if(ps.length===1) return wrapSheet(ps[0]);
+  sheet(`<p class="label" style="color:var(--amber)">★ Mein Inseljahr</p><h2>Deine Rückblicke</h2>
+    ${ps.length?`<div class="wp-list">${ps.map(p=>`<button class="rowbtn" data-wrap="${p}"><span class="plan-ic" style="background:${p.length===4?"#3A3122":"#26233D"}" aria-hidden="true">${p.length===4?"🏝️":"🗓️"}</span><span class="grow"><b>${esc(wrapName(p))}</b><span class="small muted">${wrapDays(p)} Tage eingetragen${p===today().slice(0,7)||p===today().slice(0,4)?" · bis heute":""}</span></span><span class="muted">▶</span></button>`).join("")}</div>`
+      :`<p class="muted">Sobald du ${WRAP_MIN.m} Tage in einem Monat eingetragen hast, gibt es hier deinen Monatsrückblick als Story. Ab ${WRAP_MIN.y} Tagen im Jahr auch dein Inseljahr.</p>`}
+    <button class="btn" data-ok>Schließen</button>`);
+  document.querySelectorAll("#modalRoot [data-wrap]").forEach(b=>b.onclick=()=>wrapSheet(b.dataset.wrap));
+}
+const wrapBtn=()=>plusShown()?`<button class="rowbtn" id="wrapBtn"><span class="plan-ic" style="background:#3A2A55;color:var(--amber)" aria-hidden="true">▶</span><span class="grow"><b>Mein Inseljahr${plusActive()?"":` <i class="uk-star" style="position:static">★</i>`}</b><span class="small muted">Dein Monat und dein Jahr als Story</span></span><span class="muted">›</span></button>`:"";
+
+/* ---------- Live-Insel (Plus) ----------
+   Während der Fokus-Bootsfahrt zeigt das iPhone (ab iOS 16.1) einen Countdown auf dem Sperrbildschirm und in der Dynamic Island,
+   Lucifer passt auf. Swift: ios/App/App/LiveIslandPlugin.swift, Anzeige: ios/App/OffLandWidget/OffLandWidget.swift.
+   Texte kommen schon übersetzt aus der App mit. Im Browser gibt es eine Vorschau. */
+const LI_NATIVE=(()=>{try{const C=window.Capacitor;return C&&C.isNativePlatform&&C.isNativePlatform()&&C.getPlatform()==="ios"&&C.registerPlugin?C.registerPlugin("LiveIsland"):null}catch(e){return null}})();
+const liveOn=()=>plusActive()&&S.liveIsland!==false;
+function liveText(b){
+  const crew=b.crew&&S.residents.find(r=>r.id===b.crew), cat=focusCat(b.cat||"ruhe");
+  return {task:TR(b.task||cat[1]),title:TR("Fokus-Bootsfahrt"),who:crew?TR(crew.name+" segelt mit"):TR("Allein auf See"),watch:TR("Lucifer passt auf"),done:TR("Angekommen!")};
+}
+function liveStart(b){
+  if(!LI_NATIVE||!liveOn()||!b) return;
+  LI_NATIVE.start(Object.assign({start:b.start,end:b.start+b.dur*60000,minutes:b.dur},liveText(b))).catch(()=>{});
+}
+function liveEnd(done){if(LI_NATIVE) LI_NATIVE.end({done:!!done}).catch(()=>{})}
+function livePreviewSheet(){
+  const b=S.boat||{start:Date.now(),dur:25,cat:"lernen",task:"",crew:null}, t=liveText(b), left=Math.max(0,b.start+b.dur*60000-Date.now()), mm=Math.ceil(left/60000);
+  const clock=new Date().toLocaleTimeString(LOC,{hour:"2-digit",minute:"2-digit"}), pr=Math.min(1,1-left/(b.dur*60000));
+  stat("live_vorschau");
+  sheet(`<p class="label" style="color:var(--amber)">★ Live-Insel</p><h2>Deine Bootsfahrt auf dem Sperrbildschirm</h2>
+    <p class="muted">Während der Fokus-Bootsfahrt siehst du auf dem iPhone den Countdown, ohne die App zu öffnen. Lucifer passt auf, dass du nicht schummelst.</p>
+    <div class="li-phone" aria-hidden="true"><div class="li-island"><span>⛵</span><b class="num">${mm}:00</b></div><p class="li-clock num">${clock}</p>
+      <div class="li-card"><div class="li-row"><span class="li-boat">⛵</span><div class="grow"><b>${esc(t.task)}</b><span>${esc(t.who)}</span></div><b class="li-time num">${mm}:00</b></div>
+        <div class="li-bar"><i style="width:${Math.round(pr*100)}%"></i><span style="left:${Math.round(pr*100)}%">⛵</span></div><p class="li-luc">🐈‍⬛ ${esc(t.watch)}</p></div></div>
+    <p class="small muted">${LI_NATIVE?"Startet automatisch mit der nächsten Bootsfahrt. Abschalten kannst du sie in der Plus-Karte.":"Die Live-Insel gibt es in der iPhone-App ab iOS 16.1."}</p>
+    <button class="btn" data-ok>Verstanden</button>`);
+}
 /* Gratis-Monat fürs Einladen: einmal pro Konto und einmal pro Gerät */
 const PLUS_DEV_KEY="offland-plus-freund";
 function friendPlusFree(){
@@ -6548,7 +6982,7 @@ function login(p){
   document.body.classList.remove("start"); $("#start").innerHTML="";
   closeModal(); render(); window.scrollTo(0,0);
   if(S.setup){chapterCheck(true);save()}
-  statsActive(); statsFlushSoon(); comebackCheck(); if(S.setup) plusEndCheck();
+  statsActive(); statsFlushSoon(); comebackCheck(); if(S.setup){plusEndCheck(); seasonCheck()}
   plusSync().then(()=>{if(!plusActive()&&(S.isleStyle||(S.shield&&S.shield.mode==="plan"))){plusLapse();save();render()}});
   if(!S.storySeen) storySheet(!!S.setup); else showPending();
   if(S.setup&&pendingInvite()&&!$("#modalRoot").innerHTML) inviteSheet();
@@ -6762,7 +7196,7 @@ function deleteSheet(){
 }
 
 $("#accBtn").onclick=accountSheet;
-document.addEventListener("visibilitychange",()=>{if(!document.hidden&&ACC&&S.setup){PEND_BUDGET=3;comebackCheck();showPending();checkReplies(false)} if(document.hidden&&ACC&&S.setup)backupNow(false)});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&ACC&&S.setup){PEND_BUDGET=3;comebackCheck();seasonCheck();showPending();checkReplies(false)} if(document.hidden&&ACC&&S.setup)backupNow(false)});
 
 /* ---------- Umzug auf die eigene Domain ----------
    Nach der Umstellung leitet die alte Adresse (github.io) auf die neue Domain um. Der Service Worker

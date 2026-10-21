@@ -70,6 +70,8 @@
 	<string>UIStatusBarStyleLightContent</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>OffLand nutzt die Kamera nur, wenn du ein Foto aufnimmst, um daraus das Aussehen eines Bewohners vorzuschlagen. Das Foto bleibt auf deinem iPhone.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
