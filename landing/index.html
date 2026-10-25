@@ -88,6 +88,45 @@
   .feat p{margin-top:12px;color:#D3D2DA;max-width:32em}
   .feat ul{margin:14px 0 0;padding-left:20px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
 
+  .tag{display:inline-block;margin-left:8px;padding:2px 9px;border-radius:10px;background:var(--lime);color:#14151F;font-size:11px;letter-spacing:1px;vertical-align:1px}
+
+  /* Mr. Bay und Lucifer */
+  .duo{display:grid;grid-template-columns:.95fr 1.05fr;gap:40px;align-items:center;background:radial-gradient(90% 120% at 0% 100%,#24375A 0%,var(--card) 62%);border-radius:28px;padding:40px}
+  .duo h2{font-size:clamp(28px,3.4vw,40px);line-height:1.1;margin-top:10px}
+  .duo .txt>p{margin-top:14px;color:#D3D2DA;max-width:32em}
+  .duo ul{margin:16px 0 0;padding-left:20px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+  .stage{display:flex;justify-content:center;align-items:flex-end;gap:18px}
+  .stage figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:10px;flex:1;max-width:220px}
+  .stage svg{width:100%;max-width:170px;height:auto;overflow:visible}
+  .stage figcaption{font:800 15px var(--display)}
+  .bub{position:relative;background:var(--ink);color:#14151F;font:700 14.5px/1.4 var(--body);padding:11px 14px;border-radius:16px;align-self:stretch}
+  .bub::after{content:"";position:absolute;left:50%;bottom:-8px;margin-left:-8px;border:8px solid transparent;border-bottom:0;border-top-color:var(--ink)}
+  .blink{transform-box:fill-box;transform-origin:50% 50%;animation:blink 4.2s infinite}
+  @keyframes blink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
+  .bay-wave{transform-box:fill-box;transform-origin:0% 100%;animation:bayWave 3.8s ease-in-out infinite}
+  @keyframes bayWave{0%,40%,100%{transform:rotate(0)}50%{transform:rotate(-22deg)}60%{transform:rotate(8deg)}70%{transform:rotate(-22deg)}80%{transform:rotate(4deg)}}
+  .luc-tail{transform-box:fill-box;transform-origin:0% 100%;animation:lucTail 2.6s ease-in-out infinite}
+  @keyframes lucTail{0%,100%{transform:rotate(0)}50%{transform:rotate(-16deg)}}
+  .luc-ear{transform-box:fill-box;transform-origin:80% 100%;animation:lucEar 5s infinite}
+  @keyframes lucEar{0%,90%,100%{transform:rotate(0)}93%{transform:rotate(-18deg)}96%{transform:rotate(4deg)}}
+
+  /* OffLand Plus */
+  .plus-shots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;margin-bottom:40px}
+  .plus-shots figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:14px}
+  .plus-shots .shot{width:min(250px,100%);border-radius:34px;padding:8px;background:#0B0C13;box-shadow:0 24px 50px rgba(0,0,0,.4),inset 0 0 0 1.5px #343750}
+  .plus-shots .shot img{border-radius:26px}
+  .plus-shots figcaption{text-align:center;font-weight:800}
+  .plus-shots figcaption span{display:block;font-weight:500;font-size:14.5px;color:var(--muted)}
+  .plus-grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .plus-grid li{background:var(--card);border-radius:18px;padding:16px 18px;display:flex;gap:14px;align-items:flex-start}
+  .plus-grid .ic{font-size:24px;line-height:1.2;flex:none}
+  .plus-grid b{display:block}
+  .plus-grid span span{color:var(--muted);font-size:15px}
+  .plus-note{margin-top:24px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .plus-note div{border:1.5px solid var(--line);border-radius:18px;padding:16px 18px}
+  .plus-note b{display:block;color:var(--lime)}
+  .plus-note span{color:var(--muted);font-size:15px}
+
   /* Video */
   .video{display:grid;grid-template-columns:auto 1fr;gap:48px;align-items:center}
   .video video{width:280px;border-radius:28px;background:#000;box-shadow:0 24px 50px rgba(0,0,0,.4)}
@@ -147,10 +186,14 @@
     .video{grid-template-columns:1fr;justify-items:center;text-align:center}
     .promise{grid-template-columns:1fr;padding:26px}
     .parents{grid-template-columns:1fr;padding:26px;gap:22px}
+    .duo{grid-template-columns:1fr;padding:26px;gap:28px}
+    .plus-shots{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:14px;margin-inline:-20px;padding:0 20px 8px}
+    .plus-shots figure{flex:0 0 62%;scroll-snap-align:center}
+    .plus-grid,.plus-note{grid-template-columns:1fr}
     section{padding-block:56px}
   }
   @media (max-width:420px){.phone{width:170px}.phones{height:380px}.header-cta{display:none}.wl .row{flex-direction:column}.wl input[type=email]{flex:none}}
-  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.stars i{animation:none}}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.stars i,.blink,.bay-wave,.luc-tail,.luc-ear{animation:none}}
 </style>
 </head>
 <body>
@@ -197,13 +240,19 @@
     <div class="shot"><img src="img/bewohner.webp" width="720" height="1558" alt="Bewohner sitzen abends am Lagerfeuer" loading="lazy"></div>
     <div><p class="label">Bewohner</p><h3>Eine Insel, die sich auf dich freut</h3>
       <p>Menschen mit Berufen und Eigenheiten, Tiere, Freundschaften und Familien. An guten Tagen sitzen alle zusammen am Lagerfeuer. An schlechten Tagen greift auch mal jemand zum Handy.</p>
-      <ul><li>Seltene Tiere kommen zu Besuch</li><li>Wünsche erfüllen, Feste feiern</li><li>Fanpost von den Nachbarinseln</li></ul></div>
+      <ul><li>Neu: Bewohner und Tiere aus einem Foto gestalten, das Foto bleibt auf deinem Handy</li><li>Seltene Tiere kommen zu Besuch</li><li>Wünsche erfüllen, Feste feiern</li><li>Fanpost von den Nachbarinseln</li></ul></div>
+  </div>
+  <div class="feat">
+    <div class="shot"><img src="img/schutz.webp" width="720" height="1558" alt="Insel-Schutz: Beim Öffnen von Instagram wartet erst ein Bewohner am Strand" loading="lazy"></div>
+    <div><p class="label">Insel-Schutz <span class="tag">Neu</span></p><h3>Erst die Insel, dann Instagram</h3>
+      <p>Du öffnest eine App aus Gewohnheit, und plötzlich steht deine Insel in der Tür: Ein Bewohner hat dir am Strand einen Platz freigehalten. Du gehst zurück zur Insel oder öffnest die App trotzdem kurz. Nichts wird verboten, du entscheidest.</p>
+      <ul><li>Du wählst die Apps selbst, OffLand sieht nicht, welche</li><li>Immer, abends ab 21 Uhr oder während der Fokus-Bootsfahrt</li><li>„Trotzdem öffnen“ gibt 1, 5 oder 15 Minuten frei</li><li>Jedes Mal, wenn du widerstehst, gibt es Punkte für die Insel</li></ul></div>
   </div>
   <div class="feat">
     <div class="shot"><img src="img/zeit.webp" width="720" height="1558" alt="Übersicht der gewonnenen Zeit" loading="lazy"></div>
     <div><p class="label">Deine Zeit</p><h3>Sieh, was du dir zurückholst</h3>
       <p>OffLand rechnet dir vor, was aus deiner gewonnenen Zeit geworden ist: Spaziergänge, Buchkapitel, ganze Tage im Jahr. Und hilft dir, sie für etwas zu nutzen, das dir wichtig ist.</p>
-      <ul><li>Wochenrückblick mit deinen besten Tagen</li><li>Vorhaben für morgen</li><li>Anschauliche Vergleiche, von Buchkapiteln bis zur Reise zum Mond</li></ul></div>
+      <ul><li>Erste Bilanz schon nach fünf Tagen, dann jede Woche ein Rückblick</li><li>Vorhaben für morgen</li><li>Anschauliche Vergleiche, von Buchkapiteln bis zur Reise zum Mond</li><li>Widget für den Homescreen mit Insel, Glück und Serie</li></ul></div>
   </div>
   <div class="feat">
     <div class="shot"><img src="img/boot.webp" width="720" height="1558" alt="Fokus-Bootsfahrt: ein Bewohner segelt fischen, während du lernst" loading="lazy"></div>
@@ -220,7 +269,19 @@
     <div class="shot"><img src="img/familie.webp" width="720" height="1558" alt="Familieninsel mit allen Mitgliedern und dem gemeinsamen Projekt" loading="lazy"></div>
     <div><p class="label">Gemeinsam</p><h3>Mit Freunden und Familie</h3>
       <p>Jede:r behält die eigene Insel, und zusammen baut ihr an einer Familieninsel. Mit jedem guten Tag von euch allen kommt etwas dazu: Lagerfeuer, Baumhaus, Floß und am Ende das große Festzelt. Mit Freunden vergleicht ihr eure Woche oder fordert euch zum Duell heraus.</p>
-      <ul><li>Familieninsel mit gemeinsamen Projekten</li><li>Freundesliste, Ranglisten und Duelle</li><li>Fünf Inselwelten und über 100 Dinge zum Bauen</li></ul></div>
+      <ul><li>Familieninsel mit gemeinsamen Projekten</li><li>Freundesliste, Ranglisten und Duelle</li><li>Über 100 Dinge zum Bauen, Feste und Großprojekte</li></ul></div>
+  </div>
+</div></section>
+
+<section style="padding-top:24px"><div class="wrap">
+  <div class="duo">
+    <div class="stage" aria-hidden="true">
+      <figure><p class="bub">Willkommen auf OffLand! Ich bin Mr. Bay, der Bürgermeister.</p><svg viewBox="-7.6 -23.5 19.2 24.6"><path d="M-2.4 -3.4v3.4M2.4 -3.4v3.4" stroke="#2C3550" stroke-width="2.5" stroke-linecap="round"/><path d="M-6.6 -2.4c0-6.8 2.8-9.4 6.6-9.4s6.6 2.6 6.6 9.4z" fill="#2C3550"/><path d="M-2.7 -11.6L0 -4.2L2.7 -11.6z" fill="#F7F5EF"/><path d="M-1.2 -11.4L0 -9.7L1.2 -11.4" stroke="#D9D4C6" stroke-width=".6" fill="none"/><path d="M-2.7 -11.5L-4 -5.6M2.7 -11.5L4 -5.6" stroke="#47557A" stroke-width=".8"/><circle cx="4.1" cy="-8.2" r=".95" fill="#FFD27A" stroke="#E0A93C" stroke-width=".3"/><circle cx="0" cy="-16" r="5.1" fill="#F0C2A0"/><g fill="#6B4226"><circle cx="-3.6" cy="-18.6" r="2.3"/><circle cx="-1" cy="-20.3" r="2.4"/><circle cx="2" cy="-20.2" r="2.4"/><circle cx="4.2" cy="-18.3" r="2.1"/><path d="M-5.3 -16.4a5.3 5 0 0 1 10.6 0q-5.3-1.4-10.6 0z"/></g><g class="blink"><circle cx="-1.8" cy="-15.7" r=".75" fill="#14151F"/><circle cx="1.8" cy="-15.7" r=".75" fill="#14151F"/></g><g class="bay-wave"><path d="M5.4 -9.6L9.2 -15.4" stroke="#2C3550" stroke-width="2.3" stroke-linecap="round"/><circle cx="9.6" cy="-16.3" r="1.3" fill="#F0C2A0"/></g><circle cx="-3.3" cy="-13.9" r="1" fill="#FF9C7A" opacity=".4"/><circle cx="3.3" cy="-13.9" r="1" fill="#FF9C7A" opacity=".4"/><path d="M-1.9 -13.6q.95-.7 1.9-.15q.95-.55 1.9.15q-.95.35-1.9 0q-.95.35-1.9 0z" fill="#6B4226"/><path d="M-1.1 -12.3q1.3.8 2.6-.6" stroke="#5A3A2A" stroke-width=".65" fill="none" stroke-linecap="round"/></svg><figcaption>Mr. Bay</figcaption></figure>
+      <figure><p class="bub">Und ich bin Lucifer. Ich war zuerst hier.</p><svg viewBox="-7.2 -21.4 19.6 22.6"><path class="luc-tail" d="M5.6 -1.4q6.4-.6 5.2-7.2" stroke="#1E1F2B" stroke-width="2.3" fill="none" stroke-linecap="round"/><ellipse cx="0" cy="-5.2" rx="6" ry="5.6" fill="#1E1F2B"/><path d="M-2.7 -9.2q2.7 2 5.4 0q-.5 5.8-2.7 7.8q-2.2-2-2.7-7.8z" fill="#F3F1EA"/><ellipse cx="-2.5" cy="-.7" rx="1.7" ry="1.05" fill="#F3F1EA"/><ellipse cx="2.5" cy="-.7" rx="1.7" ry="1.05" fill="#F3F1EA"/><g class="luc-ear"><path d="M-4.3 -15.2l-.7-4.8 3.6 2.5z" fill="#1E1F2B"/></g><path d="M4.3 -15.2l.7-4.8-3.6 2.5z" fill="#1E1F2B"/><path d="M-3.9 -16.2l-.3-2.4 1.6 1.2zM3.9 -16.2l.3-2.4-1.6 1.2z" fill="#E07AB8" opacity=".7"/><circle cx="0" cy="-13" r="4.7" fill="#1E1F2B"/><path d="M-2.3 -11.5q2.3-2.8 4.6 0q-.4 2.1-2.3 2.3q-1.9-.2-2.3-2.3z" fill="#F3F1EA"/><g class="blink" style="animation-delay:1.7s"><ellipse cx="-1.8" cy="-13.7" rx="1.05" ry="1.25" fill="#C8F169"/><ellipse cx="1.8" cy="-13.7" rx="1.05" ry="1.25" fill="#C8F169"/><path d="M-1.8 -14.6v1.8M1.8 -14.6v1.8" stroke="#14151F" stroke-width=".55" stroke-linecap="round"/></g><path d="M-.5 -11.9h1l-.5.6z" fill="#E07AB8"/><path d="M-1.4 -11.2l-3.4-.5M-1.4 -10.7l-3.2.5M1.4 -11.2l3.4-.5M1.4 -10.7l3.2.5" stroke="#F3F1EA" stroke-width=".28" opacity=".8"/></svg><figcaption>Lucifer</figcaption></figure>
+    </div>
+    <div class="txt"><p class="label">Deine Gastgeber</p><h2>Mr. Bay und Lucifer</h2>
+      <p>Mr. Bay ist der leicht übermotivierte Bürgermeister von OffLand. Lucifer ist die freche Inselkatze, und sie war schon vor allen anderen da. Zusammen erzählen sie dir die Geschichte der Insel in Kapiteln und haben zu deinem Tag immer eine Meinung.</p>
+      <ul><li>Jeden Tag ein neuer Spruch von Lucifer</li><li>Die Geschichte von OffLand in Kapiteln, mit Fotoalbum</li><li>Mr. Bay feiert jeden Erfolg, manchmal etwas zu laut</li></ul></div>
   </div>
 </div></section>
 
@@ -234,6 +295,31 @@
       <li><b>Gemeinsam etwas aufbauen</b><span>Lagerfeuer, Baumhaus, Floß und Festzelt: Jeder gute Tag von euch allen bringt die Familieninsel weiter.</span></li>
       <li><b>Ohne Werbung, ohne E-Mail</b><span>Keine Werbung, keine Tracking-Dienste. Für die Familieninsel braucht niemand ein Konto mit E-Mail-Adresse.</span></li>
     </ul>
+  </div>
+</div></section>
+
+<section id="plus"><div class="wrap">
+  <div class="head"><p class="label">★ OffLand Plus</p><h2>Für alle, die noch mehr aus ihrer Insel machen wollen</h2>
+    <p class="muted">Alles Wichtige bleibt kostenlos. Plus ist ein Extra, das mit der iPhone-App startet. Die erste Woche bekommst du geschenkt, ohne Abo und ohne Zahlungsdaten.</p></div>
+  <div class="plus-shots">
+    <figure><div class="shot"><img src="img/saison.webp" width="720" height="1558" alt="Die Halloween-Insel mit Kürbissen, Fledermäusen und einem kleinen Gespenst" loading="lazy"></div><figcaption>Saison-Inseln<span>Halloween, Weihnachten, Sommer und Ostern</span></figcaption></figure>
+    <figure><div class="shot"><img src="img/kurier.webp" width="720" height="1558" alt="Der Insel-Kurier: die Wochenzeitung deiner Insel" loading="lazy"></div><figcaption>Der Insel-Kurier<span>Jede Woche die Zeitung deiner Insel</span></figcaption></figure>
+    <figure><div class="shot"><img src="img/live.webp" width="720" height="1558" alt="Live-Insel: die Fokus-Bootsfahrt als Countdown auf dem Sperrbildschirm" loading="lazy"></div><figcaption>Live-Insel<span>Countdown auf dem Sperrbildschirm</span></figcaption></figure>
+  </div>
+  <ul class="plus-grid">
+    <li><span class="ic" aria-hidden="true">🌍</span><span><b>Weltreise</b><span>Vier neue Welten mit eigenen Tieren, Großprojekten und Kapiteln.</span></span></li>
+    <li><span class="ic" aria-hidden="true">🎃</span><span><b>Saison-Inseln</b><span>Deine Insel verwandelt sich, mit Saison-Looks, Festen und Stempeln.</span></span></li>
+    <li><span class="ic" aria-hidden="true">📰</span><span><b>Der Insel-Kurier</b><span>Schlagzeilen, Klatsch und Lucifers Kolumne, jede Woche neu.</span></span></li>
+    <li><span class="ic" aria-hidden="true">▶️</span><span><b>Mein Inseljahr</b><span>Dein Monat und dein Jahr als Story, mit Bild zum Teilen.</span></span></li>
+    <li><span class="ic" aria-hidden="true">⛵</span><span><b>Live-Insel</b><span>Die Bootsfahrt als Countdown auf dem Sperrbildschirm und in der Dynamic Island.</span></span></li>
+    <li><span class="ic" aria-hidden="true">🛡️</span><span><b>Insel-Schutz Pro</b><span>Eigene Zeitpläne: morgens, bei der Arbeit, nachts.</span></span></li>
+    <li><span class="ic" aria-hidden="true">📊</span><span><b>Mehr aus deiner Zeit</b><span>Kalender, Bestwerte, Hochrechnung und die Auswertung deiner Fokuszeit.</span></span></li>
+    <li><span class="ic" aria-hidden="true">👑</span><span><b>Goldene Lagune und Plus-Looks</b><span>Deine Insel in Gold und Türkis, Kronen, Goldbrillen und goldenes Fell.</span></span></li>
+  </ul>
+  <div class="plus-note">
+    <div><b>Erste Woche geschenkt</b><span>Alles freigeschaltet. Danach spielst du einfach kostenlos weiter, deine Insel bleibt dir.</span></div>
+    <div><b>Für die ganze Familie</b><span>Monatlich, jährlich oder als Familien-Abo für bis zu 6 Personen.</span></div>
+    <div><b>Freunde einladen</b><span>Wer Freunde einlädt, bekommt mit ihnen zusammen einmalig einen Monat Plus.</span></div>
   </div>
 </div></section>
 
@@ -251,6 +337,7 @@
       <li>Keine Anmeldung nötig, deine Insel liegt auf deinem Gerät</li>
       <li>Keine Werbung und keine Tracking-Dienste</li>
       <li>Die iPhone-App sieht nur deine Gesamtzeit, nicht welche Apps du nutzt</li>
+      <li>Fotos für deine Bewohner werden nur auf dem Handy ausgewertet und nie hochgeladen</li>
       <li>Online-Funktionen und Statistik nur, wenn du sie einschaltest</li>
     </ul>
   </div>
@@ -259,10 +346,12 @@
 <section style="padding-top:0"><div class="wrap">
   <div class="head"><p class="label">Fragen</p><h2>Gut zu wissen</h2></div>
   <div class="faq">
-    <details><summary>Was kostet OffLand?</summary><p>Die Insel und alle Grundfunktionen sind kostenlos. Später gibt es optional OffLand Plus mit zusätzlichen Inseln und Extras. Plus kann man sich auch verdienen, zum Beispiel durch gute Tage oder indem man Freunde einlädt.</p></details>
+    <details><summary>Was kostet OffLand?</summary><p>Die Insel und alle Grundfunktionen sind kostenlos, auch die Familieninsel, die Fokus-Bootsfahrt und der Insel-Schutz. Dazu gibt es optional OffLand Plus mit neuen Welten, Saison-Inseln, dem Insel-Kurier und mehr, monatlich, jährlich oder als Familien-Abo. Die erste Woche Plus ist geschenkt, ganz ohne Abo. Und wer Freunde einlädt, bekommt mit ihnen zusammen einmalig einen Monat Plus.</p></details>
+    <details><summary>Sperrt OffLand meine Apps?</summary><p>Nein. Der Insel-Schutz ist freiwillig und erinnert dich nur: Öffnest du eine App, die du selbst ausgewählt hast, wartet erst deine Insel auf dich. Mit einem Tipp kannst du die App trotzdem öffnen. Welche Apps du auswählst, erfährt OffLand nicht.</p></details>
     <details><summary>Brauche ich ein Konto?</summary><p>Nein. Du legst nur einen Namen für deine Insel an. Für Freunde, Ranglisten und das Online-Backup kannst du die Online-Funktionen einschalten, auch dafür brauchst du keine E-Mail-Adresse.</p></details>
     <details><summary>Wird meine Bildschirmzeit automatisch erfasst?</summary><p>Ja. OffLand liest über Apples Bildschirmzeit deine Gesamtzeit am Handy aus, ganz automatisch. Du musst nichts eintragen. Welche Apps du nutzt, sieht OffLand dabei nicht.</p></details>
     <details><summary>Wann kommt die App in den App Store?</summary><p>Bald. Trag dich auf die Warteliste ein, dann sagen wir dir Bescheid. Bis dahin kannst du OffLand schon im Browser ausprobieren.</p></details>
+    <details><summary>Gibt es OffLand auch auf Englisch?</summary><p>Ja. Ist dein Handy auf Englisch eingestellt, erscheint OffLand automatisch auf Englisch. In den Einstellungen kannst du jederzeit umschalten.</p></details>
     <details><summary>Gibt es OffLand für Android?</summary><p>Eine Android-App ist geplant, ebenfalls mit automatischer Bildschirmzeit. Trag dich auf die Warteliste ein, dann sagen wir dir Bescheid.</p></details>
   </div>
 </div></section>
