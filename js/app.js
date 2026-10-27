@@ -2006,6 +2006,181 @@ function lucLine(){
     "Mr. Bay hat gestern gepfiffen. Falsch, aber glücklich. Das warst du.","Ich bin nicht verschmust. Aber wenn du so weitermachst, setz ich mich vielleicht neben dich. Vielleicht.",
     "Du hast gestern was Echtes gemacht. Ich auch: Ich hab einen Vogel angeschaut. Wir sind beide gewachsen."]);
 }
+/* ---------- Lucifer live: beim ersten Öffnen am Tag ein Stand-up-Witz ----------
+   Zwei Stufen (Einstellungen): „schwarz“ (Standard: schwarz, aber nicht verletzend, keine Witze über
+   tote Angehörige oder Krankheit) und „lieb“. Kein Witz kommt doppelt, bis alle einmal dran waren. */
+const LUC_DARK=[
+  ["Ihr findet keine Wohnung? Ich hab eine. Neun Etagen, alles inklusive.","Warmmiete. SEHR warm."],
+  ["Ich wollte nach Deutschland ziehen. Drei Formulare, zwei Wartenummern, ein Faxgerät.","Ich bin zurück in die Hölle. Da ist es weniger schlimm."],
+  ["Ihr habt eine Nahtoderfahrung. Ihr seht ein helles Licht.","Und was macht ihr? Ihr dreht die Helligkeit runter."],
+  ["Der Sensenmann ist in Rente. Wir brauchen ihn nicht mehr.","Ihr lauft ja mit Kopfhörern über die Straße."],
+  ["Euer letzter Wunsch: Das Handy kommt mit in den Sarg. Akku: drei Prozent.","Ihr sterbt also zweimal."],
+  ["Ihr sterbt. Eure Familie will an euer Handy. Face ID.","Geht nicht. Ihr saht zum ersten Mal entspannt aus."],
+  ["Ihr habt einen Organspendeausweis. Wie edel. Ich hab mir eure Organe angeguckt.","Das Einzige, was noch funktioniert, ist der Daumen."],
+  ["Der Tod ruft euch an. Ihr geht nicht ran. Unbekannte Nummer.","Respekt. Ich musste persönlich vorbeikommen."],
+  ["Im Himmel gibt's kein WLAN. Deshalb ist es da so leer.","Bei mir? Ausgebucht bis 2090."],
+  ["Ihr habt Angst vor Geistern? Ihr seid welche.","Blass, um drei Uhr nachts wach, und ihr starrt in ein leuchtendes Licht."],
+  ["Ihr checkt euer Handy 150 Mal am Tag. Euren Puls noch nie.","Keine Sorge, ich check ihn für euch. Wird weniger."],
+  ["Eure Bucket List: Fallschirmspringen, Japan, Polarlichter. Habt ihr alles gesehen. Auf YouTube.","Liste erledigt. Ich komm dann Dienstag."],
+  ["Gott hat euch einen freien Willen geschenkt. Ihr habt ihn gegen Push-Nachrichten getauscht.","Bester Deal, den ich je gemacht hab."],
+  ["Früher habt ihr eure Seele verkauft. Heute: Abo. 9,99 im Monat, jederzeit kündbar …","Haha. Nein."],
+  ["In der Hölle gibt's kein Feuer mehr. Zu teuer.","Wir lesen euch jetzt einfach eure eigenen Kommentare vor."],
+  ["Ihr wollt verbrannt werden, und die Asche soll ins Meer. Romantisch.","Ihr kommt eh zu mir. Das Verbrennen übernehm ich. Kostenlos."],
+  ["Ihr scrollt sechs Stunden und googelt dann: „Kann man an Langeweile sterben?“","Tja. Jetzt wisst ihr's."],
+  ["Ihr sagt, euer Job ist die Hölle? Frechheit.","In der Hölle gibt's wenigstens keine Meetings, die auch eine E-Mail hätten sein können."],
+  ["Ihr nennt euch „Katzenmama“. Wie süß. Wir Katzen nennen euch:","Dosenöffner mit Ablaufdatum."],
+  ["Ihr jammert bei 35 Grad im Sommer. Süß.","Bei uns heißt das Klimaanlage."],
+  ["Ihr tippt. Löscht. Tippt. Löscht. Und schickt dann: „ok.“","In der Hölle zeigen die Leute mehr Gefühle. Und die brennen."],
+  ["Auf Tinder schreibt ihr: „Suche jemanden fürs Leben.“ Ich auch.","Nur bei mir heißt das: Ich nehm eures."],
+  ["Ihr fragt eine KI, ob ihr Schluss machen sollt. Früher habt ihr dafür mich gefragt.","Und ich war billiger. Ich wollte nur eure Seele."],
+  ["Ich hab 600 Jahre Folter studiert. Dann hab ich euren Kindern zugehört: „Tung Tung Tung Sahur.“","Ich hab gekündigt."],
+  ["Seit drei Jahren schreibt ihr: „Wir müssen uns unbedingt mal wieder treffen!“ Ihr trefft euch.","Auf der Beerdigung."],
+  ["Früher waren die letzten Worte: „Ich liebe euch.“ Heute:","„Chat, ist das echt?“"],
+  ["Netflix fragt: „Schaust du noch?“","Netflix ist der Einzige, der sich noch nach euch erkundigt."],
+  ["Bei einem Prozent Akku rennt ihr schneller als beim Feueralarm. Ich weiß das.","Ich hab beides getestet."],
+  ["Um Mitternacht sagt ihr: „Nur noch ein Video.“","Um vier kennt ihr einen Mordfall in Ohio besser als den Namen eures Nachbarn."],
+  ["Sonntags kommt die Bildschirmzeit: plus 20 Prozent. Ihr wischt sie weg.","Wie die Anrufe von eurer Mutter."],
+  ["Das erste Wort eures Kindes: „Werbung überspringen.“","Das zweite: „Mama, geh aus dem Bild.“"],
+  ["Früher hab ich Seelen mit Blutverträgen gekauft. Heute klickt ihr „Alle akzeptieren“.","Für einen Keks."],
+  ["Euer Essen wird kalt, weil ihr es fotografiert.","Eure Ehe auch."],
+  ["Ihr schreibt „Bin unterwegs!“ und liegt noch nackt im Bett.","Selbst ich lüge nicht so dreist."],
+  ["Ihr lest eine Nachricht und antwortet drei Tage nicht.","Ich hab Leute für weniger angezündet."],
+  ["Ihr nehmt das Handy mit aufs Klo. In die Badewanne.","Ich sag nichts. Ich warte nur."],
+  ["Die schlimmste Strafe in der Hölle?","Die Familien-WhatsApp-Gruppe. Ohne Stummschalten. Für immer."],
+  ["In der Hölle gibt's übrigens WLAN.","Ein Balken. Für immer."],
+  ["Sieben Stunden Bildschirmzeit am Tag. Auf eurem Grabstein steht dann:","„War nur kurz am Handy.“"],
+  ["Früher hab ich Seelen gesammelt. Heute macht das euer Handy.","Mit fünf Sternen."],
+  ["Früher musste ich Leute in die Hölle locken.","Heute reicht eine Push-Nachricht."],
+  ["Wenn ihr sterbt, zieht euer Leben an euch vorbei.","Bei euch: 40 Minuten Reels. Mit Werbung."],
+  ["Das Letzte, was die meisten sehen, ist nicht das Licht am Ende des Tunnels.","Sondern „Akku schwach“."],
+  ["Euer Jahresrückblick: 400 Stunden traurige Musik. Meiner: 400 Seelen.","Wir hatten beide ein emotionales Jahr."],
+  ["Ihr filmt euch, wie ihr aufs Meer guckt, und nennt das „Aura farmen“. Ich farme Seelen.","Gleiches Prinzip, bessere Ernte."],
+  ["Ihr zahlt 300 Euro für ein hässliches Plüschmonster mit spitzen Zähnen. Ich bin ein echtes Monster mit spitzen Zähnen.","Und mich will keiner streicheln."],
+  ["Ihr habt eine App installiert, die euch sagt, dass ihr zu viel am Handy seid.","Am Handy. Ich liebe euch Menschen."],
+  ["Mr. Bay sagt, ich soll heute lieb sein.","Ich hab ihn heute früh im Sand vergraben. Er hält es für ein Wellness-Angebot."],
+  ["Ihr sagt, Social Media ist der Teufel.","Frechheit. Ich mach wenigstens Feierabend."]
+];
+const LUC_SOFT=[
+  ["Ich schlafe 16 Stunden am Tag.","Und bin trotzdem produktiver als dein Montag."],
+  ["Ihr guckt vier Stunden am Tag aufs Handy. Ich starr vier Stunden auf die Wand.","Und ich gelte als die Komische."],
+  ["Katzen haben neun Leben.","Ihr habt eins. Und guckt damit Katzenvideos. Gern geschehen."],
+  ["Ich hab kein Handy. Wenn ich was teilen will,","kotz ich es auf den Teppich. Viral."],
+  ["Katzen sind unabhängig, sagt man. Ich brauch niemanden.","Nur einen Türöffner. 40 Mal am Tag."],
+  ["Man nennt mich den Teufel.","Ich bin nur ehrlich. Das wirkt heute ähnlich."],
+  ["Ihr habt 3.000 Fotos vom Sonnenuntergang.","Und er hat kein einziges davon gelikt."],
+  ["Mr. Bay hält Reden …","… wie ihr scrollt: endlos und ohne Inhalt."],
+  ["Dein Handy liegt am Tischrand?","Ich sag nur: Physik."],
+  ["Euer Essen wird kalt, weil ihr es fotografiert.","Meins nie. Ich ess es sofort. Und eures gleich mit."],
+  ["Ihr nennt euch „Katzenmama“. Wie süß.","Wir Katzen nennen euch: Dosenöffner."],
+  ["Netflix fragt: „Schaust du noch?“","Ich frag das nie. Ich setz mich einfach auf die Fernbedienung."],
+  ["Ihr tippt, löscht, tippt, löscht. Und schickt dann: „ok.“","Ich schick seit 600 Jahren gar nichts. Funktioniert super."],
+  ["Ihr sagt: „Nur noch ein Video.“","Ich sag: „Nur noch ein Nickerchen.“ Wir lügen beide. Ich seh dabei besser aus."],
+  ["Ihr macht Selfies mit Hundeohren-Filter.","Beleidigend. Nehmt wenigstens Katzenohren."],
+  ["Ich hab heute drei Stunden einen Vogel beobachtet.","Ihr nennt das Langeweile. Ich nenn das Netflix für Katzen."],
+  ["Ihr seid um drei Uhr nachts noch wach und scrollt.","Ich bin um drei auch wach. Aber ich renn wenigstens sinnlos durch die Wohnung."],
+  ["Ihr habt eine App installiert, die euch sagt, dass ihr zu viel am Handy seid.","Am Handy. Ich liebe euch Menschen."],
+  ["Ihr sagt, Social Media ist der Teufel.","Frechheit. Ich mach wenigstens Feierabend."],
+  ["Ich bin eine Katze. Ich fall immer auf die Pfoten.","Euer Handy fällt immer aufs Display. Wir sind nicht gleich."],
+  ["Mr. Bay sagt, ich soll heute lieb sein.","Ich bin lieb. Ich hab nur keinen Bock."]
+];
+const LUC_REACT=[["lol","😂","Lustig","Ich weiß. Ich bin großartig."],["boese","💀","Herrlich böse","Danke. Ich geb mir Mühe."],["meh","😐","Na ja","Notiert. Du kommst als Erstes dran."]];
+const lucHumor=()=>S.lucHumor||"schwarz";
+const lucJokeId=j=>hsh(j[0]+"|"+j[1])%1e6;
+function lucStage(){
+  const st=S.standup||(S.standup={day:null,n:0,seen:[],react:{},cur:null});
+  if(!st.seen) st.seen=[]; if(!st.react) st.react={};
+  return st;
+}
+function lucJoke(){
+  const list=lucHumor()==="lieb"?LUC_SOFT:LUC_DARK, st=lucStage();
+  let pool=list.filter(j=>!st.seen.includes(lucJokeId(j)));
+  if(!pool.length){const ids=new Set(list.map(lucJokeId)); st.seen=st.seen.filter(x=>!ids.has(x)); pool=list}   // alle durch: von vorn
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+/* In die Fenster-Warteschlange: kommt beim ersten Öffnen des Tages vor allem anderen */
+function standupCheck(){
+  if(!S.setup||!S.storySeen||!S.days.length||S.days[0].day>=today()||lucHumor()==="aus") return;   // nicht am ersten Tag
+  const st=lucStage(), d=today();
+  if(st.day===d||S.pending.some(e=>e.type==="standup")) return;
+  S.pending.unshift({type:"standup",day:d}); save();
+}
+function lucStageSvg(){
+  let bricks="";
+  for(let r=0;r<9;r++) for(let c=-1;c<8;c++){const x=c*50+(r%2)*25, k=hsh("b"+r+"_"+c)%3; bricks+=`<rect x="${x+1.5}" y="${r*24+1.5}" width="47" height="21" rx="2" fill="${["#7A3226","#8E3B2E","#6E2C22"][k]}"/>`}
+  const cur=(side)=>{let g=`<path d="M0 0H190Q160 150 196 262H0Z" fill="#9E1B2A"/>`; for(let i=0;i<4;i++) g+=`<path d="M${26+i*38} 0Q${14+i*38} 140 ${40+i*40} 262" stroke="#6E0F1C" stroke-width="10" fill="none"/>`;
+    return `<g class="lu-cur ${side}"><g transform="${side==="r"?"translate(360 0) scale(-1 1)":""}">${g}</g></g>`};
+  return `<svg class="lu-svg" viewBox="0 0 360 262" aria-hidden="true"><rect width="360" height="262" fill="#3A1A16"/>${bricks}<rect width="360" height="262" fill="#120808" opacity=".45"/>
+    <g class="lu-spot"><ellipse cx="170" cy="150" rx="96" ry="150" fill="#FFF4D6" opacity=".14"/><ellipse cx="170" cy="226" rx="84" ry="14" fill="#FFF4D6" opacity=".3"/></g>
+    <g class="lu-neon"><text x="180" y="44" text-anchor="middle" font-family="Bricolage Grotesque, sans-serif" font-weight="800" font-size="30" fill="none" stroke="#FF7AB8" stroke-width="4" opacity=".35">LUCIFER LIVE</text><text x="180" y="44" text-anchor="middle" font-family="Bricolage Grotesque, sans-serif" font-weight="800" font-size="30" fill="none" stroke="#FFD6EC" stroke-width="1.2">LUCIFER <tspan stroke="#E9FFB8">LIVE</tspan></text></g>
+    <path d="M0 226H360V262H0Z" fill="#5A3A26"/>${[0,1,2,3,4,5,6,7,8].map(i=>`<path d="M${i*45} 226L${i*45-16} 262" stroke="#4A2E1E" stroke-width="2"/>`).join("")}
+    <g transform="translate(170 228)"><path d="M-22 0L-15 -44M22 0L15 -44M-18 -16h36" stroke="#2A2420" stroke-width="4" stroke-linecap="round"/><ellipse cx="0" cy="-45" rx="28" ry="7" fill="#B7262B"/></g>
+    <g class="lu-cat"><g transform="translate(170 184) scale(4.4)">${lucSvg(true)}</g></g>
+    <g transform="translate(222 228)"><path d="M0 0V-92" stroke="#1E1F2B" stroke-width="3.5"/><path d="M-16 0h32" stroke="#1E1F2B" stroke-width="4" stroke-linecap="round"/><path d="M0 -92L-22 -102" stroke="#1E1F2B" stroke-width="3"/><g transform="translate(-26 -104) rotate(-28)"><rect x="-5" y="-10" width="10" height="17" rx="5" fill="#3A3D4A"/></g></g>
+    ${cur("l")}${cur("r")}<path d="M0 0H360V22Q320 34 270 22T180 22 90 22 0 22Z" fill="#7E1222"/></svg>`;
+}
+/* Wörter nacheinander einblenden (übersetzt, bevor sie zerlegt werden) */
+function luWords(text,t0,step,cls){
+  const ws=TR(text).split(/\s+/).filter(Boolean); let t=t0;
+  const html=ws.map(w=>{const s=`<span class="lu-w${cls?" "+cls:""}" style="animation-delay:${t.toFixed(2)}s">${esc(w)}</span>`; t+=step+Math.min(.14,w.length*.012); return s}).join(" ");
+  return {html,end:t};
+}
+let LU_T=[];
+function lucRimshot(){const ac=audio(); if(!ac) return; tone(ac,210,0,.18,{to:150,vol:.16}); tone(ac,150,.13,.2,{to:100,vol:.16}); noise(ac,.27,.9,{type:"highpass",freq:6000,vol:.09})}
+function standupSheet(replay){
+  const st=lucStage(), d=today();
+  let j=replay&&st.cur!=null?[...LUC_DARK,...LUC_SOFT].find(x=>lucJokeId(x)===st.cur):null;
+  if(!j){j=lucJoke(); const id=lucJokeId(j); st.seen.push(id); st.cur=id; st.n=(st.n||0)+1; st.day=d; stat("witz_des_tages"); save()}
+  const id=lucJokeId(j), a=luWords(j[0],1.15,.11), b=luWords(j[1],a.end+.7,.13,"p"), tEnd=b.end+.35;
+  const snd=S.lucSound===true&&S.sound!==false;
+  LU_T.forEach(clearTimeout); LU_T=[];
+  $("#modalRoot").innerHTML=`<div class="modal lu-modal"><div class="lu" role="dialog" aria-modal="true" aria-label="Lucifer live">
+    <div class="lu-top"><p class="lu-no">Witz Nr. ${st.n||1}</p><button class="lu-snd" id="luSnd" aria-label="${snd?"Ton aus":"Ton an"}">${snd?"🔊":"🔇"}</button><button class="lu-x" id="luX" aria-label="Schließen">✕</button></div>
+    <div class="lu-stage" id="luStage">${lucStageSvg()}</div>
+    <div class="lu-txt" id="luTxt" data-noi18n><p class="lu-setup">${a.html}</p><p class="lu-punch">${b.html}</p></div>
+    <div class="lu-after" style="animation-delay:${tEnd.toFixed(2)}s">
+      <div class="lu-react">${LUC_REACT.map(([k,e,l])=>`<button class="lu-r${st.react[id]===k?" on":""}" data-r="${k}" aria-label="${l}">${e}</button>`).join("")}</div>
+      <p class="lu-resp" id="luResp">${st.react[id]?esc(LUC_REACT.find(r=>r[0]===st.react[id])[3]):"Und jetzt: Handy weg. 😈"}</p>
+      <div class="lu-btns"><button class="btn secondary" id="luShare">Teilen</button><button class="btn" id="luOk" data-ok>Weiter</button></div>
+    </div></div></div>`;
+  const box=$(".lu"), done=()=>{LU_T.forEach(clearTimeout); LU_T=[]; closeModal(); render(); if(!replay) showPending()};
+  $("#luOk").onclick=done; $("#luX").onclick=done;
+  // Antippen spult die Animation vor
+  const skip=()=>{box.classList.add("lu-skip"); LU_T.forEach(clearTimeout); LU_T=[]};
+  $("#luStage").onclick=skip; $("#luTxt").onclick=skip;
+  if(snd) LU_T.push(setTimeout(lucRimshot,tEnd*1000-200));
+  $("#luSnd").onclick=()=>{S.lucSound=!(S.lucSound===true); save(); const on=S.lucSound&&S.sound!==false;
+    $("#luSnd").textContent=on?"🔊":"🔇"; $("#luSnd").setAttribute("aria-label",TR(on?"Ton aus":"Ton an"));
+    if(S.lucSound&&S.sound===false) toast("Töne sind in den Einstellungen aus"); else if(on) lucRimshot()};
+  box.querySelectorAll("[data-r]").forEach(bt=>bt.onclick=()=>{
+    const k=bt.dataset.r, r=LUC_REACT.find(x=>x[0]===k); if(st.react[id]!==k) stat("witz_"+k);
+    st.react[id]=k; save(); skip();
+    box.querySelectorAll("[data-r]").forEach(x=>x.classList.toggle("on",x===bt));
+    const p=$("#luResp"); p.textContent=TR(r[3]); p.classList.remove("lu-pop"); void p.offsetWidth; p.classList.add("lu-pop")});
+  $("#luShare").onclick=async()=>{const sh=$("#luShare"); sh.disabled=true; stat("witz_teilen");
+    try{await shareBlob(await standupImage(j,st.n||1),"lucifer-witz.png",TR("Lucifers Witz des Tages auf OffLand 😈")+" "+inviteLink())}catch(e){toast("Das Bild konnte nicht erstellt werden.")}
+    sh.disabled=false};
+  setTimeout(()=>{const x=$("#luOk"); if(x) x.focus({preventScroll:true})},50);
+}
+async function standupImage(j,n){
+  const Wd=1080,Ht=1920, cv=document.createElement("canvas"); cv.width=Wd; cv.height=Ht; const c=cv.getContext("2d");
+  try{await document.fonts.ready}catch(e){}
+  const g=c.createLinearGradient(0,0,0,Ht); g.addColorStop(0,"#3A1A16"); g.addColorStop(1,"#14151F"); c.fillStyle=g; c.fillRect(0,0,Wd,Ht);
+  const svg=lucStageSvg().replace('<svg class="lu-svg" viewBox="0 0 360 262"','<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="728" viewBox="0 0 360 262"').replace(/<g class="lu-cur [lr]">[\s\S]*?<\/g><\/g>/g,"");
+  const img=new Image(); img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg); await img.decode();
+  c.save(); c.beginPath(); c.roundRect(40,120,1000,728,56); c.clip(); c.drawImage(img,40,120,1000,728); c.restore();
+  c.textAlign="center"; c.fillStyle="#FFB86B"; c.font="800 40px Manrope, sans-serif"; c.fillText(TR("Witz Nr. "+n).toUpperCase(),Wd/2,940);
+  c.fillStyle="#F3F1EA"; c.font="700 54px Manrope, sans-serif"; let y=1030;
+  wrapText(c,j[0],960).forEach(l=>{c.fillText(l,Wd/2,y); y+=68});
+  y+=30; c.fillStyle="#C8F169"; c.font="800 72px 'Bricolage Grotesque', sans-serif";
+  wrapText(c,j[1],960).forEach(l=>{c.fillText(l,Wd/2,y+30); y+=86});
+  c.fillStyle="#26233D"; c.beginPath(); c.roundRect(140,1660,800,150,75); c.fill();
+  c.fillStyle="#F3F1EA"; c.font="700 44px Manrope, sans-serif"; c.fillText(TR("Spiel mit: Code "+myCode()),Wd/2,1730);
+  c.fillStyle="#A4A6BD"; c.font="500 34px Manrope, sans-serif"; c.fillText(APP_URL.replace(/^https:\/\//,"").replace(/\/$/,""),Wd/2,1780);
+  c.font="800 56px 'Bricolage Grotesque', sans-serif"; c.textAlign="left";
+  const w1=c.measureText("Off").width, w2=c.measureText("Land").width, lx=(Wd-w1-w2)/2;
+  c.fillStyle="#F3F1EA"; c.fillText("Off",lx,1880); c.fillStyle="#C8F169"; c.fillText("Land",lx+w1,1880);
+  return await new Promise(res=>cv.toBlob(res,"image/png"));
+}
 /* Intro: Mr. Bay erzählt, wie OffLand früher war */
 function storyIsle(mood,vb){
   const c={past:["#F2D3A0","#6FA6C8","#E9D7A6","#8CCB7A"],grey:["#8E93A6","#4F5B73","#B9B2A0","#7E9277"],now:["#86BFE6","#3A6FA8","#E9D7A6","#7FC57A"]}[mood];
@@ -2992,7 +3167,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.67";
+const APP_VERSION="1.68";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -3584,6 +3759,8 @@ function settingsHtml(){
     <label class="check" for="alarmToggle"><input type="checkbox" id="alarmToggle" ${S.alarm!==false?"checked":""}> Wecker-Ton, wenn die Fokus-Bootsfahrt geschafft ist</label>
     <label class="check" for="soundToggle"><input type="checkbox" id="soundToggle" ${S.sound!==false?"checked":""}> Töne und Geräusche</label>
     <label class="check" for="musicToggle"><input type="checkbox" id="musicToggle" ${S.music===true?"checked":""}> Leise Inselmusik (klingt nach 3 Minuten aus)</label>
+    <label class="field" for="humorSel" style="margin-top:8px">Lucifers Witz des Tages<select id="humorSel">${[["schwarz","Schwarzer Humor"],["lieb","Lieb und frech"],["aus","Aus"]].map(([v,n])=>`<option value="${v}"${lucHumor()===v?" selected":""}>${n}</option>`).join("")}</select></label>
+    <p class="small muted">Beim ersten Öffnen am Tag tritt Lucifer mit einem Stand-up-Witz auf.</p>${lucStage().cur!=null?`<button class="linkbtn" id="luAgain">Heutigen Witz zeigen</button>`:""}
     <label class="field" for="langSel" style="margin-top:8px"><span data-noi18n>Sprache · Language</span><select id="langSel" data-noi18n>${[["","Automatisch · Auto"],["de","Deutsch"],["en","English"]].map(([v,n])=>`<option value="${v}"${(langPref()||"")===v?" selected":""}>${n}</option>`).join("")}</select></label>
   </div>
   ${netConfigured()?`<div class="card"><p class="label">Online: Freunde und Ranglisten</p>
@@ -3839,6 +4016,8 @@ function bind(){
   const al=$("#alarmToggle"); if(al) al.onchange=()=>{S.alarm=al.checked;save();if(al.checked)ringAlarm()};
   const so=$("#soundToggle"); if(so) so.onchange=()=>{S.sound=so.checked;save();if(so.checked)sfx("return");else MUSIC.stop(.5)};
   const ls=$("#langSel"); if(ls) ls.onchange=()=>{try{if(ls.value)localStorage.setItem("offland-lang",ls.value);else localStorage.removeItem("offland-lang")}catch(e){} location.reload()};
+  const hs=$("#humorSel"); if(hs) hs.onchange=()=>{S.lucHumor=hs.value;save();stat("witz_"+hs.value)};
+  const la=$("#luAgain"); if(la) la.onclick=()=>standupSheet(true);
   const mu=$("#musicToggle"); if(mu) mu.onchange=()=>{S.music=mu.checked;save();if(mu.checked){musicDone=false;musicStart()}else MUSIC.stop(1)};
   const calmB=$("#calmBtn"); if(calmB) calmB.onclick=calmMinute;
   document.querySelectorAll("[data-lim]").forEach(x=>x.onchange=()=>{const a=S.apps.find(y=>y.id===x.dataset.lim);if(a){a.limit=clamp(+x.value||a.limit,5,600);save()}});
@@ -4167,8 +4346,8 @@ function soundFor(ev){
 /* Fenster-Warteschlange: höchstens 3 am Stück, der Rest wartet bis zum nächsten Öffnen oder Eintragen.
    Vorhaben-Nachfrage, Joker und Tagesbilanz kommen immer und zuerst. */
 let PEND_BUDGET=3;
-const PEND_MUST=new Set(["plan","jokerAsk","day","comeback","baseline","plusStart"]);
-const PEND_ORDER={plusStart:-2,comeback:-1,plan:0,jokerAsk:1,day:2,baseline:2.2,planAsk:3,bilanz:4,unlock:7,chapter:6,umfrage:8,statsAsk:9,musicAsk:2.5};
+const PEND_MUST=new Set(["plan","jokerAsk","day","comeback","baseline","plusStart","standup"]);
+const PEND_ORDER={standup:-3,plusStart:-2,comeback:-1,plan:0,jokerAsk:1,day:2,baseline:2.2,planAsk:3,bilanz:4,unlock:7,chapter:6,umfrage:8,statsAsk:9,musicAsk:2.5};
 function sortPending(){const o=e=>PEND_ORDER[e.type]!=null?PEND_ORDER[e.type]:5; S.pending=S.pending.map((e,i)=>[e,i]).sort((a,b)=>o(a[0])-o(b[0])||a[1]-b[1]).map(x=>x[0])}
 function showPending(){
   if($("#modalRoot").innerHTML) return;
@@ -4202,6 +4381,7 @@ function showPending(){
   if(ev.type==="planAsk") return planAskSheet(ev);
   if(ev.type==="chapter") return chapterSheet(ev.n,true);
   if(ev.type==="umfrage") return umfrageSheet(ev);
+  if(ev.type==="standup"){CUR_EV=null; if(ev.day!==today()||lucStage().day===today()||lucHumor()==="aus") return showPending(); return standupSheet()}
   if(ev.type==="musicAsk"){CUR_EV=null; if(S.music!==undefined||S.sound===false) return showPending(); return musicAskSheet()}
   if(ev.type==="statsAsk"){CUR_EV=null; if(statsDev().consent!==undefined) return showPending(); return statsAskSheet()}
   if(ev.type==="jokerAsk"){
@@ -6982,7 +7162,7 @@ function login(p){
   document.body.classList.remove("start"); $("#start").innerHTML="";
   closeModal(); render(); window.scrollTo(0,0);
   if(S.setup){chapterCheck(true);save()}
-  statsActive(); statsFlushSoon(); comebackCheck(); if(S.setup){plusEndCheck(); seasonCheck()}
+  statsActive(); statsFlushSoon(); comebackCheck(); if(S.setup){plusEndCheck(); seasonCheck(); standupCheck()}
   plusSync().then(()=>{if(!plusActive()&&(S.isleStyle||(S.shield&&S.shield.mode==="plan"))){plusLapse();save();render()}});
   if(!S.storySeen) storySheet(!!S.setup); else showPending();
   if(S.setup&&pendingInvite()&&!$("#modalRoot").innerHTML) inviteSheet();
@@ -7196,7 +7376,7 @@ function deleteSheet(){
 }
 
 $("#accBtn").onclick=accountSheet;
-document.addEventListener("visibilitychange",()=>{if(!document.hidden&&ACC&&S.setup){PEND_BUDGET=3;comebackCheck();seasonCheck();showPending();checkReplies(false)} if(document.hidden&&ACC&&S.setup)backupNow(false)});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&ACC&&S.setup){PEND_BUDGET=3;comebackCheck();seasonCheck();standupCheck();showPending();checkReplies(false)} if(document.hidden&&ACC&&S.setup)backupNow(false)});
 
 /* ---------- Umzug auf die eigene Domain ----------
    Nach der Umstellung leitet die alte Adresse (github.io) auf die neue Domain um. Der Service Worker
