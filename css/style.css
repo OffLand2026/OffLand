@@ -1014,3 +1014,27 @@ body.pw-open{overflow:hidden}
 .lu-skip *{animation-delay:0s!important;animation-duration:.01s!important}
 .lu-skip .lu-neon{animation:none}
 @media (prefers-reduced-motion:reduce){.lu-cur{animation:none;opacity:0}.lu-spot,.lu-cat,.lu-neon,.lu-w,.lu-after,.lu-resp.lu-pop{animation:none}}
+/* Heute: Mission des Tages und zurückgewonnene Zeit */
+.ms{border:1.5px solid #4A3A22}
+.ms.on{border-color:var(--amber)}
+.ms.done{border-color:#35502A;background:#1F2A1C}
+.ms-e{font-size:40px;line-height:1;flex:none}
+.ms-n{font:800 21px/1.15 var(--display);letter-spacing:-.3px}
+.ms-gl{background:#2E2440;color:var(--lilac)}
+.ms-who{background:#3A2E22;color:var(--amber)}
+.ms-btns{display:grid;grid-template-columns:1.5fr 1fr;gap:8px}
+.ms-btns .btn{height:46px}
+.zc{background:linear-gradient(135deg,#26341F 0%,var(--card) 70%);gap:8px}
+.zc-big{font:800 46px/1 var(--display);color:var(--lime);letter-spacing:-1.5px}
+.zc-eq{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:2px}
+.zc-eq div{background:rgba(20,21,31,.55);border-radius:16px;padding:10px 6px;text-align:center}
+.zc-eq svg{width:24px;height:24px;color:var(--lime)}
+.zc-eq b{display:block;font:800 20px var(--display)}
+.zc-eq span{display:block;font-size:11.5px;line-height:1.2;color:var(--muted)}
+.zc .linkbtn{align-self:flex-start;min-height:28px;padding:0}
+/* Album: Lucifers Witze */
+.lj-list{display:flex;flex-direction:column;gap:8px}
+.lj{position:relative;text-align:left;border:none;border-radius:16px;background:var(--card2);color:var(--ink);padding:12px 44px 12px 14px;display:flex;flex-direction:column;gap:4px;font:inherit}
+.lj-s{font-size:14px;color:var(--muted)}
+.lj-p{font:800 16px/1.2 var(--display);color:var(--lime)}
+.lj-r{position:absolute;right:12px;top:12px;font-size:20px}

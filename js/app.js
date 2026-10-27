@@ -362,6 +362,7 @@ function freeName(list,used){const free=list.filter(n=>!used.includes(n));return
 const FEATURES=[
   {id:"laden",day:1,name:"Inselladen",text:"Gib deine Punkte im Tab Bauen für Deko und Nützliches aus.",tab:"projekt",ic:'<path d="M4 9h16l-1 11H5zM8 9V7a4 4 0 0 1 8 0v2"/>'},
   {id:"boot",day:0,name:"Fokus-Bootsfahrt",text:"Deine Fokuszeit zum Lernen oder für Aufgaben: Leg das Handy weg, ein Bewohner fährt solange fischen und bringt Punkte mit.",tab:"heute",ic:'<path d="M3 16h18l-3 4H6zM12 16V4l6 10"/>'},
+  {id:"mission",day:1,name:"Mission des Tages",text:"Jeden Tag eine kleine Aufgabe ohne Handy. Schaffst du sie, gibt es Punkte und Glück.",tab:"heute",ic:'<path d="M6 21V4M6 4h11l-2.5 4.5L17 13H6"/>'},
   {id:"nacht",day:2,name:"Gute-Nacht-Ritual",text:"Schick die Insel abends schlafen und leg das Handy weg. Morgen gibt es Traumpunkte.",tab:"heute",ic:'<path d="M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z"/>'},
   {id:"zeit",day:2,name:"Zeit-Statistik",text:"Im Tab Zeit siehst du, wie viel Handyzeit du schon gespart hast und was du damit gemacht hast.",tab:"zeit",ic:'<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>'},
   {id:"monster",day:3,name:"App-Monster",text:"Trag beim Tagesabschluss die Zeit pro App ein. Wer ein Limit sprengt, lockt ein Monster an.",tab:"heute",ic:'<circle cx="12" cy="11" r="7"/><circle cx="9.5" cy="10" r="1"/><circle cx="14.5" cy="10" r="1"/>'},
@@ -2126,15 +2127,15 @@ function luWords(text,t0,step,cls){
 }
 let LU_T=[];
 function lucRimshot(){const ac=audio(); if(!ac) return; tone(ac,210,0,.18,{to:150,vol:.16}); tone(ac,150,.13,.2,{to:100,vol:.16}); noise(ac,.27,.9,{type:"highpass",freq:6000,vol:.09})}
-function standupSheet(replay){
-  const st=lucStage(), d=today();
-  let j=replay&&st.cur!=null?[...LUC_DARK,...LUC_SOFT].find(x=>lucJokeId(x)===st.cur):null;
-  if(!j){j=lucJoke(); const id=lucJokeId(j); st.seen.push(id); st.cur=id; st.n=(st.n||0)+1; st.day=d; stat("witz_des_tages"); save()}
-  const id=lucJokeId(j), a=luWords(j[0],1.15,.11), b=luWords(j[1],a.end+.7,.13,"p"), tEnd=b.end+.35;
+function standupSheet(replay,jid){
+  const st=lucStage(), d=today(), want=jid!=null?jid:st.cur;
+  let j=replay&&want!=null?[...LUC_DARK,...LUC_SOFT].find(x=>lucJokeId(x)===want):null;
+  if(!j){j=lucJoke(); const id=lucJokeId(j); st.seen.push(id); (st.hist=st.hist||[]).push(id); if(st.hist.length>300) st.hist.splice(0,st.hist.length-300); st.cur=id; st.n=(st.n||0)+1; st.day=d; stat("witz_des_tages"); save()}
+  const id=lucJokeId(j), hi=(st.hist||[]).lastIndexOf(id), num=hi>=0?hi+1:st.n||1, a=luWords(j[0],1.15,.11), b=luWords(j[1],a.end+.7,.13,"p"), tEnd=b.end+.35;
   const snd=S.lucSound===true&&S.sound!==false;
   LU_T.forEach(clearTimeout); LU_T=[];
   $("#modalRoot").innerHTML=`<div class="modal lu-modal"><div class="lu" role="dialog" aria-modal="true" aria-label="Lucifer live">
-    <div class="lu-top"><p class="lu-no">Witz Nr. ${st.n||1}</p><button class="lu-snd" id="luSnd" aria-label="${snd?"Ton aus":"Ton an"}">${snd?"🔊":"🔇"}</button><button class="lu-x" id="luX" aria-label="Schließen">✕</button></div>
+    <div class="lu-top"><p class="lu-no">Witz Nr. ${num}</p><button class="lu-snd" id="luSnd" aria-label="${snd?"Ton aus":"Ton an"}">${snd?"🔊":"🔇"}</button><button class="lu-x" id="luX" aria-label="Schließen">✕</button></div>
     <div class="lu-stage" id="luStage">${lucStageSvg()}</div>
     <div class="lu-txt" id="luTxt" data-noi18n><p class="lu-setup">${a.html}</p><p class="lu-punch">${b.html}</p></div>
     <div class="lu-after" style="animation-delay:${tEnd.toFixed(2)}s">
@@ -2157,7 +2158,7 @@ function standupSheet(replay){
     box.querySelectorAll("[data-r]").forEach(x=>x.classList.toggle("on",x===bt));
     const p=$("#luResp"); p.textContent=TR(r[3]); p.classList.remove("lu-pop"); void p.offsetWidth; p.classList.add("lu-pop")});
   $("#luShare").onclick=async()=>{const sh=$("#luShare"); sh.disabled=true; stat("witz_teilen");
-    try{await shareBlob(await standupImage(j,st.n||1),"lucifer-witz.png",TR("Lucifers Witz des Tages auf OffLand 😈")+" "+inviteLink())}catch(e){toast("Das Bild konnte nicht erstellt werden.")}
+    try{await shareBlob(await standupImage(j,num),"lucifer-witz.png",TR("Lucifers Witz des Tages auf OffLand 😈")+" "+inviteLink())}catch(e){toast("Das Bild konnte nicht erstellt werden.")}
     sh.disabled=false};
   setTimeout(()=>{const x=$("#luOk"); if(x) x.focus({preventScroll:true})},50);
 }
@@ -2180,6 +2181,85 @@ async function standupImage(j,n){
   const w1=c.measureText("Off").width, w2=c.measureText("Land").width, lx=(Wd-w1-w2)/2;
   c.fillStyle="#F3F1EA"; c.fillText("Off",lx,1880); c.fillStyle="#C8F169"; c.fillText("Land",lx+w1,1880);
   return await new Promise(res=>cv.toBlob(res,"image/png"));
+}
+/* ---------- Heute: Mission des Tages (eine kleine Aufgabe ohne Handy) ---------- */
+const MS_PTS=20, MS_GL=2;
+const MISSIONS=[
+  {id:"essen",e:"🍽️",n:"Essen ohne Handy",t:r=>r+" kocht heute. Leg das Handy beim Essen in eine andere Ecke."},
+  {id:"runde",e:"🚶",n:"Eine Runde ohne Handy",t:r=>r+" geht um die Insel. Geh 20 Minuten raus, das Handy bleibt zu Hause."},
+  {id:"lesen",e:"📖",n:"Zehn Seiten lesen",t:r=>r+" hat dir ein Buch ins Regal gelegt. Zehn Seiten, ohne Handy daneben."},
+  {id:"anruf",e:"📞",n:"Anrufen statt tippen",t:r=>"Ruf heute jemanden an, statt zu schreiben. "+r+" findet, das zählt doppelt."},
+  {id:"bett",e:"🛏️",n:"Kein Handy im Bett",t:r=>"Lad das Handy heute Nacht außerhalb vom Schlafzimmer. "+r+" hat schon eine Steckdose im Flur gefunden."},
+  {id:"warten",e:"⏳",n:"Warten ohne Handy",t:r=>"An der Kasse oder Haltestelle einfach mal gucken, was passiert. "+r+" schwört drauf."},
+  {id:"haende",e:"✏️",n:"Etwas mit den Händen machen",t:r=>"Zeichnen, basteln oder reparieren. "+r+" braucht noch eine Idee für die Insel."},
+  {id:"kaffee",e:"☕",n:"Kaffee mit jemandem",t:r=>"Triff jemanden auf einen Kaffee, das Handy bleibt in der Tasche. "+r+" kommt gern mit."},
+  {id:"musik",e:"🎵",n:"Ein Album am Stück",t:r=>"Hör ein ganzes Album, ohne nebenbei zu scrollen. "+r+" legt schon die Platte auf."},
+  {id:"ordnung",e:"🧺",n:"Eine Ecke aufräumen",t:r=>"Eine Schublade oder ein Regal reicht. "+r+" räumt gleich mit."},
+  {id:"bewegen",e:"🤸",n:"Zehn Minuten bewegen",t:r=>"Dehnen, tanzen oder Treppe statt Aufzug. "+r+" macht es vor."},
+  {id:"karte",e:"✉️",n:"Eine Karte schreiben",t:r=>"Schreib jemandem ein paar Zeilen von Hand. "+r+" bringt sie zur Post."},
+  {id:"fenster",e:"🪟",n:"Fünf Minuten aus dem Fenster schauen",t:r=>"Lucifer macht das stundenlang, du schaffst fünf Minuten. "+r+" schaut mit."},
+  {id:"kochen",e:"🥕",n:"Etwas Frisches kochen",t:r=>"Koch heute selbst und schreib das Rezept vorher auf. "+r+" schnippelt mit."}
+];
+function missionNew(not){
+  const recent=(S.missionLog||[]).slice(-6), pool=MISSIONS.filter(x=>x.id!==not&&!recent.includes(x.id)), M=pick(pool.length?pool:MISSIONS.filter(x=>x.id!==not));
+  const ad=adults(), r=ad.length?pick(ad):null;
+  (S.missionLog=S.missionLog||[]).push(M.id); if(S.missionLog.length>20) S.missionLog.splice(0,S.missionLog.length-20);
+  return {day:today(),id:M.id,rid:r?r.id:null,st:"",swap:0};
+}
+function missionToday(){
+  if(!S.mission||S.mission.day!==today()){S.mission=missionNew(); save()}
+  return S.mission;
+}
+function missionCard(){
+  if(!S.setup||S.vacation||!S.days.length||!feature("mission")) return "";
+  const m=missionToday(), M=MISSIONS.find(x=>x.id===m.id)||MISSIONS[0], r=m.rid&&S.residents.find(x=>x.id===m.rid&&x.status==="da"), rn=r?r.name:"Mr. Bay";
+  if(m.st==="nein") return "";
+  if(m.st==="ok") return `<div class="card ms done"><div class="row" style="gap:12px"><span class="ms-e" aria-hidden="true">${M.e}</span><div class="grow"><p class="label" style="color:var(--lime)">Mission geschafft ✓</p><p class="ms-n">${esc(M.n)}</p><p class="small muted">+${MS_PTS} Punkte · +${MS_GL} % Glück. ${esc(rn)} ist stolz auf dich.</p></div></div></div>`;
+  const on=m.st==="dabei", h=Math.max(1,24-new Date().getHours());
+  return `<div class="card ms${on?" on":""}">
+    <div class="row between"><p class="label" style="color:var(--amber)">Mission des Tages</p><span class="small muted">${"noch "+h+" h"}</span></div>
+    <div class="row" style="gap:12px;align-items:flex-start"><span class="ms-e" aria-hidden="true">${M.e}</span><div class="grow"><p class="ms-n">${esc(M.n)}</p><p class="small muted" style="margin-top:3px">${esc(M.t(rn))}</p></div></div>
+    <div class="row" style="gap:6px;flex-wrap:wrap"><span class="chip good">+${MS_PTS} Punkte</span><span class="chip ms-gl">+${MS_GL} % Glück</span>${on?`<span class="chip ms-who">${esc(rn+" macht mit")}</span>`:""}</div>
+    <div class="ms-btns">${on?`<button class="btn" id="msDone">Geschafft!</button><button class="btn ghost" id="msNo">Heute nicht</button>`
+      :`<button class="btn" id="msGo">Ich mach mit</button><button class="btn ghost" id="msSwap"${m.swap?" disabled":""}>Andere</button>`}</div></div>`;
+}
+function bindMission(){
+  const m=S.mission; if(!m||m.day!==today()) return;
+  const go=$("#msGo"); if(go) go.onclick=()=>{m.st="dabei"; stat("mission_dabei"); save(); render()};
+  const sw=$("#msSwap"); if(sw) sw.onclick=()=>{S.mission=Object.assign(missionNew(m.id),{swap:1}); stat("mission_andere"); save(); render()};
+  const no=$("#msNo"); if(no) no.onclick=()=>{m.st="nein"; stat("mission_nein"); save(); render(); toast("Okay. Morgen gibt es eine neue Mission.")};
+  const ok=$("#msDone"); if(ok) ok.onclick=()=>{
+    if(m.st==="ok") return; const M=MISSIONS.find(x=>x.id===m.id)||MISSIONS[0];
+    m.st="ok"; S.points+=MS_PTS; glAdd(MS_GL); stat("mission_ok");
+    log("Mission geschafft: "+M.n+". +"+MS_PTS+" Punkte, +"+MS_GL+" % Glück.","good");
+    sfx("sparkle"); save(); render(); toast("Mission geschafft! +"+MS_PTS+" Punkte")};
+}
+/* ---------- Heute: zurückgewonnene Zeit dieser Woche (gegenüber dem alten Schnitt) ---------- */
+function zeitCard(){
+  if(!S.setup||!S.days.length||!feature("zeit")) return "";
+  const wk=isoWeek(today()), pw=isoWeek(addDays(today(),-7)), sv=d=>Math.max(0,S.baseline-d.min);
+  let days=S.days.filter(d=>isoWeek(d.day)===wk), now=true;
+  if(!days.length){days=S.days.filter(d=>isoWeek(d.day)===pw); now=false; if(!days.length) return ""}
+  const saved=days.reduce((a,d)=>a+sv(d),0);
+  let up=0; if(now){const pd=S.days.filter(d=>isoWeek(d.day)===pw).slice(0,days.length); if(pd.length) up=saved-pd.reduce((a,d)=>a+sv(d),0)}
+  const eq=equivTop(saved).slice(0,3);
+  return `<div class="card zc">
+    <div class="row between"><p class="label" style="color:var(--lime)">${now?"Diese Woche zurückgewonnen":"Letzte Woche zurückgewonnen"}</p>${up>0?`<span class="chip good" title="mehr als letzte Woche">▲ ${hm(up)}</span>`:""}</div>
+    <p class="zc-big">${hm(saved)}</p>
+    <p class="small muted">${saved?"weniger am Handy als dein alter Schnitt von "+hm(S.baseline)+" am Tag":"Noch nichts. Jeder Tag unter "+hm(S.baseline)+" zählt."}</p>
+    ${eq.length?`<div class="zc-eq">${eq.map(x=>`<div>${actIcon(x.a)}<b>${x.c}</b><span>${esc(x.c===1?SING[x.a.n]||x.a.n:x.a.n)}</span></div>`).join("")}</div>`:""}
+    <button class="linkbtn" id="zcMore">Alles im Tab Zeit ›</button></div>`;
+}
+/* Album: alle Witze, die Lucifer schon erzählt hat */
+function lucJokesSheet(){
+  const st=lucStage(), all=[...LUC_DARK,...LUC_SOFT], ids=(st.hist&&st.hist.length?st.hist:st.seen).slice().reverse();
+  const list=[...new Set(ids)].map(id=>all.find(j=>lucJokeId(j)===id)).filter(Boolean);
+  const re=k=>(LUC_REACT.find(r=>r[0]===k)||[])[1]||"";
+  sheet(`<p class="label">Album</p><h2>Lucifers Witze</h2>
+    ${list.length?`<p class="muted">${list.length===1?"1 Witz gesammelt.":list.length+" Witze gesammelt."}</p><p class="small muted">Jeden Tag kommt beim ersten Öffnen ein neuer dazu.</p>`:`<p class="muted">Beim ersten Öffnen am Tag tritt Lucifer mit einem Witz auf. Hier sammeln sie sich.</p>`}
+    <div class="lj-list">${list.map(j=>{const id=lucJokeId(j);return `<button class="lj" data-jid="${id}"><span class="lj-s">${esc(j[0])}</span><span class="lj-p">${esc(j[1])}</span>${st.react[id]?`<span class="lj-r">${re(st.react[id])}</span>`:""}</button>`}).join("")}</div>
+    <button class="btn" data-ok>Schließen</button>`,
+    ()=>document.querySelectorAll("#modalRoot [data-jid]").forEach(b=>b.onclick=()=>standupSheet(true,+b.dataset.jid)));
 }
 /* Intro: Mr. Bay erzählt, wie OffLand früher war */
 function storyIsle(mood,vb){
@@ -3064,7 +3144,10 @@ function viewHeute(){
     <div class="cp"><i>Punkte</i><b style="color:var(--lilac)">${S.points}</b></div>
   </div>
   ${S.vacation?`<div class="card" style="border:1.5px solid var(--lilac)"><p class="label" style="color:var(--lilac)">Urlaubsmodus</p><p>${guard?`<b>${esc(guard.name)}</b> hütet die Insel, bis du zurück bist.`:"Die Insel schläft, bis du zurück bist."} Das Glück sinkt in der Zeit nicht.</p><button class="btn secondary" id="vacOff">Ich bin zurück</button></div>`:""}
+  ${entry?"":missionCard()}
   ${heuteMain(ok,nd,entry?form:"")}
+  ${entry?missionCard():""}
+  ${zeitCard()}
   ${warn?`<div class="card warn"><p class="label" style="color:var(--amber)">Wegzug droht</p><p><b>${esc(groupName(warn))}</b> ${vb(warn,"packt","packen")} die Koffer. Bring das Inselglück bis ${nice(S.warn.deadline)} über 40 %, dann ${vb(warn,"bleibt "+esc(warn[0].name),"bleiben alle")}.</p></div>`:""}
   ${planCard()}
   ${actionCard(ok)}
@@ -3167,7 +3250,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.68";
+const APP_VERSION="1.69";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -3740,6 +3823,7 @@ function viewVerlauf(){
   ${albumStand(cards)}
   ${albumPass()}
   ${S.chapter!=null?row("bayAlbum","🎩","Mr. Bays Album",`Die Geschichte von OffLand · ${done} / ${CHAPTERS.length} Kapitel`):""}
+  ${row("lucJokes","😈","Lucifers Witze",(()=>{const st=lucStage(), n=new Set(st.hist&&st.hist.length?st.hist:st.seen).size; return n===1?"1 Witz gesammelt":n?n+" Witze gesammelt":"Jeden Tag ein neuer Stand-up-Witz"})())}
   ${row("kapselBtn","⏳","Zeitkapseln",S.capsules.length?S.capsules.length+(S.capsules.length===1?" Monatsrückblick":" Monatsrückblicke")+" zum Teilen":"Am Monatsende kommt der erste Rückblick")}
   ${row("","✍️","Inseltagebuch",S.feed.length?S.feed.length+(S.feed.length===1?" Eintrag · ":" Einträge · ")+esc(TR((S.feed[0]||{}).text||"")).slice(0,48)+((S.feed[0]||{}).text&&TR(S.feed[0].text).length>48?"…":""):"Hier erscheint, was auf deiner Insel passiert.",'data-feed="feed"')}
 `;
@@ -3936,6 +4020,9 @@ function bind(){
     }
     S.setup=true;stat("insel_start");log("Deine Insel ist gegründet. "+nameList(here().map(r=>r.name))+" ziehen ein.","good");plusTrialStart();save();render();if(famInvite())famJoinSheet(famInvite());else showPending()};
   const bo=$("#bkOn"); if(bo) bo.onclick=backupEnable;
+  bindMission();
+  const zcm=$("#zcMore"); if(zcm) zcm.onclick=()=>{tab="zeit";render();window.scrollTo(0,0)};
+  const ljb=$("#lucJokes"); if(ljb) ljb.onclick=lucJokesSheet;
   const wsb=$("#wishShop"); if(wsb) wsb.onclick=()=>{tab="projekt";bauTab="laden";render();window.scrollTo(0,0)};
   document.querySelectorAll("[data-bau]").forEach(b=>b.onclick=()=>{bauTab=b.dataset.bau;render();const t=$("[data-bau]");if(t&&t.getBoundingClientRect().top<0)t.scrollIntoView({block:"start"})});
   const stS=$("#stSetup"); if(stS) stS.onclick=stSetup;
