@@ -977,3 +977,40 @@ body.pw-open{overflow:hidden}
 .li-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--lime)}
 .li-bar span{position:absolute;top:-12px;margin-left:-9px;font-size:15px}
 .li-luc{font-size:12px;color:var(--lilac);font-weight:700}
+/* Lucifer live: Witz des Tages beim ersten Öffnen (Bühne, Vorhang, Wort für Wort) */
+.lu-modal{padding:0;align-items:stretch;background:#0B0C14}
+.lu{position:relative;width:100%;max-width:460px;height:100%;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding:calc(14px + env(safe-area-inset-top,0px)) 20px calc(22px + env(safe-area-inset-bottom,0px));background:radial-gradient(120% 70% at 50% 20%,#3A1A16 0%,#14151F 75%)}
+.lu-top{display:flex;align-items:center;gap:8px}
+.lu-no{flex:1;font-size:12px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--amber)}
+.lu-x,.lu-snd{width:40px;height:40px;border-radius:20px;border:none;background:rgba(243,241,234,.08);color:var(--ink);font-size:17px}
+.lu-stage{border-radius:22px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.45);flex:none}
+.lu-svg{display:block;width:100%;height:auto}
+.lu-cur{transform-box:fill-box;animation:luCurL 1s .15s cubic-bezier(.6,0,.2,1) both}
+.lu-cur.r{transform-origin:100% 0;animation-name:luCurR}
+.lu-cur.l{transform-origin:0 0}
+@keyframes luCurL{from{transform:translateX(0)}to{transform:translateX(-78%) scaleX(.55)}}
+@keyframes luCurR{from{transform:translateX(0)}to{transform:translateX(78%) scaleX(.55)}}
+.lu-spot{animation:luFade .6s .55s both}
+.lu-cat{transform-box:fill-box;transform-origin:50% 100%;animation:luCat .55s .75s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes luCat{from{transform:scale(0)}to{transform:scale(1)}}
+.lu-neon{animation:luNeon 3.2s 1s infinite}
+@keyframes luNeon{0%,8%,12%,100%{opacity:1}10%{opacity:.35}}
+@keyframes luFade{from{opacity:0}to{opacity:1}}
+.lu-txt{display:flex;flex-direction:column;gap:12px;cursor:pointer;min-height:150px}
+.lu-setup{font-size:19px;font-weight:700;line-height:1.4}
+.lu-punch{font-family:var(--display);font-size:27px;font-weight:800;line-height:1.15;color:var(--lime);letter-spacing:-.4px}
+.lu-w{display:inline-block;animation:luWord .28s cubic-bezier(.3,1.5,.5,1) both}
+.lu-w.p{animation-name:luPunch;animation-duration:.34s}
+@keyframes luWord{from{opacity:0;transform:translateY(8px) scale(.85)}to{opacity:1;transform:none}}
+@keyframes luPunch{from{opacity:0;transform:scale(1.7) rotate(-4deg)}to{opacity:1;transform:none}}
+.lu-after{display:flex;flex-direction:column;gap:12px;margin-top:auto;animation:luFade .45s both}
+.lu-react{display:flex;justify-content:center;gap:14px}
+.lu-r{width:62px;height:62px;border-radius:31px;border:2px solid var(--line);background:var(--card);font-size:30px;line-height:1;transition:transform .15s}
+.lu-r.on{border-color:var(--lime);background:#26301F;transform:scale(1.12)}
+.lu-r:active{transform:scale(.92)}
+.lu-resp{text-align:center;font-weight:700;color:var(--muted);min-height:21px}
+.lu-resp.lu-pop{animation:luWord .3s both;color:var(--ink)}
+.lu-btns{display:grid;grid-template-columns:1fr 1.4fr;gap:10px}
+.lu-skip *{animation-delay:0s!important;animation-duration:.01s!important}
+.lu-skip .lu-neon{animation:none}
+@media (prefers-reduced-motion:reduce){.lu-cur{animation:none;opacity:0}.lu-spot,.lu-cat,.lu-neon,.lu-w,.lu-after,.lu-resp.lu-pop{animation:none}}
