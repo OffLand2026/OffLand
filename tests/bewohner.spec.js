@@ -25,7 +25,7 @@ test("Viele Bewohner: suchen, einklappen, Mensch und Tier antippen", async ({ pa
   await expect(page.locator("details[data-fold=t]")).toBeVisible();
   // Tiere einklappen, Zustand bleibt nach dem Neuzeichnen
   await page.click("details[data-fold=t] > summary");
-  expect(await page.evaluate(() => T.S.bwFold.t)).toBe(true);
+  await expect.poll(() => page.evaluate(() => T.S.bwFold.t)).toBe(true);   // „toggle“ kommt erst nach dem Klick
   await page.evaluate(() => T.render());
   await expect(page.locator("details[data-fold=t]")).not.toHaveAttribute("open", "");
   await page.click("details[data-fold=t] > summary");
