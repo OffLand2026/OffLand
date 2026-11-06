@@ -342,6 +342,28 @@ const eqText=list=>list.map(x=>x.c+" "+(x.c===1?SING[x.a.n]:x.a.n)).join(", ");
 /* ---------- Hilfen ---------- */
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+/* Linien-Icons im Stil der Tab-Leiste: statt Emojis in Knöpfen, Listen und auf der Plus-Seite */
+const ICO={
+  boat:'<path d="M12 3v12M12 4.5l6 9.5h-6M10 7.5l-4.5 6.5H10"/><path d="M3 17h18l-2.5 3.5h-13z"/>',
+  wave:'<path d="M3 10q3-3 6 0t6 0t6 0M3 16q3-3 6 0t6 0t6 0"/>',
+  moon:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+  hat:'<path d="M7.5 16V5.5A1.5 1.5 0 0 1 9 4h6a1.5 1.5 0 0 1 1.5 1.5V16M7.5 12.5h9"/><path d="M3 17.5c0-1 4-1.5 9-1.5s9 .5 9 1.5-4 1.5-9 1.5-9-.5-9-1.5z"/>',
+  mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M9 21h6"/>',
+  glass:'<path d="M7 3h10M7 21h10M8 3v2.5a4 4 0 0 0 1.6 3.2L12 12l2.4-3.3A4 4 0 0 0 16 5.5V3M8 21v-2.5a4 4 0 0 1 1.6-3.2L12 12l2.4 3.3a4 4 0 0 1 1.6 3.2V21"/>',
+  book:'<path d="M6 4h11.5a.5.5 0 0 1 .5.5V20H7a2 2 0 0 1-2-2V5a1 1 0 0 1 1-1z"/><path d="M5 18a2 2 0 0 1 2-2h11M9 8h5M9 11h3"/>',
+  paper:'<path d="M5 4h11v14a2 2 0 0 0 2 2H6a2 2 0 0 1-2-2V5a1 1 0 0 1 1-1z"/><path d="M16 8h4v10a2 2 0 0 1-2 2M8 8h5M8 12h5M8 16h3"/>',
+  play:'<path d="M8 5.5v13l10.5-6.5z"/>',
+  phone:'<rect x="7" y="3" width="10" height="18" rx="2.5"/><path d="M11 17.5h2"/>',
+  globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.4 2.6 3.6 5.6 3.6 9s-1.2 6.4-3.6 9c-2.4-2.6-3.6-5.6-3.6-9S9.6 5.6 12 3z"/>',
+  leaf:'<path d="M12 7.5c-4.4 0-8 2.6-8 6.3S7.6 20 12 20s8-2.5 8-6.2-3.6-6.3-8-6.3z"/><path d="M12 7.5c-1.6 3.2-1.6 9.3 0 12.5M12 7.5c1.6 3.2 1.6 9.3 0 12.5M12 7.5V4.5l2-1.5"/>',
+  shield:'<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/>',
+  chart:'<path d="M4 20h16M7 16v-4M12 16V7M17 16v-7"/>',
+  sun:'<circle cx="12" cy="9.5" r="4"/><path d="M12 2.5v1M5.5 9.5h-1M19.5 9.5h-1M3 18q3-3 6 0t6 0t6 0"/>',
+  crown:'<path d="M4 8l4 4 4-7 4 7 4-4-1.5 10h-13zM5.5 21h13"/>',
+  people:'<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3.5 20c0-3.3 2.5-6 5.5-6s5.5 2.7 5.5 6M15.5 14.3c2.6.2 4.5 2.5 4.5 5.7"/>',
+  coin:'<circle cx="12" cy="12" r="8.5"/><path d="M12 8.5v7M8.5 12h7"/>'
+};
+const ico=(n,cls)=>`<svg class="ico${cls?" "+cls:""}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[n]||""}</svg>`;
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const uid=()=>Math.random().toString(36).slice(2,9);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -1163,7 +1185,7 @@ function weekSheet(wk){
      <div><b class="num">${w.plans}</b><span class="small muted">${w.plans===1?"Vorhaben":"Vorhaben"} geschafft</span></div><div><b class="num">${hm(w.focus)}</b><span class="small muted">Fokuszeit</span></div></div>
      ${w.events.length?`<ul class="wr-ev">${w.events.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>`:`<p class="small muted">Eine ruhige Woche auf der Insel.</p>`}`,
     `<p class="label" style="color:var(--lime)">Teil deine Woche</p><div class="wr-share"><p class="small muted">KW ${kw}</p><p class="big num" style="color:var(--lime)">${w.good}/${w.ds.length}</p><p>Tage im Budget${w.saved?`, <b>${hm(w.saved)}</b> weniger am Handy`:""}</p></div>
-     <button class="btn secondary" id="wrShare">Teilen</button>${plusShown()?`<button class="btn" id="wrKurier">📰 Insel-Kurier lesen ${plusActive()?"":`<i class="uk-star" style="position:static">★</i>`}</button>`:""}`];
+     <button class="btn secondary" id="wrShare">Teilen</button>${plusShown()?`<button class="btn" id="wrKurier">${ico("paper")}<span>Insel-Kurier lesen</span> ${plusActive()?"":`<i class="uk-star" style="position:static">★</i>`}</button>`:""}`];
   sheet(`<div class="wr" id="wr">${slides.map(x=>`<section class="wr-s">${x}</section>`).join("")}</div>
     <div class="wr-dots" aria-hidden="true">${slides.map((_,i)=>`<i${i?"":" class=\"on\""}></i>`).join("")}</div>
     <div class="row"><button class="btn ghost grow" id="wrClose">Schließen</button><button class="btn grow" id="wrNext">Weiter</button></div>`);
@@ -3094,7 +3116,7 @@ function viewSetup(){
       :`<p class="small muted">Du findest ihn auf dem iPhone unter Einstellungen → Bildschirmzeit → „Alle Aktivitäten anzeigen“ (Tagesdurchschnitt), auf Android unter „Digital Wellbeing“.</p>`}
     <label class="field" for="setBase">${SETUP_AUTO?"Vorläufige Schätzung":"Bisheriger Schnitt"}: <span id="setBaseOut" class="num">${hm(S.baseline)}</span>
       <input id="setBase" type="range" min="30" max="600" step="15" value="${S.baseline}"></label>
-    <button type="button" class="btn secondary" id="stAvg">📱 Tagesdurchschnitt vom ${ST===ST_SIM?"Handy":"iPhone"} anzeigen</button>
+    <button type="button" class="btn secondary" id="stAvg">${ico("phone")}<span>Tagesdurchschnitt vom ${ST===ST_SIM?"Handy":"iPhone"} anzeigen</span></button>
     <p class="small muted">Deine ersten Bewohner heißen ${here().map(r=>esc(r.name)).join(", ")}. Umbenennen kannst du sie unter „Bewohner“.</p>
     <button class="btn" id="startBtn">Insel starten</button>
   </div>`;
@@ -3176,13 +3198,13 @@ function actionCard(ok){
   if(!S.setup||S.vacation||S.boat) return "";
   const boot=feature("boot")&&adults().length, night=feature("nacht")&&S.lastDay&&!sleeping()&&(S.testmode||S.lastDay===today())&&!(S.night&&S.night.after===S.lastDay);
   const eve=new Date().getHours()>=20;
-  const chip=(id,ic,t)=>`<button class="act-chip" id="${id}">${ic} ${t}</button>`;
-  const calm=chip("calmBtn","🌊",S.calmDay===today()?"Inselminute ✓":"Inselminute");
+  const chip=(id,ic,t)=>`<button class="act-chip" id="${id}">${ico(ic)} ${t}</button>`;
+  const calm=chip("calmBtn","wave",S.calmDay===today()?"Inselminute ✓":"Inselminute");
   if(sleeping()) return `<div class="card act"><p class="act-sleep">🌙 Die Insel schläft. Bis morgen!</p><div class="act-row">${calm}</div></div>`;
   let main="", hint="", side=[];
-  if(ok){ side=[boot?chip("boatGo","⛵","Fokus-Bootsfahrt"):"",calm] }   // vor dem Eintragen ist das Eintragen die Hauptsache
-  else if(night&&(eve||!boot)){ main=`<button class="btn big" id="nightBtn">🌙 Gute Nacht, Insel</button>`; hint="Handy weglegen · morgen gibt es Traumpunkte"; side=[boot?chip("boatGo","⛵","Fokus-Bootsfahrt"):"",calm] }
-  else if(boot){ main=`<button class="btn big" id="boatGo">⛵ Fokus-Bootsfahrt starten</button>`; hint="Handy weg · ein Bewohner fährt fischen"; side=[night?chip("nightBtn","🌙","Gute Nacht"):"",calm] }
+  if(ok){ side=[boot?chip("boatGo","boat","Fokus-Bootsfahrt"):"",calm] }   // vor dem Eintragen ist das Eintragen die Hauptsache
+  else if(night&&(eve||!boot)){ main=`<button class="btn big" id="nightBtn">${ico("moon")}<span>Gute Nacht, Insel</span></button>`; hint="Handy weglegen · morgen gibt es Traumpunkte"; side=[boot?chip("boatGo","boat","Fokus-Bootsfahrt"):"",calm] }
+  else if(boot){ main=`<button class="btn big" id="boatGo">${ico("boat")}<span>Fokus-Bootsfahrt starten</span></button>`; hint="Handy weg · ein Bewohner fährt fischen"; side=[night?chip("nightBtn","moon","Gute Nacht"):"",calm] }
   else side=[calm];
   return `<div class="card act">${main}${hint?`<p class="act-hint">${hint}</p>`:""}<div class="act-row">${side.join("")}</div></div>`;
 }
@@ -3250,7 +3272,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.69";
+const APP_VERSION="1.70";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -3489,7 +3511,7 @@ function viewZeit(){
   const max=Math.max(S.budget*1.4,...week.map(d=>d.min)), bh=72, y0=124;
   const bars=week.map((d,i)=>{const h=Math.max(4,d.min/max*bh), x=216+i*20;return `<rect x="${x}" y="${y0-h}" width="14" height="${h}" rx="4" fill="${d.min<=S.budget?"#C8F169":"#FF9C7A"}"><title>${nice(d.day)}: ${hm(d.min)}</title></rect><text x="${x+7}" y="${y0+16}" text-anchor="middle" font-family="Manrope, sans-serif" font-size="10" fill="#A4A6BD">${(LOC==="de-DE"?"SMDMDFS":"SMTWTFS")[parse(d.day).getDay()]}</text>`}).join("");
   const hero=`<svg viewBox="0 0 360 160" role="img" aria-label="Gewonnene Zeit ${hm(saved)}" style="width:100%;height:auto;display:block"><defs><linearGradient id="zg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#33406B"/><stop offset="1" stop-color="#1E2030"/></linearGradient></defs><rect width="360" height="160" fill="url(#zg)"/>
-    <text x="20" y="40" font-family="Manrope, sans-serif" font-size="12" font-weight="700" fill="#A4A6BD" letter-spacing="1.2">GEWONNENE ZEIT</text>
+    <text x="20" y="40" font-family="Bricolage Grotesque, sans-serif" font-size="14" font-weight="700" fill="#A4A6BD">Gewonnene Zeit</text>
     <text x="20" y="84" font-family="Bricolage Grotesque, Manrope, sans-serif" font-size="${hm(saved).length>9?28:40}" font-weight="800" fill="#C8F169">${hm(saved)}</text>
     <text x="20" y="106" font-family="Manrope, sans-serif" font-size="12" fill="#A4A6BD">in ${n} ${n===1?"Tag":"Tagen"}</text><text x="20" y="122" font-family="Manrope, sans-serif" font-size="12" fill="#A4A6BD">statt ${hm(S.baseline)} am Tag</text>
     ${bars}${week.length?`<path d="M210 ${y0-S.budget/max*bh}h144" stroke="#F3F1EA" stroke-dasharray="3 4" opacity=".5"/>`:""}</svg>`;
@@ -3507,7 +3529,7 @@ function viewZeit(){
   ${zeitDid()}
   ${plusLocked()?"":zeitCal()+zeitBest()}
   ${zeitCards(saved)}
-  ${S.lastDay?`<div class="card"><button class="rowbtn" id="weekBtn" data-wk="${isoWeek(S.lastDay)}"><span class="plan-ic" style="background:#26233D;color:var(--lilac)"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h6a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4zM20 5h-6a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h6z"/></svg></span><span class="grow"><b>Wochenrückblick</b><span class="small muted">KW ${+isoWeek(S.lastDay).split("-W")[1]} ansehen</span></span><span class="muted">›</span></button>${kurierBtn(isoWeek(S.lastDay))}${wrapBtn()}</div>`:""}
+  ${S.lastDay?`<div class="card list"><button class="rowbtn" id="weekBtn" data-wk="${isoWeek(S.lastDay)}"><span class="plan-ic" style="background:#26233D;color:var(--lilac)"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h6a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4zM20 5h-6a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h6z"/></svg></span><span class="grow"><b>Wochenrückblick</b><span class="small muted">KW ${+isoWeek(S.lastDay).split("-W")[1]} ansehen</span></span><span class="muted">›</span></button>${kurierBtn(isoWeek(S.lastDay))}${wrapBtn()}</div>`:""}
   ${plusLocked()?zeitPlusTeaser():`<div class="card">
     <p class="label">Hochgerechnet aufs Jahr</p>
     <div class="row between small"><span>Mit deinem alten Schnitt</span><b class="num" style="white-space:nowrap">${Math.round(yearOld)} Tage</b></div>
@@ -3812,7 +3834,7 @@ function kapselSheet(){
 function viewVerlauf(){
   const have=new Set(S.postcards.map(c=>c.motif)), found=new Set(S.finds.map(f=>f.id)), cards=S.postcards.slice().reverse();
   const done=S.chapter==null?0:Math.min(S.chapter,CHAPTERS.length);
-  const row=(id,ic,title,sub,attr)=>`<button class="card rowbtn alb-row" ${attr||`id="${id}"`}><span class="alb-ric" aria-hidden="true">${ic}</span><span class="grow"><b>${title}</b><span class="small muted" style="display:block">${sub}</span></span><span class="muted">›</span></button>`;
+  const row=(id,ic,tone,title,sub,attr)=>`<button class="rowbtn" ${attr||`id="${id}"`}><span class="plan-ic" style="${tone}">${ico(ic)}</span><span class="grow"><b>${title}</b><span class="small muted" style="display:block">${sub}</span></span><span class="muted">›</span></button>`;
   return `${albumBoard(cards)}
   <div class="row zt-chips">
     <div class="cp"><i>Postkarten</i><b>${have.size} / ${MOTIFS.length}</b></div>
@@ -3822,10 +3844,12 @@ function viewVerlauf(){
   ${albumVitrine()}
   ${albumStand(cards)}
   ${albumPass()}
-  ${S.chapter!=null?row("bayAlbum","🎩","Mr. Bays Album",`Die Geschichte von OffLand · ${done} / ${CHAPTERS.length} Kapitel`):""}
-  ${row("lucJokes","😈","Lucifers Witze",(()=>{const st=lucStage(), n=new Set(st.hist&&st.hist.length?st.hist:st.seen).size; return n===1?"1 Witz gesammelt":n?n+" Witze gesammelt":"Jeden Tag ein neuer Stand-up-Witz"})())}
-  ${row("kapselBtn","⏳","Zeitkapseln",S.capsules.length?S.capsules.length+(S.capsules.length===1?" Monatsrückblick":" Monatsrückblicke")+" zum Teilen":"Am Monatsende kommt der erste Rückblick")}
-  ${row("","✍️","Inseltagebuch",S.feed.length?S.feed.length+(S.feed.length===1?" Eintrag · ":" Einträge · ")+esc(TR((S.feed[0]||{}).text||"")).slice(0,48)+((S.feed[0]||{}).text&&TR(S.feed[0].text).length>48?"…":""):"Hier erscheint, was auf deiner Insel passiert.",'data-feed="feed"')}
+  <div class="card list">
+  ${S.chapter!=null?row("bayAlbum","hat","background:#3A2E22;color:var(--amber)","Mr. Bays Album",`Die Geschichte von OffLand · ${done} / ${CHAPTERS.length} Kapitel`):""}
+  ${row("lucJokes","mic","background:#3A2220;color:var(--coral)","Lucifers Witze",(()=>{const st=lucStage(), n=new Set(st.hist&&st.hist.length?st.hist:st.seen).size; return n===1?"1 Witz gesammelt":n?n+" Witze gesammelt":"Jeden Tag ein neuer Stand-up-Witz"})())}
+  ${row("kapselBtn","glass","background:#26233D;color:var(--lilac)","Zeitkapseln",S.capsules.length?S.capsules.length+(S.capsules.length===1?" Monatsrückblick":" Monatsrückblicke")+" zum Teilen":"Am Monatsende kommt der erste Rückblick")}
+  ${row("","book","","Inseltagebuch",S.feed.length?S.feed.length+(S.feed.length===1?" Eintrag · ":" Einträge · ")+esc(TR((S.feed[0]||{}).text||"")).slice(0,48)+((S.feed[0]||{}).text&&TR(S.feed[0].text).length>48?"…":""):"Hier erscheint, was auf deiner Insel passiert.",'data-feed="feed"')}
+  </div>
 `;
 }
 /* Einstellungen: erreichbar über das Profilbild oben rechts */
@@ -5192,18 +5216,18 @@ function plusBadge(){                                                           
   return "★ Plus · "+(left<=1?"letzter Tag":"noch "+left+" Tage");
 }
 /* Was Plus bringt: steht so in der Plus-Woche, im Ende-Fenster und auf der Paywall */
-const PLUS_FEATS=[["🌍","Weltreise","4 neue Welten mit eigenen Tieren, Großprojekten und Kapiteln."],["🎃","Saison-Inseln","Halloween, Weihnachten, Sommer und Ostern: Deine Insel verwandelt sich, mit Saison-Looks und Stempeln."],
-  ["▶️","Mein Inseljahr","Dein Monat und dein Jahr als Story, mit Bild zum Teilen."],["⛵","Live-Insel","Die Bootsfahrt als Countdown auf dem Sperrbildschirm und in der Dynamic Island."],
-  ["📰","Der Insel-Kurier","Jede Woche die Inselzeitung von Mr. Bay: Schlagzeilen, Klatsch und Lucifers Kolumne."],["🛡️","Insel-Schutz Pro","Eigene Zeitpläne: morgens, bei der Arbeit, nachts."],
-  ["📊","Mehr aus deiner Zeit","Kalender, Bestwerte, Hochrechnung und die Auswertung von Fokuszeit und Apps."],["🏝️","Goldene Lagune","Deine Insel in Gold und Türkis, mit Flamingos."],
-  ["👑","Plus-Looks","Kronen, Goldbrillen, Goldketten und goldenes Fell."],["👨‍👩‍👧","Für die ganze Familie","Mit dem Familien-Abo bis zu 6 Personen."],["✨","+10 % Punkte jeden Tag","Und ein goldener Rahmen beim Teilen."]];
+const PLUS_FEATS=[["globe","Weltreise","4 neue Welten mit eigenen Tieren, Großprojekten und Kapiteln."],["leaf","Saison-Inseln","Halloween, Weihnachten, Sommer und Ostern: Deine Insel verwandelt sich, mit Saison-Looks und Stempeln."],
+  ["play","Mein Inseljahr","Dein Monat und dein Jahr als Story, mit Bild zum Teilen."],["boat","Live-Insel","Die Bootsfahrt als Countdown auf dem Sperrbildschirm und in der Dynamic Island."],
+  ["paper","Der Insel-Kurier","Jede Woche die Inselzeitung von Mr. Bay: Schlagzeilen, Klatsch und Lucifers Kolumne."],["shield","Insel-Schutz Pro","Eigene Zeitpläne: morgens, bei der Arbeit, nachts."],
+  ["chart","Mehr aus deiner Zeit","Kalender, Bestwerte, Hochrechnung und die Auswertung von Fokuszeit und Apps."],["sun","Goldene Lagune","Deine Insel in Gold und Türkis, mit Flamingos."],
+  ["crown","Plus-Looks","Kronen, Goldbrillen, Goldketten und goldenes Fell."],["people","Für die ganze Familie","Mit dem Familien-Abo bis zu 6 Personen."],["coin","+10 % Punkte jeden Tag","Und ein goldener Rahmen beim Teilen."]];
 function plusStartSheet(){
   CUR_EV=null; stat("plus_start");
   sheet(`<p class="ps-gift" aria-hidden="true">🎁</p><p class="ps-star">★ OffLand Plus</p>
     <h2 style="text-align:center">Deine erste Woche geht aufs Haus</h2>
     <p class="muted" style="text-align:center">${PLUS_TRIAL} Tage lang ist alles freigeschaltet. Probier aus, was deine Insel kann.</p>
     <div class="ps-days" aria-hidden="true">${"<i></i>".repeat(PLUS_TRIAL)}</div>
-    <div class="ps-feat">${PLUS_FEATS.filter(f=>f[1]!=="Für die ganze Familie").map(([i,t,sub])=>`<div><span class="ic" aria-hidden="true">${i}</span><p>${t}<small>${sub}</small></p></div>`).join("")}</div>
+    <div class="ps-feat">${PLUS_FEATS.filter(f=>f[1]!=="Für die ganze Familie").map(([i,t,sub])=>`<div><span class="ic">${ico(i)}</span><p>${t}<small>${sub}</small></p></div>`).join("")}</div>
     <div class="ps-safe"><span aria-hidden="true">🔒</span><p class="small muted"><b style="color:var(--ink)">Kein Abo, keine Zahlungsdaten.</b> Nach ${PLUS_TRIAL} Tagen spielst du einfach kostenlos weiter. Deine Insel und alle Bewohner bleiben dir.</p></div>
     ${saysHtml("bay","Willkommen auf OffLand! Die erste Woche bekommst du von mir das volle Programm. Ich hab sogar extra die Möwen geputzt.")}
     <button class="btn ps-go" data-ok>Los geht's</button>`);
@@ -5302,7 +5326,7 @@ async function plusPaywall(from){
     <div class="pw-hero">${hero}</div>
     <div class="pw-head"><span class="pw-badge">★ OffLand Plus</span><h2>Mach deine Insel <em>legendär.</em></h2><p>Neue Welten, eigene Zeitpläne, dein ganzes Inseljahr. Und jede Minute ohne Handy zählt ein bisschen mehr.</p></div>
     ${saved>=60?`<div class="pw-stat"><b class="num">${hm(saved)}</b><span>hast du in ${ds.length} ${ds.length===1?"Tag":"Tagen"} schon zurückgewonnen.${yearDays>=1?`<small>Weiter so ergibt das rund ${yearDays} ${yearDays===1?"Tag":"Tage"} im Jahr.</small>`:""}</span></div>`:""}
-    <div class="pw-sec"><h3>Das bekommst du</h3><ul class="pw-feats">${PLUS_FEATS.map(([i,t,s])=>`<li><span class="pw-ic" aria-hidden="true">${i}</span><span><b>${t}</b><span>${s}</span></span></li>`).join("")}</ul></div>
+    <div class="pw-sec"><h3>Das bekommst du</h3><ul class="pw-feats">${PLUS_FEATS.map(([i,t,s])=>`<li><span class="pw-ic">${ico(i)}</span><span><b>${t}</b><span>${s}</span></span></li>`).join("")}</ul></div>
     <div class="pw-sec"><h3>Gratis oder Plus</h3><table class="pw-cmp"><thead><tr><th></th><th>Gratis</th><th class="p">Plus</th></tr></thead><tbody>
       ${[["Insel, Bewohner, Tagesbilanz","✓","✓"],["Familieninsel","✓","✓"],["Fokus-Boot und Inselminute","✓","✓"],["Weltreise","Heimatinseln","5 Welten"],["Saison-Inseln","–","✓"],["Mein Inseljahr als Story","–","✓"],["Live-Insel","–","✓"],["Der Insel-Kurier","–","✓"],["Zeit-Statistik","Diese Woche","Alles"],["Insel-Schutz","Feste Zeiten","Eigene Zeitpläne"],["Goldene Lagune","–","✓"],["Plus-Looks","–","✓"],["Punkte pro Tag","100 %","110 %"]]
         .map(([a,b,c])=>`<tr><td>${a}</td><td class="${b==="✓"?"y":b==="–"?"n":""}">${b}</td><td class="y">${c}</td></tr>`).join("")}</tbody></table></div>
@@ -5352,7 +5376,7 @@ function plusWelcome(p){
   sheet(`<p class="ps-gift" aria-hidden="true">👑</p><p class="ps-star">★ Willkommen bei Plus</p>
     <h2 style="text-align:center">Lucifer trägt jetzt Krone.</h2>
     <p class="muted" style="text-align:center">${S.plusSub&&S.plusSub.trial?`Deine Probezeit läuft bis ${nice(S.plusSub.until)}. Wir erinnern dich vorher.`:"Plus ist aktiv. Danke, dass du die Insel am Leben hältst!"}</p>
-    <div class="ps-feat">${PLUS_FEATS.slice(0,3).map(([i,t,sub])=>`<div><span class="ic" aria-hidden="true">${i}</span><p>${t}<small>${sub}</small></p></div>`).join("")}</div>
+    <div class="ps-feat">${PLUS_FEATS.slice(0,3).map(([i,t,sub])=>`<div><span class="ic">${ico(i)}</span><p>${t}<small>${sub}</small></p></div>`).join("")}</div>
     <button class="btn" data-ok>Zur Insel</button>`);
 }
 /* Plus-Karte in den Einstellungen */
@@ -5610,7 +5634,7 @@ function kurierSheet(wk){
   <div class="row"><button class="btn secondary grow" id="kuShare">Teilen</button><button class="btn grow" data-ok>Zur Insel</button></div>`);
   $("#kuShare").onclick=()=>shareText("Der Insel-Kurier, KW "+k.kw+": "+k.head[0]+" 🌴",inviteLink());
 }
-const kurierBtn=wk=>plusShown()?`<button class="rowbtn" id="kuBtn" data-wk="${wk}"><span class="plan-ic" style="background:#3A3122;color:#F3E6C8" aria-hidden="true">📰</span><span class="grow"><b>Der Insel-Kurier${plusActive()?"":` <i class="uk-star" style="position:static">★</i>`}</b><span class="small muted">Die Inselzeitung zur KW ${+wk.split("-W")[1]}</span></span><span class="muted">›</span></button>`:"";
+const kurierBtn=wk=>plusShown()?`<button class="rowbtn" id="kuBtn" data-wk="${wk}"><span class="plan-ic" style="background:#3A3122;color:#F3E6C8">${ico("paper")}</span><span class="grow"><b>Der Insel-Kurier${plusActive()?"":` <i class="uk-star" style="position:static">★</i>`}</b><span class="small muted">Die Inselzeitung zur KW ${+wk.split("-W")[1]}</span></span><span class="muted">›</span></button>`:"";
 
 /* ---------- Mein Inseljahr (Plus) ----------
    Dein Monat und dein Jahr als Story: gewonnene Zeit, gute Tage, Serie, neue Bewohner, Fokus-Boot,
@@ -5747,7 +5771,7 @@ function wrapListSheet(){
     <button class="btn" data-ok>Schließen</button>`);
   document.querySelectorAll("#modalRoot [data-wrap]").forEach(b=>b.onclick=()=>wrapSheet(b.dataset.wrap));
 }
-const wrapBtn=()=>plusShown()?`<button class="rowbtn" id="wrapBtn"><span class="plan-ic" style="background:#3A2A55;color:var(--amber)" aria-hidden="true">▶</span><span class="grow"><b>Mein Inseljahr${plusActive()?"":` <i class="uk-star" style="position:static">★</i>`}</b><span class="small muted">Dein Monat und dein Jahr als Story</span></span><span class="muted">›</span></button>`:"";
+const wrapBtn=()=>plusShown()?`<button class="rowbtn" id="wrapBtn"><span class="plan-ic" style="background:#3A2A55;color:var(--amber)">${ico("play")}</span><span class="grow"><b>Mein Inseljahr${plusActive()?"":` <i class="uk-star" style="position:static">★</i>`}</b><span class="small muted">Dein Monat und dein Jahr als Story</span></span><span class="muted">›</span></button>`:"";
 
 /* ---------- Live-Insel (Plus) ----------
    Während der Fokus-Bootsfahrt zeigt das iPhone (ab iOS 16.1) einen Countdown auf dem Sperrbildschirm und in der Dynamic Island,
