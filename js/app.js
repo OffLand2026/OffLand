@@ -1934,7 +1934,7 @@ function baySvg(anim){
     <circle cx="-3.3" cy="-13.9" r="1" fill="#FF9C7A" opacity=".4"/><circle cx="3.3" cy="-13.9" r="1" fill="#FF9C7A" opacity=".4"/>
     <path d="M-1.9 -13.6q.95-.7 1.9-.15q.95-.55 1.9.15q-.95.35-1.9 0q-.95.35-1.9 0z" fill="#6B4226"/><path d="M-1.1 -12.3q1.3.8 2.6-.6" stroke="#5A3A2A" stroke-width=".65" fill="none" stroke-linecap="round"/>`;
 }
-function lucSvg(anim){
+function lucSvg(anim,hearts){
   return `<path${anim?' class="luc-tail"':""} d="M5.6 -1.4q6.4-.6 5.2-7.2" stroke="#1E1F2B" stroke-width="2.3" fill="none" stroke-linecap="round"/>
     <ellipse cx="0" cy="-5.2" rx="6" ry="5.6" fill="#1E1F2B"/>
     <path d="M-2.7 -9.2q2.7 2 5.4 0q-.5 5.8-2.7 7.8q-2.2-2-2.7-7.8z" fill="#F3F1EA"/>
@@ -1945,7 +1945,7 @@ function lucSvg(anim){
     <g${anim?' class="blink" style="animation-delay:1.7s"':""}><ellipse cx="-1.8" cy="-13.7" rx="1.05" ry="1.25" fill="#C8F169"/><ellipse cx="1.8" cy="-13.7" rx="1.05" ry="1.25" fill="#C8F169"/>
     <path d="M-1.8 -14.6v1.8M1.8 -14.6v1.8" stroke="#14151F" stroke-width=".55" stroke-linecap="round"/></g>
     <path d="M-.5 -11.9h1l-.5.6z" fill="#E07AB8"/>
-    <path d="M-1.4 -11.2l-3.4-.5M-1.4 -10.7l-3.2.5M1.4 -11.2l3.4-.5M1.4 -10.7l3.2.5" stroke="#F3F1EA" stroke-width=".28" opacity=".8"/>`;
+    <path d="M-1.4 -11.2l-3.4-.5M-1.4 -10.7l-3.2.5M1.4 -11.2l3.4-.5M1.4 -10.7l3.2.5" stroke="#F3F1EA" stroke-width=".28" opacity=".8"/>${hearts?`<g fill="#FF6FA8"><path d="M-1.8 -14.3c-.6-.7-1.9-.3-1.6.8l1.6 1.4 1.6-1.4c.3-1.1-1-1.5-1.6-.8z"/><path d="M1.8 -14.3c-.6-.7-1.9-.3-1.6.8l1.6 1.4 1.6-1.4c.3-1.1-1-1.5-1.6-.8z"/><path d="M-.3 -13.6h.6" stroke="#FF6FA8" stroke-width=".5"/></g>`:""}`;
 }
 const bayPic=(s)=>`<svg width="${s}" height="${s}" viewBox="-8.5 -22.5 17 17" aria-hidden="true">${baySvg()}</svg>`;
 const lucPic=(s)=>`<svg width="${s}" height="${s}" viewBox="-8 -20.5 16 16" aria-hidden="true">${lucSvg()}</svg>`;
@@ -3086,7 +3086,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.72";
+const APP_VERSION="1.73";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -7106,20 +7106,20 @@ function startHero(){
     <g fill="#F3F1EA">${[[30,24,1.6],[90,50,1.1],[150,18,1.5],[205,40,1.2],[330,30,1.4],[300,64,1],[60,80,1]].map(([x,y,r],i)=>`<circle class="glow" style="animation-delay:${i*.4}s" cx="${x}" cy="${y}" r="${r}"/>`).join("")}</g>
     <circle cx="306" cy="38" r="13" fill="#FFE7A3"/><circle cx="312" cy="34" r="12" fill="#1B2340"/>
     <rect y="140" width="360" height="60" fill="#24375A"/><path d="M20 168h40M250 186h50M90 192h40" stroke="#3A5683" stroke-width="3" stroke-linecap="round"/>
-    <ellipse cx="200" cy="148" rx="150" ry="18" fill="#E9D7A6"/><path d="M70 146c14-40 76-58 130-58s116 18 130 58z" fill="#7FC57A"/>
+    <ellipse class="st-sand" cx="200" cy="148" rx="150" ry="18" fill="#E9D7A6"/><path d="M70 146c14-40 76-58 130-58s116 18 130 58z" fill="#7FC57A"/>
     <path d="M276 132v-24l18-14 18 14v24z" fill="#F3F1EA"/><path d="M272 110l22-17 22 17" fill="none" stroke="#FF9C7A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><rect x="288" y="116" width="10" height="16" rx="2" fill="#B6A4FF"/>
     ${lights}
     <g transform="translate(180 150) scale(3)"><g class="st-pop"><g class="bob">${baySvg(true)}</g></g></g>
-    <g transform="translate(232 152) scale(2.5)"><g class="st-pop st-pop2"><g class="bob" style="animation-delay:.6s;animation-duration:3.4s">${lucSvg(true)}</g></g></g>
+    <g transform="translate(232 152) scale(2.5)"><g class="st-pop st-pop2"><g class="bob" style="animation-delay:.6s;animation-duration:3.4s">${lucSvg(true,true)}</g></g></g>
     <g class="st-burst">${Array.from({length:10},(_,i)=>{const w=i/10*Math.PI*2;return `<circle cx="200" cy="120" r="${i%2?2.2:3}" fill="${["#C8F169","#B6A4FF","#FFD27A"][i%3]}" style="--dx:${Math.round(Math.cos(w)*90)}px;--dy:${Math.round(Math.sin(w)*55)}px"/>`}).join("")}</g>
   </svg>`;
 }
-let START_TALK=null;
+let START_TALK=null, START_NAME=null;
 function startTalk(name){
-  clearInterval(START_TALK);
+  clearInterval(START_TALK); START_NAME=name;
   // Die beiden schicken dich eher raus, als dass sie dich festhalten: kurz eintragen, Handy weg
   const lines=name?[["bay","Hallo "+name+"! Kurz eintragen, dann Handy weg. So mögen wir das."],["luc","Mach's kurz. Draußen passiert mehr als hier."],["bay","Die Insel wächst, wenn du nicht hier bist. Klingt komisch, ist aber so."],["luc","Ich zähl mit, wie lange du bleibst. Je kürzer, desto stolzer bin ich."]]
-    :[["bay","Willkommen auf OffLand! Ich bin Mr. Bay, der Bürgermeister."],["luc","Und ich bin Lucifer. Ich war zuerst hier."],["bay","Hier gewinnst du, wenn du weniger am Handy bist. Das gilt auch für OffLand: Du musst nicht ständig reinschauen."],["luc","Einmal am Abend vorbeischauen reicht. Den Rest des Tages verschlaf ich eh."],["bay","Den Rest macht das echte Leben. Wir freuen uns nur mit."],["luc","Ich mag Leute, die schnell wieder gehen. Nimm's nicht persönlich."]];
+    :[["bay","Willkommen! Bau dir deine eigene Insel."],["luc","Oder geh einfach raus. Auch gut."],["bay","Willkommen auf OffLand! Ich bin Mr. Bay, der Bürgermeister."],["luc","Und ich bin Lucifer. Ich war zuerst hier."],["bay","Hier gewinnst du, wenn du weniger am Handy bist. Das gilt auch für OffLand: Du musst nicht ständig reinschauen."],["luc","Einmal am Abend vorbeischauen reicht. Den Rest des Tages verschlaf ich eh."],["bay","Den Rest macht das echte Leben. Wir freuen uns nur mit."],["luc","Ich mag Leute, die schnell wieder gehen. Nimm's nicht persönlich."]];
   let i=0;
   const show=()=>{const b=$("#startBub"); if(!b){clearInterval(START_TALK);return}
     const [who,t]=lines[i++%lines.length];
@@ -7128,6 +7128,49 @@ function startTalk(name){
     if(typeof AC!=="undefined"&&AC&&AC.state==="running") speak([[who,t]])};
   show(); START_TALK=setInterval(show,3800);
 }
+/* Die Schlussszene des Intros (Insel bei Nacht, Mr. Bay, Lucifer mit Herzchenbrille) bleibt beim allerersten Start als Hintergrund stehen.
+   Sie wird einmal kopiert, solange das Intro noch im Dokument ist: ohne Bewegung, ohne Wellenringe, Kamera 170 Punkte höher, Schriftzug klein oben. */
+const INTRO_WORLD=(()=>{try{
+  const sv=document.getElementById("spStage"),w=document.getElementById("spWorld");if(!sv||!w)return "";
+  const c=w.cloneNode(true);c.querySelectorAll(".ring,.splash-drop").forEach(e=>e.remove());
+  const d=sv.querySelector("defs"),fix=h=>h.replace(/id="sp/g,'id="st').replace(/url\(#sp/g,"url(#st").replace(/href="#sp/g,'href="#st');
+  return fix(`<svg viewBox="0 0 390 844" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${d?d.outerHTML:""}<g transform="translate(0 -170)">${c.outerHTML}</g></svg>`)
+    .replace('id="stWordGrp"','id="stWordGrp" transform="translate(195 244) scale(.75) translate(-195 -214)"');
+}catch(e){return ""}})();
+/* Übergang vom Intro zum Startscreen (index.html ruft das am Ende des Intros auf).
+   Allererster Start: Die Szene bleibt stehen, die Kamera schwenkt hoch, Mr. Bay und Lucifer begrüßen dich, die Karte kommt von unten.
+   Sonst: Die Intro-Szene schrumpft genau in das Inselbild des Startscreens. */
+window.__offlandIntroOut=function(el,rm){
+  const st=$("#start"),b=document.body,sk=el.querySelector(".sp-skip");
+  try{
+    if(st&&st.classList.contains("first")){
+      const w=el.querySelector("#spWorld"),g=el.querySelector("#spWordGrp");if(!w||!g)return false;
+      if(sk)sk.style.display="none";
+      const o={duration:1000,easing:"cubic-bezier(.65,0,.25,1)",fill:"forwards"};
+      b.classList.add("enter-v");
+      w.animate([{transform:"translateY(0px)"},{transform:"translateY(-170px)"}],o);
+      g.style.transformBox="view-box";g.style.transformOrigin="195px 214px";
+      g.animate([{transform:"none"},{transform:"translate(0px,30px) scale(.75)"}],o);
+      setTimeout(rm,1030);setTimeout(()=>startTalk(START_NAME),1300);setTimeout(()=>b.classList.remove("enter-v"),3200);
+      return true;
+    }
+    const hero=st&&st.querySelector(".start-hero"),hs=hero&&hero.querySelector(".st-sand"),ss=el.querySelector("#spIsle ellipse");
+    if(!hero||!hs||!ss)return false;
+    const a=ss.getBoundingClientRect(),h=hs.getBoundingClientRect(),R=hero.getBoundingClientRect(),W=el.clientWidth||innerWidth,H=el.clientHeight||innerHeight;
+    if(!a.width||!h.width||!R.width)return false;
+    const s=h.width/a.width,tx=h.left+h.width/2-s*(a.left+a.width/2),ty=h.top+h.height/2-s*(a.top+a.height/2);
+    const L=Math.max(0,(R.left-tx)/s),T=Math.max(0,(R.top-ty)/s),Rt=Math.max(0,W-(R.right-tx)/s),Bt=Math.max(0,H-(R.bottom-ty)/s);
+    const rad=(parseFloat(getComputedStyle(hero).borderTopLeftRadius)||0)/s;
+    if(sk)sk.style.display="none";
+    el.style.transition="none";el.style.transformOrigin="0 0";
+    const g=el.querySelector("#spWordGrp");if(g)g.animate([{opacity:1},{opacity:0}],{duration:280,fill:"forwards"});
+    b.classList.add("enter-k");
+    const an=el.animate([{transform:"none",clipPath:"inset(0px 0px 0px 0px round 0px)"},{transform:`translate(${tx}px,${ty}px) scale(${s})`,clipPath:`inset(${T}px ${Rt}px ${Bt}px ${L}px round ${rad}px)`}],{duration:1000,easing:"cubic-bezier(.65,0,.25,1)",fill:"forwards"});
+    an.onfinish=()=>{const f=el.animate([{opacity:1},{opacity:0}],{duration:260,fill:"forwards"});f.onfinish=rm};
+    setTimeout(rm,1600);setTimeout(()=>startTalk(START_NAME),1300);setTimeout(()=>b.classList.remove("enter-k"),3200);
+    return true;
+  }catch(e){return false}
+};
 /* Zeit-Rechner auf dem ersten Startscreen: Stunden am Tag → Tage im Jahr. Wer ihn bewegt, startet mit diesem Wert als bisherigem Schnitt. */
 let START_HOURS=null;
 const calcH=h=>(window.OFFLAND_LANG==="en"?String(h):String(h).replace(".",","))+" h";
@@ -7138,7 +7181,7 @@ function showStart(){
   const hero=startHero();
   const chev=`<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>`;
   const lock=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A4A6BD" stroke-width="2" stroke-linecap="round" aria-label="mit PIN"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>`;
-  const st=$("#start"); st.classList.toggle("sky",!!list.length);
+  const st=$("#start"); st.classList.toggle("sky",!!list.length); st.classList.toggle("first",!list.length&&!!INTRO_WORLD);
   const tick=`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--lime)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>`;
 
   if(list.length) st.innerHTML=`<div class="start-sky">
@@ -7152,19 +7195,27 @@ function showStart(){
       <p class="small muted" style="text-align:center">Alle Daten bleiben auf diesem Gerät, außer du schaltest Online-Funktionen oder die anonyme Statistik ein.</p>
       <p class="small muted" style="text-align:center"><a href="impressum/" style="color:inherit">Impressum</a> · <a href="datenschutz/" style="color:inherit">Datenschutz</a></p>
     </div></div></div>`;
-  else st.innerHTML=`<div class="start-wrap">
-    <div class="start-hero">${hero}<div class="start-bub" id="startBub" aria-live="polite"></div></div>
-    <div style="display:flex;flex-direction:column;gap:6px"><h1 class="start-title">Off<span>Land</span></h1><p class="tagline">Weniger Handy. Mehr Insel.</p></div>
-    <div class="card calc"><label class="calc-q" for="calcH">Wie lange bist du am Tag am Handy?</label>
+  else{
+    const calc=`<label class="calc-q" for="calcH">Wie lange bist du am Tag am Handy?</label>
       <div class="calc-row"><output class="calc-h num" id="calcOut" for="calcH">${calcH(4)}</output><input id="calcH" type="range" min="1" max="9" step="0.5" value="4"></div>
       <p class="calc-r"><span>Das sind</span> <b class="num" id="calcDays">${calcDays(4)}</b> <span>im Jahr.</span></p>
-      <p class="small muted">Hol dir einen Teil davon zurück. Deine Insel hilft dir dabei.</p></div>
-    <button class="btn" id="newAcc">Meine Insel gründen</button>
+      <p class="small muted">Hol dir einen Teil davon zurück. Deine Insel hilft dir dabei.</p>`;
+    const acts=`<button class="btn" id="newAcc">Meine Insel gründen</button>
     ${netConfigured()?`<button class="btn ghost" id="restoreBtn">Ich hab schon eine Insel</button>`:""}
     <ul class="trust"><li>${tick}<span>Kein Login</span></li><li>${tick}<span>Keine E-Mail</span></li><li>${tick}<span>Bleibt auf deinem Handy</span></li></ul>
     <p class="small muted" style="text-align:center">Online-Funktionen und die anonyme Statistik schaltest du nur ein, wenn du willst.</p>
-    <p class="small muted" style="text-align:center"><a href="impressum/" style="color:inherit">Impressum</a> · <a href="datenschutz/" style="color:inherit">Datenschutz</a></p>
+    <p class="small muted" style="text-align:center"><a href="impressum/" style="color:inherit">Impressum</a> · <a href="datenschutz/" style="color:inherit">Datenschutz</a></p>`;
+    st.innerHTML=INTRO_WORLD?`<div class="st-world">${INTRO_WORLD}</div>
+    <div class="st-box"><div class="start-bub" id="startBub" aria-live="polite"></div></div>
+    <h1 class="sr">OffLand: Weniger Handy. Mehr Insel.</h1>
+    <section class="st-sheet"><span class="st-grip" aria-hidden="true"></span><div class="calc">${calc}</div>${acts}</section>`
+    :`<div class="start-wrap">
+    <div class="start-hero">${hero}<div class="start-bub" id="startBub" aria-live="polite"></div></div>
+    <div style="display:flex;flex-direction:column;gap:6px"><h1 class="start-title">Off<span>Land</span></h1><p class="tagline">Weniger Handy. Mehr Insel.</p></div>
+    <div class="card calc">${calc}</div>
+    ${acts}
   </div>`;
+  }
   document.querySelectorAll("[data-login]").forEach(b=>b.onclick=()=>{const p=profiles().find(x=>x.id===b.dataset.login);if(p)tryLogin(p)});
   $("#newAcc").onclick=showCreate;
   const ch=$("#calcH"); if(ch) ch.oninput=()=>{const h=+ch.value; START_HOURS=h; $("#calcOut").textContent=calcH(h); $("#calcDays").textContent=calcDays(h)};
@@ -7179,7 +7230,7 @@ function accFields(p,neu){
 const readAcc=()=>({name:$("#accName").value.trim().slice(0,20),avatar:(document.querySelector("[name=accAv]:checked")||{}).value||AVATARS[0]});
 
 function showCreate(){
-  const first=!profiles().length; $("#start").classList.remove("sky");
+  const first=!profiles().length; $("#start").classList.remove("sky","first");
   $("#start").innerHTML=`<div class="start-wrap acc-new">
     <button type="button" class="acc-back" id="accBack" aria-label="Zurück"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
     <div class="acc-head"><p class="label" style="color:var(--lime)">Neue Insel</p><h1 class="acc-title">Wie heißt du?</h1><p class="muted">Mehr brauchen wir nicht. Kein Passwort, keine E-Mail.</p></div>

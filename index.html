@@ -283,6 +283,7 @@
     function done(){if(!el)return;var b=document.body;
       // Läuft der Anmeldebildschirm dahinter, fährt die Kamera nach oben und er kommt von unten herein
       if(b.classList.contains("start")&&!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)){
+        if(window.__offlandIntroOut&&window.__offlandIntroOut(el,rm))return;
         b.classList.add("enter-b");el.classList.add("to-b");setTimeout(rm,1250);setTimeout(function(){b.classList.remove("enter-b")},3200);return}
       el.classList.add("out");setTimeout(rm,850)}
     (function wait(){if(!el)return;var ok=window.__offlandReady&&(!document.fonts||document.fonts.status==="loaded");
