@@ -2954,4 +2954,7 @@ window.OFFLAND_EN={
 "Insel gründen": "Start island",
 "Danach zeigt dir Mr. Bay die Insel und du legst dein Tagesbudget fest.": "Next, Mr. Bay shows you the island and you set your daily budget.",
 "Die anderen Inseln auf diesem Gerät bleiben, wie sie sind.": "The other islands on this device stay as they are.",
+"Willkommen! Bau dir deine eigene Insel.": "Welcome! Build your own island.",
+"Oder geh einfach raus. Auch gut.": "Or just go outside. Also fine.",
+"OffLand: Weniger Handy. Mehr Insel.": "OffLand: Less phone. More island.",
 };
