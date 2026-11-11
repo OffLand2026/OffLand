@@ -11,19 +11,22 @@ test("Kontoverwaltung von Anfang bis Ende", async ({ page }) => {
   await expect(page.locator("#start")).toContainText("Meine Insel");
   await expect(page.locator("#start")).toContainText("9 Tage");
 
-  // Neues Konto mit PIN
+  // Neues Konto: nur Name und Avatar, die PIN kommt danach übers Profilbild
   await page.click("#newAcc");
+  await expect(page.locator("#start")).toContainText("Dein Avatar");
+  await expect(page.locator("#accPin")).toHaveCount(0);
   await page.click("#accCreate");
   await expect(page.locator("#accErr")).toContainText("Namen");
   await page.fill("#accName", "Lina");
-  await page.fill("#accPin", "12");
-  await page.click("#accCreate");
-  await expect(page.locator("#accErr")).toContainText("4 Ziffern");
-  await page.fill("#accPin", "1234");
   await page.click("#accCreate");
   await page.click("#storySkip");
   await page.click("#startBtn");
   await dismiss(page);
+  await page.click("#accBtn"); await page.click("#accPinBtn");
+  await page.fill("#pinNew", "12"); await page.fill("#pinRep", "12"); await page.click("#pinSave");
+  await expect(page.locator("#pinErr")).toContainText("4 Ziffern");
+  await page.fill("#pinNew", "1234"); await page.fill("#pinRep", "1234"); await page.click("#pinSave");
+  expect((await profiles(page)).find(p => p.name === "Lina").pin).not.toBeNull();
 
   // Bleibt nach Neuladen angemeldet
   await page.reload();
@@ -63,11 +66,19 @@ test("Kontoverwaltung von Anfang bis Ende", async ({ page }) => {
   await expect(page.locator("#view")).toContainText("77 %");
 });
 
-test("Erster Start zeigt die Anleitung", async ({ page }) => {
+test("Erster Start: Zeit-Rechner, und sein Wert wird der bisherige Schnitt", async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
   await page.reload();
-  await expect(page.locator("#start")).toContainText("So funktioniert");
+  await expect(page.locator("#start")).toContainText("Wie lange bist du am Tag am Handy?");
+  await expect(page.locator("#calcDays")).toHaveText("61 Tage");
+  await page.locator("#calcH").fill("6");
+  await expect(page.locator("#calcOut")).toHaveText("6 h");
+  await expect(page.locator("#calcDays")).toHaveText("91 Tage");
+  await page.click("#newAcc"); await page.fill("#accName", "Rechner"); await page.click("#accCreate");
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("offline-insel-profile")).length)).toBe(1);
+  await page.click("#storySkip");
+  await expect(page.locator("#setBaseOut")).toHaveText("6 h");
 });
 
 test("Umzug: Inseln werden eingepackt und auf der neuen Adresse ausgepackt", async ({ page }) => {
