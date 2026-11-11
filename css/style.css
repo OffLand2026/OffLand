@@ -139,6 +139,21 @@ body.start .app,body.start .tabs{display:none}
 .profile .grow{display:flex;flex-direction:column}
 .profile svg.chev{width:20px;height:20px;color:var(--muted);flex-shrink:0}
 .steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+/* Erster Start: Zeit-Rechner und Vorteile, Konto anlegen */
+.calc{gap:8px}
+.calc-q{font-weight:800;font-size:15px}
+.calc-row{display:flex;align-items:center;gap:14px}
+.calc-h{font:800 30px/1 var(--display);min-width:76px}
+.calc-row input{flex:1;min-width:0;height:28px}
+.calc-r{font-size:16px}.calc-r b{font:800 22px var(--display);color:var(--lime)}
+.trust{list-style:none;margin:0;padding:0;display:flex;justify-content:center;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;font-weight:700;color:var(--muted)}
+.trust li{display:flex;align-items:center;gap:5px}
+.acc-new{gap:18px}
+.acc-new .field>span{font-size:14px;font-weight:700}
+.acc-back{width:44px;height:44px;border-radius:22px;border:none;background:var(--card);color:var(--ink);display:grid;place-items:center;cursor:pointer}
+.acc-head{display:flex;flex-direction:column;gap:6px}
+.acc-title{font-size:32px;letter-spacing:-.8px;line-height:1.05}
+.acc-pin{display:flex;align-items:center;gap:8px}.acc-pin svg{flex:none}
 .av-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
 .av-opt{display:flex;justify-content:center;cursor:pointer;position:relative}
 .av-opt input{position:absolute;opacity:0;width:1px;height:1px}

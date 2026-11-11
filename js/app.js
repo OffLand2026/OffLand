@@ -3086,7 +3086,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.71";
+const APP_VERSION="1.72";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -7010,7 +7010,7 @@ async function islandImage(){
   c.font="800 96px 'Bricolage Grotesque', sans-serif"; c.textAlign="left";
   const w1=c.measureText("Off").width, w2=c.measureText("Land").width, lx=(Wd-w1-w2)/2;
   c.fillText("Off",lx,190); c.fillStyle="#C8F169"; c.fillText("Land",lx+w1,190); c.textAlign="center";
-  c.fillStyle="#A4A6BD"; c.font="500 40px Manrope, sans-serif"; c.fillText("Grow your world beyond the screen.",Wd/2,256);
+  c.fillStyle="#A4A6BD"; c.font="500 40px Manrope, sans-serif"; c.fillText(TR("Weniger Handy. Mehr Insel."),Wd/2,256);
   c.fillStyle="#C8F169"; c.font="800 150px 'Bricolage Grotesque', sans-serif"; c.fillText(st.big,Wd/2,450);
   c.fillStyle="#F3F1EA"; let fs=52; do{c.font="700 "+fs+"px Manrope, sans-serif"}while(c.measureText(st.small).width>990&&--fs>30); c.fillText(st.small,Wd/2,530);
   c.fillStyle="#F3F1EA"; c.font="700 46px Manrope, sans-serif";
@@ -7128,6 +7128,10 @@ function startTalk(name){
     if(typeof AC!=="undefined"&&AC&&AC.state==="running") speak([[who,t]])};
   show(); START_TALK=setInterval(show,3800);
 }
+/* Zeit-Rechner auf dem ersten Startscreen: Stunden am Tag → Tage im Jahr. Wer ihn bewegt, startet mit diesem Wert als bisherigem Schnitt. */
+let START_HOURS=null;
+const calcH=h=>(window.OFFLAND_LANG==="en"?String(h):String(h).replace(".",","))+" h";
+const calcDays=h=>TR(Math.round(h*365/24)+" Tage");
 function showStart(){
   document.body.classList.add("start"); closeModal(); window.scrollTo(0,0); renderFocus();
   const list=profiles().sort((a,b)=>(b.last||0)-(a.last||0));
@@ -7135,8 +7139,10 @@ function showStart(){
   const chev=`<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>`;
   const lock=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A4A6BD" stroke-width="2" stroke-linecap="round" aria-label="mit PIN"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>`;
   const st=$("#start"); st.classList.toggle("sky",!!list.length);
+  const tick=`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--lime)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>`;
+
   if(list.length) st.innerHTML=`<div class="start-sky">
-    <div class="sky-top"><h1 class="start-title">Off<span>Land</span></h1><p class="tagline">Grow your world beyond the screen.</p></div>
+    <div class="sky-top"><h1 class="start-title">Off<span>Land</span></h1><p class="tagline">Weniger Handy. Mehr Insel.</p></div>
     <div class="sky-band"><div class="start-hero sky-hero">${hero}<div class="start-bub" id="startBub" aria-live="polite"></div></div></div>
     <div class="sky-bottom"><div class="sky-inner">
       <div class="card sky-pick"><p class="label">Wer spielt?</p>${list.map(p=>{const st=peek(p.id);const info=st&&st.setup?`${st.dayCount} ${st.dayCount===1?"Tag":"Tage"} · Glück ${st.glueck} %`:"Insel noch nicht gestartet";
@@ -7148,49 +7154,50 @@ function showStart(){
     </div></div></div>`;
   else st.innerHTML=`<div class="start-wrap">
     <div class="start-hero">${hero}<div class="start-bub" id="startBub" aria-live="polite"></div></div>
-    <div style="display:flex;flex-direction:column;gap:6px"><h1 class="start-title">Off<span>Land</span></h1><p class="tagline">Grow your world beyond the screen.</p><p class="muted">Je weniger Bildschirmzeit, desto glücklicher werden deine Bewohner und gemeinsam bringt ihr die Insel zum Blühen.</p></div>
-    ${list.length?`<div class="card"><p class="label">Wer spielt?</p>${list.map(p=>{const st=peek(p.id);const info=st&&st.setup?`${st.dayCount} ${st.dayCount===1?"Tag":"Tage"} · Glück ${st.glueck} %`:"Insel noch nicht gestartet";
-        return `<button class="profile" data-login="${p.id}">${avatarSvg(p.avatar,48)}<span class="grow"><b>${esc(p.name)}</b><span class="small muted">${info}</span></span>${p.pin?lock:""}${chev}</button>`}).join("")}</div>
-      <button class="btn secondary" id="newAcc">Neues Konto anlegen</button>`
-    :`<div class="card"><p class="label">So funktioniert's</p><ul class="steps"><li>Trag abends deine Bildschirmzeit ein.</li><li>Bleibst du im Budget, wird deine Insel glücklicher und wächst.</li><li>Zu viel Handy bringt Wolken, Streit und App-Monster.</li></ul></div>
-      <button class="btn" id="newAcc">Konto anlegen</button>`}
-    ${netConfigured()?`<button class="btn ghost" id="restoreBtn">Insel aus Backup holen</button>`:""}
-    <p class="small muted" style="text-align:center">Alle Daten bleiben auf diesem Gerät, außer du schaltest Online-Funktionen oder die anonyme Statistik ein.</p>
-      <p class="small muted" style="text-align:center"><a href="impressum/" style="color:inherit">Impressum</a> · <a href="datenschutz/" style="color:inherit">Datenschutz</a></p>
+    <div style="display:flex;flex-direction:column;gap:6px"><h1 class="start-title">Off<span>Land</span></h1><p class="tagline">Weniger Handy. Mehr Insel.</p></div>
+    <div class="card calc"><label class="calc-q" for="calcH">Wie lange bist du am Tag am Handy?</label>
+      <div class="calc-row"><output class="calc-h num" id="calcOut" for="calcH">${calcH(4)}</output><input id="calcH" type="range" min="1" max="9" step="0.5" value="4"></div>
+      <p class="calc-r"><span>Das sind</span> <b class="num" id="calcDays">${calcDays(4)}</b> <span>im Jahr.</span></p>
+      <p class="small muted">Hol dir einen Teil davon zurück. Deine Insel hilft dir dabei.</p></div>
+    <button class="btn" id="newAcc">Meine Insel gründen</button>
+    ${netConfigured()?`<button class="btn ghost" id="restoreBtn">Ich hab schon eine Insel</button>`:""}
+    <ul class="trust"><li>${tick}<span>Kein Login</span></li><li>${tick}<span>Keine E-Mail</span></li><li>${tick}<span>Bleibt auf deinem Handy</span></li></ul>
+    <p class="small muted" style="text-align:center">Online-Funktionen und die anonyme Statistik schaltest du nur ein, wenn du willst.</p>
+    <p class="small muted" style="text-align:center"><a href="impressum/" style="color:inherit">Impressum</a> · <a href="datenschutz/" style="color:inherit">Datenschutz</a></p>
   </div>`;
   document.querySelectorAll("[data-login]").forEach(b=>b.onclick=()=>{const p=profiles().find(x=>x.id===b.dataset.login);if(p)tryLogin(p)});
   $("#newAcc").onclick=showCreate;
+  const ch=$("#calcH"); if(ch) ch.oninput=()=>{const h=+ch.value; START_HOURS=h; $("#calcOut").textContent=calcH(h); $("#calcDays").textContent=calcDays(h)};
   startTalk(list.length?list[0].name:null);
   const rb=$("#restoreBtn"); if(rb) rb.onclick=restoreSheet;
 }
 
-function accFields(p){
-  return `<label class="field" for="accName">Name<input id="accName" type="text" maxlength="20" autocomplete="nickname" value="${p?esc(p.name):""}" placeholder="z. B. Mia"></label>
-  <div class="field"><span>Avatar</span><div class="av-grid" role="radiogroup" aria-label="Avatar">${AVATARS.map((a,i)=>`<label class="av-opt"><input type="radio" name="accAv" value="${a}" ${(p?p.avatar===a:i===0)?"checked":""}><span>${avatarSvg(a,48)}</span><span class="sr">${a}</span></label>`).join("")}</div></div>`;
+function accFields(p,neu){
+  return `<label class="field" for="accName">${neu?"Dein Name":"Name"}<input id="accName" type="text" maxlength="20" autocomplete="nickname" value="${p?esc(p.name):""}" placeholder="z. B. Mia"></label>
+  <div class="field"><span>${neu?"Dein Avatar":"Avatar"}</span><div class="av-grid" role="radiogroup" aria-label="Avatar">${AVATARS.map((a,i)=>`<label class="av-opt"><input type="radio" name="accAv" value="${a}" ${(p?p.avatar===a:i===0)?"checked":""}><span>${avatarSvg(a,48)}</span><span class="sr">${a}</span></label>`).join("")}</div></div>`;
 }
 const readAcc=()=>({name:$("#accName").value.trim().slice(0,20),avatar:(document.querySelector("[name=accAv]:checked")||{}).value||AVATARS[0]});
 
 function showCreate(){
   const first=!profiles().length; $("#start").classList.remove("sky");
-  $("#start").innerHTML=`<div class="start-wrap">
-    <div class="card" style="gap:14px"><p class="label" style="color:var(--lime)">${first?"Willkommen":"Neues Konto"}</p><h2>Konto anlegen</h2>
-      ${accFields(null)}
-      ${pinField("accPin","PIN (freiwillig)")}
-      <p class="small muted" style="margin-top:-6px">Mit PIN kann niemand anderes auf diesem Gerät deine Insel öffnen. Merk sie dir gut, sie lässt sich nicht zurücksetzen.</p>
-      <p class="err" id="accErr" role="alert"></p>
-      <button class="btn" id="accCreate">Konto anlegen</button>
-      <button class="btn ghost" id="accBack">Zurück</button>
-    </div></div>`;
+  $("#start").innerHTML=`<div class="start-wrap acc-new">
+    <button type="button" class="acc-back" id="accBack" aria-label="Zurück"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="acc-head"><p class="label" style="color:var(--lime)">Neue Insel</p><h1 class="acc-title">Wie heißt du?</h1><p class="muted">Mehr brauchen wir nicht. Kein Passwort, keine E-Mail.</p></div>
+    ${accFields(null,true)}
+    <p class="small muted acc-pin"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>Eine PIN kannst du später über dein Profilbild festlegen.</span></p>
+    <p class="err" id="accErr" role="alert"></p>
+    <button class="btn" id="accCreate">Insel gründen</button>
+    <p class="small muted" style="text-align:center">${first?"Danach zeigt dir Mr. Bay die Insel und du legst dein Tagesbudget fest.":"Die anderen Inseln auf diesem Gerät bleiben, wie sie sind."}</p>
+  </div>`;
   window.scrollTo(0,0); $("#accName").focus();
   $("#accBack").onclick=showStart;
   $("#accCreate").onclick=async()=>{
-    const {name,avatar}=readAcc(), pin=$("#accPin").value;
+    const {name,avatar}=readAcc();
     if(!name) return $("#accErr").textContent="Bitte gib einen Namen ein.";
-    if(pin&&!validPin(pin)) return $("#accErr").textContent="Die PIN muss aus genau 4 Ziffern bestehen.";
     const p={id:uid(),name,avatar,salt:uid(),pin:null,created:Date.now()};
-    if(pin) p.pin=await hashPin(pin,p.salt);
     const list=profiles(); list.push(p); storeProfiles(list);
     login(p); toast("Willkommen, "+name+"!"); stat("konto_neu");
+    if(START_HOURS&&S&&!S.setup){S.baseline=Math.min(600,Math.max(30,Math.round(START_HOURS*60/15)*15)); save()}   // Wert vom Zeit-Rechner als bisheriger Schnitt
   };
 }
 
