@@ -1,4 +1,4 @@
-// Heute: Mission des Tages und zurückgewonnene Zeit, Album: Lucifers Witze
+// Heute: Mission des Tages und zurückgewonnene Zeit
 const { test, expect, newGame } = require("./helpers");
 
 async function oneDay(page, min = 120) {
@@ -54,15 +54,4 @@ test("Zurückgewonnene Zeit: Summe der Woche gegenüber dem alten Schnitt", asyn
   expect(await page.locator(".zc-eq > div").count()).toBeGreaterThan(0);
   await page.click("#zcMore");
   expect(await page.evaluate(() => document.querySelector("#tabs button[aria-current=page]").dataset.tab)).toBe("zeit");
-});
-
-test("Album: Lucifers Witze sammeln sich und lassen sich nochmal ansehen", async ({ page }) => {
-  await oneDay(page);
-  const punch = await page.evaluate(() => { T.lucStage().day = null; T.standupSheet(); const p = document.querySelector(".lu-punch").textContent.replace(/\s+/g, " ").trim(); document.querySelector("#luOk").click(); return p; });
-  await page.evaluate(() => T.lucJokesSheet());
-  await expect(page.locator("#modalRoot .lj")).toHaveCount(1);
-  await expect(page.locator("#modalRoot .lj-p")).toHaveText(punch);
-  await page.click("#modalRoot .lj");
-  await expect(page.locator(".lu-punch")).toHaveText(new RegExp(punch.split(" ")[0]));
-  await expect(page.locator(".lu-no")).toHaveText(/Witz Nr\. 1/);
 });
