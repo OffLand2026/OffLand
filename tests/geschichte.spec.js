@@ -43,3 +43,17 @@ test("Weltkapitel: Spieler auf der Fjordwelt landen im richtigen Kapitel", async
     await page.click("#modalRoot [data-ok]");
   }
 });
+
+test("Mr. Bays Album: 19 verschiedene Kapitelfotos ohne doppelte Verläufe", async ({ page }) => {
+  await newGame(page);
+  await page.evaluate(() => { T.S.chapter = T.CHAPTERS.length; T.bayAlbumSheet(); });
+  const info = await page.evaluate(() => {
+    const arts = [...document.querySelectorAll("#modalRoot .bay-photo .story-art svg")];
+    const ids = [...document.querySelectorAll("#modalRoot linearGradient[id], #modalRoot radialGradient[id]")].map(e => e.id);
+    return { n: arts.length, verschieden: new Set(arts.map(a => a.innerHTML)).size, doppelt: ids.length - new Set(ids).size };
+  });
+  expect(info.n).toBe(19);
+  expect(info.verschieden).toBe(19);
+  expect(info.doppelt).toBe(0);
+  await expect(page.locator("#modalRoot #wr .wr-s").last()).toContainText("Album voll");
+});
