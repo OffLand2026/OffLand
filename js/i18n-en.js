@@ -2957,4 +2957,5 @@ window.OFFLAND_EN={
 "Willkommen! Bau dir deine eigene Insel.": "Welcome! Build your own island.",
 "Oder geh einfach raus. Auch gut.": "Or just go outside. Also fine.",
 "OffLand: Weniger Handy. Mehr Insel.": "OffLand: Less phone. More island.",
+"Geschlossen": "Closed",
 };
