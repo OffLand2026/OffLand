@@ -10,7 +10,9 @@ test("Mr. Bay und Lucifer reden abwechselnd", async ({ page }) => {
   await expect(page.locator("#start.first .st-world .luc-tail")).toHaveCount(1);
   await expect(page.locator("#start.first .st-world #stHearts")).toHaveCount(1);
   await expect(page.locator("#start.first .st-sheet #newAcc")).toBeVisible();
-  await expect(bub).toContainText("Lucifer", { timeout: 6000 });
+  // Nach dem Intro fängt das Gespräch wieder bei Mr. Bay an, Lucifer antwortet knapp 4 s später
+  await expect(page.locator("#splash")).toHaveCount(0, { timeout: 8000 });
+  await expect(bub).toContainText("Lucifer", { timeout: 9000 });
 });
 
 test("Mit vorhandener Insel: Inselbild als Ziel des Übergangs, Lucifer mit Herzchenbrille", async ({ page }) => {
