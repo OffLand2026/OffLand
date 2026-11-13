@@ -372,8 +372,8 @@ body.focus-on{overflow:hidden}
 /* Szenen der Geschichte: Feuerwerk, Funken, Handylicht, aufsteigende Mitteilungen, Nebel, Sonnenstrahlen */
 .story-art .fw{transform-box:fill-box;transform-origin:center;animation:stFw 2.8s ease-out infinite}
 @keyframes stFw{0%{opacity:0;transform:scale(.3)}18%{opacity:1}70%{opacity:.85;transform:scale(1)}100%{opacity:0;transform:scale(1.08)}}
-.story-art .spark{transform-box:fill-box;animation:stSpark 1.6s linear infinite}
-@keyframes stSpark{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-24px)}}
+.story-art .spark{transform-box:fill-box;animation:stEmber 1.6s linear infinite}
+@keyframes stEmber{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-24px)}}
 .story-art .flick{transform-box:fill-box;transform-origin:50% 100%;animation:stFlick .5s ease-in-out infinite alternate}
 @keyframes stFlick{to{transform:scaleY(1.12) skewX(-3deg)}}
 .story-art .pglow{animation:stPglow 2.2s ease-in-out infinite}
@@ -1053,3 +1053,46 @@ body.pw-open{overflow:hidden}
 .zc-eq b{display:block;font:800 20px var(--display)}
 .zc-eq span{display:block;font-size:11.5px;line-height:1.2;color:var(--muted)}
 .zc .linkbtn{align-self:flex-start;min-height:28px;padding:0}
+/* Kapitelfotos in Mr. Bays Album */
+.story-art .kp-sweep{transform-box:fill-box;transform-origin:100% 51.9%;animation:kpSweep 5s ease-in-out infinite alternate}
+@keyframes kpSweep{from{transform:rotate(-12deg)}to{transform:rotate(14deg)}}
+.story-art .kp-spin{transform-box:fill-box;transform-origin:center;animation:kpSpin 6s linear infinite}
+@keyframes kpSpin{to{transform:rotate(360deg)}}
+.story-art .kp-pop{transform-box:fill-box;transform-origin:20% 100%;animation:kpPop 6s ease-out infinite both}
+@keyframes kpPop{0%,6%{transform:scale(0)}12%{transform:scale(1.12)}16%,82%{transform:scale(1)}90%,100%{transform:scale(0)}}
+.story-art .kp-zz{transform-box:fill-box;animation:kpZz 2.4s ease-out infinite}
+@keyframes kpZz{0%{opacity:0;transform:none}30%{opacity:1}100%{opacity:0;transform:translate(6px,-12px)}}
+.story-art .kp-snow{animation:kpSnow 4s linear infinite}
+@keyframes kpSnow{0%{opacity:0;transform:none}20%,70%{opacity:.95}100%{opacity:0;transform:translate(6px,36px)}}
+.story-art .kp-aur{transform-box:fill-box;transform-origin:50% 0;animation:kpAur 7s ease-in-out infinite alternate}
+@keyframes kpAur{from{transform:translateX(-10px) scaleY(.88);opacity:.65}to{transform:translateX(10px) scaleY(1.1);opacity:1}}
+.story-art .kp-shoot{animation:kpShoot 6s ease-in infinite}
+@keyframes kpShoot{0%,62%{opacity:0;transform:none}66%{opacity:1}80%,100%{opacity:0;transform:translate(-90px,38px)}}
+.story-art .kp-jump{animation:kpJump 2.4s ease-in-out infinite alternate}
+@keyframes kpJump{0%,12%{transform:none}50%{transform:translate(30px,-20px)}88%,100%{transform:translate(60px,0)}}
+.story-art .kp-surf{transform-box:fill-box;transform-origin:50% 100%;animation:kpSurf 1.8s ease-in-out infinite alternate}
+@keyframes kpSurf{from{transform:rotate(-6deg) translateY(1px)}to{transform:rotate(5deg) translateY(-3px)}}
+.story-art .kp-dance{transform-box:fill-box;transform-origin:50% 100%;animation:kpDance .55s ease-in-out infinite alternate}
+@keyframes kpDance{from{transform:rotate(-12deg)}to{transform:rotate(12deg) translateY(-2px)}}
+.story-art .kp-run{animation:kpRun .36s ease-in-out infinite alternate}
+@keyframes kpRun{to{transform:translateY(-2px)}}
+.story-art .kp-streak{animation:kpStreak .9s linear infinite}
+@keyframes kpStreak{from{opacity:0;transform:none}30%{opacity:.9}to{opacity:0;transform:translateX(36px)}}
+.story-art .kp-tear{animation:kpTear 1.8s ease-in infinite}
+@keyframes kpTear{0%{opacity:0;transform:none}20%{opacity:1}100%{opacity:0;transform:translateY(7px)}}
+.story-art .kp-page{transform-box:fill-box;transform-origin:center;animation:kpPage 4.5s ease-out infinite}
+@keyframes kpPage{0%,30%{opacity:0;transform:none}38%{opacity:1}100%{opacity:0;transform:translate(46px,-34px) rotate(220deg)}}
+.story-art .kp-heat{animation:kpHeat 2.6s ease-in-out infinite}
+@keyframes kpHeat{0%{opacity:0;transform:none}40%{opacity:.6}100%{opacity:0;transform:translate(3px,-12px)}}
+.story-art .kp-ring{transform-box:fill-box;transform-origin:center;animation:kpRing 2.2s ease-out infinite}
+@keyframes kpRing{from{opacity:.9;transform:scale(.3)}to{opacity:0;transform:scale(1.4)}}
+.story-art .kp-drift{animation:kpDrift 14s ease-in-out infinite alternate}
+@keyframes kpDrift{to{transform:translateX(24px)}}
+.story-art .kp-puff{transform-box:fill-box;transform-origin:center;animation:kpPuff 3.2s ease-out infinite}
+@keyframes kpPuff{0%{opacity:0;transform:scale(.5)}25%{opacity:.75}100%{opacity:0;transform:translateY(-26px) scale(1.6)}}
+.story-art .kp-alt1{animation:kpAlt 6s infinite}
+.story-art .kp-alt2{animation:kpAlt 6s -3s infinite}
+@keyframes kpAlt{0%,46%{opacity:1}50%,96%{opacity:0}100%{opacity:1}}
+.story-art .kp-note{animation:kpNote 3s ease-out infinite}
+@keyframes kpNote{0%{opacity:0;transform:none}20%{opacity:1}100%{opacity:0;transform:translate(8px,-30px) rotate(12deg)}}
+@media (prefers-reduced-motion:reduce){.story-art [class^="kp-"],.story-art [class*=" kp-"]{animation:none}.story-art .kp-alt2{opacity:0}}

@@ -2097,26 +2097,7 @@ function zeitCard(){
     ${eq.length?`<div class="zc-eq">${eq.map(x=>`<div>${actIcon(x.a)}<b>${x.c}</b><span>${esc(x.c===1?SING[x.a.n]||x.a.n:x.a.n)}</span></div>`).join("")}</div>`:""}
     <button class="linkbtn" id="zcMore">Alles im Tab Zeit ›</button></div>`;
 }
-/* Intro: Mr. Bay erzählt, wie OffLand früher war */
-function storyIsle(mood,vb){
-  const c={past:["#F2D3A0","#6FA6C8","#E9D7A6","#8CCB7A"],grey:["#8E93A6","#4F5B73","#B9B2A0","#7E9277"],now:["#86BFE6","#3A6FA8","#E9D7A6","#7FC57A"]}[mood];
-  return {c,open:`<svg viewBox="${vb||"0 0 360 200"}" aria-hidden="true"><rect width="360" height="200" fill="${c[0]}"/>${mood==="grey"?`<g fill="#A3A7B8" opacity=".8"><ellipse cx="80" cy="40" rx="40" ry="12"/><ellipse cx="250" cy="30" rx="50" ry="13"/></g>`:`<circle cx="300" cy="44" r="18" fill="#FFE7A3"/>`}
-    <rect y="132" width="360" height="68" fill="${c[1]}"/><ellipse cx="200" cy="140" rx="120" ry="17" fill="${c[2]}"/><path d="M96 138c12-38 58-52 104-52s92 14 104 52z" fill="${c[3]}"/>
-    <path d="M250 128v-22l18-13 18 13v22z" fill="#F3F1EA"/><path d="M246 108l22-17 22 17" fill="none" stroke="#FF9C7A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><rect x="262" y="114" width="12" height="14" rx="2" fill="#B6A4FF"/>`};
-}
 const phoneIn=(x,y)=>`<g transform="translate(${x} ${y})"><circle cx="0" cy="-15" r="7" fill="#7FB6FF" opacity=".28"/><rect x="-1.8" y="-10.6" width="3.6" height="5.6" rx=".9" fill="#2B3350"/><rect x="-1.3" y="-10" width="2.6" height="4.2" rx=".5" fill="#9CC8EE"/></g>`;
-function partyArt(){
-  const col=["#FF9C7A","#FFD27A","#C8F169","#B6A4FF","#5BC0A8"];
-  const garland=(x1,x2,y,sag)=>{const n=9;let h=`<path d="M${x1} ${y}q${(x2-x1)/2} ${sag} ${x2-x1} 0" stroke="#5A3A2A" stroke-width=".6" fill="none"/>`;
-    for(let i=1;i<n;i++){const t=i/n,x=x1+(x2-x1)*t,yy=y+sag*2*t*(1-t);h+=`<circle class="glow" style="animation-delay:${(i*.27)%2}s" cx="${x}" cy="${yy+1.4}" r="1.5" fill="${col[i%5]}"/>`}return h};
-  const ppl=[{id:"p1",kind:"mensch",name:"A",look:{skin:1,hair:3,style:7,shirt:4,acc:[6],accC:0}},{id:"p2",kind:"mensch",name:"B",look:{skin:3,hair:0,style:4,shirt:1,acc:[],accC:2}},{id:"p3",kind:"mensch",name:"C",look:{skin:0,hair:5,style:11,shirt:7,acc:[],accC:0}},{id:"p4",kind:"mensch",name:"D",look:{skin:2,hair:1,style:0,shirt:2,acc:[5],accC:3}},{id:"p5",kind:"mensch",name:"E",look:{skin:4,hair:2,style:8,shirt:9,acc:[],accC:0}}];
-  const an=[{id:"a1",kind:"tier",art:"Ziege",name:"Z"},{id:"a2",kind:"tier",art:"Huhn",name:"H"},{id:"a3",kind:"tier",art:"Hund",name:"D"}];
-  return `<g transform="translate(206 128) scale(.95)">${projectSvg("festzelt")}</g>`+garland(110,200,98,10)+garland(200,300,96,12)+
-    `<g transform="translate(140 148) scale(1.1)">${itemSvg("sandburg")}</g><g transform="translate(180 146) scale(.9)">${itemSvg("feuer")}</g>`+
-    ppl.map((r,i)=>`<g class="bob" style="animation-delay:${i*.25}s;animation-duration:${1.2+i%2*.4}s">${figure(Object.assign({},r,{lvFull:true,cheer:i%2===0,look:Object.assign({},r.look,{pat:[0,2,4,6,1][i%5]})}),[160,196,236,262,288][i],[140,142,141,138,140][i])}</g>`).join("")+
-    an.map((r,i)=>figure(r,[118,214,306][i],[142,147,146][i])).join("")+
-    confetti()+`<g transform="translate(0 70)">${confetti()}</g>`;
-}
 /* Kapitel: die bisherigen Meilensteine als Geschichte von OffLand */
 const humansHere=()=>here().filter(r=>r.kind==="mensch").length;
 const CHAPTERS=[
@@ -2161,14 +2142,6 @@ WORLD_STORY.forEach((ws,w)=>{if(!ws) return; const W=WORLDS[w]; if(!W) return; c
     const t=ws.ch[k]; CHAPTERS.push({n:t[0],goal:t[1],ok,prog,bay:t[2],luc:t[3],world:w,k});
   });
 });
-function worldPhoto(w,k){
-  const th=WORLDS[w].theme, kids=[0,1,2].map(i=>({id:"w"+w+i,name:"x",kind:"mensch",look:{skin:(i+w)%6,hair:(i*2+w)%7,style:[1,4,11][i],shirt:(i*3+w)%10,acc:[],accC:0}}));
-  return `<svg viewBox="40 60 280 140" aria-hidden="true"><rect x="0" y="0" width="360" height="200" fill="${th.sky}"/>${horizonSvg(th.horizon,true)}
-    <rect y="140" width="360" height="60" fill="${th.sea}"/><ellipse cx="180" cy="150" rx="130" ry="18" fill="${th.sand}"/><path d="M70 148c12-36 60-50 110-50s98 14 110 50z" fill="${th.grass}"/>
-    ${treeSvg(th.tree,96,104,th.leaf)}${treeSvg(th.tree,262,104,th.leaf)}
-    ${k===0?boat(kids.slice(0,2),""):kids.map((r,i)=>`<g class="bob" style="animation-delay:${i*.3}s">${figure(r,206+i*16,144)}</g>`).join("")}
-    <g transform="translate(150 146) scale(1.15)">${baySvg()}</g><g transform="translate(178 147)">${lucSvg()}</g>${k===2?confetti():""}</svg>`;
-}
 function chapterCheck(silent){
   if(S.chapter==null){S.chapter=0; if(S.dayCount>0) silent=true}            // ältere Spielstände: erledigte Kapitel still nachholen
   while(S.chapter<CHAPTERS.length&&CHAPTERS[S.chapter].ok()){
@@ -2177,33 +2150,10 @@ function chapterCheck(silent){
     if(!silent) S.pending.push({type:"chapter",n});
   }
 }
-function damalsArt(n){
-  // Damals-Fotos der Kapitel: alle in voller Farbe, verschiedene Typen, passend zum Kapiteltext
-  const a=storyIsle("past","96 70 236 118");
-  const L=[{skin:1,hair:4,style:18,shirt:5,pat:0},{skin:4,hair:0,style:11,shirt:6,pat:2},{skin:2,hair:2,style:16,shirt:12,pat:3,beard:4},{skin:5,hair:6,style:15,shirt:8,pat:1},
-    {skin:0,hair:5,style:8,shirt:13,pat:0,acc:[6],accC:10},{skin:3,hair:1,style:13,shirt:3,pat:9,beard:1},{skin:1,hair:7,style:10,shirt:11,pat:3,beard:4,acc:[2]}];
-  const NM=["Mo","Ida","Ben","Zoe","Lu","Tom","Opa"];
-  const g=(x,y,i,cheer,sc)=>{const f=figure({id:"d"+n+i,name:NM[i],kind:"mensch",born:-999,lv:4,lvFull:true,cheer:!!cheer,look:Object.assign({acc:[],accC:0,eye:0,beard:0},L[i])},0,0);
-    return `<g transform="translate(${x} ${y})${sc?` scale(${sc})`:""}"><g class="bob" style="animation-delay:${(i*.3)%1.2}s">${f}</g></g>`};
-  const lt=(x)=>`<g transform="translate(${x} 132)"><path d="M-8 0h16l-3-40h-10z" fill="#F3F1EA"/><path d="M-7 -12h14M-6 -24h12" stroke="#FF9C7A" stroke-width="4"/><rect x="-6" y="-48" width="12" height="9" rx="2" fill="#FFD27A"/><path d="M-6 -44L-70 -60v28z" fill="#FFE9A8" opacity=".55"/></g>`;
-  const phone=`<g transform="translate(176 141) rotate(-14)"><rect x="-3" y="-1.6" width="6" height="3.4" rx=".7" fill="#2B3350"/><rect x="-2.4" y="-1.1" width="4.8" height="2.4" rx=".4" fill="#5A6380"/></g><path d="M170 132l2 2M182 131l-2 2M176 129v2.4" stroke="#FFD27A" stroke-width=".9" stroke-linecap="round"/>`;
-  const bub=(x,y)=>`<g transform="translate(${x} ${y})"><rect x="-8" y="-6" width="16" height="10" rx="4" fill="#F3F1EA"/><path d="M-3 4l-2 4 6-4z" fill="#F3F1EA"/><path d="M-4 -1h8M-4 1.6h5" stroke="#9EA3B8" stroke-width="1" stroke-linecap="round"/></g>`;
-  const dock=`<g class="wave fb"><path d="M104 166h64l-10 12h-44z" fill="#FF9C7A"/><path d="M140 166v-36l24 32z" fill="#F3F1EA"/><path d="M136 166v-28l-18 26z" fill="#B6A4FF"/>${g(122,166,4,true,.85)}${g(150,166,5,true,.85)}</g>`;
-  const bridge=`<path d="M96 140q24-26 48 0" fill="none" stroke="#8A5A3B" stroke-width="4" stroke-linecap="round"/><path d="M106 134v6M120 125v15M134 134v6" stroke="#8A5A3B" stroke-width="2"/>`;
-  const art=[
-    phone+g(194,140,0,true)+g(226,140,1),                                                                   // Das stille Dorf: das erste Handy liegt im Sand
-    `<g transform="translate(200 146)">${itemSvg("bank")}</g>`+g(190,140,2)+g(212,140,3)+bub(176,100)+bub(226,98), // Erste Gespräche
-    lt(150)+g(186,140,4,true)+g(210,140,6),                                                                 // Licht am Horizont: erstes Großprojekt
-    dock+g(214,140,3,true)+g(238,140,2),                                                                    // Neue Gesichter: Boot legt an
-    partyArt(),                                                                                              // Das erste Fest
-    bridge+g(120,124,1,true)+g(200,140,2)+g(226,140,5,true),                                                // Die Brücke
-    lt(116)+partyArt()+hearts(170,92)][n]||"";                                                              // OffLand lebt
-  return a.open+art+`</svg>`;
-}
 function chapterSheet(n,fresh){
   const c=CHAPTERS[n], next=CHAPTERS[n+1];
   sheet(`<p class="label" style="color:var(--amber)">Kapitel ${n+1}${fresh?" geschafft":""}</p><h2>${esc(c.n)}</h2>
-    <div class="dh"><figure><div class="anim story-art past">${c.world?worldPhoto(c.world,c.k):damalsArt(n)}</div><figcaption>${c.world?"Reisefoto":"Damals"}</figcaption></figure>
+    <div class="dh"><figure><div class="anim story-art past">${chapterPhoto(n)}</div><figcaption>${c.world?"Reisefoto":"Damals"}</figcaption></figure>
       <figure><div class="anim story-art">${scene()}</div><figcaption>Heute</figcaption></figure></div>
     ${saysHtml("bay",c.bay)}${saysHtml("luc",c.luc)}
     ${fresh&&next?`<p class="small muted">Weiter geht's mit Kapitel ${n+2}: <b style="color:var(--ink)">${esc(next.n)}</b>. ${esc(next.goal)}</p>`:""}
@@ -2215,7 +2165,7 @@ function bayAlbumSheet(){
   stat("album");
   const done=Math.min(S.chapter,CHAPTERS.length), next=CHAPTERS[done];
   const slides=CHAPTERS.slice(0,done).map((c,i)=>`<p class="label" style="color:var(--amber)">Kapitel ${i+1}</p><h2>${esc(c.n)}</h2>
-      <figure class="bay-photo"><div class="story-art past">${c.world?worldPhoto(c.world,c.k):damalsArt(i)}</div><figcaption>${c.world?"Reisefoto":"Damals"}</figcaption></figure>
+      <figure class="bay-photo"><div class="story-art past">${chapterPhoto(i)}</div><figcaption>${c.world?"Reisefoto":"Damals"}</figcaption></figure>
       ${saysHtml("bay",c.bay)}${saysHtml("luc",c.luc)}`);
   slides.push(next?`<p class="label">Als Nächstes</p><h2>Kapitel ${done+1}: ${esc(next.n)}</h2>
       <figure class="bay-photo"><div class="bay-empty">?</div><figcaption>Hier kommt das nächste Foto rein</figcaption></figure>
@@ -2234,8 +2184,8 @@ function bayAlbumSheet(){
 const PARTY_PPL=[{id:"p1",kind:"mensch",name:"A",look:{skin:1,hair:3,style:7,shirt:4,acc:[6],accC:0}},{id:"p2",kind:"mensch",name:"B",look:{skin:3,hair:0,style:4,shirt:1,acc:[],accC:2}},{id:"p3",kind:"mensch",name:"C",look:{skin:0,hair:5,style:11,shirt:7,acc:[],accC:0}},{id:"p4",kind:"mensch",name:"D",look:{skin:2,hair:1,style:0,shirt:2,acc:[5],accC:3}},{id:"p5",kind:"mensch",name:"E",look:{skin:4,hair:2,style:8,shirt:9,acc:[],accC:0}}];
 const svgLin=(id,stops)=>`<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1">${stops.map(([o,c,a])=>`<stop offset="${o}" stop-color="${c}"${a!=null?` stop-opacity="${a}"`:""}/>`).join("")}</linearGradient>`;
 const svgRad=(id,c,a)=>`<radialGradient id="${id}"><stop offset="0" stop-color="${c}" stop-opacity="${a==null?.7:a}"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient>`;
-function storyScenes(kids){
-  const K=i=>kids[i]||PARTY_PPL[i];
+/* Bausteine für Geschichte und Kapitelfotos */
+const STORY_KIT=(()=>{
   const fig=(r,x,y,sc,o,cls,d)=>`<g transform="translate(${x} ${y}) scale(${sc})"><g${cls?` class="${cls}" style="animation-delay:${d||0}s"`:""}>${figure(Object.assign({},r,{sick:null},o),0,0)}${o&&o.phone?phoneIn(0,0):""}</g></g>`;
   const happy={phone:false,lvFull:true,cheer:true}, sad={phone:true};
   const stars=(n,h)=>Array.from({length:n},(_,i)=>`<circle class="glow" style="animation-delay:${(i*.37)%2.4}s" cx="${(i*73+19)%360}" cy="${(i*41+11)%h}" r="${i%3?1:1.4}" fill="#F3F1EA"/>`).join("");
@@ -2246,6 +2196,11 @@ function storyScenes(kids){
   const gull=(x,y,hat)=>`<g transform="translate(${x} ${y})"><path d="M-7 0q3.5-4 7 0q3.5-4 7 0" stroke="#F3F1EA" stroke-width="1.8" fill="none" stroke-linecap="round"/>${hat?`<path d="M-1.6 -2.2l1.6-5.2 1.6 5.2z" fill="${hat}"/><circle cy="-7.6" r=".9" fill="#FFD27A"/>`:""}</g>`;
   const hut=(x,y,c)=>`<g transform="translate(${x} ${y})"><path d="M-14 0v-20l14-11 14 11v20z" fill="${c||"#F3F1EA"}"/><path d="M-18 -18l18-14 18 14" fill="none" stroke="#FF9C7A" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="-5" y="-12" width="10" height="12" rx="2" fill="#B6A4FF"/></g>`;
   const notif=(x,y,d)=>`<g transform="translate(${x} ${y})"><g class="nrise" style="animation-delay:${d}s"><rect x="-8" y="-5" width="16" height="10" rx="3" fill="#E9ECF5"/><path d="M-4.5 0h9" stroke="#8A93AD" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="-5" r="3.4" fill="#FF5A5F"/></g></g>`;
+  return {fig,happy,sad,stars,firework,garland,fire,gull,hut,notif};
+})();
+function storyScenes(kids){
+  const K=i=>kids[i]||PARTY_PPL[i];
+  const {fig,happy,sad,stars,firework,garland,fire,gull,hut,notif}=STORY_KIT;
   return [
     /* 1 · Früher: das große Fest mit Feuerwerk */
     `<svg viewBox="0 0 360 200" aria-hidden="true"><defs>${svgLin("ss1a",[[0,"#2B1E4F"],[.55,"#8A3F6B"],[1,"#F29A5B"]])}${svgRad("ss1b","#FFB86B",.85)}</defs>
@@ -2307,6 +2262,217 @@ function storyScenes(kids){
       <g transform="translate(206 156) scale(2.7)"><g class="bob" style="animation-delay:.6s;animation-duration:3.4s">${lucSvg(true,true)}</g></g>
     </svg>`
   ];
+}
+/* Kapitelfotos für Mr. Bays Album: 19 Szenen mit Licht und Bewegung, jede zeigt genau den Moment aus ihrem Kapitel */
+function chapterPhoto(n){
+  const {fig,happy,stars,firework,garland,fire,gull,hut}=STORY_KIT;
+  const hum=typeof S!=="undefined"&&S?here().filter(r=>r.kind==="mensch"):[], K=i=>hum[i]||PARTY_PPL[i%5];
+  const g=k=>`kp${n}${k}`, u=k=>`url(#kp${n}${k})`;
+  const H=o=>Object.assign({},happy,o), calm={phone:false,lvFull:true,cheer:false}, sad={phone:true};
+  const svg=(defs,body)=>`<svg viewBox="0 0 360 200" aria-hidden="true"><defs>${defs}</defs>${body}</svg>`;
+  const bg=(stops)=>[svgLin(g("a"),stops),`<rect width="360" height="200" fill="${u("a")}"/>`];
+  const land=(sea,sand,grass,cx,w,h)=>`<rect y="142" width="360" height="58" fill="${sea}"/><ellipse cx="${cx}" cy="146" rx="${w+18}" ry="13" fill="${sand}"/><path d="M${cx-w} 144c${(w/7).toFixed(1)} ${(-h*.71).toFixed(1)} ${(w*.586).toFixed(1)} ${-h} ${w} ${-h}s${(w*.857).toFixed(1)} ${(h*.29).toFixed(1)} ${w} ${h}z" fill="${grass}"/>`;
+  const lines=(c,o,arr)=>`<path d="${arr.map(([x,y,l])=>`M${x} ${y}h${l}`).join("")}" stroke="${c}" stroke-width="3" stroke-linecap="round" opacity="${o}"/>`;
+  const sun=(x,y,r,gid,c)=>`<circle cx="${x}" cy="${y}" r="${r*2.6}" fill="url(#${gid})"/><circle cx="${x}" cy="${y}" r="${r}" fill="${c||"#FFF3D1"}"/>`;
+  const rays=(cx,cy,k,o)=>`<g class="rays" style="transform-origin:${cx}px ${cy}px" fill="#FFF1C9" opacity="${o||.22}">${Array.from({length:k},(_,i)=>{const a=i*2*Math.PI/k;return `<path d="M${cx} ${cy}L${(cx+Math.cos(a-.08)*260).toFixed(0)} ${(cy+Math.sin(a-.08)*260).toFixed(0)}L${(cx+Math.cos(a+.08)*260).toFixed(0)} ${(cy+Math.sin(a+.08)*260).toFixed(0)}z"/>`}).join("")}</g>`;
+  const cloud=(x,y,s,o)=>`<path transform="translate(${x} ${y}) scale(${s})" d="M0 0h44a10 10 0 0 0-8-16a14 14 0 0 0-26 2a9 9 0 0 0-10 14z" fill="#F7F5EF" opacity="${o||.9}"/>`;
+  const snow=(k,h)=>Array.from({length:k},(_,i)=>`<circle class="kp-snow" style="animation-delay:${-((i*.53)%4).toFixed(2)}s;animation-duration:${(3.4+(i%4)*.5).toFixed(1)}s" cx="${(i*67+23)%360}" cy="${(i*37+7)%(h||150)}" r="${i%3?1.1:1.6}" fill="#F7FAFC"/>`).join("");
+  const pier=(x1,x2,y)=>`<path d="M${x1} ${y}h${x2-x1}" stroke="#8A5A3B" stroke-width="4.5"/><path d="${Array.from({length:Math.floor((x2-x1)/18)+1},(_,i)=>`M${x1+4+i*18} ${y}v13`).join("")}" stroke="#6E4A30" stroke-width="2.4"/>`;
+  const ani=(art,x,y,sc,cls,d)=>`<g transform="translate(${x} ${y}) scale(${sc})"><g${cls?` class="${cls}" style="animation-delay:${d||0}s"`:""}>${figure({id:"kpa"+art,kind:"tier",art,name:art},0,0)}</g></g>`;
+  const bay=(x,y,sc,o={})=>`<g transform="translate(${x} ${y})${o.rot?` rotate(${o.rot})`:""} scale(${sc})"><g${o.cls===""?"":` class="${o.cls||"bob"}"`}${o.d?` style="animation-delay:${o.d}s"`:""}>${o.under||""}${baySvg(!o.still)}${o.over||""}</g></g>`;
+  const luc=(x,y,sc,o={})=>`<g transform="translate(${x} ${y}) scale(${sc})"><g class="${o.cls||"bob"}" style="${o.cls?"":"animation-duration:3.4s;"}animation-delay:${o.d||0}s">${lucSvg(true,o.hearts)}${o.over||""}</g></g>`;
+  const lucSleep=(x,y,sc)=>`<g transform="translate(${x} ${y}) scale(${sc})"><path d="M7 -2.4q4.6 .6 2.4-4.6" stroke="#1E1F2B" stroke-width="2.2" fill="none" stroke-linecap="round"/><ellipse cx="0" cy="-3.6" rx="8" ry="4" fill="#1E1F2B"/><circle cx="-5.8" cy="-5" r="3.8" fill="#1E1F2B"/><path d="M-8.8 -7.6l-.8-3.4 2.8 1.8zM-3.4 -8.2l.8-3.2 1.4 2.8z" fill="#1E1F2B"/><path d="M-7.6 -5.4q.8.7 1.6 0M-5 -5.4q.8.7 1.6 0" stroke="#C8F169" stroke-width=".55" fill="none" stroke-linecap="round"/><path d="M-6.9 -3.6h1.6" stroke="#F3F1EA" stroke-width=".9" stroke-linecap="round"/></g>`;
+  const zzz=(x,y)=>[0,1,2].map(i=>`<text class="kp-zz" style="animation-delay:${i*.8}s" x="${x+i*5}" y="${y-i*6}" font-family="Manrope,sans-serif" font-weight="800" font-size="${7+i*2}" fill="#F3F1EA">Z</text>`).join("");
+  const bub=(x,y,inner,d,w,h,cls)=>{w=w||24;h=h||18;return `<g transform="translate(${x} ${y})"><g${cls===""?"":` class="${cls||"kp-pop"}" style="animation-delay:${d||0}s"`}><rect x="${-w/2}" y="${-h/2}" width="${w}" height="${h}" rx="7" fill="#F7F5EF"/><path d="M${-w/2+5} ${h/2-1}l-3 6 9-6z" fill="#F7F5EF"/>${inner}</g></g>`};
+  const think=(x,y,inner,d)=>`<g transform="translate(${x} ${y})"><g class="kp-pop" style="animation-delay:${d||0}s"><circle cx="-14" cy="16" r="2" fill="#F7F5EF"/><circle cx="-9" cy="11.4" r="3" fill="#F7F5EF"/><rect x="-13" y="-9" width="26" height="17" rx="8.5" fill="#F7F5EF"/>${inner}</g></g>`;
+  const glowR=(k,c,a)=>svgRad(g(k),c,a);
+  /* kleine Symbole für Sprechblasen */
+  const I={
+    wetter:`<circle cx="-4" cy="-2" r="3.4" fill="#FFD27A"/><path d="M-4 5h9a3 3 0 0 0 0-6a4 4 0 0 0-7.4-1a3 3 0 0 0-1.6 7z" fill="#B9C4D6"/>`,
+    fisch:`<path d="M-6 0q5-5 10 0q-5 5-10 0zM4 0l4-3.6v7.2z" fill="#6FA6C8"/><circle cx="-3" cy="-.7" r=".8" fill="#14151F"/>`,
+    bay:`<circle r="4.4" fill="#F0C2A0"/><g fill="#6B4226"><circle cx="-2.6" cy="-3.4" r="2"/><circle cx="0" cy="-4.4" r="2"/><circle cx="2.6" cy="-3.4" r="2"/></g><circle cx="-1.5" cy=".1" r=".6" fill="#14151F"/><circle cx="1.5" cy=".1" r=".6" fill="#14151F"/><path d="M-1.8 1.5q.9-.6 1.8-.1q.9-.5 1.8.1q-.9.4-1.8 0q-.9.4-1.8 0z" fill="#6B4226"/><path d="M-1.2 2.6q1.2.8 2.4 0" stroke="#5A3A2A" stroke-width=".6" fill="none" stroke-linecap="round"/>`,
+    lachen:`<circle r="5.4" fill="#FFD27A"/><path d="M-3 -1.4q1-1 2 0M1 -1.4q1-1 2 0" stroke="#5A3A2A" stroke-width=".8" fill="none" stroke-linecap="round"/><path d="M-3.4 .8q3.4 4.4 6.8 0z" fill="#7A2032"/>`,
+    herz:`<path transform="translate(0 -3.4)" d="M0 0c-3-4-9-1-6 4l6 5 6-5c3-5-3-8-6-4z" fill="#FF6FA8"/>`,
+    glocke:`<path d="M-4 2.6h8l-1.2-1.6v-2.8a2.8 2.8 0 0 0-5.6 0v2.8z" fill="#8A93AD"/><circle cy="3.8" r="1.1" fill="#8A93AD"/><circle cx="4.6" cy="-3.6" r="2.6" fill="#FF5A5F"/>`,
+    note:c=>`<path d="M-1.4 3.4v-7.4l5.4-1.8v7.4" stroke="${c}" stroke-width="1.2" fill="none"/><ellipse cx="-2.8" cy="3.4" rx="1.8" ry="1.3" fill="${c}"/><ellipse cx="2.6" cy="1.6" rx="1.8" ry="1.3" fill="${c}"/>`,
+    brief:`<rect x="-5.4" y="-3.6" width="10.8" height="7.2" rx="1" fill="#F7F5EF" stroke="#D9CFB8" stroke-width=".5"/><path d="M-5.4 -3.6l5.4 4.2 5.4-4.2" stroke="#C9A26A" stroke-width=".8" fill="none"/><circle cy=".8" r="1.3" fill="#E5484D"/>`,
+    wlan:`<path d="M-6 -1a8.5 8.5 0 0 1 12 0M-3.8 1.6a5.4 5.4 0 0 1 7.6 0" stroke="#3A3D58" stroke-width="1.4" fill="none" stroke-linecap="round"/><circle cy="4" r="1.2" fill="#3A3D58"/><path d="M-6.4 5L6.4 -5.4" stroke="#E5484D" stroke-width="1.8" stroke-linecap="round"/>`
+  };
+  const noteFx=(x,y,c,k)=>Array.from({length:k||3},(_,i)=>`<g transform="translate(${x+i*7} ${y-i*4})"><g class="kp-note" style="animation-delay:${(i*.9).toFixed(1)}s">${I.note(c||"#FFD27A")}</g></g>`).join("");
+  /* Zubehör für Mr. Bay (in seinen Koordinaten) */
+  const hand=(x,y)=>`<circle cx="${x}" cy="${y}" r="1.2" fill="#F0C2A0"/>`;
+  const armR=`<path d="M5.6 -9.6L7.6 -6.6" stroke="#2C3550" stroke-width="2.2" stroke-linecap="round"/>`;
+  const scarf=c=>`<path d="M-4.8 -11.8q4.8 2.6 9.6 0v2.4q-4.8 2.4-9.6 0z" fill="${c}"/><path d="M2.6 -9.6l1.2 5.4" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/>`;
+  const beanie=`<path d="M-5.6 -18.4a5.6 5.6 0 0 1 11.2 0z" fill="#E5484D"/><rect x="-5.9" y="-19.4" width="11.8" height="2.4" rx="1.1" fill="#F3F1EA"/><circle cx="0" cy="-24.4" r="1.9" fill="#F3F1EA"/>`;
+  const tears=`<path class="kp-tear" d="M-2.2 -14.6q-.9 1.5 0 2.1q.9-.6 0-2.1z" fill="#7FC8FF"/><path class="kp-tear" style="animation-delay:.9s" d="M2.2 -14.6q-.9 1.5 0 2.1q.9-.6 0-2.1z" fill="#7FC8FF"/>`;
+  const sweat=`<path class="kp-tear" d="M5.8 -19.4q-1 1.7 0 2.4q1-.7 0-2.4z" fill="#9CDCFF"/><path class="kp-tear" style="animation-delay:.7s" d="M-6 -17.6q-1 1.7 0 2.4q1-.7 0-2.4z" fill="#9CDCFF"/>`;
+  const lucScarf=`<path d="M-4.6 -9.6q4.6 2.2 9.2 0v2.2q-4.6 2.2-9.2 0z" fill="#E5484D"/><path d="M2.8 -8l1.8 5.6" stroke="#E5484D" stroke-width="2" stroke-linecap="round"/>`;
+  /* Leuchtturm mit wanderndem Lichtkegel, Windmühle mit drehenden Flügeln */
+  const lighthouse=(x,y,sc,gid,flip)=>`<g transform="translate(${x} ${y}) scale(${flip?-sc:sc} ${sc})"><g class="kp-sweep"><path d="M0 -55L-130 -82L-130 -30z" fill="url(#${gid})"/></g><path d="M-9 0h18l-4-50h-10z" fill="#F3F1EA"/><path d="M-8.2 -10h16.4M-7.2 -24h14.4M-6.3 -38h12.6" stroke="#FF6B5A" stroke-width="5"/><rect x="-8" y="-51" width="16" height="2.4" fill="#3A3D58"/><rect x="-6.5" y="-60" width="13" height="9.4" rx="2" fill="#FFE7A3"/><circle class="glow" cx="0" cy="-55" r="9" fill="#FFE7A3" opacity=".45"/><path d="M-8.4 -60h16.8l-8.4-8z" fill="#E5484D"/></g>`;
+  const beamG=k=>`<linearGradient id="${g(k)}" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#FFE7A3" stop-opacity=".8"/><stop offset="1" stop-color="#FFE7A3" stop-opacity="0"/></linearGradient>`;
+  const mill=(x,y,sc)=>`<g transform="translate(${x} ${y}) scale(${sc})"><path d="M-8 0h16l-4-34h-8z" fill="#F3F1EA"/><path d="M-6.4 -34h12.8l-6.4-7z" fill="#B8442E"/><rect x="-3" y="-12" width="6" height="12" rx="3" fill="#8A5A3B"/><g class="kp-spin"><path d="M0 -53v34M-17 -36h34" stroke="#8A5A3B" stroke-width="1.6"/><path d="M1 -53h5v14h-5zM-1 -19h-5v-14h5zM-17 -35v5h14v-5zM17 -37v-5h-14v5z" fill="#F7F5EF" opacity=".92"/></g><circle cy="-36" r="2" fill="#3A3D58"/></g>`;
+  const S_=[
+    /* 1 · Das stille Dorf: Morgens liegt das erste Handy im Sand, Mr. Bay hat's gesehen, Lucifer ist Zeugin */
+    ()=>{const [d,b]=bg([[0,"#8EC5E8"],[.6,"#FFD9B0"],[1,"#FFE9C7"]]);return svg(d+glowR("b","#FFF1C9",.9),b+rays(62,122,12)+sun(62,124,17,g("b"),"#FFF6DA")+gull(250,46)+gull(282,60)+
+      land("#6FA6C8","#E9D7A6","#8CCB7A",196,146,46)+lines("#FFF1C9",.6,[[18,164,30],[30,176,20],[300,178,34]])+hut(310,140)+
+      `<circle class="pglow" cx="248" cy="124" r="22" fill="#7FB6FF" opacity=".35"/>`+fig(K(1),240,142,1.1,sad)+fig(K(2),262,143,1.1,sad)+
+      `<g transform="translate(160 152) rotate(-12)"><rect x="-5.4" y="-2.8" width="10.8" height="5.6" rx="1.3" fill="#2B3350"/><rect x="-4.4" y="-1.9" width="8.8" height="3.8" rx=".6" fill="#3A4160"/></g><g class="glow"><path d="M149 142l2.4 2.6M171 141l-2.4 2.6M160 136v3.4" stroke="#FFD27A" stroke-width="1.5" stroke-linecap="round"/></g>`+
+      fig(K(0),186,147,1.5,H(),"bob")+bay(98,143,1.9)+`<g fill="#5FAF62"><circle cx="80" cy="140" r="13"/><circle cx="98" cy="136" r="15"/><circle cx="116" cy="141" r="11"/></g><g fill="#7FC57A"><circle cx="90" cy="134" r="5"/><circle cx="108" cy="133" r="4"/></g>`+
+      bub(124,90,`<text y="5.5" text-anchor="middle" font-family="Manrope,sans-serif" font-weight="800" font-size="15" fill="#E5484D">!</text>`,0,18,18)+luc(128,157,1.6))},
+    /* 2 · Erste Gespräche: Bank unterm Baum, alle reden über Wetter, Fische und Mr. Bay, jemand lacht */
+    ()=>{const [d,b]=bg([[0,"#7EC3EC"],[1,"#D5EEF8"]]);return svg(d,b+`<circle cx="318" cy="36" r="14" fill="#FFE7A3"/><g class="kp-drift">${cloud(36,48,1)}${cloud(220,34,.8)}</g>`+
+      land("#5E9CC4","#E9D7A6","#8CCB7A",180,152,48)+lines("#D5EEF8",.55,[[24,166,30],[300,172,30]])+
+      `<rect x="171" y="98" width="8" height="46" rx="3" fill="#8A5A3B"/><circle cx="156" cy="92" r="17" fill="#6CBF6A"/><circle cx="196" cy="90" r="19" fill="#6CBF6A"/><circle cx="175" cy="80" r="25" fill="#5FAF62"/>`+
+      `<g transform="translate(175 148) scale(2)">${itemSvg("bank")}</g>`+luc(176,140,1.5,{cls:"bob"})+
+      fig(K(0),136,147,1.3,calm,"bob")+fig(K(1),212,147,1.3,H(),"bob",.4)+fig(K(2),236,147,1.3,calm,"bob",.8)+
+      bub(146,100,I.wetter,0)+bub(222,96,I.fisch,1.4)+bub(248,108,I.bay,2.8)+bub(118,112,I.lachen,4.2,20,18)+
+      bay(300,146,1.6)+`<g transform="translate(64 145) scale(1.3)">${figure({id:"kpaHuhn",kind:"tier",art:"Huhn",name:"Huhn"},0,0)}</g>`)},
+    /* 3 · Licht am Horizont: Abenddämmerung, der Leuchtturm brennt wieder, Mr. Bay hält seine Rede */
+    ()=>{const [d,b]=bg([[0,"#3B3F7A"],[.55,"#B5608A"],[1,"#F6A96B"]]);return svg(d+beamG("b"),b+stars(8,46)+
+      land("#3E5D8C","#D9C49A","#6FA86A",168,150,44)+lines("#F6A96B",.5,[[30,166,30],[250,174,40],[90,184,24]])+
+      `<ellipse cx="304" cy="140" rx="24" ry="6" fill="#8A8278"/>`+lighthouse(304,138,1.3,g("b"))+
+      `<rect x="128" y="133" width="26" height="14" rx="1.5" fill="#B07A55"/><path d="M128 140h26M141 133v14" stroke="#8A5A3B" stroke-width="1"/>`+
+      bay(141,134,2.2,{still:true,over:armR+`<g transform="translate(8.6 -8.4) rotate(8)"><rect x="-2.8" y="-3.6" width="5.6" height="7.2" rx=".4" fill="#F7F5EF"/><rect x="-2" y="-4.2" width="5.6" height="7.2" rx=".4" fill="#ECE7DA"/><path d="M-1.2 -2.2h3.4M-1.2 -.6h3.4M-1.2 1h2.2" stroke="#9EA3B8" stroke-width=".4"/></g>`+hand(7.6,-6.4)})+
+      `<g transform="translate(166 108)"><g class="kp-page"><rect x="-5" y="-6.5" width="10" height="13" rx=".6" fill="#F7F5EF"/><path d="M-3 -3h6M-3 0h6M-3 3h4" stroke="#9EA3B8" stroke-width=".6"/></g></g>`+
+      fig(K(0),190,147,1.25,H(),"bob",.2)+fig(K(1),214,147,1.25,calm,"bob",.6)+fig(K(2),238,147,1.25,H(),"bob",1)+
+      luc(90,152,1.8)+think(112,104,`<g transform="translate(0 -.4) scale(1.3)">${I.fisch}</g>`,1))},
+    /* 4 · Neue Gesichter: Ein Boot mit Neuen legt an, alle winken, Lucifer sitzt auf dem Koffer */
+    ()=>{const [d,b]=bg([[0,"#6FB8E8"],[1,"#DDF1FA"]]);return svg(d,b+`<circle cx="44" cy="34" r="14" fill="#FFE7A3"/><g class="kp-drift">${cloud(150,40,.9)}${cloud(270,28,.7)}</g>`+gull(96,56)+gull(126,44)+
+      land("#4F8FC0","#E9D7A6","#8CCB7A",236,112,44)+lines("#DDF1FA",.6,[[14,176,30],[60,186,24],[250,180,40]])+hut(320,140)+
+      pier(56,140,150)+`<g transform="translate(-50 8)">${boat([Object.assign({},K(3),happy),Object.assign({},K(4),happy)],"")}</g>`+
+      `<rect x="112" y="138" width="17" height="11" rx="2" fill="#B6A4FF"/><path d="M116.5 138v-3h8v3" stroke="#6A4FD0" stroke-width="1.4" fill="none"/><path d="M112 143h17" stroke="#6A4FD0" stroke-width="1"/>`+luc(120.5,139,1.4)+
+      fig(K(0),176,147,1.3,H(),"bob")+fig(K(1),202,147,1.3,H(),"bob",.4)+fig(K(2),228,147,1.3,H(),"bob",.8)+
+      bub(190,104,I.herz,0,18,16)+bub(218,98,I.herz,1.6,18,16)+bay(268,148,2.1))},
+    /* 5 · Das erste Fest: Lichterketten, Lagerfeuer, Musik, und Lucifer tanzt heimlich hinterm Zelt im Mondlicht */
+    ()=>{const [d,b]=bg([[0,"#141A3A"],[1,"#3B3270"]]);return svg(d+glowR("b","#FFB86B",.8)+glowR("c","#E8EAF0",.5),b+stars(14,80)+sun(306,38,12,g("c"),"#F3F1EA")+
+      land("#24335E","#B9A880","#3F6B4A",168,156,46)+lines("#FFB86B",.35,[[130,164,40],[118,176,60]])+garland(24,170,94,8,true)+garland(170,300,92,9,true)+
+      `<circle cx="146" cy="130" r="58" fill="${u("b")}"/>`+fire(146,141,1.7)+
+      fig(K(0),100,145,1.3,calm,"bob")+`<g transform="translate(103 135) rotate(-28)"><ellipse rx="5.2" ry="3.8" fill="#C9A26A"/><circle r="1.2" fill="#5A3A26"/><rect x="4" y="-.8" width="12" height="1.6" fill="#8A5A3B"/></g>`+noteFx(112,116,"#FFD27A")+
+      fig(K(3),68,145,1.3,H(),"bob",.3)+fig(K(1),182,145,1.3,H(),"kp-dance")+fig(K(2),206,145,1.3,H(),"kp-dance",.25)+bay(232,147,2,{cls:"kp-dance",d:.1})+
+      `<g transform="translate(284 140) scale(1.15)">${projectSvg("festzelt")}</g><path d="M306 50L318 152h30z" fill="#E8EAF0" opacity=".1"/>`+luc(334,151,1.5,{cls:"kp-dance",d:.15})+noteFx(340,124,"#B6A4FF",2))},
+    /* 6 · Die Brücke: heller Morgen, Mr. Bay stolziert drüber, Lucifer springt einfach */
+    ()=>{const [d,b]=bg([[0,"#76BDEB"],[1,"#E2F3FA"]]);return svg(d,b+`<circle cx="48" cy="38" r="16" fill="#FFE7A3"/><g class="kp-drift">${cloud(110,44,.9)}${cloud(250,30,.75)}</g>`+gull(300,60,"")+
+      `<rect y="140" width="360" height="60" fill="#4F8FC0"/>`+lines("#E2F3FA",.6,[[160,172,40],[150,186,60]])+
+      `<ellipse cx="70" cy="151" rx="84" ry="11" fill="#E9D7A6"/><path d="M0 149c10-28 44-40 72-40s58 12 70 40z" fill="#8CCB7A"/><ellipse cx="292" cy="151" rx="84" ry="11" fill="#E9D7A6"/><path d="M220 149c10-28 44-40 72-40s58 12 70 40z" fill="#8CCB7A"/>`+hut(318,142)+treeSvg("",36,104,"#5FAF62")+
+      `<path d="M128 146Q181 104 234 146" stroke="#8A5A3B" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M128 134Q181 92 234 134" stroke="#C9A26A" stroke-width="2" fill="none"/>`+
+      [0,1,2,3,4,5,6].map(i=>{const t=i/6,x=128+106*t,y1=146-84*t*(1-t),y2=134-84*t*(1-t);return `<path d="M${x.toFixed(1)} ${y1.toFixed(1)}V${y2.toFixed(1)}" stroke="#C9A26A" stroke-width="1.6"/>`}).join("")+
+      bay(154,130.5,1.9)+fig(K(0),58,146,1.25,H(),"bob")+fig(K(1),86,146,1.25,calm,"bob",.4)+fig(K(2),264,146,1.25,H(),"bob",.2)+
+      `<path d="M140 158Q188 128 236 158" stroke="#F3F1EA" stroke-width="1.1" stroke-dasharray="2 4" fill="none" opacity=".7"/><g transform="translate(138 160) scale(1.6)"><g class="kp-jump">${lucSvg(true)}</g></g>`)},
+    /* 7 · OffLand lebt: goldene Stunde, alles gebaut, Mr. Bay schaut durchs Fernrohr aufs Meer, dahinter warten neue Inseln */
+    ()=>{const [d,b]=bg([[0,"#5A6FB8"],[.45,"#F2A07B"],[1,"#FFD9A0"]]);return svg(d+glowR("c","#FFE7A3",.85)+beamG("b"),b+sun(112,132,20,g("c"))+
+      `<g opacity=".5" fill="#7A5F8A"><ellipse cx="292" cy="141" rx="16" ry="3.4"/><path d="M290 140q1-8 3-12" stroke="#7A5F8A" stroke-width="1.6" fill="none"/><path d="M293 128q-6-1-9 3M293 128q6-2 9 2" stroke="#7A5F8A" stroke-width="1.6" fill="none"/><path d="M314 141l9-13 5 5 6-8 9 16z"/><path d="M336 141q8-7 16-4t8 4z"/></g>`+
+      land("#3E6FA8","#E9D7A6","#7FC57A",126,122,46)+lines("#FFD9A0",.6,[[240,162,40],[264,174,50],[230,186,30]])+
+      lighthouse(24,136,1,g("b"),true)+mill(66,128,1)+`<g transform="translate(118 128) scale(.85)">${projectSvg("festzelt")}</g><g transform="translate(196 132) scale(.85)">${projectSvg("strandhaus")}</g>`+
+      [0,1,2,3,4].map(i=>fig(K(i),92+i*24,150,1.15,H(),"bob",i*.3)).join("")+hearts(140,100)+
+      pier(222,300,150)+bay(268,149,1.9,{still:true,over:`<g transform="translate(5.4 -15.6) rotate(-6)"><rect x="0" y="-1.7" width="12" height="3.4" rx="1" fill="#C9A26A"/><rect x="10" y="-2.3" width="3.2" height="4.6" rx=".8" fill="#8A5A3B"/></g>`+armR+hand(7.4,-14.4)})+luc(244,150,1.6,{hearts:true}))},
+    /* 8 · Tropen: Sonne, Sand und Sonnenbrand */
+    ()=>{const [d,b]=bg([[0,"#3FB6E6"],[1,"#B8ECF8"]]);return svg(d+glowR("b","#FFF6C9",.9),b+rays(300,40,12,.25)+sun(300,40,18,g("b"))+
+      land("#1FA2B8","#F5E1A4","#6CC46A",204,150,42)+lines("#8FE3EE",.7,[[14,170,30],[40,184,24],[290,176,40]])+
+      treeSvg("palme",90,104,"#3FA35A")+treeSvg("palme",330,106,"#3FA35A")+ani("Papagei",95,100,1.2)+`<g transform="translate(-52 10) scale(.9)">${boat([],"")}</g>`+
+      `<g transform="translate(290 146) scale(1.4)">${itemSvg("t_surf")}</g>`+fig(K(0),126,146,1.2,H(),"bob")+fig(K(1),148,146,1.2,calm,"bob",.5)+
+      bay(186,151,2.6,{over:`<circle cx="-3.2" cy="-14" r="1.7" fill="#FF5A4E" opacity=".6"/><circle cx="3.2" cy="-14" r="1.7" fill="#FF5A4E" opacity=".6"/><circle cx="0" cy="-14.8" r=".85" fill="#F0705A"/><path d="M-2.4 -18q2.4-.8 4.8 0" stroke="#FF6A4E" stroke-width=".8" fill="none" stroke-linecap="round" opacity=".7"/>`+sweat})+
+      luc(240,153,1.9)+[0,1,2,3,4,5].map(i=>`<circle class="spark" style="animation-delay:${(i*.27).toFixed(2)}s" cx="${226+i*5.4}" cy="${140+(i%2)*5}" r="1.3" fill="#E2C27A"/>`).join(""))},
+    /* 9 · Das Papageien-Problem: Der Papagei pfeift einen Klingelton, alle greifen zum Handy, Lucifer starrt ihn an */
+    ()=>{const [d,b]=bg([[0,"#5EC8EC"],[1,"#C9F0F7"]]);return svg(d,b+`<g class="kp-drift">${cloud(150,40,.9)}${cloud(260,26,.7)}</g>`+
+      land("#1FA2B8","#F5E1A4","#6CC46A",196,156,44)+lines("#C9F0F7",.6,[[10,176,30],[30,188,24]])+`<g transform="translate(316 158) scale(1.25)">${projectSvg("t_riff")}</g>`+
+      palmSvg(50,142,2.1,"#3FA35A")+ani("Papagei",64,86,1.7)+ani("Papagei",38,96,1.4)+
+      `<g class="kp-alt1">${bub(94,62,I.glocke,0,24,18,"")}</g><g class="kp-alt2">${bub(94,62,I.note("#3FA35A"),0,24,18,"")}</g>`+
+      fig(K(0),156,147,1.3,sad)+fig(K(1),184,147,1.3,calm)+`<text x="184" y="108" text-anchor="middle" font-family="Manrope,sans-serif" font-weight="800" font-size="13" fill="#3A3D58">?</text>`+fig(K(2),212,147,1.3,sad)+
+      bay(252,148,2.1,{d:.4})+bub(270,100,I.note("#3FA35A"),2,22,18)+
+      `<path d="M122 136L76 96" stroke="#1E1F2B" stroke-width="1.1" stroke-dasharray="2 3" opacity=".45"/>`+luc(122,162,2))},
+    /* 10 · Surfen statt Scrollen: Abendrot, Mr. Bay steht auf der Welle, Lucifer schaut von ganz weit weg zu */
+    ()=>{const [d,b]=bg([[0,"#5B3F8C"],[.5,"#F2766B"],[1,"#FFC37A"]]);return svg(d+glowR("b","#FFE0A0",.85),b+sun(236,112,22,g("b"))+
+      `<rect y="118" width="360" height="82" fill="#1F8FA8"/>`+lines("#FFD27A",.55,[[216,128,40],[208,138,56],[220,150,32]])+
+      `<ellipse cx="320" cy="152" rx="56" ry="9" fill="#F5E1A4"/>`+treeSvg("palme",344,110,"#3FA35A")+
+      fig(K(0),288,150,1.1,H(),"bob")+fig(K(1),308,150,1.1,H(),"bob",.3)+`<g transform="translate(346 151) scale(1.1)">${itemSvg("schirm")}</g>`+luc(346,152,.9)+
+      `<path d="M0 200V152Q40 124 90 120Q138 116 160 100Q178 86 170 72Q194 84 198 106Q204 134 236 152Q268 170 360 170V200Z" fill="#2BB3C8"/><path d="M0 200V170Q60 156 120 160T250 176T360 180V200Z" fill="#1E9AB2"/>`+
+      `<path d="M160 100Q178 86 170 72Q194 84 198 106" stroke="#E6F7FA" stroke-width="4.5" fill="none" stroke-linecap="round"/>`+
+      `<g transform="translate(150 114) rotate(-16)"><g class="kp-surf"><ellipse cx="0" cy="1" rx="17" ry="2.9" fill="#FFD27A"/><path d="M-13 1h26" stroke="#FF9C7A" stroke-width="1"/><g transform="scale(1.9)">${baySvg(true)}</g></g></g>`+
+      [0,1,2,3,4].map(i=>`<circle class="spark" style="animation-delay:${(i*.3).toFixed(1)}s" cx="${170+i*5}" cy="${112+(i%2)*6}" r="1.4" fill="#E6F7FA"/>`).join(""))},
+    /* 11 · Ab in den Norden: Schnee, drei Pullis und ein Plan, Lucifer schläft auf dem warmen Ofen */
+    ()=>{const [d,b]=bg([[0,"#9DB8D6"],[1,"#E3ECF4"]]);return svg(d,b+horizonSvg("berge",true)+
+      land("#2E5A7A","#B9B4A8","#7FA86A",200,150,40)+lines("#BFD7EA",.5,[[20,168,30],[40,182,24]])+
+      treeSvg("tanne",70,104,"#2F6B45")+treeSvg("tanne",334,106,"#2F6B45")+`<g transform="translate(266 145) scale(1.35)">${projectSvg("f_stugor")}</g>`+
+      `<g transform="translate(-48 10)">${boat([Object.assign({},K(0),calm),Object.assign({},K(1),calm)],"")}</g>`+
+      `<g transform="translate(112 148)"><rect x="-11" y="-15" width="22" height="15" rx="2" fill="#2B2D3A"/><rect x="-6.5" y="-11" width="13" height="7.4" rx="1.6" fill="#FF9C4A"/><rect class="glow" x="-6.5" y="-11" width="13" height="7.4" rx="1.6" fill="#FFD27A"/><rect x="5" y="-32" width="4.4" height="17" fill="#3A3D58"/></g>`+
+      [0,1,2].map(i=>`<circle class="kp-puff" style="animation-delay:${i*1.1}s" cx="119" cy="112" r="3" fill="#E3ECF4"/>`).join("")+lucSleep(108,133,1.5)+zzz(118,118)+
+      bay(176,150,2.3,{still:true,over:`<path d="M-8.4 -2.2c0-8.2 3.6-11 8.4-11s8.4 2.8 8.4 11z" fill="#5BC0A8"/><path d="M-8.2 -4.8h16.4" stroke="#C8F169" stroke-width="1.7"/><path d="M-7.6 -7.8h15.2" stroke="#FF9C7A" stroke-width="1.4"/>`+scarf("#E5484D")+beanie+`<g transform="translate(9.6 -6)"><rect x="-3" y="-4" width="6" height="8" rx=".6" fill="#F3E3B8"/><path d="M-2 -2l2 1.2 2-1.2M-1.6 1.6h3" stroke="#B07A55" stroke-width=".5" fill="none"/><path d="M-.8 -.2l1.2 1" stroke="#E5484D" stroke-width=".7"/></g>`+hand(7.6,-5.6)})+
+      snow(28,170))},
+    /* 12 · Saunaabend: Dampf, kein WLAN, einer springt in den See, Lucifer bleibt lieber draußen */
+    ()=>{const [d,b]=bg([[0,"#2E3768"],[.6,"#8C6FA8"],[1,"#F2B48A"]]);return svg(d+glowR("b","#FFD27A",.6),b+stars(6,40)+horizonSvg("berge",true,true)+
+      `<rect y="140" width="360" height="60" fill="#34557A"/>`+lines("#F2B48A",.4,[[30,160,40],[70,174,30],[20,186,50]])+
+      `<ellipse cx="272" cy="148" rx="110" ry="12" fill="#B9B4A8"/><path d="M172 146c12-26 54-36 100-36s88 10 100 36z" fill="#5E8A5A"/>`+treeSvg("tanne",196,100,"#24503A")+treeSvg("tanne",346,98,"#24503A")+
+      `<circle cx="276" cy="128" r="22" fill="${u("b")}"/><g transform="translate(276 142) scale(1.7)">${projectSvg("f_sauna")}</g>`+
+      [0,1,2].map(i=>`<circle class="kp-puff" style="animation-delay:${i*1}s" cx="${262+i*8}" cy="${104-i*3}" r="4" fill="#E8EAF0"/>`).join("")+
+      `<g transform="translate(232 128)"><path d="M0 0v18" stroke="#6E4A30" stroke-width="2"/><rect x="-11" y="-10" width="22" height="16" rx="3" fill="#F3F1EA"/><g transform="translate(0 -2) scale(.9)">${I.wlan}</g></g>`+
+      pier(64,180,150)+[0,1].map(i=>`<g transform="translate(${140+i*26} 148) scale(1.25)">${figure(Object.assign({},K(i),H({cheer:!!i})),0,0)}<path d="M-6.6 -1v-5.2q6.6 1.4 13.2 0v5.2z" fill="#F3F1EA"/><path d="M-6.4 -3.2h12.8" stroke="#FF9C7A" stroke-width=".7"/></g>`).join("")+
+      `<g transform="translate(50 146) rotate(-14) scale(1.2)"><g class="bob">${figure(Object.assign({},K(2),H()),0,0)}</g></g>`+
+      [0,1].map(i=>`<ellipse class="kp-ring" style="animation-delay:${i*1.1}s" cx="46" cy="170" rx="16" ry="4" fill="none" stroke="#E6F7FA" stroke-width="1.4"/>`).join("")+
+      bay(206,149,2,{over:`<path d="M-5.2 -11.4q5.2 3 10.4 0l1.2 4.4h-12.8z" fill="#F3F1EA"/><circle cx="-3.3" cy="-13.9" r="1.4" fill="#FF7A6A" opacity=".55"/><circle cx="3.3" cy="-13.9" r="1.4" fill="#FF7A6A" opacity=".55"/>`})+
+      `<g transform="translate(338 150)"><rect x="-12" y="-6" width="24" height="3" rx="1" fill="#8A5A3B"/><path d="M-9 -3v6M9 -3v6" stroke="#6E4A30" stroke-width="2"/></g>`+luc(338,145,1.5))},
+    /* 13 · Unter dem Polarlicht: alle schauen nach oben, Lucifers Augen leuchten mit */
+    ()=>{const [d,b]=bg([[0,"#070B1E"],[1,"#1C2A4A"]]);return svg(d+svgLin(g("b"),[[0,"#5BF0A8",0],[.45,"#5BF0A8",.75],[1,"#5BF0A8",0]])+svgLin(g("c"),[[0,"#B6A4FF",0],[.5,"#B6A4FF",.6],[1,"#B6A4FF",0]]),b+stars(18,110)+
+      `<g class="kp-aur" style="animation-delay:-3s;animation-duration:9s"><path d="M-10 44Q80 4 170 32T380 22V64Q280 44 190 66T-10 76Z" fill="${u("c")}"/></g><g class="kp-aur"><path d="M-10 70Q60 22 130 52T270 40T380 56V98Q300 76 240 92T110 86T-10 104Z" fill="${u("b")}"/></g>`+
+      horizonSvg("berge",true,true)+land("#1E3550","#C9CED6","#4E6E5A",180,160,38)+
+      treeSvg("tanne",44,104,"#1F4535")+`<g transform="translate(306 142) scale(1.2)">${projectSvg("f_nordlicht")}</g>`+
+      fig(K(0),112,146,1.25,calm,"bob")+fig(K(1),138,146,1.25,H(),"bob",.5)+fig(K(2),232,146,1.25,calm,"bob",.3)+fig(K(3),258,146,1.25,H(),"bob",.8)+bay(186,148,2.2)+
+      `<path d="M0 200V178Q90 166 180 170T360 176V200Z" fill="#DDE6EE"/>`+luc(186,188,2.3,{over:`<circle class="glow" cx="-1.8" cy="-13.7" r="2.8" fill="#C8F169" opacity=".35"/><circle class="glow" cx="1.8" cy="-13.7" r="2.8" fill="#C8F169" opacity=".35"/>`}))},
+    /* 14 · Heißer Neustart: Wüstenhitze, der Koffer voller Pullis, Lucifer schläft endlich in der Sonne */
+    ()=>{const [d,b]=bg([[0,"#F2B866"],[1,"#FBE3B0"]]);return svg(d+glowR("b","#FFF6C9",.9),b+rays(292,42,12,.28)+sun(292,42,20,g("b"))+horizonSvg("duenen",true)+
+      [56,116,196,256,318].map((x,i)=>`<path class="kp-heat" style="animation-delay:${i*.5}s" d="M${x} 116q3-4 0-8t0-8" stroke="#FFF6DA" stroke-width="1.5" fill="none" stroke-linecap="round"/>`).join("")+
+      land("#3FB8B0","#EBC27A","#D9B060",184,156,40)+lines("#BFF0EA",.6,[[14,170,30],[30,182,24]])+treeSvg("kaktus",74,110)+treeSvg("kaktus",326,112)+
+      `<g transform="translate(-52 10) scale(.9)">${boat([],"")}</g><g transform="translate(268 142) scale(1.1)">${projectSvg("o_lehm")}</g>`+ani("Kamel",104,146,1.4)+
+      `<g transform="translate(140 152)"><path d="M-15 -2l-3-14h30l3 14z" fill="#8A5A3B"/><rect x="-15" y="-10" width="30" height="10" rx="2" fill="#B07A55"/><path d="M-12 -10q2-6 7-4q2-5 7-1q5-4 8 1q4 0 3 4z" fill="#5BC0A8"/><path d="M-4 -12q5-4 10 0" stroke="#FF9C7A" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M-13 -9q-4 3-2 8" stroke="#C8F169" stroke-width="3" fill="none" stroke-linecap="round"/></g>`+
+      bay(186,151,2.4,{over:scarf("#E5484D")+sweat+`<circle cx="-3.3" cy="-13.9" r="1.4" fill="#FF7A6A" opacity=".5"/><circle cx="3.3" cy="-13.9" r="1.4" fill="#FF7A6A" opacity=".5"/>`})+
+      lucSleep(236,154,2)+zzz(246,130))},
+    /* 15 · Die Karawane bringt Post: Mr. Bay weint auf dem Kamel, Briefe von früher, Lucifer reitet mit */
+    ()=>{const [d,b]=bg([[0,"#E58A5A"],[.5,"#F6B97A"],[1,"#FBE0B0"]]);return svg(d+glowR("b","#FFE7A3",.8),b+sun(62,104,18,g("b"))+
+      `<path d="M0 200V136Q70 108 150 122T300 114T360 120V200Z" fill="#E3B266"/><path d="M0 200V160Q90 140 190 154T360 150V200Z" fill="#EBC27A"/>`+
+      `<path d="M20 172Q120 156 200 166T350 162" stroke="#D9A55A" stroke-width="2" stroke-dasharray="3 5" fill="none"/>`+treeSvg("palme",318,96,"#6E8B3D")+
+      fig(K(0),300,152,1.1,calm,"bob")+fig(K(1),322,152,1.1,H(),"bob",.4)+
+      ani("Kamel",250,157,1.6,"bob",.6)+luc(256,131,1.25)+ani("Kamel",186,160,1.6,"bob",.3)+ani("Kamel",116,158,1.75,"bob")+
+      bay(123,131,1.6,{still:true,over:tears+armR+`<g transform="translate(8.6 -7.2) rotate(-6)">${I.brief}</g>`})+
+      [[150,96,0],[176,84,1.2],[206,98,2.4],[96,90,1.8]].map(([x,y,dl])=>`<g transform="translate(${x} ${y})"><g class="nrise" style="animation-delay:${dl}s">${I.brief}</g></g>`).join("")+hearts(166,80))},
+    /* 16 · Nacht unter Sternen: Mr. Bay ist bei 412 eingeschlafen, Lucifer zählt weiter */
+    ()=>{const [d,b]=bg([[0,"#05071A"],[1,"#1A2148"]]);return svg(d+glowR("b","#B6A4FF",.3),b+`<ellipse cx="180" cy="62" rx="230" ry="28" transform="rotate(-14 180 62)" fill="${u("b")}"/>`+stars(34,130)+
+      `<g transform="translate(296 26)"><g class="kp-shoot"><path d="M0 0l24-10" stroke="#F3F1EA" stroke-width="1.4" stroke-linecap="round"/><circle r="1.5" fill="#F3F1EA"/></g></g>`+
+      horizonSvg("duenen",true,true)+`<path d="M0 200V150Q90 132 190 144T360 140V200Z" fill="#4A4068"/>`+`<g transform="translate(306 148) scale(1.2)">${projectSvg("o_sternzelt")}</g>`+
+      fig(K(0),262,150,1.1,calm)+
+      `<g transform="translate(148 160)"><rect x="-34" y="-4" width="68" height="9" rx="1.5" fill="#B8442E"/><path d="M-30 .5h60" stroke="#FFD27A" stroke-width="1" stroke-dasharray="3 2"/></g>`+
+      bay(168,157,1.8,{rot:-90,cls:"",still:true,over:`<circle cx="-1.8" cy="-15.7" r="1" fill="#F0C2A0"/><circle cx="1.8" cy="-15.7" r="1" fill="#F0C2A0"/><path d="M-2.7 -15.4q.9.6 1.8 0M.9 -15.4q.9.6 1.8 0" stroke="#14151F" stroke-width=".6" fill="none"/>`})+zzz(122,140)+
+      luc(206,160,1.9)+[413,414,415].map((k,i)=>`<g transform="translate(${210+i*6} ${118-i*4})"><text class="nrise" style="animation-delay:${i*1.2}s" text-anchor="middle" font-family="Manrope,sans-serif" font-weight="800" font-size="9" fill="#FFD27A">${k}</text></g>`).join(""))},
+    /* 17 · Ins ewige Eis: blaue Stunde, Gespräche am Feuer, Lucifer trägt jetzt Schal (kein Wort darüber) */
+    ()=>{const [d,b]=bg([[0,"#1E2A5A"],[.6,"#6A7FB8"],[1,"#F2B8C6"]]);return svg(d+glowR("b","#E8EAF0",.5)+glowR("c","#FFB86B",.75),b+stars(10,60)+sun(66,40,11,g("b"),"#F3F1EA")+horizonSvg("eis",true)+
+      land("#3E6E98","#F3F6F8","#DDE8F0",204,140,32)+lines("#F2B8C6",.45,[[14,166,30],[30,178,24]])+`<g transform="translate(-54 12) scale(.85)">${boat([],"")}</g>`+
+      treeSvg("schneetanne",86,108,"#3E6B5A")+`<g transform="translate(300 146) scale(1.25)">${projectSvg("a_iglus")}</g>`+
+      `<circle cx="180" cy="136" r="40" fill="${u("c")}"/><g transform="translate(180 147) scale(1.5)">${itemSvg("a_feuerkorb")}</g>`+
+      fig(K(0),148,148,1.2,calm,"bob")+fig(K(1),212,148,1.2,calm,"bob",.4)+fig(K(2),236,148,1.2,H(),"bob",.8)+
+      bub(152,100,I.lachen,0,20,18)+bub(220,98,I.herz,2,20,16)+
+      bay(118,150,2,{still:true,over:scarf("#5BC0A8")+beanie+`<path d="M7.6 -6.4v3" stroke="#3A3D58" stroke-width=".6"/><rect x="5.8" y="-3.4" width="3.6" height="4.6" rx=".8" fill="#FFD27A"/><circle class="glow" cx="7.6" cy="-1.2" r="4.4" fill="#FFD27A" opacity=".35"/>`+armR+hand(7.6,-6.6)})+
+      `<path d="M0 200V176Q120 164 220 170T360 172V200Z" fill="#E6EEF3"/>`+luc(268,184,1.9,{over:lucScarf})+snow(20,150))},
+    /* 18 · Hundeschlitten: zwölf Pfoten-Paare, null Empfang, und vorne sitzt die Chefin */
+    ()=>{const [d,b]=bg([[0,"#5FA8E0"],[1,"#D8ECF8"]]);return svg(d,b+`<circle cx="300" cy="36" r="15" fill="#FFF3D1"/>`+horizonSvg("eis",true)+
+      `<rect y="132" width="360" height="68" fill="#F3F6F8"/><path d="M0 150Q120 140 240 148T360 146" stroke="#E1EAF2" stroke-width="10" fill="none"/><path d="M40 176H360M40 182H360" stroke="#D4E0EA" stroke-width="1.4"/>`+
+      treeSvg("schneetanne",32,100,"#3E6B5A")+treeSvg("schneetanne",336,98,"#3E6B5A")+
+      [0,1,2,3,4].map(i=>`<path class="kp-streak" style="animation-delay:${(i*.18).toFixed(2)}s" d="M${236+i*12} ${132+i*9}h26" stroke="#B9D3E6" stroke-width="1.6" stroke-linecap="round"/>`).join("")+
+      `<path d="M150 156L56 150M150 166L64 162" stroke="#8A5A3B" stroke-width="1"/>`+
+      [[60,152],[88,152],[116,152]].map(([x,y],i)=>ani("Hund",x,y,1.5,"kp-run",i*.12)).join("")+
+      `<g transform="translate(146 172)"><path d="M0 0h66q7 0 9-7" stroke="#6E4A30" stroke-width="2.4" fill="none" stroke-linecap="round"/><rect x="6" y="-14" width="56" height="10" rx="2" fill="#B8442E"/><path d="M62 -14v-16" stroke="#6E4A30" stroke-width="2.4" stroke-linecap="round"/></g>`+
+      fig(K(0),174,160,1.2,H(),"bob")+fig(K(1),194,160,1.2,H(),"bob",.3)+bay(214,159,1.9)+
+      [[70,164],[98,164],[126,164]].map(([x,y],i)=>ani("Hund",x,y,1.5,"kp-run",.2+i*.12)).join("")+
+      luc(158,158,1.5,{over:`<path d="M-3.2 -17.4l1-3.2 2.2 2.2 2.2-2.2 1 3.2z" fill="#FFD27A" stroke="#E0A93C" stroke-width=".3"/>`})+
+      [0,1,2,3].map(i=>`<circle class="spark" style="animation-delay:${(i*.35).toFixed(2)}s" cx="${70+i*24}" cy="166" r="1.4" fill="#F7FAFC"/>`).join(""))},
+    /* 19 · Ganz OffLand: alle Welten an einem Feuer, Polarlicht, Musik, Herzen */
+    ()=>{const [d,b]=bg([[0,"#0E1430"],[1,"#2E2F66"]]);return svg(d+svgLin(g("b"),[[0,"#5BF0A8",0],[.45,"#5BF0A8",.6],[1,"#5BF0A8",0]])+svgLin(g("c"),[[0,"#FF9C7A",0],[.5,"#FF9C7A",.45],[1,"#FF9C7A",0]])+glowR("d","#FFB86B",.8),b+stars(16,90)+
+      `<g class="kp-aur"><path d="M-10 60Q70 20 150 46T300 36T380 50V88Q300 70 230 84T100 80T-10 96Z" fill="${u("b")}"/></g><g class="kp-aur" style="animation-delay:-4s;animation-duration:10s"><path d="M-10 36Q90 6 190 28T380 20V52Q280 38 190 56T-10 62Z" fill="${u("c")}"/></g>`+
+      firework(56,40,13,"#FFD27A",0)+firework(304,34,15,"#C8F169",1.3)+
+      land("#24335E","#C9B994","#3F6B4A",180,166,42)+garland(16,344,98,10,true)+
+      ani("Elch",52,138,1.15,"bob")+ani("Kamel",312,138,1.15,"bob",.5)+ani("Eisbär",340,142,1,"bob",.8)+ani("Papagei",182,90,1.3,"bob",.2)+
+      `<circle cx="180" cy="132" r="54" fill="${u("d")}"/>`+fire(180,143,1.6)+
+      [0,1,2,3,4].map(i=>fig(K(i),[94,120,240,266,292][i],146,1.2,H(),"bob",i*.25)).join("")+noteFx(206,118,"#FFD27A")+
+      `<path d="M0 200V170Q180 158 360 170V200Z" fill="#B9A880"/>`+bay(160,188,2.5)+luc(206,190,2.3,{hearts:true})+ani("Hund",262,184,1.4,"bob",.4)+hearts(184,128))}
+  ];
+  return (S_[n]||S_[0])();
 }
 function storySlides(existing){
   const kids=here().filter(r=>r.kind==="mensch").slice(0,3), sc=storyScenes(kids);
@@ -3162,7 +3328,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.74";
+const APP_VERSION="1.75";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
