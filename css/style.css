@@ -368,7 +368,29 @@ body.focus-on{overflow:hidden}
 .story-s{gap:14px}
 .story-art{border-radius:18px;overflow:hidden}
 .story-art svg{display:block;width:100%;height:auto}
-.story-art.past{border:6px solid #F3F1EA;border-radius:6px;transform:rotate(-1.2deg);box-shadow:0 8px 24px rgba(0,0,0,.35);filter:sepia(.35) saturate(1.1)}
+.story-art.past{border:6px solid #F3F1EA;border-radius:6px;transform:rotate(-1.2deg);box-shadow:0 8px 24px rgba(0,0,0,.35);filter:sepia(.18) saturate(1.1)}
+/* Szenen der Geschichte: Feuerwerk, Funken, Handylicht, aufsteigende Mitteilungen, Nebel, Sonnenstrahlen */
+.story-art .fw{transform-box:fill-box;transform-origin:center;animation:stFw 2.8s ease-out infinite}
+@keyframes stFw{0%{opacity:0;transform:scale(.3)}18%{opacity:1}70%{opacity:.85;transform:scale(1)}100%{opacity:0;transform:scale(1.08)}}
+.story-art .spark{transform-box:fill-box;animation:stSpark 1.6s linear infinite}
+@keyframes stSpark{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-24px)}}
+.story-art .flick{transform-box:fill-box;transform-origin:50% 100%;animation:stFlick .5s ease-in-out infinite alternate}
+@keyframes stFlick{to{transform:scaleY(1.12) skewX(-3deg)}}
+.story-art .pglow{animation:stPglow 2.2s ease-in-out infinite}
+@keyframes stPglow{50%{opacity:.55}}
+.story-art .nrise{transform-box:fill-box;animation:stNrise 3.6s ease-out infinite}
+@keyframes stNrise{0%{opacity:0;transform:translateY(8px) scale(.7)}15%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-58px)}}
+.story-art .smoke{animation:stSmoke 3s ease-in-out infinite;opacity:.7}
+@keyframes stSmoke{50%{opacity:.25;transform:translateY(-3px)}}
+.story-art .fogd{animation:stFog 9s ease-in-out infinite alternate}
+@keyframes stFog{to{transform:translateX(26px)}}
+.story-art .rays{animation:stRays 60s linear infinite}
+.story-art .away{transform-box:fill-box;transform-origin:50% 100%;animation:stAway 7s ease-in infinite}
+@keyframes stAway{0%{opacity:0;transform:translateX(-20px)}10%{opacity:1}100%{opacity:.15;transform:translate(70px,-6px) scale(.55)}}
+@keyframes stRays{to{transform:rotate(360deg)}}
+.story-art .flag{transform-box:fill-box;transform-origin:0 50%;animation:stFlag 1.4s ease-in-out infinite alternate}
+@keyframes stFlag{to{transform:scaleX(.82) skewY(3deg)}}
+@media (prefers-reduced-motion:reduce){.story-art .fw,.story-art .spark,.story-art .flick,.story-art .pglow,.story-art .nrise,.story-art .smoke,.story-art .fogd,.story-art .rays,.story-art .flag,.story-art .away{animation:none}}
 .story-art.grey svg{filter:saturate(.6)}
 /* Kapitel, Handys, Album */
 .phone-note{border-radius:14px;padding:8px 12px;font-size:14px}

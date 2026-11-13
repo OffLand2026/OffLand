@@ -2230,20 +2230,96 @@ function bayAlbumSheet(){
   $("#wrNext").onclick=()=>{const i=idx(); if(i>=slides.length-1) return closeModal(); box.scrollTo({left:(i+1)*box.clientWidth,behavior:"smooth"})};
   $("#wrClose").onclick=closeModal;
 }
-function storySlides(existing){
-  const kids=here().filter(r=>r.kind==="mensch").slice(0,3);
-  const ppl=(xs,y,ph)=>kids.slice(0,xs.length).map((r,i)=>`<g class="bob" style="animation-delay:${i*.3}s">${figure(Object.assign({},r,{sick:null},ph?{phone:true}:{phone:false,lvFull:true,cheer:i!==1}),xs[i],y)}</g>${ph?phoneIn(xs[i],y):""}`).join("");   // Damals bunt und fröhlich, später Smombies
-  const Z="96 70 236 118", a=storyIsle("past",Z), a2=storyIsle("past"), b=storyIsle("grey",Z), b2=storyIsle("grey","40 40 300 160"), n=storyIsle("now",Z);
+/* Geschichte von Mr. Bay: fünf Szenen mit Stimmung (Fest mit Feuerwerk, Brücke im Abendrot, blaues Handylicht, Nebel, Sonnenaufgang) */
+const PARTY_PPL=[{id:"p1",kind:"mensch",name:"A",look:{skin:1,hair:3,style:7,shirt:4,acc:[6],accC:0}},{id:"p2",kind:"mensch",name:"B",look:{skin:3,hair:0,style:4,shirt:1,acc:[],accC:2}},{id:"p3",kind:"mensch",name:"C",look:{skin:0,hair:5,style:11,shirt:7,acc:[],accC:0}},{id:"p4",kind:"mensch",name:"D",look:{skin:2,hair:1,style:0,shirt:2,acc:[5],accC:3}},{id:"p5",kind:"mensch",name:"E",look:{skin:4,hair:2,style:8,shirt:9,acc:[],accC:0}}];
+const svgLin=(id,stops)=>`<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1">${stops.map(([o,c,a])=>`<stop offset="${o}" stop-color="${c}"${a!=null?` stop-opacity="${a}"`:""}/>`).join("")}</linearGradient>`;
+const svgRad=(id,c,a)=>`<radialGradient id="${id}"><stop offset="0" stop-color="${c}" stop-opacity="${a==null?.7:a}"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient>`;
+function storyScenes(kids){
+  const K=i=>kids[i]||PARTY_PPL[i];
+  const fig=(r,x,y,sc,o,cls,d)=>`<g transform="translate(${x} ${y}) scale(${sc})"><g${cls?` class="${cls}" style="animation-delay:${d||0}s"`:""}>${figure(Object.assign({},r,{sick:null},o),0,0)}${o&&o.phone?phoneIn(0,0):""}</g></g>`;
+  const happy={phone:false,lvFull:true,cheer:true}, sad={phone:true};
+  const stars=(n,h)=>Array.from({length:n},(_,i)=>`<circle class="glow" style="animation-delay:${(i*.37)%2.4}s" cx="${(i*73+19)%360}" cy="${(i*41+11)%h}" r="${i%3?1:1.4}" fill="#F3F1EA"/>`).join("");
+  const firework=(x,y,r,c,d)=>`<g transform="translate(${x} ${y})"><g class="fw" style="animation-delay:${d}s" stroke="${c}" stroke-width="1.7" stroke-linecap="round">${Array.from({length:12},(_,k)=>{const a=k*Math.PI/6,co=Math.cos(a),si=Math.sin(a);return `<path d="M${(co*r*.35).toFixed(1)} ${(si*r*.35).toFixed(1)}L${(co*r).toFixed(1)} ${(si*r).toFixed(1)}"/>`}).join("")}<circle r="1.8" fill="${c}" stroke="none"/></g></g>`;
+  const garland=(x1,x2,y,sag,on)=>{const col=["#FF9C7A","#FFD27A","#C8F169","#B6A4FF","#5BC0A8"];let h=`<path d="M${x1} ${y}q${(x2-x1)/2} ${sag*2} ${x2-x1} 0" stroke="#4A3226" stroke-width=".8" fill="none"/>`;
+    for(let i=1;i<12;i++){const t=i/12,x=x1+(x2-x1)*t,yy=y+sag*4*t*(1-t);h+=on?`<circle class="glow" style="animation-delay:${(i*.29)%2}s" cx="${x.toFixed(1)}" cy="${(yy+2).toFixed(1)}" r="2" fill="${col[i%5]}"/>`:`<circle cx="${x.toFixed(1)}" cy="${(yy+2).toFixed(1)}" r="1.8" fill="#5B6072"/>`}return h};
+  const fire=(x,y,sc)=>`<g transform="translate(${x} ${y}) scale(${sc})"><ellipse rx="13" ry="3" fill="#000" opacity=".25"/><path d="M-11 0l22-5M-11 -5l22 5" stroke="#7A4B2A" stroke-width="3.2" stroke-linecap="round"/><g class="flick"><path d="M0 -2c-9-2-10-12-3-20 0 6 4 6 4 1 5 5 9 9 6 14-1 3-4 5-7 5z" fill="#FF7A3D"/><path d="M0 -3c-5-1-6-7-2-12 1 4 3 4 3 1 3 3 4 6 3 8-1 2-2 3-4 3z" fill="#FFD27A"/></g></g>`+Array.from({length:6},(_,i)=>`<circle class="spark" style="animation-delay:${(i*.27).toFixed(2)}s" cx="${x+(i%3-1)*7}" cy="${y-30*sc/1.5}" r="1.3" fill="#FFD27A"/>`).join("");
+  const gull=(x,y,hat)=>`<g transform="translate(${x} ${y})"><path d="M-7 0q3.5-4 7 0q3.5-4 7 0" stroke="#F3F1EA" stroke-width="1.8" fill="none" stroke-linecap="round"/>${hat?`<path d="M-1.6 -2.2l1.6-5.2 1.6 5.2z" fill="${hat}"/><circle cy="-7.6" r=".9" fill="#FFD27A"/>`:""}</g>`;
+  const hut=(x,y,c)=>`<g transform="translate(${x} ${y})"><path d="M-14 0v-20l14-11 14 11v20z" fill="${c||"#F3F1EA"}"/><path d="M-18 -18l18-14 18 14" fill="none" stroke="#FF9C7A" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="-5" y="-12" width="10" height="12" rx="2" fill="#B6A4FF"/></g>`;
+  const notif=(x,y,d)=>`<g transform="translate(${x} ${y})"><g class="nrise" style="animation-delay:${d}s"><rect x="-8" y="-5" width="16" height="10" rx="3" fill="#E9ECF5"/><path d="M-4.5 0h9" stroke="#8A93AD" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="-5" r="3.4" fill="#FF5A5F"/></g></g>`;
   return [
-    {who:"bay",mood:"past",art:a.open+partyArt()+`</svg>`,
+    /* 1 · Früher: das große Fest mit Feuerwerk */
+    `<svg viewBox="0 0 360 200" aria-hidden="true"><defs>${svgLin("ss1a",[[0,"#2B1E4F"],[.55,"#8A3F6B"],[1,"#F29A5B"]])}${svgRad("ss1b","#FFB86B",.85)}</defs>
+      <rect width="360" height="200" fill="url(#ss1a)"/>${stars(9,60)}
+      ${firework(66,38,17,"#FFD27A",0)}${firework(296,30,20,"#FF9C7A",.9)}${firework(196,20,13,"#C8F169",1.7)}
+      <rect y="142" width="360" height="58" fill="#34497A"/><ellipse cx="176" cy="160" rx="46" ry="5" fill="#FFB86B" opacity=".35"/><path d="M20 172h50M250 184h60M110 190h40" stroke="#4E6596" stroke-width="3" stroke-linecap="round"/>
+      <ellipse cx="180" cy="146" rx="158" ry="13" fill="#E9D7A6"/><path d="M40 144c20-34 82-48 140-48s120 14 140 48z" fill="#7FC57A"/>
+      <g transform="translate(288 138) scale(1.15)">${projectSvg("festzelt")}</g>${garland(62,250,100,7,true)}
+      <circle cx="176" cy="128" r="48" fill="url(#ss1b)"/>
+      <g transform="translate(92 147) scale(1.2)">${itemSvg("sandburg")}</g>
+      ${fig(PARTY_PPL[0],120,144,1.25,happy,"bob",0)}${fig(PARTY_PPL[1],146,144,1.25,Object.assign({},happy,{cheer:false}),"bob",.3)}${fire(176,141,1.6)}${fig(PARTY_PPL[2],208,144,1.25,happy,"bob",.6)}${fig(PARTY_PPL[3],234,144,1.25,Object.assign({},happy,{cheer:false}),"bob",.2)}${fig(PARTY_PPL[4],258,144,1.25,happy,"bob",.5)}
+      ${figure({id:"a3",kind:"tier",art:"Hund",name:"D"},64,147)}
+    </svg>`,
+    /* 2 · Die Brücke zur Nachbarinsel im Abendrot, Möwen mit Partyhüten */
+    `<svg viewBox="0 0 360 200" aria-hidden="true"><defs>${svgLin("ss2a",[[0,"#F08A6B"],[.6,"#FFC98A"],[1,"#FFE7B8"]])}${svgRad("ss2b","#FFF1C9",.9)}</defs>
+      <rect width="360" height="200" fill="url(#ss2a)"/><circle cx="292" cy="62" r="40" fill="url(#ss2b)"/><circle cx="292" cy="62" r="20" fill="#FFF3D1"/>
+      ${gull(110,50,"#B6A4FF")}${gull(150,36,"#C8F169")}${gull(222,58,"#FF9C7A")}
+      <rect y="140" width="360" height="60" fill="#6FA6C8"/><path d="M276 150h32M268 160h48M282 172h22" stroke="#FFF1C9" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+      <ellipse cx="66" cy="151" rx="74" ry="10" fill="#E9D7A6"/><path d="M4 149c10-26 40-38 62-38s52 12 62 38z" fill="#8CCB7A"/>
+      <ellipse cx="296" cy="151" rx="74" ry="10" fill="#E9D7A6"/><path d="M234 149c10-26 40-38 62-38s52 12 62 38z" fill="#8CCB7A"/>${hut(316,142)}
+      <path d="M118 146Q180 108 242 146" stroke="#8A5A3B" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M118 134Q180 96 242 134" stroke="#C9A26A" stroke-width="2" fill="none"/>
+      ${[0,1,2,3,4,5,6].map(i=>{const t=i/6,x=118+124*t,y1=146-76*t*(1-t),y2=134-76*t*(1-t);return `<path d="M${x.toFixed(1)} ${y1.toFixed(1)}V${y2.toFixed(1)}" stroke="#C9A26A" stroke-width="1.6"/>${i%2?`<circle class="glow" style="animation-delay:${i*.3}s" cx="${x.toFixed(1)}" cy="${(y2-3).toFixed(1)}" r="2.2" fill="#FFD27A"/>`:""}`}).join("")}
+      ${fig(K(0),170,129,1.2,happy,"bob",0)}${fig(K(1),190,129,1.2,happy,"bob",.4)}${hearts(182,96)}
+      ${fig(PARTY_PPL[3],56,144,1.15,happy,"bob",.2)}${fig(K(2),282,146,1.15,Object.assign({},happy,{cheer:false}),"bob",.5)}
+    </svg>`,
+    /* 3 · Dann kamen die Bildschirme: Nacht, nur noch blaues Handylicht, Mitteilungen steigen auf */
+    `<svg viewBox="0 0 360 200" aria-hidden="true"><defs>${svgLin("ss3a",[[0,"#0B0F1C"],[1,"#262D4A"]])}${svgRad("ss3b","#7FB6FF",.55)}</defs>
+      <rect width="360" height="200" fill="url(#ss3a)"/>${stars(6,50)}<circle cx="300" cy="40" r="11" fill="#C9CBD3" opacity=".5"/><path d="M262 44q12-10 26-4 10-8 22 0 12-2 14 8z" fill="#3A4160"/>
+      <rect y="142" width="360" height="58" fill="#161C33"/><path d="M40 170h40M230 182h56" stroke="#24304F" stroke-width="3" stroke-linecap="round"/>
+      <ellipse cx="180" cy="146" rx="158" ry="13" fill="#8C8A80"/><path d="M40 144c20-34 82-48 140-48s120 14 140 48z" fill="#4E6650"/>
+      <g transform="translate(288 138) scale(1.15)" opacity=".35">${projectSvg("festzelt")}</g>${garland(62,250,100,7,false)}
+      <g transform="translate(176 141) scale(1.6)"><ellipse rx="13" ry="3" fill="#000" opacity=".3"/><path d="M-11 0l22-5M-11 -5l22 5" stroke="#4A3B30" stroke-width="3.2" stroke-linecap="round"/><path class="smoke" d="M0 -6q-4-6 0-12q4-6 0-12" stroke="#5B6072" stroke-width="1.6" fill="none" stroke-linecap="round"/></g>
+      ${[[92,0],[140,1],[222,2],[270,4]].map(([x,i],k)=>`<circle class="pglow" style="animation-delay:${k*.4}s" cx="${x}" cy="${120}" r="22" fill="url(#ss3b)"/>`).join("")}
+      ${fig(K(0),92,144,1.25,sad)}${fig(K(1),140,144,1.25,sad)}${fig(K(2),222,144,1.25,sad)}${fig(PARTY_PPL[4],270,144,1.25,sad)}
+      ${notif(92,96,0)}${notif(140,92,1.2)}${notif(222,94,.6)}${notif(270,90,1.8)}${notif(116,80,2.4)}${notif(246,78,3)}
+    </svg>`,
+    /* 4 · Die meisten sind weggezogen: Nebel, das Boot fährt weg, Mr. Bay winkt allein am Steg */
+    `<svg viewBox="0 0 360 200" aria-hidden="true"><defs>${svgLin("ss4a",[[0,"#7D8296"],[1,"#C9CBD3"]])}${svgLin("ss4b",[[0,"#E8EAF0",0],[1,"#E8EAF0",.75]])}</defs>
+      <rect width="360" height="200" fill="url(#ss4a)"/><circle cx="90" cy="50" r="16" fill="#E8EAF0" opacity=".45"/>
+      <rect y="140" width="360" height="60" fill="#5E6A80"/>
+      <g class="away">${boat(kids.slice(0,2).length?kids.slice(0,2):PARTY_PPL.slice(0,2),"")}</g>
+      <ellipse cx="262" cy="151" rx="104" ry="11" fill="#B9B2A0"/><path d="M168 149c14-30 54-42 94-42s80 12 94 42z" fill="#7E9277"/>${hut(318,142,"#D8D4C8")}
+      <g transform="translate(318 118)"><rect x="-17" y="-6" width="34" height="11" rx="2" fill="#F3F1EA" transform="rotate(-6)"/><text x="0" y="2" text-anchor="middle" font-family="Manrope, sans-serif" font-size="6.4" font-weight="800" fill="#7A4B2A" transform="rotate(-6)">Geschlossen</text></g>
+      <path d="M150 147h62" stroke="#8A5A3B" stroke-width="4"/><path d="M156 147v12M174 147v12M192 147v12M208 147v12" stroke="#6E4A30" stroke-width="2.4"/>
+      <g transform="translate(194 145) scale(2.1)"><g class="bob">${baySvg(true)}</g></g>
+      ${fig(PARTY_PPL[1],268,146,1.15,sad)}
+      <rect class="fogd" x="-40" y="128" width="440" height="72" fill="url(#ss4b)"/>
+    </svg>`,
+    /* 5 · Jetzt: Sonnenaufgang, Mr. Bay und Lucifer mit Herzchenbrille bitten um Hilfe */
+    `<svg viewBox="0 0 360 200" aria-hidden="true"><defs>${svgLin("ss5a",[[0,"#3B4C8C"],[.5,"#F29A7B"],[1,"#FFD9A0"]])}${svgRad("ss5b","#FFE7A3",.9)}</defs>
+      <rect width="360" height="200" fill="url(#ss5a)"/>
+      <g class="rays" style="transform-origin:180px 126px" fill="#FFE7A3" opacity=".22">${Array.from({length:12},(_,k)=>{const a=k*Math.PI/6;return `<path d="M180 126L${(180+Math.cos(a-.08)*260).toFixed(0)} ${(126+Math.sin(a-.08)*260).toFixed(0)}L${(180+Math.cos(a+.08)*260).toFixed(0)} ${(126+Math.sin(a+.08)*260).toFixed(0)}z"/>`}).join("")}</g>
+      <circle cx="180" cy="126" r="60" fill="url(#ss5b)"/><circle cx="180" cy="128" r="26" fill="#FFF1C9"/>
+      ${gull(76,52)}${gull(108,40)}${gull(286,46)}
+      <rect y="140" width="360" height="60" fill="#3A6FA8"/><path d="M162 150h36M154 160h52M166 172h28M172 184h16" stroke="#FFD27A" stroke-width="3" stroke-linecap="round" opacity=".6"/>
+      <ellipse cx="180" cy="150" rx="168" ry="14" fill="#E9D7A6"/><path d="M28 148c24-30 88-40 152-40s128 10 152 40z" fill="#7FC57A"/>${hut(300,142)}
+      <g transform="translate(66 142)"><path d="M0 0v-40" stroke="#8A5A3B" stroke-width="2.4"/><path class="flag" d="M1 -40h20l-5 6 5 6H1z" fill="#C8F169"/></g>
+      <g transform="translate(150 154) scale(3)"><g class="bob">${baySvg(true)}</g></g>
+      <g transform="translate(206 156) scale(2.7)"><g class="bob" style="animation-delay:.6s;animation-duration:3.4s">${lucSvg(true,true)}</g></g>
+    </svg>`
+  ];
+}
+function storySlides(existing){
+  const kids=here().filter(r=>r.kind==="mensch").slice(0,3), sc=storyScenes(kids);
+  return [
+    {who:"bay",mood:"past",art:sc[0],
       t:existing?"Hi! Ich bin Mr. Bay, Bürgermeister von OffLand. Ich hab mich noch gar nicht richtig vorgestellt, sorry. Kurze Zeitreise: Hier war mal richtig was los. Sandburgen, Lagerfeuer, Feste bis nach Mitternacht.":"Willkommen auf OffLand! Ich bin Mr. Bay, der Bürgermeister. Kurze Zeitreise: Hier war mal richtig was los. Sandburgen, Lagerfeuer, Feste bis nach Mitternacht."},
-    {who:"bay",mood:"past",art:a2.open+`<ellipse cx="38" cy="150" rx="40" ry="10" fill="${a.c[2]}"/><path d="M8 148c6-18 28-24 42-24s22 8 26 24z" fill="${a.c[3]}"/><path d="M70 140q24-26 48 0" fill="none" stroke="#8A5A3B" stroke-width="4" stroke-linecap="round"/><path d="M80 134v8M94 126v14M108 134v8" stroke="#8A5A3B" stroke-width="2"/>`+ppl([94,40,150],127)+hearts(150,100)+`</svg>`,
+    {who:"bay",mood:"past",art:sc[1],
       t:"Wir haben sogar eine Brücke zur Nachbarinsel gebaut. Die Möwen kamen extra zum Feiern vorbei. Ehrlich."},
-    {who:"bay",mood:"grey",art:b.open+ppl([170,195,220],136,true)+`</svg>`,
+    {who:"bay",mood:"night",art:sc[2],
       t:"Dann kamen die Bildschirme. Erst einer. Dann alle. Plötzlich war es sehr still hier."},
-    {who:"bay",mood:"grey",art:b2.open+boat(kids.slice(0,2),"sail-out")+ppl([205,0,0].slice(0,1),136,true)+`</svg>`,
+    {who:"bay",mood:"grey",art:sc[3],
       t:"Die meisten sind weggezogen. Wer noch da ist, redet mehr mit dem Handy als mit mir. Und ich bin wirklich unterhaltsam."},
-    {who:"both",mood:"now",art:n.open+`<g transform="translate(170 138) scale(2.1)"><g class="bob">${baySvg()}</g></g><g transform="translate(212 140) scale(1.9)"><g class="pop fb" style="animation-delay:.4s">${lucSvg()}</g></g></svg>`,
+    {who:"both",mood:"now",art:sc[4],
       t:""}
   ];
 }
@@ -3086,7 +3162,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.73";
+const APP_VERSION="1.74";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
