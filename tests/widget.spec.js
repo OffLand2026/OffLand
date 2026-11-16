@@ -5,6 +5,9 @@
 const { execSync } = require("child_process");
 const { test, expect, dismiss } = require("./helpers");
 
+// Alle Tests dieser Datei in einem Prozess nacheinander: Sonst bauen mehrere Prozesse gleichzeitig www/ neu
+// (build-www löscht den Ordner zuerst) und stören sich gegenseitig.
+test.describe.configure({ mode: "default" });
 test.beforeAll(() => { execSync("node scripts/build-www.mjs", { stdio: "ignore" }); });
 
 test.beforeEach(async ({ page }) => {
@@ -91,6 +94,37 @@ test("iPhone-App: Entwickler-Bereich nur per Schalter, obwohl die App unter „l
   for (let i = 0; i < 7; i++) await page.click("#verLine");   // 7× auf „Version“
   await expect(page.locator("#devPlus")).toBeVisible();
   await expect(page.locator("#devSsn")).toBeVisible();
+});
+
+// Capacitor liefert für Pfade ohne Dateiendung (z. B. „impressum/“) die Startseite aus. Darum müssen alle
+// eigenen Links auf eine Datei zeigen, sonst landet man auf einer kaputten Startseite ohne Styles.
+test("iPhone-App: Impressum und Datenschutz verlinken auf echte Dateien", async ({ page }) => {
+  const fs = require("fs");
+  await newGameApp(page);
+  await page.evaluate(() => T.settingsSheet());
+  const hrefs = await page.locator("#modalRoot a[href]").evaluateAll(as => as.map(a => a.getAttribute("href")));
+  expect(hrefs).toContain("impressum/index.html");
+  expect(hrefs).toContain("datenschutz/index.html");
+  const own = h => !/^(https?:|mailto:|#|\$\{)/.test(h);
+  for (const h of hrefs.filter(own)) expect(h, h).toMatch(/\.html$/);
+  for (const f of ["www/impressum/index.html", "www/datenschutz/index.html"]) {
+    const links = [...fs.readFileSync(f, "utf8").matchAll(/href="([^"]+)"/g)].map(m => m[1]).filter(own);
+    for (const h of links) expect(h === "../" || /\.(html|png|css)$/.test(h), `${f}: ${h}`).toBe(true);
+  }
+  await page.click('#modalRoot a[href="impressum/index.html"]');
+  await expect(page.locator("h1")).toHaveText("Impressum");
+});
+
+test("iPhone-App: Online testen zeigt Anmeldung und Lesen Schritt für Schritt", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.OFFLAND_FAKE_NET = { uid: "fake123", get: async () => null, set: async () => {}, del: async () => {}, list: async () => [], count: async () => 0, inc: async () => {} };
+  });
+  await newGameApp(page);
+  await page.evaluate(() => T.settingsSheet());
+  await page.locator("#diagCard summary").click();
+  await page.click("#diagNet");
+  await expect(page.locator("#diagOut")).toContainText("✓ Verbindung und Anmeldung");
+  await expect(page.locator("#diagOut")).toContainText("✓ Online-Speicher lesen");
 });
 
 test("iPhone-App: Die Szene startet mit MainViewController, der die eigenen Plugins registriert", () => {
