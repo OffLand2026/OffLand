@@ -3330,7 +3330,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.76";
+const APP_VERSION="1.77";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -3399,7 +3399,9 @@ function viewBewohner(){
   const [mText,mCls]=mood(), glC=mCls==="good"?"var(--lime)":mCls==="ok"?"var(--amber)":"var(--coral)";
   // Bild: Dorfplatz am Abend, die Bewohner im Halbkreis ums Lagerfeuer, Tiere am Rand
   const ppl=land.filter(r=>r.kind==="mensch").slice(0,10), ani=[], n=ppl.length;
-  land.filter(r=>r.kind!=="mensch").forEach(r=>{if(ani.length<4&&!ani.some(a=>a.art===r.art)) ani.push(r)});   // vier verschiedene Arten
+  const landAni=land.filter(r=>r.kind!=="mensch"), seaAni=H.filter(r=>r.kind!=="mensch"&&isSea(r)).slice(0,2);
+  landAni.forEach(r=>{if(ani.length<4&&!ani.some(a=>a.art===r.art)) ani.push(r)});   // erst möglichst verschiedene Arten …
+  landAni.forEach(r=>{if(ani.length<4&&!ani.includes(r)) ani.push(r)});               // … dann auffüllen, damit z. B. zwei Ziegen auch beide zu sehen sind
   const aSlot=[[24,140],[336,140],[100,148],[262,148]], gst=guestNow().filter(g=>!SEA.includes(g.art)).slice(0,2);   // Besuch steht vorne am Rand
   const fig=(r,x,y,k)=>`<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${k})"><g class="bob" style="animation-delay:${Math.round(x)%7/5}s">${figure(r,0,0)}</g></g>`;
   const pos=ppl.map((r,i)=>{const a=Math.PI*(0.12+0.76*i/Math.max(1,n-1));return [n===1?150:180-Math.cos(a)*130,134-Math.sin(a)*18]});
@@ -3407,7 +3409,7 @@ function viewBewohner(){
   const lights=[...Array(14)].map((_,i)=>`<circle class="lamp-tw" style="animation-delay:${(i*.13).toFixed(2)}s" cx="${40+i*20}" cy="${(42+Math.sin(i/13*Math.PI)*14).toFixed(1)}" r="2.6" fill="${["#FFD27A","#FF9C7A","#C8F169","#B6A4FF"][i%4]}"/>`).join("");
   const strip=`<svg viewBox="0 0 360 200" role="img" aria-label="${H.length} Bewohner am Lagerfeuer" style="width:100%;height:auto;display:block"><defs><linearGradient id="bwSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3B2F6B"/><stop offset=".7" stop-color="#C46D7A"/><stop offset="1" stop-color="#F2A374"/></linearGradient><radialGradient id="bwGlow"><stop offset="0" stop-color="#FFD27A" stop-opacity=".55"/><stop offset="1" stop-color="#FFD27A" stop-opacity="0"/></radialGradient></defs>
     <rect width="360" height="200" fill="url(#bwSky)"/><circle cx="300" cy="30" r="1.4" fill="#fff"/><circle cx="60" cy="18" r="1.2" fill="#fff"/><circle cx="210" cy="14" r="1" fill="#fff"/>
-    <rect y="96" width="360" height="104" fill="#3E4F86"/><path d="M-10 200c10-60 90-96 190-96s180 32 190 96z" fill="#5E7F4E"/><path d="M-10 200c30-40 110-62 190-62s160 22 190 62z" fill="#4E6E42"/>
+    <rect y="96" width="360" height="104" fill="#3E4F86"/>${seaAni.map((r,i)=>fig(r,[22,338][i],107,.75)).join("")}<path d="M-10 200c10-60 90-96 190-96s180 32 190 96z" fill="#5E7F4E"/><path d="M-10 200c30-40 110-62 190-62s160 22 190 62z" fill="#4E6E42"/>
     <path d="M40 38q140 32 280 0" stroke="#2A2340" stroke-width="1" fill="none"/>${lights}
     <circle cx="180" cy="128" r="80" fill="url(#bwGlow)"/>
     ${order.filter(i=>pos[i][1]<128).map(i=>fig(ppl[i],pos[i][0],pos[i][1],1.7)).join("")}

@@ -134,3 +134,19 @@ test("Umkleide-Vorschau: große Tiere (Wal, Elch, Kamel, Eisbär) passen ganz hi
     expect(box.bb[3], art).toBeLessThanOrEqual(box.vb[3] + .5);
   }
 });
+
+test("Lagerfeuer-Bild im Tab Bewohner: zwei Tiere derselben Art und Meerestiere sind alle zu sehen", async ({ page }) => {
+  await newGame(page);
+  await page.evaluate(() => {
+    const S = T.S; S.allFeatures = true;
+    S.residents.filter(r => r.kind === "tier").forEach(r => { r.status = "umgezogen"; });
+    S.residents.push({ id: "z1", name: "Zora", kind: "tier", art: "Ziege", status: "da", born: 0 },
+                     { id: "z2", name: "Zeus", kind: "tier", art: "Ziege", status: "da", born: 0 },
+                     { id: "d1", name: "Flippa", kind: "tier", art: "Delfin", status: "da", born: 0 });
+    T.render();
+  });
+  await page.click("[data-tab=bewohner]");
+  const titles = await page.$$eval(".hero-card svg title", ts => ts.map(t => t.textContent));
+  expect(titles.filter(t => t.includes("(Ziege)")).length).toBe(2);
+  expect(titles.filter(t => t.includes("(Delfin)")).length).toBe(1);
+});
