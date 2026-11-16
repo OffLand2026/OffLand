@@ -8,7 +8,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = scene as? UIWindowScene else { return }
 
         window = UIWindow(windowScene: windowScene)
-        window?.rootViewController = CAPBridgeViewController()
+        // Eigener Controller: registriert in capacitorDidLoad() unsere Plugins (ScreenTime, PlusStore,
+        // LiveIsland, FocusAlarm). Mit dem nackten CAPBridgeViewController fehlen sie in der App.
+        window?.rootViewController = MainViewController()
         window?.makeKeyAndVisible()
 
         SceneDelegateProxy.shared.scene(scene, willConnectTo: session, options: connectionOptions)
