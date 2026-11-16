@@ -70,6 +70,7 @@ test("iPhone-App: Diagnose in den Einstellungen zeigt Brücke, Plugins und Widge
   await page.evaluate(() => T.settingsSheet());
   const card = page.locator("#diagCard");
   await expect(card).toBeVisible();
+  await card.locator("summary").click();
   await expect(card).toContainText("Brücke ✓");
   await expect(card).toContainText("ScreenTime ✓");
   const before = (await widgetCalls(page)).length;
@@ -78,6 +79,18 @@ test("iPhone-App: Diagnose in den Einstellungen zeigt Brücke, Plugins und Widge
   await expect(card).toContainText("App-Gruppe ✓");
   await expect(card).toContainText("Datei ✓");
   await expect(card).toContainText("Bild ✓");
+});
+
+test("iPhone-App: Entwickler-Bereich nur per Schalter, obwohl die App unter „localhost“ läuft", async ({ page }) => {
+  await newGameApp(page);
+  expect(await page.evaluate(() => location.hostname)).toBe("localhost");
+  await page.evaluate(() => T.settingsSheet());
+  await expect(page.locator("#verLine")).toBeVisible();
+  await expect(page.locator(".set-dev")).toHaveCount(0);
+  await expect(page.locator("#devPlusOn")).toHaveCount(0);
+  for (let i = 0; i < 7; i++) await page.click("#verLine");   // 7× auf „Version“
+  await expect(page.locator("#devPlus")).toBeVisible();
+  await expect(page.locator("#devSsn")).toBeVisible();
 });
 
 test("iPhone-App: Die Szene startet mit MainViewController, der die eigenen Plugins registriert", () => {
