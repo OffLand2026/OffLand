@@ -3197,17 +3197,31 @@ function diagLines(){
   const w=widgetSync.err?`✗ ${widgetSync.err}`:widgetSync.last?`✓ ${new Date(widgetSync.last.at).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})} · App-Gruppe ${ok(widgetSync.last.r.group)} · gespeichert ${widgetSync.last.r.stored|0} · Datei ${ok(widgetSync.last.r.file)} · Bild ${ok(widgetSync.last.r.img)}`:"–";
   return [`Brücke ${ok(typeof C.registerPlugin==="function")} · Plattform ${esc(String(C.getPlatform?C.getPlatform():"?"))}`,
     `Plugins: ${["ScreenTime","PlusStore","LiveIsland","FocusAlarm"].map(n=>n+" "+ok(heads.includes(n))).join(" · ")}`,
-    `Widget: ${esc(w)}`];
+    `Widget: ${esc(w)}`,
+    `Online: ${!netConfigured()?"nicht eingerichtet":netDiag.ok?"✓ verbunden":netDiag.err?"✗ "+esc(netDiag.err):netDiag.stage?"… "+esc(netDiag.stage):"noch nicht getestet"}`]
+    .concat(netDiag.test||[]);
 }
 function diagHtml(){
   if(!isNativeApp()) return "";
   return `<details class="set-row set-more" id="diagCard"><summary>${setIco("phone",IC_O)}<span class="set-t"><b>iPhone-Verbindung</b><small>Diagnose für Widget und iPhone-Funktionen</small></span><span class="set-chev" aria-hidden="true">›</span></summary>
     <div id="diagOut" class="small muted num" style="display:grid;gap:4px;padding:0 0 10px 42px">${diagLines().map(l=>`<span>${l}</span>`).join("")}</div>
-    <div style="padding:0 0 12px 42px"><button class="btn secondary set-mini" id="diagSend">Widget neu senden</button></div></details>`;
+    <div class="row" style="padding:0 0 12px 42px;gap:8px;flex-wrap:wrap"><button class="btn secondary set-mini" id="diagSend">Widget neu senden</button>${netConfigured()?`<button class="btn secondary set-mini" id="diagNet">Online testen</button>`:""}</div></details>`;
+}
+/* Online Schritt für Schritt prüfen: Firebase, App Check, Anmeldung, Lesen. Zeigt, wo es hängt. */
+async function netSelfTest(upd){
+  const t0=Date.now(), sec=()=>((Date.now()-t0)/1000).toFixed(1)+" s", out=netDiag.test=[];
+  const step=async(name,fn,ms)=>{const i=out.push("… "+name)-1; upd();
+    try{const r=await Promise.race([fn(),new Promise((_,rej)=>setTimeout(()=>rej(new Error("keine Antwort nach "+ms/1000+" s")),ms))]); out[i]=`✓ ${name} ${r||""} (${sec()})`; upd(); return true}
+    catch(e){out[i]=`✗ ${name}: ${esc(netErrText(e))} (${sec()})`; upd(); return false}};
+  let N=null;
+  if(!await step("Verbindung und Anmeldung",async()=>{N=await netInit(); return N.uid?"· "+String(N.uid).slice(0,6):""},NET_TIMEOUT+2000)) return;
+  if(netDiag.ac) await step("App Check",async()=>{const r=await netDiag.ac.token(); return r&&r.token?"· Ticket da":"· ohne Ticket"},15000);
+  await step("Online-Speicher lesen",async()=>{await N.get("codes/AAAAAA"); return ""},15000);
 }
 function diagBind(){
-  const b=$("#diagSend"); if(!b) return;
   const upd=()=>{const o=$("#diagOut"); if(o) o.innerHTML=diagLines().map(l=>`<span>${l}</span>`).join("")};
+  const n=$("#diagNet"); if(n) n.onclick=()=>{n.disabled=true; netSelfTest(upd).finally(()=>{n.disabled=false;upd()})};
+  const b=$("#diagSend"); if(!b) return;
   b.onclick=()=>{b.disabled=true; WIDGET_LAST=""; widgetPush(widgetJson()).catch(()=>{}).then(()=>{b.disabled=false;upd()})};
 }
 // Zurück in der App (z. B. nach dem Hinzufügen des Widgets): Werte noch einmal schicken
@@ -3381,7 +3395,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.83";
+const APP_VERSION="1.84";
 // Entwicklermodus: per Schalter (7× auf „Version“) oder lokal im Browser. Die iPhone-App läuft auch unter
 // „localhost“ (capacitor://localhost), dort zählt nur der Schalter, sonst sähen alle den Entwickler-Bereich.
 function devMode(){try{const C=window.Capacitor, app=!!(C&&C.isNativePlatform&&C.isNativePlatform());
@@ -4009,8 +4023,8 @@ function settingsHtml(){
       ${net?setToggle("statsToggle","chart",IC_O,"Anonyme Statistik","Nur Zähler, welche Funktionen genutzt werden. Ohne Namen, Minuten oder Kennung",statsDev().consent===true):""}
     </div>`;
   const info=`<div class="card set-list">
-      <a class="set-row set-link" href="impressum/">${setIco("paper",IC_O)}<span class="set-t"><b>Impressum</b></span><span class="set-chev" aria-hidden="true">›</span></a>
-      <a class="set-row set-link" href="datenschutz/">${setIco("shield",IC_O)}<span class="set-t"><b>Datenschutz</b></span><span class="set-chev" aria-hidden="true">›</span></a>
+      <a class="set-row set-link" href="impressum/index.html">${setIco("paper",IC_O)}<span class="set-t"><b>Impressum</b></span><span class="set-chev" aria-hidden="true">›</span></a>
+      <a class="set-row set-link" href="datenschutz/index.html">${setIco("shield",IC_O)}<span class="set-t"><b>Datenschutz</b></span><span class="set-chev" aria-hidden="true">›</span></a>
       ${diagHtml()}
       <div class="set-row" id="verLine" style="user-select:none">${setIco("info",IC_O)}<span class="set-t"><b>Version</b>${devMode()?"<small>Entwicklermodus</small>":""}</span><span class="set-val num">${APP_VERSION}</span></div>
     </div>`;
@@ -6048,17 +6062,27 @@ const FB_VER="10.14.1";
 let NET=null, netBusy=null;
 const netConfigured=()=>!!(window.OFFLAND_FAKE_NET||(window.OFFLAND_FIREBASE&&window.OFFLAND_FIREBASE.apiKey));
 const netOn=()=>netConfigured()&&S.online&&S.online.on&&S.online.pid;
+// Wo die Verbindung steht bzw. hängen geblieben ist (für die Diagnose unter „iPhone-Verbindung“)
+const netDiag={stage:"",err:"",ok:false,app:null};
+const NET_TIMEOUT=25000;
 async function netInit(){
   if(NET) return NET;
   if(netBusy) return netBusy;
-  netBusy=(async()=>{
+  const run=(async()=>{
     if(window.OFFLAND_FAKE_NET) return NET=window.OFFLAND_FAKE_NET;
+    netDiag.stage="Firebase laden"; netDiag.err=""; netDiag.ok=false;
     const b="https://www.gstatic.com/firebasejs/"+FB_VER+"/";
     const [A,U,F]=await Promise.all([import(b+"firebase-app.js"),import(b+"firebase-auth.js"),import(b+"firebase-firestore.js")]);
-    const app=A.initializeApp(window.OFFLAND_FIREBASE);
-    if(window.offlandAppCheck) await window.offlandAppCheck(app,b);   // Schutz vor Missbrauch, nur wenn ein Schlüssel eingetragen ist
-    const auth=U.getAuth(app), db=F.getFirestore(app);
+    const app=A.getApps().length?A.getApp():A.initializeApp(window.OFFLAND_FIREBASE);
+    netDiag.stage="App Check";
+    if(window.offlandAppCheck&&!netDiag.app){netDiag.app=app; netDiag.ac=await window.offlandAppCheck(app,b)}   // Schutz vor Missbrauch, nur wenn ein Schlüssel eingetragen ist
+    // In der iPhone-App bleibt getAuth() hängen: Es lädt einen Anmelde-Rahmen (iframe) von authDomain, der unter
+    // capacitor://localhost nie antwortet. Dort darum initializeAuth mit IndexedDB und ohne Popup/Weiterleitung.
+    netDiag.stage="Anmelden";
+    let auth; try{auth=isNativeApp()?U.initializeAuth(app,{persistence:U.indexedDBLocalPersistence}):U.getAuth(app)}catch(e){auth=U.getAuth(app)}
+    const db=F.getFirestore(app);
     await auth.authStateReady(); if(!auth.currentUser) await U.signInAnonymously(auth);
+    netDiag.stage="verbunden"; netDiag.ok=true;
     return NET={uid:auth.currentUser.uid,
       get:async p=>{const d=await F.getDoc(F.doc(db,p));return d.exists()?d.data():null},
       set:(p,v)=>F.setDoc(F.doc(db,p),v,{merge:true}),
@@ -6069,8 +6093,12 @@ async function netInit(){
         const r=await F.getDocs(q);return r.docs.map(d=>Object.assign({id:d.id},d.data()))},
       count:async(p,w)=>{const c=F.collection(db,p);return (await F.getCountFromServer(w?F.query(c,F.where(w[0],w[1],w[2])):c)).data().count}};
   })();
-  try{return await netBusy}finally{netBusy=null}
+  // Nie endlos „Verbinde …“: Nach NET_TIMEOUT gibt es einen Fehler mit dem Schritt, an dem es hängt
+  let tm; const limit=new Promise((_,rej)=>{tm=setTimeout(()=>rej(new Error("Zeitüberschreitung bei: "+netDiag.stage)),NET_TIMEOUT)});
+  netBusy=Promise.race([run,limit]);
+  try{return await netBusy}catch(e){netDiag.err=netErrText(e); throw e}finally{clearTimeout(tm); netBusy=null}
 }
+const netErrText=e=>String(e&&(e.code||e.message)||e).replace(/^Firebase:\s*/,"").slice(0,140);
 const rid=()=>Array.from(crypto.getRandomValues(new Uint8Array(15)),x=>CODE_ABC[x%32]).join("");
 function isoWeek(day){
   const d=new Date(day+"T12:00:00"); const t=new Date(d); t.setDate(d.getDate()+3-(d.getDay()+6)%7);
@@ -6289,7 +6317,7 @@ function onlineConsent(after){
       await netEnsure();
       for(const b of S.buddies.filter(x=>!x.pid)){try{const r=await netConnect(b.code);if(r.pid){b.pid=r.pid;b.name=r.name}}catch(e){}}
       save(); await netSync(); toast("Du bist online!"); after?after():rankSheet();
-    }catch(e){S.online.on=false;save();btn.disabled=false;btn.textContent="Einverstanden, online gehen";$("#ocErr").textContent="Keine Verbindung zum Online-Speicher. Versuch es später noch mal."}
+    }catch(e){S.online.on=false;save();btn.disabled=false;btn.textContent="Einverstanden, online gehen";$("#ocErr").textContent="Keine Verbindung zum Online-Speicher. Versuch es später noch mal. ("+netErrText(e)+")"}
   };
 }
 let rankTab="freunde";
@@ -7012,7 +7040,7 @@ async function backupNow(force){
     if(data.length>900000) throw new Error("zu groß");
     await N.set("backups/"+id,{v:1,gz,iv:b64(iv),data,at:b.at,size:data.length});
     save(); return true;
-  }catch(e){return false}
+  }catch(e){netDiag.err=netErrText(e); return false}
 }
 async function backupLoad(code){
   const N=await netInit(), {id,key}=await backupKeys(code);
@@ -7043,7 +7071,7 @@ async function backupEnable(){
   const btn=$("#bkOn"); if(btn){btn.disabled=true;btn.textContent="Richte ein …"}
   S.backup={on:true,code:newBackupCode(),at:null};
   const ok=await backupNow(true);
-  if(!ok){S.backup={on:false,code:null,at:null};save();toast("Keine Verbindung. Versuch es später noch mal.");return settingsSheet()}
+  if(!ok){S.backup={on:false,code:null,at:null};save();toast("Keine Verbindung. Versuch es später noch mal."+(netDiag.err?" ("+netDiag.err+")":""));return settingsSheet()}
   modal(`<p class="label" style="color:var(--lime)">Online-Backup ist an</p><h2>Dein Wiederherstellungs-Code</h2>
     <div style="background:var(--ground);border-radius:16px;padding:16px;text-align:center"><b class="num" style="font-size:26px;letter-spacing:.08em">${fmtCode(S.backup.code)}</b></div>
     <p class="muted">Mit diesem Code holst du deine Insel auf jedes Handy zurück: Startbildschirm → „Insel aus Backup holen“.</p>
@@ -7510,7 +7538,7 @@ function showStart(){
       <button class="btn secondary" id="newAcc">+ Neue Insel</button>
       ${netConfigured()?`<button class="btn ghost" id="restoreBtn">Insel aus Backup holen</button>`:""}
       <p class="small muted" style="text-align:center">Alle Daten bleiben auf diesem Gerät, außer du schaltest Online-Funktionen oder die anonyme Statistik ein.</p>
-      <p class="small muted" style="text-align:center"><a href="impressum/" style="color:inherit">Impressum</a> · <a href="datenschutz/" style="color:inherit">Datenschutz</a></p>
+      <p class="small muted" style="text-align:center"><a href="impressum/index.html" style="color:inherit">Impressum</a> · <a href="datenschutz/index.html" style="color:inherit">Datenschutz</a></p>
     </div></div></div>`;
   else{
     const calc=`<label class="calc-q" for="calcH">Wie lange bist du am Tag am Handy?</label>
@@ -7521,7 +7549,7 @@ function showStart(){
     ${netConfigured()?`<button class="btn ghost" id="restoreBtn">Ich hab schon eine Insel</button>`:""}
     <ul class="trust"><li>${tick}<span>Kein Login</span></li><li>${tick}<span>Keine E-Mail</span></li><li>${tick}<span>Bleibt auf deinem Handy</span></li></ul>
     <p class="small muted" style="text-align:center">Online-Funktionen und die anonyme Statistik schaltest du nur ein, wenn du willst.</p>
-    <p class="small muted" style="text-align:center"><a href="impressum/" style="color:inherit">Impressum</a> · <a href="datenschutz/" style="color:inherit">Datenschutz</a></p>`;
+    <p class="small muted" style="text-align:center"><a href="impressum/index.html" style="color:inherit">Impressum</a> · <a href="datenschutz/index.html" style="color:inherit">Datenschutz</a></p>`;
     st.innerHTML=INTRO_WORLD?`<div class="st-world">${INTRO_WORLD}</div>
     <div class="st-box"><div class="start-bub" id="startBub" aria-live="polite"></div></div>
     <h1 class="sr">OffLand: Weniger Handy. Mehr Insel.</h1>

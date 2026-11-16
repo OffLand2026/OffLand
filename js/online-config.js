@@ -22,6 +22,7 @@ window.offlandAppCheck = async function (app, base) {
   if (!window.OFFLAND_APPCHECK_KEY) return;
   try {
     const C = await import(base + "firebase-app-check.js");
-    C.initializeAppCheck(app, { provider: new C.ReCaptchaEnterpriseProvider(window.OFFLAND_APPCHECK_KEY), isTokenAutoRefreshEnabled: true });
+    const ac = C.initializeAppCheck(app, { provider: new C.ReCaptchaEnterpriseProvider(window.OFFLAND_APPCHECK_KEY), isTokenAutoRefreshEnabled: true });
+    return { token: () => C.getToken(ac, false) };   // für die Diagnose in der App
   } catch (e) { console.warn("App Check:", e); }
 };
