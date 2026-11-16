@@ -14,11 +14,16 @@ struct IslandData: Codable {
     var budget: Int? = nil        // Tagesbudget in Minuten, für das Wetter
     var en: Bool { !(lang ?? (Locale.preferredLanguages.first ?? "de")).hasPrefix("de") }
 
-    static func load() -> IslandData {
-        guard let raw = UserDefaults(suiteName: "group.com.offland2026.offland")?.string(forKey: "widget"),
+    static let group = "group.com.offland2026.offland"
+
+    /// Werte aus dem gemeinsamen Speicher. Fehlt der Zugriff auf die App-Gruppe oder hat die App noch
+    /// nichts abgelegt, sagt das Widget das ehrlich, statt erfundene Zahlen zu zeigen.
+    static func loadLinked() -> (IslandData, WidgetLink) {
+        guard FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: group) != nil else { return (IslandData(), .noGroup) }
+        guard let raw = UserDefaults(suiteName: group)?.string(forKey: "widget"),
               let data = raw.data(using: .utf8),
-              let v = try? JSONDecoder().decode(IslandData.self, from: data) else { return IslandData() }
-        return v
+              let v = try? JSONDecoder().decode(IslandData.self, from: data) else { return (IslandData(), .noData) }
+        return (v, .ok)
     }
 
     /// Wetter auf der Insel aus der heute gemessenen Bildschirmzeit (Monitor-Erweiterung):
@@ -32,18 +37,55 @@ struct IslandData: Codable {
     }
 }
 
+/// Nachsichtig lesen: fehlende Felder bekommen Standardwerte, Kommazahlen werden gerundet.
+/// So scheitert nicht das ganze Widget an einem einzelnen unerwarteten Wert.
+extension IslandData {
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        func num(_ k: CodingKeys) -> Int? {
+            guard let v = try? c.decode(Double.self, forKey: k), v.isFinite else { return nil }
+            return Int(v.rounded())
+        }
+        self.init()
+        if let v = try? c.decode(String.self, forKey: .name), !v.isEmpty { name = v }
+        glueck = num(.glueck) ?? glueck
+        streak = num(.streak) ?? streak
+        people = num(.people) ?? people
+        animals = num(.animals) ?? animals
+        entered = (try? c.decode(String.self, forKey: .entered)) ?? ""
+        lang = try? c.decode(String.self, forKey: .lang)
+        budget = num(.budget)
+    }
+}
+
+enum WidgetLink { case ok, noGroup, noData }
+
 struct IslandEntry: TimelineEntry {
     let date: Date
     let data: IslandData
+    var link: WidgetLink = .ok
+
+    /// Hinweis statt Zahlen, solange keine echten Werte da sind
+    var hint: String? {
+        switch link {
+        case .ok: return nil
+        case .noGroup: return data.en ? "Widget can't reach the app" : "Widget hat keinen Zugriff auf die App"
+        case .noData: return data.en ? "Open OffLand once" : "Öffne OffLand einmal"
+        }
+    }
 }
 
 struct IslandProvider: TimelineProvider {
     func placeholder(in context: Context) -> IslandEntry { IslandEntry(date: Date(), data: IslandData(glueck: 80, streak: 5, people: 6, animals: 3)) }
-    func getSnapshot(in context: Context, completion: @escaping (IslandEntry) -> Void) { completion(IslandEntry(date: Date(), data: IslandData.load())) }
+    func getSnapshot(in context: Context, completion: @escaping (IslandEntry) -> Void) {
+        let (d, link) = IslandData.loadLinked()
+        completion(IslandEntry(date: Date(), data: d, link: link))
+    }
     func getTimeline(in context: Context, completion: @escaping (Timeline<IslandEntry>) -> Void) {
         // stündlich neu zeichnen, damit Tageszeit und „heute eintragen“ stimmen
         let next = Calendar.current.date(byAdding: .hour, value: 1, to: Date()) ?? Date().addingTimeInterval(3600)
-        completion(Timeline(entries: [IslandEntry(date: Date(), data: IslandData.load())], policy: .after(next)))
+        let (d, link) = IslandData.loadLinked()
+        completion(Timeline(entries: [IslandEntry(date: Date(), data: d, link: link)], policy: .after(next)))
     }
 }
 
@@ -114,7 +156,7 @@ struct OffLandWidgetView: View {
             let d = entry.data
             let lock = VStack(alignment: .leading, spacing: 2) {
                 Text(lockLine(d)).font(.system(size: 14, weight: .bold)).lineLimit(1)
-                Text(d.en ? "\(d.glueck) % happy · 🔥 \(d.streak)" : "\(d.glueck) % Glück · 🔥 \(d.streak)").font(.system(size: 12)).foregroundColor(.secondary).lineLimit(1)
+                Text(entry.hint ?? (d.en ? "\(d.glueck) % happy · 🔥 \(d.streak)" : "\(d.glueck) % Glück · 🔥 \(d.streak)")).font(.system(size: 12)).foregroundColor(.secondary).lineLimit(1)
             }.frame(maxWidth: .infinity, alignment: .leading)
             if #available(iOS 17.0, *) { lock.containerBackground(.clear, for: .widget) } else { lock }
         } else {
@@ -129,18 +171,27 @@ struct OffLandWidgetView: View {
             ZStack(alignment: .bottomLeading) {
                 IslandScene(glueck: d.glueck, date: entry.date, weather: d.weather(entry.date))
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(d.en ? "\(d.glueck) % happy" : "\(d.glueck) % Glück").font(.system(size: 13, weight: .heavy, design: .rounded)).foregroundColor(.white)
-                    Text("🔥 \(d.streak) " + (d.en ? (d.streak == 1 ? "day" : "days") : (d.streak == 1 ? "Tag" : "Tage"))).font(.system(size: 11, weight: .bold)).foregroundColor(.white.opacity(0.9))
+                    if let hint = entry.hint {
+                        Text(hint).font(.system(size: 11, weight: .bold)).foregroundColor(.white).lineLimit(3)
+                    } else {
+                        Text(d.en ? "\(d.glueck) % happy" : "\(d.glueck) % Glück").font(.system(size: 13, weight: .heavy, design: .rounded)).foregroundColor(.white)
+                        Text("🔥 \(d.streak) " + (d.en ? (d.streak == 1 ? "day" : "days") : (d.streak == 1 ? "Tag" : "Tage"))).font(.system(size: 11, weight: .bold)).foregroundColor(.white.opacity(0.9))
+                    }
                 }
                 .padding(8).background(Color.black.opacity(0.35)).cornerRadius(10).padding(8)
             }
             if family != .systemSmall {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(d.name).font(.system(size: 15, weight: .heavy, design: .rounded)).lineLimit(1)
-                    Text(d.en ? "\(d.people) people · \(d.animals) animals" : "\(d.people) Menschen · \(d.animals) Tiere").font(.caption).foregroundColor(.secondary)
-                    Spacer()
-                    Text(open ? (d.en ? "Log today" : "Heute noch eintragen") : (d.en ? "Phone away, island grows" : "Handy weg, Insel wächst"))
-                        .font(.system(size: 12, weight: .bold)).foregroundColor(open ? .orange : lime)
+                    Text(entry.hint == nil ? d.name : "OffLand").font(.system(size: 15, weight: .heavy, design: .rounded)).lineLimit(1)
+                    if let hint = entry.hint {
+                        Text(hint).font(.caption).foregroundColor(.secondary).lineLimit(3)
+                        Spacer()
+                    } else {
+                        Text(d.en ? "\(d.people) people · \(d.animals) animals" : "\(d.people) Menschen · \(d.animals) Tiere").font(.caption).foregroundColor(.secondary)
+                        Spacer()
+                        Text(open ? (d.en ? "Log today" : "Heute noch eintragen") : (d.en ? "Phone away, island grows" : "Handy weg, Insel wächst"))
+                            .font(.system(size: 12, weight: .bold)).foregroundColor(open ? .orange : lime)
+                    }
                 }
                 .padding(12).frame(maxWidth: .infinity, alignment: .leading)
             }

@@ -3157,8 +3157,10 @@ function widgetSync(){
     people:h.filter(r=>r.kind==="mensch").length,animals:h.filter(r=>r.kind!=="mensch").length,entered:S.lastDay||""});
   shieldSync();
   if(json===WIDGET_LAST) return; WIDGET_LAST=json;
-  try{ST_NATIVE.widget({json}).catch(()=>{})}catch(e){}
+  try{ST_NATIVE.widget({json}).then(r=>{widgetSync.group=r&&r.group}).catch(()=>{WIDGET_LAST=""})}catch(e){WIDGET_LAST=""}
 }
+// Zurück in der App (z. B. nach dem Hinzufügen des Widgets): Werte noch einmal schicken
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){WIDGET_LAST="";widgetSync()}});
 let SETUP_AUTO=false;
 function viewSetup(){
   return `<div class="card">
@@ -3328,7 +3330,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.75";
+const APP_VERSION="1.76";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
