@@ -3395,7 +3395,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.84";
+const APP_VERSION="1.85";
 // Entwicklermodus: per Schalter (7× auf „Version“) oder lokal im Browser. Die iPhone-App läuft auch unter
 // „localhost“ (capacitor://localhost), dort zählt nur der Schalter, sonst sähen alle den Entwickler-Bereich.
 function devMode(){try{const C=window.Capacitor, app=!!(C&&C.isNativePlatform&&C.isNativePlatform());
@@ -7444,6 +7444,7 @@ function tryLogin(p){p.pin?pinPrompt(p,()=>login(p)):login(p)}
 
 /* Startbild: Mr. Bay winkt, Lucifer schwingt den Schwanz, beide unterhalten sich */
 function startHero(){
+  if(HERO_WORLD) return HERO_WORLD;   // sonst (Intro nicht im Dokument) die gezeichnete Ersatz-Insel
   const col=["#FF9C7A","#FFD27A","#C8F169","#B6A4FF","#5BC0A8"];
   let lights=`<path d="M150 92q55 22 110 4" stroke="#5A3A2A" stroke-width=".8" fill="none"/>`;
   for(let i=1;i<10;i++){const t=i/10,x=150+110*t,y=(1-t)*(1-t)*92+2*t*(1-t)*114+t*t*96;lights+=`<circle class="glow" style="animation-delay:${(i*.31)%2}s" cx="${x}" cy="${y+1.6}" r="1.8" fill="${col[i%5]}"/>`}
@@ -7481,6 +7482,18 @@ const INTRO_WORLD=(()=>{try{
   const d=sv.querySelector("defs"),fix=h=>h.replace(/id="sp/g,'id="st').replace(/url\(#sp/g,"url(#st").replace(/href="#sp/g,'href="#st');
   return fix(`<svg viewBox="0 0 390 844" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${d?d.outerHTML:""}<g transform="translate(0 -170)">${c.outerHTML}</g></svg>`)
     .replace('id="stWordGrp"','id="stWordGrp" transform="translate(195 244) scale(.75) translate(-195 -214)"');
+}catch(e){return ""}})();
+/* Inselbild im Startscreen (wiederkehrender Start): ein Ausschnitt genau dieser Intro-Szene (Palme, Hütte, Mond,
+   Mr. Bay, Lucifer). Das Intro schrumpft am Ende in dieses Bild hinein; weil beide gleich sind, sieht man beim
+   Überblenden keinen Wechsel. Ausschnitt in Intro-Koordinaten, Seitenverhältnis wie das Inselbild (360 × 200). */
+const HERO_VB=[15,340,360,200];
+const HERO_WORLD=(()=>{try{
+  const sv=document.getElementById("spStage"),w=document.getElementById("spWorld");if(!sv||!w)return "";
+  const c=w.cloneNode(true);c.querySelectorAll(".ring,.splash-drop,#spWordGrp").forEach(e=>e.remove());
+  const sand=c.querySelector("#spIsle ellipse");if(!sand)return "";
+  sand.setAttribute("class","st-sand");   // daran richtet sich das Hineinschrumpfen aus
+  const d=sv.querySelector("defs"),fix=h=>h.replace(/id="sp/g,'id="hw').replace(/url\(#sp/g,"url(#hw").replace(/href="#sp/g,'href="#hw');
+  return fix(`<svg viewBox="${HERO_VB.join(" ")}" aria-hidden="true">${d?d.outerHTML:""}${c.outerHTML}</svg>`);
 }catch(e){return ""}})();
 /* Übergang vom Intro zum Startscreen (index.html ruft das am Ende des Intros auf).
    Allererster Start: Die Szene bleibt stehen, die Kamera schwenkt hoch, Mr. Bay und Lucifer begrüßen dich, die Karte kommt von unten.

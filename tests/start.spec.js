@@ -22,6 +22,11 @@ test("Mit vorhandener Insel: Inselbild als Ziel des Übergangs, Lucifer mit Herz
   await expect(page.locator("#start.sky .start-hero .st-sand")).toHaveCount(1);
   await expect(page.locator('#start .start-hero [fill="#FF6FA8"]')).toHaveCount(1);
   await expect(page.locator("#start.first")).toHaveCount(0);
+  // Das Inselbild ist ein Ausschnitt genau der Intro-Szene: Das Intro schrumpft hinein, ohne dass beim Überblenden etwas springt
+  const sand = el => ["cx", "cy", "rx", "ry"].map(a => el.getAttribute(a)).join(" ");
+  expect(await page.locator("#start .start-hero .st-sand").evaluate(sand)).toBe(await page.locator("#splash #spIsle ellipse").evaluate(sand));
+  for (const id of ["hwIsle", "hwMoon", "hwWalker", "hwCat"]) await expect(page.locator(`#start .start-hero #${id}`)).toHaveCount(1);
+  await expect(page.locator("#start .start-hero #hwWordGrp")).toHaveCount(0);
   await expect(page.locator("#splash")).toHaveCount(0, { timeout: 8000 });
   await expect(page.locator("[data-login]")).toContainText("Ida");
 });
