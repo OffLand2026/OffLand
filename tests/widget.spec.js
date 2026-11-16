@@ -72,3 +72,12 @@ test("iPhone-App: Diagnose in den Einstellungen zeigt Brücke, Plugins und Widge
   await expect(card).toContainText("App-Gruppe ✓");
   await expect(card).toContainText("Datei ✓");
 });
+
+test("iPhone-App: Die Szene startet mit MainViewController, der die eigenen Plugins registriert", () => {
+  const fs = require("fs");
+  const scene = fs.readFileSync("ios/App/App/SceneDelegate.swift", "utf8");
+  expect(scene).toMatch(/rootViewController\s*=\s*MainViewController\(\)/);
+  expect(scene).not.toMatch(/rootViewController\s*=\s*CAPBridgeViewController\(\)/);
+  const main = fs.readFileSync("ios/App/App/MainViewController.swift", "utf8");
+  for (const p of ["ScreenTimePlugin", "FocusAlarmPlugin", "PlusStorePlugin", "LiveIslandPlugin"]) expect(main).toContain(`registerPluginInstance(${p}())`);
+});
