@@ -5,7 +5,7 @@ const { test: base, expect } = require("@playwright/test");
 const EXPOSE = `window.T={get S(){return S},render,save,showPending,closeDay,makeWish,wishCheck,planAskSheet,planResult,
   chapterSheet,chapterCheck,CHAPTERS,feedSheet,bayLine,lucLine,arrival,weekSheet,bayAlbumSheet,isoWeek,today,addDays,umfrageCheck,travel,travelSheet,SHOP,price,hereItems,nightAsk,festGoal,comebackCheck,MUSIC,calmMinute,calmEnd,nameSheet,lvOf,umzugPack,settingsSheet,plusPaywall,plusActive,scene,
   seasonSheet,seasonCheck,seasonStampSheet,kurierSheet,wrapSheet,wrapPeriods,startBoat,finishBoat,livePreviewSheet,
-  MISSIONS,figure};\n`;
+  MISSIONS,figure,ST_SIM,plusLapse,shieldMsg,shieldThanks};\n`;
 
 const test = base.extend({
   errors: async ({}, use) => { await use([]); },

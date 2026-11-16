@@ -3,7 +3,7 @@ import DeviceActivity
 import WidgetKit
 
 /// Läuft im Hintergrund, auch wenn OffLand geschlossen ist. Bei jeder erreichten Schwelle
-/// (15, 30, 45 … Minuten Bildschirmzeit heute) wird der höchste Wert pro Tag gemerkt.
+/// (5, 10, 15 … Minuten Bildschirmzeit heute) wird der höchste Wert pro Tag gemerkt.
 /// Außerdem schaltet sie den Insel-Schutz: abends und in eigenen Zeitfenstern an und aus, nach „Trotzdem öffnen“ wieder an.
 class MonitorExtension: DeviceActivityMonitor {
     private let defaults = UserDefaults(suiteName: "group.com.offland2026.offland")

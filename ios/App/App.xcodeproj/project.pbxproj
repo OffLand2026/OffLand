@@ -14,6 +14,8 @@
 		7E4F0E11C0FFEE0000000003 /* ShieldConfig.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7E4F0E11C0FFEE0000000006 /* ShieldConfig.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		7E4F0E11C0FFEE0000000014 /* IslandShield.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A6F0E11C0FFEE0000000001 /* IslandShield.swift */; };
 		7E4F0E11C0FFEE0000000016 /* ShieldIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = 7E4F0E11C0FFEE0000000015 /* ShieldIcon.png */; };
+		7E4F0E11C0FFEE0000000019 /* ShieldBay.png in Resources */ = {isa = PBXBuildFile; fileRef = 7E4F0E11C0FFEE0000000017 /* ShieldBay.png */; };
+		7E4F0E11C0FFEE000000001A /* ShieldLuc.png in Resources */ = {isa = PBXBuildFile; fileRef = 7E4F0E11C0FFEE0000000018 /* ShieldLuc.png */; };
 		7F5F0E11C0FFEE0000000001 /* ShieldActionExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F5F0E11C0FFEE0000000007 /* ShieldActionExtension.swift */; };
 		7F5F0E11C0FFEE0000000002 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 7F5F0E11C0FFEE000000000A /* PrivacyInfo.xcprivacy */; };
 		7F5F0E11C0FFEE0000000003 /* ShieldAction.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7F5F0E11C0FFEE0000000006 /* ShieldAction.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -117,6 +119,8 @@
 /* Begin PBXFileReference section */
 		7A6F0E11C0FFEE0000000001 /* IslandShield.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandShield.swift; sourceTree = "<group>"; };
 		7E4F0E11C0FFEE0000000015 /* ShieldIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ShieldIcon.png; sourceTree = "<group>"; };
+		7E4F0E11C0FFEE0000000017 /* ShieldBay.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ShieldBay.png; sourceTree = "<group>"; };
+		7E4F0E11C0FFEE0000000018 /* ShieldLuc.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ShieldLuc.png; sourceTree = "<group>"; };
 		7E4F0E11C0FFEE0000000006 /* ShieldConfig.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ShieldConfig.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		7E4F0E11C0FFEE0000000007 /* ShieldConfigurationExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldConfigurationExtension.swift; sourceTree = "<group>"; };
 		7E4F0E11C0FFEE0000000008 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -229,6 +233,8 @@
 			children = (
 				7E4F0E11C0FFEE0000000007 /* ShieldConfigurationExtension.swift */,
 				7E4F0E11C0FFEE0000000015 /* ShieldIcon.png */,
+				7E4F0E11C0FFEE0000000017 /* ShieldBay.png */,
+				7E4F0E11C0FFEE0000000018 /* ShieldLuc.png */,
 				7E4F0E11C0FFEE0000000008 /* Info.plist */,
 				7E4F0E11C0FFEE0000000009 /* ShieldConfig.entitlements */,
 				7E4F0E11C0FFEE000000000A /* PrivacyInfo.xcprivacy */,
@@ -515,6 +521,8 @@
 			files = (
 				7E4F0E11C0FFEE0000000002 /* PrivacyInfo.xcprivacy in Resources */,
 				7E4F0E11C0FFEE0000000016 /* ShieldIcon.png in Resources */,
+				7E4F0E11C0FFEE0000000019 /* ShieldBay.png in Resources */,
+				7E4F0E11C0FFEE000000001A /* ShieldLuc.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

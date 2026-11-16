@@ -16,7 +16,7 @@ let offlandGroup = "group.com.offland2026.offland"
 
 /// Bildschirmzeit für OffLand: Erlaubnis anfragen, Apps auswählen, gemessene Minuten lesen.
 /// Apple gibt keine exakten Minuten heraus. Die Monitor-Erweiterung bekommt aber Signale,
-/// sobald eine Schwelle erreicht ist (hier alle 15 Minuten) und merkt sich die höchste pro Tag.
+/// sobald eine Schwelle erreicht ist (hier alle 5 Minuten) und merkt sich die höchste pro Tag.
 @objc(ScreenTimePlugin)
 public class ScreenTimePlugin: CAPPlugin, CAPBridgedPlugin {
     public let identifier = "ScreenTimePlugin"
@@ -38,8 +38,21 @@ public class ScreenTimePlugin: CAPPlugin, CAPBridgedPlugin {
 
     private var defaults: UserDefaults? { UserDefaults(suiteName: offlandGroup) }
     static let daily = DeviceActivityName("offland.daily")
-    static let stepMinutes = 15
+    static let stepMinutes = 5   // 144 Schwellen bis 12 h; feiner kostet Akku und wird laut Entwicklerberichten unzuverlässig
     static let maxMinutes = 12 * 60
+
+    /// Beim Start: Läuft die Messung noch mit einer alten Schrittweite (z. B. 15 Minuten), mit der gespeicherten
+    /// Auswahl neu starten. Sonst müsste man dafür erst „Apps ändern“ tippen.
+    override public func load() {
+        guard AuthorizationCenter.shared.authorizationStatus == .approved,
+              defaults?.bool(forKey: "monitoring") == true,
+              defaults?.integer(forKey: "stStep") != ScreenTimePlugin.stepMinutes,
+              let data = defaults?.data(forKey: "selection"),
+              let saved = try? PropertyListDecoder().decode(FamilyActivitySelection.self, from: data) else { return }
+        if (try? ScreenTimePlugin.startMonitoring(saved)) != nil {
+            defaults?.set(ScreenTimePlugin.stepMinutes, forKey: "stStep")
+        }
+    }
 
     @objc func status(_ call: CAPPluginCall) {
         let s = AuthorizationCenter.shared.authorizationStatus
@@ -87,6 +100,7 @@ public class ScreenTimePlugin: CAPPlugin, CAPBridgedPlugin {
                     self.defaults?.set(data, forKey: "selection")
                     try ScreenTimePlugin.startMonitoring(selection)
                     self.defaults?.set(true, forKey: "monitoring")
+                    self.defaults?.set(ScreenTimePlugin.stepMinutes, forKey: "stStep")
                     call.resolve(["ok": true])
                 } catch {
                     call.reject(L("Messen konnte nicht gestartet werden: ", "Could not start measuring: ") + error.localizedDescription)
@@ -252,7 +266,7 @@ public class ScreenTimePlugin: CAPPlugin, CAPBridgedPlugin {
 struct ScreenTimePickerView: View {
     @State var selection: FamilyActivitySelection
     var title: String = L("Was zählt?", "What counts?")
-    var hint: String = L("Wähl am besten oben „Alle Apps und Kategorien“. OffLand sieht dabei nicht, welche Apps du nutzt, sondern bekommt nur die Zeit in 15-Minuten-Schritten.", "Best choose “All Apps & Categories” at the top. OffLand never sees which apps you use, it only gets the time in 15-minute steps.")
+    var hint: String = L("Wähl am besten oben „Alle Apps und Kategorien“. OffLand sieht dabei nicht, welche Apps du nutzt, sondern bekommt nur die Zeit in 5-Minuten-Schritten.", "Best choose “All Apps & Categories” at the top. OffLand never sees which apps you use, it only gets the time in 5-minute steps.")
     let done: (FamilyActivitySelection?) -> Void
 
     var body: some View {

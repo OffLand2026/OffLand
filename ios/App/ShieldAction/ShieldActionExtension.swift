@@ -2,7 +2,7 @@ import ManagedSettings
 import UserNotifications
 
 /// Was die Knöpfe im Insel-Schutz tun.
-/// „Zurück zur Insel“: zählt als widerstanden, schließt die App und schickt einen kleinen Dank.
+/// „App schließen“: zählt als widerstanden, schließt die App und schickt einen kleinen Dank (von Mr. Bay oder Lucifer).
 /// „Trotzdem öffnen“: zählt mit, gibt die Apps für ein paar Minuten Nutzung frei.
 class ShieldActionExtension: ShieldActionDelegate {
     override func handle(action: ShieldAction, for application: ApplicationToken, completionHandler: @escaping (ShieldActionResponse) -> Void) {
@@ -33,8 +33,9 @@ class ShieldActionExtension: ShieldActionDelegate {
     /// Mitteilung: ein Tipp darauf öffnet OffLand
     private func thank(_ n: Int) {
         let c = UNMutableNotificationContent()
-        c.title = "OffLand"
-        c.body = IslandShield.thanks(n)
+        let m = IslandShield.thanks(n)
+        c.title = m.title
+        c.body = m.body
         c.sound = .default
         c.threadIdentifier = "offland.shield"
         let r = UNNotificationRequest(identifier: "offland.shield.thanks", content: c,

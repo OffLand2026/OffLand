@@ -32,7 +32,9 @@ test("Bildschirmzeit automatisch (Simulation) füllt das Eintragen vor", async (
   await expect(page.locator("#stNote")).toContainText("Automatisch gemessen (Simulation)");
   await expect(page.locator("#stEntry")).toHaveCount(0);
   const v = await page.evaluate(() => (+document.getElementById("inH").value) * 60 + (+document.getElementById("inM").value));
-  expect(v % 15).toBe(0);
+  expect(v % 5).toBe(0);                      // Apple meldet in 5-Minuten-Schritten
+  await expect(page.locator("#stNote")).toContainText("5-Minuten-Schritten");
+  await expect(page.locator("#stNote")).toContainText("bis zu 4 Minuten mehr");
   expect(await page.evaluate(() => T.S.autoTime && T.S.stSim.monitoring)).toBe(true);
 });
 
