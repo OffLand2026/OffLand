@@ -17,6 +17,16 @@ Danach reicht ein Klick, um eine neue Testversion hochzuladen.
 3. Beschreibung: `OffLand`, Bundle ID **Explicit**: `com.offland2026.offland`
 4. Weiter → Registrieren.
 
+## 2b. iPhone als Gerät registrieren
+
+Apple verlangt mindestens ein registriertes Gerät, sonst kann der Cloud-Mac die App nicht signieren
+(Fehler „Your team has no devices from which to generate a provisioning profile“).
+
+1. UDID des iPhones herausfinden:
+   - **Mac:** iPhone per Kabel anschließen → Finder → iPhone in der Seitenleiste → auf die graue Zeile unter dem Namen klicken, bis „UDID“ erscheint → Rechtsklick → kopieren.
+   - **Windows:** iPhone anschließen → App „Apple Geräte“ (oder iTunes) → iPhone → auf die Seriennummer klicken, bis „UDID“ erscheint → kopieren.
+2. <https://developer.apple.com/account/resources/devices/list> → **+** → Plattform iOS, Name z. B. `Mein iPhone`, UDID einfügen → Weiter → Registrieren.
+
 ## 3. App in App Store Connect anlegen
 
 1. <https://appstoreconnect.apple.com/apps> → **+** → **Neue App**.

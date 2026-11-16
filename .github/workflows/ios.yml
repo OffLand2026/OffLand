@@ -41,12 +41,24 @@ concurrency:
   group: ios-${{ github.ref }}
   cancel-in-progress: true
 
+# bash mit pipefail: sonst verschluckt „xcodebuild … | tail“ Fehler und der Lauf wird fälschlich grün
+defaults:
+  run:
+    shell: bash
+
 jobs:
   build:
     name: Bauen (ohne Signatur)
-    runs-on: macos-15
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
+      - name: Xcode 26 auswählen
+        # Apple nimmt seit 2026 nur noch Builds mit dem iOS-26-SDK (Xcode 26) an
+        run: |
+          X=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | grep -vi -e beta -e release_candidate | sort -V | tail -n 1 || true)
+          if [ -z "$X" ]; then echo "::error::Kein Xcode 26 auf dem Runner gefunden"; ls -d /Applications/Xcode*.app || true; exit 1; fi
+          sudo xcode-select -s "$X"
+          xcodebuild -version
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -65,7 +77,7 @@ jobs:
     name: Nach TestFlight hochladen
     if: github.event_name == 'workflow_dispatch' && inputs.testflight
     needs: build
-    runs-on: macos-15
+    runs-on: macos-26
     env:
       ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
       ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
@@ -81,6 +93,13 @@ jobs:
             fi
           done
       - uses: actions/checkout@v4
+      - name: Xcode 26 auswählen
+        # Apple nimmt seit 2026 nur noch Builds mit dem iOS-26-SDK (Xcode 26) an
+        run: |
+          X=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | grep -vi -e beta -e release_candidate | sort -V | tail -n 1 || true)
+          if [ -z "$X" ]; then echo "::error::Kein Xcode 26 auf dem Runner gefunden"; ls -d /Applications/Xcode*.app || true; exit 1; fi
+          sudo xcode-select -s "$X"
+          xcodebuild -version
       - uses: actions/setup-node@v4
         with:
           node-version: 22
