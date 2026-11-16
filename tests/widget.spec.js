@@ -70,6 +70,7 @@ test("iPhone-App: Diagnose in den Einstellungen zeigt Brücke, Plugins und Widge
   await page.evaluate(() => T.settingsSheet());
   const card = page.locator("#diagCard");
   await expect(card).toBeVisible();
+  await card.locator("summary").click();
   await expect(card).toContainText("Brücke ✓");
   await expect(card).toContainText("ScreenTime ✓");
   const before = (await widgetCalls(page)).length;

@@ -1096,3 +1096,47 @@ body.pw-open{overflow:hidden}
 .story-art .kp-note{animation:kpNote 3s ease-out infinite}
 @keyframes kpNote{0%{opacity:0;transform:none}20%{opacity:1}100%{opacity:0;transform:translate(8px,-30px) rotate(12deg)}}
 @media (prefers-reduced-motion:reduce){.story-art [class^="kp-"],.story-art [class*=" kp-"]{animation:none}.story-art .kp-alt2{opacity:0}}
+/* Einstellungen: Gruppen mit Zeilen wie in den iPhone-Einstellungen */
+.set-group{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.set-h{font-family:var(--body);font-size:13px;font-weight:800;color:var(--muted);letter-spacing:0;padding:0 6px;margin:0}
+.card.set-list{padding:2px 14px;display:flex;flex-direction:column;gap:0}
+.set-row{display:flex;align-items:center;gap:12px;padding:11px 0;min-height:52px;border-top:1px solid rgba(58,61,88,.7);color:inherit;text-decoration:none;cursor:pointer;font-size:15px}
+.set-list > .set-row:first-child{border-top:0}
+.set-col{flex-direction:column;align-items:stretch;gap:10px;cursor:default}
+.set-top{display:flex;align-items:center;gap:12px}
+.set-t{flex:1;min-width:0;display:flex;flex-direction:column}
+.set-t b{font-weight:700;font-size:15px}
+.set-t small{color:var(--muted);font-size:12.5px;line-height:1.3;margin-top:1px}
+.set-ico{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;flex:none;color:#F3F1EA}
+.set-ico .ico{width:17px;height:17px}
+.set-val{font-family:var(--display);font-weight:800;font-size:17px;color:var(--lime);white-space:nowrap}
+.set-chev{color:var(--muted);font-size:22px;line-height:1;transition:transform .2s}
+.set-more{display:block;padding:0}
+.set-more summary{display:flex;align-items:center;gap:12px;padding:11px 0;min-height:52px;list-style:none;cursor:pointer}
+.set-more summary::-webkit-details-marker{display:none}
+.set-more[open] .set-chev{transform:rotate(90deg)}
+.set-lims{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;padding:0 0 12px 42px}
+.set-lims .field{gap:4px;font-size:13px;margin:0}
+.set-lim{display:flex;align-items:center;gap:6px}
+.set-lim input{width:100%;min-width:0;padding:8px 10px;font-size:15px}
+.set-lim i{font-style:normal;color:var(--muted);font-size:12px}
+.set-note{font-size:12.5px;color:var(--muted);margin:0 6px}
+.set-btn{width:100%}
+.switch{appearance:none;-webkit-appearance:none;width:48px;height:29px;border-radius:15px;background:#3A3D58;position:relative;flex:none;cursor:pointer;margin:0;transition:background .2s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:23px;height:23px;border-radius:50%;background:#F3F1EA;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
+.switch:checked{background:var(--lime)}
+.switch:checked::after{transform:translateX(19px)}
+.switch:focus-visible{outline:2px solid var(--lilac);outline-offset:2px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--ground);border-radius:12px;padding:4px}
+.seg-b{border:0;background:transparent;color:var(--ink);font:inherit;font-weight:700;font-size:14px;padding:8px 0;border-radius:9px;cursor:pointer}
+.seg-b.on{background:var(--card2);color:var(--lime)}
+.set-dev > summary{cursor:pointer;list-style:none}
+.set-dev > summary::-webkit-details-marker{display:none}
+.set-dev > summary::after{content:" ›"}
+.btn.set-mini{width:auto;min-height:36px;padding:7px 14px;font-size:14px;flex:none}
+.row .btn.set-mini{flex:1}
+.set-on{font-weight:800;color:var(--lime);font-size:14px}
+.card.set-pad{padding:13px 14px}
+#shieldCard .set-top,#stCard .set-top{align-items:flex-start}
+#shieldCard .set-top .set-mini{margin-top:2px}
+@media (prefers-reduced-motion:reduce){.switch,.switch::after,.set-chev{transition:none}}

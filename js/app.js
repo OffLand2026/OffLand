@@ -344,6 +344,15 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 /* Linien-Icons im Stil der Tab-Leiste: statt Emojis in Knöpfen, Listen und auf der Plus-Seite */
 const ICO={
+  target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/>',
+  history:'<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/>',
+  bag:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/>',
+  spark:'<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>',
+  bell:'<path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/>',
+  sound:'<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>',
+  music:'<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>',
+  save:'<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
+  info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
   boat:'<path d="M12 3v12M12 4.5l6 9.5h-6M10 7.5l-4.5 6.5H10"/><path d="M3 17h18l-2.5 3.5h-13z"/>',
   wave:'<path d="M3 10q3-3 6 0t6 0t6 0M3 16q3-3 6 0t6 0t6 0"/>',
   moon:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
@@ -3192,8 +3201,9 @@ function diagLines(){
 }
 function diagHtml(){
   if(!isNativeApp()) return "";
-  return `<div class="card" id="diagCard"><p class="label">iPhone-Verbindung</p><div id="diagOut" class="small muted num" style="display:grid;gap:4px">${diagLines().map(l=>`<span>${l}</span>`).join("")}</div>
-    <button class="btn secondary" id="diagSend">Widget neu senden</button></div>`;
+  return `<details class="set-row set-more" id="diagCard"><summary>${setIco("phone","#3A3D58")}<span class="set-t"><b>iPhone-Verbindung</b><small>Diagnose für Widget und iPhone-Funktionen</small></span><span class="set-chev" aria-hidden="true">›</span></summary>
+    <div id="diagOut" class="small muted num" style="display:grid;gap:4px;padding:0 0 10px 42px">${diagLines().map(l=>`<span>${l}</span>`).join("")}</div>
+    <div style="padding:0 0 12px 42px"><button class="btn secondary set-mini" id="diagSend">Widget neu senden</button></div></details>`;
 }
 function diagBind(){
   const b=$("#diagSend"); if(!b) return;
@@ -3371,7 +3381,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.81";
+const APP_VERSION="1.82";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -3953,62 +3963,71 @@ function viewVerlauf(){
 `;
 }
 /* Einstellungen: erreichbar über das Profilbild oben rechts */
+/* Einstellungen: Gruppen wie in den iPhone-Einstellungen, jede Zeile mit Symbol, Titel, Erklärung und Schalter */
+const setIco=(n,c)=>`<span class="set-ico" style="background:${c}">${ico(n)}</span>`;
+const setToggle=(id,icon,col,title,sub,on)=>`<label class="set-row" for="${id}">${setIco(icon,col)}<span class="set-t"><b>${title}</b>${sub?`<small>${sub}</small>`:""}</span><input type="checkbox" class="switch" id="${id}" ${on?"checked":""}></label>`;
+const setSlider=(id,icon,col,title,sub,val,min,max)=>`<div class="set-row set-col"><div class="set-top">${setIco(icon,col)}<label class="set-t" for="${id}"><b>${title}</b><small>${sub}</small></label><span id="${id}Out" class="num set-val">${hm(val)}</span></div><input id="${id}" type="range" min="${min}" max="${max}" step="15" value="${val}"></div>`;
+const setGroup=(title,body,note)=>body?`<section class="set-group"><h3 class="set-h">${title}</h3>${body}${note?`<p class="set-note">${note}</p>`:""}</section>`:"";
 function settingsHtml(){
-  const fam=famCode();
-  return `
-  <div class="card"><p class="label">Spiel</p>
-    <label class="field" for="setBudget">Tagesbudget: <span id="setBudgetOut" class="num">${hm(S.budget)}</span><input id="setBudget" type="range" min="30" max="480" step="15" value="${S.budget}"></label>
-    <label class="field" for="setBase">Bisheriger Schnitt: <span id="setBaseOut" class="num">${hm(S.baseline)}</span><input id="setBase" type="range" min="30" max="600" step="15" value="${S.baseline}"></label>
-    <p style="font-weight:700;margin-top:6px">App-Limits für die Monster</p>
-    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">${S.apps.map(a=>`<label class="field" for="lim_${a.id}" style="font-size:13px">${esc(a.name)} (min)<input id="lim_${a.id}" type="number" min="5" max="600" step="5" value="${a.limit}" data-lim="${a.id}"></label>`).join("")}</div>
-    <label class="check" for="deathToggle"><input type="checkbox" id="deathToggle" ${S.natDeath?"checked":""}> Natürlicher Abschied im hohen Alter</label>
-    <label class="check" for="vacToggle" style="margin-top:6px"><input type="checkbox" id="vacToggle" ${S.vacation?"checked":""}> Urlaubsmodus: Die Insel schläft, nichts geht verloren</label>
-    ${S.allFeatures?"":`<label class="check" for="allFeat"><input type="checkbox" id="allFeat"> Alle Funktionen sofort zeigen (statt nach und nach)</label>`}
-    <label class="check" for="alarmToggle"><input type="checkbox" id="alarmToggle" ${S.alarm!==false?"checked":""}> Wecker-Ton, wenn die Fokus-Bootsfahrt geschafft ist</label>
-    <label class="check" for="soundToggle"><input type="checkbox" id="soundToggle" ${S.sound!==false?"checked":""}> Töne und Geräusche</label>
-    <label class="check" for="musicToggle"><input type="checkbox" id="musicToggle" ${S.music===true?"checked":""}> Leise Inselmusik (klingt nach 3 Minuten aus)</label>
-    <label class="field" for="langSel" style="margin-top:8px"><span data-noi18n>Sprache · Language</span><select id="langSel" data-noi18n>${[["","Automatisch · Auto"],["de","Deutsch"],["en","English"]].map(([v,n])=>`<option value="${v}"${(langPref()||"")===v?" selected":""}>${n}</option>`).join("")}</select></label>
-  </div>
-  ${netConfigured()?`<div class="card"><p class="label">Online: Freunde und Ranglisten</p>
-    <label class="check" for="netToggle"><input type="checkbox" id="netToggle" ${netOn()?"checked":""}> Online sein (Name, Avatar und Wochen-Bildschirmzeit für Freund:innen sichtbar)</label>
-    ${netOn()?`<label class="check" for="netPub"><input type="checkbox" id="netPub" ${S.online.pub?"checked":""}> Auch in der Rangliste für alle erscheinen</label>
-    <p class="small muted">Ausschalten löscht alle Online-Daten dieses Kontos und trennt die Online-Freundschaften.</p>`:""}
-  </div>`:""}
-  ${plusCard()}
-  ${stCard()}
-  ${shieldCard()}
-  ${netConfigured()?backupCard():""}
-  ${netConfigured()?`<div class="card"><p class="label">Anonyme Statistik</p>
-    <label class="check" for="statsToggle"><input type="checkbox" id="statsToggle" ${statsDev().consent===true?"checked":""}> Anonym mitzählen, welche Funktionen genutzt werden</label>
-    <p class="small muted">Nur Zähler wie „heute wurde ein Tag eingetragen“, ohne Namen, Minuten oder Kennung; Bildschirmzeit nur als grobe Stufe. Gilt für dieses Gerät.</p></div>`:""}
-  <div class="card"><p class="label">Sicherung</p>
-    <p class="small muted">Dein Spielstand liegt nur in diesem Browser. Lade ab und zu eine Sicherung herunter, um ihn auf ein anderes Gerät mitzunehmen.</p>
-    <div class="row"><button class="btn secondary grow" id="exportBtn">Sichern</button><button class="btn secondary grow" id="importBtn">Laden</button></div>
-    <input type="file" id="importFile" accept="application/json,.json" hidden>
-  </div>
-  ${netConfigured()?`<div class="card"><p class="label">Familieninsel</p>
-    ${S.family?`<p>Du bist auf der Familieninsel <b>${esc(S.family.name)}</b>.</p>
-      <label class="check" for="famShare"><input type="checkbox" id="famShare" ${S.family.share?"checked":""}> Meine Minuten für die Familie sichtbar machen (sonst nur „im Budget“ ja/nein)</label>
-      <button class="btn ghost" id="famLeaveBtn">Familieninsel verlassen</button>`
-    :`<p class="small muted">Gründe eine Familieninsel oder tritt einer bei: im Tab Freunde.</p>`}
-  </div>`:""}
-  ${devMode()||S.testmode?`<div class="card">
-    <div class="row between"><p class="label">Testmodus</p><label class="check" for="tm" style="min-height:auto"><input type="checkbox" id="tm" ${S.testmode?"checked":""}> an</label></div>
-    <p class="small muted">Im Testmodus kannst du beliebig viele Tage nacheinander eintragen oder zufällig simulieren.</p>
-    ${S.testmode?`<div class="row"><button class="btn secondary grow" id="simGood">Guter Tag</button><button class="btn secondary grow" id="simBad">Schlechter Tag</button></div>
-    <button class="btn ghost" id="sim10">10 Tage gemischt</button>
-    <button class="btn ghost" id="resetBtn">Spielstand zurücksetzen</button>`:""}
-  </div>`:""}
-  ${devMode()?`<div class="card" id="devPlus"><p class="label" style="color:var(--amber)">★ Plus (Entwickler)</p>
-    <label class="check" for="devPlusSim"><input type="checkbox" id="devPlusSim" ${storeSimForced()?"checked":""}> Plus anzeigen und testen (Kauf nur simuliert, kostet nichts)</label>
-    <p class="small muted">Status: ${plusActive()?"aktiv bis "+nice(plusUntil())+(plusSubOn()?" (Abo"+(S.plusSub.trial?", Probezeit":"")+")":" (geschenkt)"):"kein Plus"}</p>
-    <div class="row"><button class="btn secondary grow" id="devPlusOn">30 Tage freischalten</button><button class="btn ghost grow" id="devPlusOff">Plus entfernen</button></div>
+  const net=netConfigured(), lang=langPref()||"";
+  const ziel=`<div class="card set-list">
+      ${setSlider("setBudget","target","#3E5A2A","Tagesbudget","So viel Handy ist dein Ziel pro Tag",S.budget,30,480)}
+      ${setSlider("setBase","history","#4A3B6E","Bisheriger Schnitt","Deine Bildschirmzeit vor OffLand",S.baseline,30,600)}
+    </div>`;
+  const iphone=stCard()+shieldCard();
+  const insel=`<div class="card set-list">
+      ${setToggle("vacToggle","bag","#2F5A78","Urlaubsmodus","Die Insel schläft, nichts geht verloren",!!S.vacation)}
+      ${setToggle("deathToggle","leaf","#3E5A2A","Natürlicher Abschied","Bewohner können im hohen Alter gehen",!!S.natDeath)}
+      ${S.allFeatures?"":setToggle("allFeat","spark","#6A4E1E","Alle Funktionen sofort zeigen","Statt nach und nach",false)}
+      <details class="set-row set-more"><summary>${setIco("phone","#6E3A3A")}<span class="set-t"><b>App-Limits für die Monster</b><small>Ab wie vielen Minuten ein Monster auftaucht</small></span><span class="set-chev" aria-hidden="true">›</span></summary>
+        <div class="set-lims">${S.apps.map(a=>`<label class="field" for="lim_${a.id}"><span>${esc(a.name)}</span><span class="set-lim"><input id="lim_${a.id}" type="number" min="5" max="600" step="5" value="${a.limit}" data-lim="${a.id}"><i>min</i></span></label>`).join("")}</div>
+      </details>
+    </div>`;
+  const ton=`<div class="card set-list">
+      ${setToggle("soundToggle","sound","#2F5A78","Töne und Geräusche","",S.sound!==false)}
+      ${setToggle("musicToggle","music","#4A3B6E","Leise Inselmusik","Klingt nach 3 Minuten aus",S.music===true)}
+      ${setToggle("alarmToggle","bell","#6A4E1E","Wecker-Ton","Wenn die Fokus-Bootsfahrt geschafft ist",S.alarm!==false)}
+      <div class="set-row set-col"><div class="set-top">${setIco("globe","#2F4A6E")}<span class="set-t"><b data-noi18n>Sprache · Language</b></span></div>
+        <div class="seg" role="radiogroup" aria-label="Sprache" data-noi18n>${[["","Auto"],["de","Deutsch"],["en","English"]].map(([v,n])=>`<button type="button" class="seg-b${lang===v?" on":""}" data-lang="${v}" role="radio" aria-checked="${lang===v}">${n}</button>`).join("")}</div></div>
+    </div>`;
+  const online=net?`<div class="card set-list">
+      ${setToggle("netToggle","people","#2F5A78","Online sein","Name, Avatar und Wochen-Bildschirmzeit für Freund:innen sichtbar",netOn())}
+      ${netOn()?setToggle("netPub","crown","#6A4E1E","In der Rangliste für alle","Sonst sehen dich nur deine Freund:innen",!!S.online.pub):""}
+      ${S.family?`${setToggle("famShare","people","#3E5A2A","Minuten für die Familie zeigen",`Familieninsel „${esc(S.family.name)}“. Sonst nur „im Budget“ ja oder nein`,!!S.family.share)}
+        <div class="set-row"><button class="btn ghost danger set-btn" id="famLeaveBtn">Familieninsel verlassen</button></div>`
+      :`<div class="set-row">${setIco("hat","#4A3B6E")}<span class="set-t"><b>Familieninsel</b><small>Gründen oder beitreten: im Tab Freunde</small></span></div>`}
+    </div>`:"";
+  const daten=`${net?backupCard():""}<div class="card set-list">
+      <div class="set-row set-col"><div class="set-top">${setIco("save","#3E5A2A")}<span class="set-t"><b>Sicherung als Datei</b><small>Spielstand herunterladen und auf einem anderen Gerät laden</small></span></div>
+        <div class="row"><button class="btn secondary grow" id="exportBtn">Sichern</button><button class="btn secondary grow" id="importBtn">Laden</button></div>
+        <input type="file" id="importFile" accept="application/json,.json" hidden></div>
+      ${net?setToggle("statsToggle","chart","#4A3B6E","Anonyme Statistik","Nur Zähler, welche Funktionen genutzt werden. Ohne Namen, Minuten oder Kennung",statsDev().consent===true):""}
+    </div>`;
+  const info=`<div class="card set-list">
+      <a class="set-row set-link" href="impressum/">${setIco("paper","#3A3D58")}<span class="set-t"><b>Impressum</b></span><span class="set-chev" aria-hidden="true">›</span></a>
+      <a class="set-row set-link" href="datenschutz/">${setIco("shield","#3A3D58")}<span class="set-t"><b>Datenschutz</b></span><span class="set-chev" aria-hidden="true">›</span></a>
+      ${diagHtml()}
+      <div class="set-row" id="verLine" style="user-select:none">${setIco("info","#3A3D58")}<span class="set-t"><b>Version</b>${devMode()?"<small>Entwicklermodus</small>":""}</span><span class="set-val num">${APP_VERSION}</span></div>
+    </div>`;
+  const dev=devMode()||S.testmode?`<details class="set-group set-dev"${S.testmode||devMode()?" open":""}><summary class="set-h">Entwickler</summary>
+    <div class="card">
+      <div class="row between"><p class="label">Testmodus</p><label class="check" for="tm" style="min-height:auto"><input type="checkbox" id="tm" ${S.testmode?"checked":""}> an</label></div>
+      <p class="small muted">Im Testmodus kannst du beliebig viele Tage nacheinander eintragen oder zufällig simulieren.</p>
+      ${S.testmode?`<div class="row"><button class="btn secondary grow" id="simGood">Guter Tag</button><button class="btn secondary grow" id="simBad">Schlechter Tag</button></div>
+      <button class="btn ghost" id="sim10">10 Tage gemischt</button>
+      <button class="btn ghost" id="resetBtn">Spielstand zurücksetzen</button>`:""}
+    </div>
+    ${devMode()?`<div class="card" id="devPlus"><p class="label" style="color:var(--amber)">★ Plus (Entwickler)</p>
+      <label class="check" for="devPlusSim"><input type="checkbox" id="devPlusSim" ${storeSimForced()?"checked":""}> Plus anzeigen und testen (Kauf nur simuliert, kostet nichts)</label>
+      <p class="small muted">Status: ${plusActive()?"aktiv bis "+nice(plusUntil())+(plusSubOn()?" (Abo"+(S.plusSub.trial?", Probezeit":"")+")":" (geschenkt)"):"kein Plus"}</p>
+      <div class="row"><button class="btn secondary grow" id="devPlusOn">30 Tage freischalten</button><button class="btn ghost grow" id="devPlusOff">Plus entfernen</button></div>
     <label class="field" for="devSeason">Saison-Insel<select id="devSeason">${[["","Nach Datum"],...SEASONS.map(z=>[z.id,z.e+" "+z.n]),["aus","Keine"]].map(([v,n])=>`<option value="${v}"${seasonForced()===v?" selected":""}>${n}</option>`).join("")}</select></label>
     <div class="row" style="flex-wrap:wrap"><button class="btn ghost grow" id="devSsn">Saison-Fenster</button><button class="btn ghost grow" id="devWrap">Inseljahr-Story</button><button class="btn ghost grow" id="devKurier">Insel-Kurier</button><button class="btn ghost grow" id="devLive">Live-Insel</button></div>
-  </div>`:""}
-  <p class="small muted" style="text-align:center"><a href="impressum/" style="color:inherit">Impressum</a> · <a href="datenschutz/" style="color:inherit">Datenschutz</a></p>
-  ${diagHtml()}
-  <p class="small muted" id="verLine" style="text-align:center;padding:8px;user-select:none">OffLand · Version ${APP_VERSION}${devMode()?" · Entwicklermodus":""}</p>`;
+    </div>`:""}
+  </details>`:"";
+  return setGroup("Dein Ziel",ziel)+setGroup("iPhone",iphone)+setGroup("Insel",insel)+setGroup("Ton und Sprache",ton)
+    +plusCard()+setGroup("Freunde und Familie",online,netOn()?"Online ausschalten löscht alle Online-Daten dieses Kontos und trennt die Online-Freundschaften.":"")
+    +setGroup("Daten und Sicherung",daten)+setGroup("Info",info)+dev;
 }
 
 /* ---------- Inselansicht: Gesamtbild oder einzelne Insel, per Wischen ---------- */
@@ -4224,7 +4243,7 @@ function bind(){
   const vt=$("#vacToggle"); if(vt) vt.onchange=()=>setVacation(vt.checked);
   const al=$("#alarmToggle"); if(al) al.onchange=()=>{S.alarm=al.checked;save();if(al.checked)ringAlarm()};
   const so=$("#soundToggle"); if(so) so.onchange=()=>{S.sound=so.checked;save();if(so.checked)sfx("return");else MUSIC.stop(.5)};
-  const ls=$("#langSel"); if(ls) ls.onchange=()=>{try{if(ls.value)localStorage.setItem("offland-lang",ls.value);else localStorage.removeItem("offland-lang")}catch(e){} location.reload()};
+  document.querySelectorAll("[data-lang]").forEach(b=>b.onclick=()=>{const v=b.dataset.lang;if(v===(langPref()||""))return;try{if(v)localStorage.setItem("offland-lang",v);else localStorage.removeItem("offland-lang")}catch(e){} location.reload()});
   const mu=$("#musicToggle"); if(mu) mu.onchange=()=>{S.music=mu.checked;save();if(mu.checked){musicDone=false;musicStart()}else MUSIC.stop(1)};
   const calmB=$("#calmBtn"); if(calmB) calmB.onclick=calmMinute;
   document.querySelectorAll("[data-lim]").forEach(x=>x.onchange=()=>{const a=S.apps.find(y=>y.id===x.dataset.lim);if(a){a.limit=clamp(+x.value||a.limit,5,600);save()}});
@@ -6811,14 +6830,14 @@ function stCard(){
   if(!ST) return "";
   const i=stInfo||{};
   const on=i.status==="approved"&&i.monitoring;
-  return `<div class="card" id="stCard"><p class="label">Bildschirmzeit automatisch</p>
-    ${i.simulated?`<p class="small" style="color:var(--amber)">In der Web-Version simuliert: Die Zeiten sind ausgedacht. In der iPhone-App kommen sie von Apple.</p>`:""}
-    ${on?`<p class="small muted">OffLand misst deine Bildschirmzeit in 15-Minuten-Schritten mit. Beim Eintragen ist die Zeit schon vorausgefüllt, du musst nur noch bestätigen.</p>
-      <div class="row"><button class="btn secondary grow" id="stApps">Apps ändern</button><button class="btn ghost grow" id="stOff">Ausschalten</button></div>`
-    :i.status==="denied"?`<p class="small muted">Du hast den Zugriff auf die Bildschirmzeit abgelehnt. Erlauben kannst du ihn in den iPhone-Einstellungen unter Bildschirmzeit.</p><button class="btn secondary" id="stSetup">Erneut versuchen</button>`
-    :`<p class="small muted">Statt jeden Abend abzulesen, kann OffLand die Bildschirmzeit vom iPhone übernehmen. OffLand sieht dabei nicht, welche Apps du nutzt, sondern nur die Gesamtzeit in 15-Minuten-Schritten.</p>
-      <button class="btn secondary" id="stSetup">Einrichten</button>`}
-  </div>`;
+  return `<div class="card set-list" id="stCard"><div class="set-row set-col"><div class="set-top">${setIco("phone","#2F5A78")}
+      <span class="set-t"><b>Bildschirmzeit automatisch</b><small>${on?"An: misst in 15-Minuten-Schritten mit, beim Eintragen ist die Zeit schon da"
+        :i.status==="denied"?"Zugriff abgelehnt. Erlauben in den iPhone-Einstellungen unter Bildschirmzeit"
+        :"Das iPhone misst mit, kein Ablesen mehr"}</small></span>
+      ${on?`<span class="set-on">An</span>`:`<button class="btn secondary set-mini" id="stSetup">${i.status==="denied"?"Erneut":"Einrichten"}</button>`}</div>
+    ${i.simulated?`<p class="small" style="color:var(--amber);margin:0">In der Web-Version simuliert: Die Zeiten sind ausgedacht. In der iPhone-App kommen sie von Apple.</p>`:""}
+    ${on?`<div class="row"><button class="btn secondary grow set-mini" id="stApps">Apps ändern</button><button class="btn ghost grow set-mini" id="stOff">Ausschalten</button></div>`:""}
+  </div></div>`;
 }
 async function stSetup(fromEntry){
   try{
@@ -6916,10 +6935,11 @@ function shieldCard(){
   if(!ST||!ST.shieldPick) return "";
   const sh=S.shield||{}, mode=sh.mode||"off", st=shieldStatsCache, cnt=st?st.count:(sh.sim||[]).length, sim=ST===ST_SIM;
   const allowed=(sim?ST_SIM.now():stInfo||{}).status==="approved";
-  return `<div class="card" id="shieldCard"><p class="label">Insel-Schutz</p>
-    <p class="small muted">Öffnest du eine gewählte App, steht erst deine Insel in der Tür: Ein Bewohner wartet auf dich. Du kannst zurück zur Insel oder die App trotzdem kurz öffnen. Nichts wird verboten.</p>
-    ${sim?`<p class="small" style="color:var(--amber)">In der Web-Version eine Vorschau. Richtig funktioniert der Insel-Schutz in der iPhone-App.</p>`:""}
-    ${!allowed?`<button class="btn secondary" id="shAllow">Einrichten</button>`:`
+  return `<div class="card set-pad" id="shieldCard"><div class="set-top">${setIco("shield","#4A3B6E")}
+      <span class="set-t"><b>Insel-Schutz</b><small>Vor gewählten Apps wartet erst deine Insel. Nichts wird verboten</small></span>
+      ${!allowed?`<button class="btn secondary set-mini" id="shAllow">Einrichten</button>`:""}</div>
+    ${sim?`<p class="small" style="color:var(--amber);margin:0">In der Web-Version eine Vorschau. Richtig funktioniert der Insel-Schutz in der iPhone-App.</p>`:""}
+    ${!allowed?"":`
     <div class="row between"><span class="small"><b>${cnt?cnt+(cnt===1?" App gewählt":" Apps gewählt"):"Noch keine Apps gewählt"}</b></span><button class="btn secondary" id="shPick" style="width:auto;padding:8px 14px">Apps wählen</button></div>
     <p class="small muted" style="margin-top:10px">Wann</p>
     <div class="row fr-seg shield-seg" role="radiogroup" aria-label="Wann der Insel-Schutz gilt">${SHIELD_MODES.filter(([k])=>k!=="plan"||plusShown()).map(([k,n])=>`<button type="button" class="${mode===k?"on":""}" data-shmode="${k}" aria-pressed="${mode===k}">${n}</button>`).join("")}</div>
@@ -7000,10 +7020,10 @@ async function backupDelete(){
 }
 function backupCard(){
   const b=S.backup||{};
-  if(!b.on) return `<div class="card"><p class="label">Online-Backup</p>
-    <p class="small muted">Sichert deine Insel verschlüsselt online, damit sie bei einem neuen Handy nicht verloren geht. Du bekommst einen Wiederherstellungs-Code. Ohne ihn kann niemand das Backup öffnen, auch wir nicht.</p>
-    <button class="btn secondary" id="bkOn">Backup einschalten</button></div>`;
-  return `<div class="card"><p class="label">Online-Backup</p>
+  if(!b.on) return `<div class="card set-list"><div class="set-row">${setIco("globe","#2F4A6E")}
+    <span class="set-t"><b>Online-Backup</b><small>Verschlüsselt, für ein neues Handy</small></span>
+    <button class="btn secondary set-mini" id="bkOn">Einschalten</button></div></div>`;
+  return `<div class="card set-pad"><div class="set-top">${setIco("globe","#2F4A6E")}<span class="set-t"><b>Online-Backup</b><small>An</small></span></div>
     <p class="small muted">Wird automatisch nach jedem Tag gesichert. ${b.at?"Zuletzt: "+new Date(b.at).toLocaleString(LOC,{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"Noch nicht gesichert."}</p>
     <div style="background:var(--ground);border-radius:16px;padding:12px;text-align:center"><span class="small muted">Dein Wiederherstellungs-Code</span><br><b class="num" style="font-size:22px;letter-spacing:.08em">${fmtCode(b.code)}</b></div>
     <p class="small" style="color:var(--amber)">Schreib dir den Code auf oder mach einen Screenshot. Ohne ihn lässt sich die Insel nicht zurückholen.</p>
