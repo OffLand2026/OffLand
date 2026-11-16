@@ -13,7 +13,7 @@ concurrency:
 jobs:
   web:
     name: Web-App testen
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # ubuntu-latest ist inzwischen 26.04, dafür hat Playwright 1.56 noch keinen Browser
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
