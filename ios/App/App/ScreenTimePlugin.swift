@@ -130,12 +130,20 @@ public class ScreenTimePlugin: CAPPlugin, CAPBridgedPlugin {
     /// Werte für das Homescreen-Widget (OffLandWidget) ablegen und neu zeichnen lassen.
     /// Meldet zurück, ob die App die App-Gruppe erreicht. Ohne sie landen die Werte nur im eigenen
     /// Speicher der App und das Widget sieht nichts.
+    /// Legt die Werte doppelt ab: in den gemeinsamen UserDefaults und als Datei widget.json im
+    /// Container der App-Gruppe. Die Datei umgeht den Zwischenspeicher von UserDefaults zwischen Prozessen.
     @objc func widget(_ call: CAPPluginCall) {
         let json = call.getString("json") ?? "{}"
-        let group = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: offlandGroup) != nil
+        let container = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: offlandGroup)
+        var file = false
+        if let url = container?.appendingPathComponent("widget.json") {
+            file = (try? json.data(using: .utf8)?.write(to: url, options: .atomic)) != nil
+        }
         defaults?.set(json, forKey: "widget")
+        _ = defaults?.synchronize()
+        let stored = defaults?.string(forKey: "widget")?.count ?? 0
         WidgetCenter.shared.reloadAllTimelines()
-        call.resolve(["group": group])
+        call.resolve(["group": container != nil, "stored": stored, "file": file])
     }
 
     // MARK: Insel-Schutz (Shared/IslandShield.swift, Erweiterungen ShieldConfig und ShieldAction)

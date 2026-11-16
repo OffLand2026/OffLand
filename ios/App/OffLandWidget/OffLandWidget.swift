@@ -19,11 +19,13 @@ struct IslandData: Codable {
     /// Werte aus dem gemeinsamen Speicher. Fehlt der Zugriff auf die App-Gruppe oder hat die App noch
     /// nichts abgelegt, sagt das Widget das ehrlich, statt erfundene Zahlen zu zeigen.
     static func loadLinked() -> (IslandData, WidgetLink) {
-        guard FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: group) != nil else { return (IslandData(), .noGroup) }
-        guard let raw = UserDefaults(suiteName: group)?.string(forKey: "widget"),
-              let data = raw.data(using: .utf8),
-              let v = try? JSONDecoder().decode(IslandData.self, from: data) else { return (IslandData(), .noData) }
-        return (v, .ok)
+        guard let container = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: group) else { return (IslandData(), .noGroup) }
+        let fromFile = try? Data(contentsOf: container.appendingPathComponent("widget.json"))
+        let fromDefaults = UserDefaults(suiteName: group)?.string(forKey: "widget")?.data(using: .utf8)
+        for data in [fromFile, fromDefaults].compactMap({ $0 }) {
+            if let v = try? JSONDecoder().decode(IslandData.self, from: data) { return (v, .ok) }
+        }
+        return (IslandData(), .noData)
     }
 
     /// Wetter auf der Insel aus der heute gemessenen Bildschirmzeit (Monitor-Erweiterung):

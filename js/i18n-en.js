@@ -2958,4 +2958,7 @@ window.OFFLAND_EN={
 "Oder geh einfach raus. Auch gut.": "Or just go outside. Also fine.",
 "OffLand: Weniger Handy. Mehr Insel.": "OffLand: Less phone. More island.",
 "Geschlossen": "Closed",
+"iPhone-Verbindung": "iPhone connection",
+"Widget neu senden": "Send widget data again",
+"Brücke {0} · Plattform {1}": "Bridge {0} · Platform {1}",
 };

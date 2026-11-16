@@ -19,7 +19,7 @@ test.beforeEach(async ({ page }) => {
         { name: "LiveIsland", methods: m("start", "end") },
         { name: "FocusAlarm", methods: m("schedule", "cancel") }
       ],
-      nativePromise: (plugin, method, opts) => { window.__native.push({ plugin, method, opts }); return Promise.resolve(plugin === "ScreenTime" && method === "widget" ? { group: true } : {}); },
+      nativePromise: (plugin, method, opts) => { window.__native.push({ plugin, method, opts }); return Promise.resolve(plugin === "ScreenTime" && method === "widget" ? { group: true, stored: opts.json.length, file: true } : {}); },
       nativeCallback: () => "cb1",
       isNativePlatform: () => true,
       getPlatform: () => "ios"
@@ -57,4 +57,18 @@ test("iPhone-App: Zurück in der App werden die Widget-Werte erneut geschickt", 
   const before = (await widgetCalls(page)).length;
   await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
   await expect.poll(async () => (await widgetCalls(page)).length).toBe(before + 1);
+});
+
+test("iPhone-App: Diagnose in den Einstellungen zeigt Brücke, Plugins und Widget-Status", async ({ page }) => {
+  await newGameApp(page);
+  await page.evaluate(() => T.settingsSheet());
+  const card = page.locator("#diagCard");
+  await expect(card).toBeVisible();
+  await expect(card).toContainText("Brücke ✓");
+  await expect(card).toContainText("ScreenTime ✓");
+  const before = (await widgetCalls(page)).length;
+  await page.click("#diagSend");
+  await expect.poll(async () => (await widgetCalls(page)).length).toBe(before + 1);
+  await expect(card).toContainText("App-Gruppe ✓");
+  await expect(card).toContainText("Datei ✓");
 });
