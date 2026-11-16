@@ -85,5 +85,6 @@ Technisch gehören dazu ein Plugin in der App (`ios/App/App/ScreenTimePlugin.swi
 
 **Hochladen:**
 
-- Bis Apple die Berechtigung freigegeben hat: wie bisher **Run workflow** mit „Nach TestFlight hochladen“. Die App funktioniert normal, nur „Bildschirmzeit automatisch“ meldet dann, dass der Zugriff nicht erlaubt ist.
-- Nach der Freigabe zusätzlich den Haken **„Bildschirmzeit-Berechtigung (Family Controls) einbauen“** setzen. Dann ist die Berechtigung in der Testversion enthalten.
+- **Stand:** Apple hat Family Controls (Distribution) freigegeben, bei allen fünf App-IDs (App, ScreenTimeMonitor, ScreenTimeReport, ShieldConfig, ShieldAction) ist **Family Controls (Distribution)** angehakt. Seit Build 360 sind Bildschirmzeit und Insel-Schutz in TestFlight enthalten.
+- Der Haken **„Bildschirmzeit-Berechtigung (Family Controls) einbauen“** ist darum standardmäßig gesetzt. Nur abwählen, wenn ein Build ausdrücklich ohne gebraucht wird.
+- Scheitert der Upload mit „Team Store Provisioning Profile … doesn't include … family-controls“: Bei der betroffenen App-ID fehlt der Haken **Family Controls (Distribution)** (nicht nur „Development“). Anhaken, speichern, Lauf neu starten.

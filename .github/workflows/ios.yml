@@ -33,9 +33,11 @@ on:
         type: boolean
         default: false
       screentime:
-        description: "Bildschirmzeit-Berechtigung (Family Controls) einbauen – erst nach Freigabe durch Apple"
+        # Apple hat Family Controls (Distribution) freigegeben (App + 4 Erweiterungen). Darum standardmäßig an,
+        # sonst fehlen Bildschirmzeit und Insel-Schutz im nächsten TestFlight-Build.
+        description: "Bildschirmzeit-Berechtigung (Family Controls) einbauen"
         type: boolean
-        default: false
+        default: true
 
 concurrency:
   group: ios-${{ github.ref }}

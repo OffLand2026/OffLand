@@ -155,6 +155,8 @@ Bundle IDs: com.offland2026.offland (app), com.offland2026.offland.ScreenTimeMon
 
 Nach der Freigabe: In Certificates, Identifiers & Profiles bei allen fünf App-IDs die Fähigkeit **Family Controls (Distribution)** aktivieren und den TestFlight-Lauf mit „Bildschirmzeit-Berechtigung einbauen“ starten.
 
+**Stand:** Freigegeben und bei allen fünf App-IDs aktiviert; Build 360 war der erste TestFlight-Build mit Bildschirmzeit und Insel-Schutz. Der Haken ist im Workflow jetzt standardmäßig gesetzt.
+
 
 ## 11. OffLand Plus: Abos in App Store Connect anlegen
 
