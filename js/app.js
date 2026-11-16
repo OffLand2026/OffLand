@@ -3153,26 +3153,39 @@ function countUp(el,from,to){
 /* ---------- Ansichten ---------- */
 /* Homescreen-Widget auf dem iPhone: Glück, Serie, Bewohner. Nur schicken, wenn sich etwas geändert hat. */
 let WIDGET_LAST="";
-const widgetJson=()=>{const h=here();return JSON.stringify({lang:window.OFFLAND_LANG||"de",budget:S.budget||180,name:TR(curWorld().name),glueck:Math.round(S.glueck),streak:S.budgetStreak||0,
-    people:h.filter(r=>r.kind==="mensch").length,animals:h.filter(r=>r.kind!=="mensch").length,entered:S.lastDay||""})};
+const widgetJson=()=>{const h=here(), byDay={}; (S.days||[]).forEach(d=>{byDay[d.day]=d.min});
+  return JSON.stringify({lang:window.OFFLAND_LANG||"de",budget:S.budget||180,name:TR(curWorld().name),glueck:Math.round(S.glueck),streak:S.budgetStreak||0,
+    people:h.filter(r=>r.kind==="mensch").length,animals:h.filter(r=>r.kind!=="mensch").length,entered:S.lastDay||"",
+    week:[6,5,4,3,2,1,0].map(k=>{const v=byDay[addDays(today(),-k)];return v==null?null:Math.round(v)}),   // die letzten 7 Tage, heute zuletzt
+    imgPhase:skyNow().k,built:(S.built||[]).length,world:S.world||0})};
+/* Inselbild fürs Widget: die Szene aus der App als PNG (720×480). Klappt das nicht, zeichnet das Widget seine eigene Insel. */
+async function widgetIsland(){
+  const defs=(document.querySelector('svg[width="0"] defs')||{}).outerHTML||"";
+  const svg=scene().replace(/^<svg /,'<svg xmlns="http://www.w3.org/2000/svg" width="720" height="480" ').replace(/^(<svg[^>]*>)/,"$1"+defs);
+  const img=new Image(); img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
+  await img.decode();
+  const c=document.createElement("canvas"); c.width=720; c.height=480; c.getContext("2d").drawImage(img,0,0,720,480);
+  return c.toDataURL("image/png").split(",")[1];
+}
+const widgetPush=json=>widgetIsland().catch(()=>null).then(png=>widgetSend(json,png));
 function widgetSync(){
   if(!ST_NATIVE||!S||!S.setup) return;
   const json=widgetJson();
   shieldSync();
   if(json===WIDGET_LAST) return; WIDGET_LAST=json;
-  widgetSend(json).catch(()=>{WIDGET_LAST=""});
+  widgetPush(json).catch(()=>{WIDGET_LAST=""});
 }
 /* Schickt die Widget-Werte und merkt sich das Ergebnis für die Diagnose in den Einstellungen */
-function widgetSend(json){
+function widgetSend(json,png){
   if(!ST_NATIVE) return Promise.reject(new Error("kein Plugin"));
-  return Promise.resolve().then(()=>ST_NATIVE.widget({json})).then(r=>{widgetSync.last={at:Date.now(),r:r||{}};widgetSync.err=null;return r||{}},
+  return Promise.resolve().then(()=>ST_NATIVE.widget(png?{json,png}:{json})).then(r=>{widgetSync.last={at:Date.now(),r:r||{}};widgetSync.err=null;return r||{}},
     e=>{widgetSync.err=(e&&(e.message||e.code))||String(e);throw e});
 }
 /* Diagnose der iPhone-Hülle: Brücke, Plugins, Widget. Nur in der iPhone-App sichtbar. */
 const isNativeApp=()=>{try{const C=window.Capacitor;return !!(C&&C.isNativePlatform&&C.isNativePlatform())}catch(e){return false}};
 function diagLines(){
   const C=window.Capacitor||{}, heads=(C.PluginHeaders||[]).map(h=>h.name), ok=v=>v?"✓":"✗";
-  const w=widgetSync.err?`✗ ${widgetSync.err}`:widgetSync.last?`✓ ${new Date(widgetSync.last.at).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})} · App-Gruppe ${ok(widgetSync.last.r.group)} · gespeichert ${widgetSync.last.r.stored|0} · Datei ${ok(widgetSync.last.r.file)}`:"–";
+  const w=widgetSync.err?`✗ ${widgetSync.err}`:widgetSync.last?`✓ ${new Date(widgetSync.last.at).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})} · App-Gruppe ${ok(widgetSync.last.r.group)} · gespeichert ${widgetSync.last.r.stored|0} · Datei ${ok(widgetSync.last.r.file)} · Bild ${ok(widgetSync.last.r.img)}`:"–";
   return [`Brücke ${ok(typeof C.registerPlugin==="function")} · Plattform ${esc(String(C.getPlatform?C.getPlatform():"?"))}`,
     `Plugins: ${["ScreenTime","PlusStore","LiveIsland","FocusAlarm"].map(n=>n+" "+ok(heads.includes(n))).join(" · ")}`,
     `Widget: ${esc(w)}`];
@@ -3185,7 +3198,7 @@ function diagHtml(){
 function diagBind(){
   const b=$("#diagSend"); if(!b) return;
   const upd=()=>{const o=$("#diagOut"); if(o) o.innerHTML=diagLines().map(l=>`<span>${l}</span>`).join("")};
-  b.onclick=()=>{b.disabled=true; WIDGET_LAST=""; widgetSend(widgetJson()).catch(()=>{}).then(()=>{b.disabled=false;upd()})};
+  b.onclick=()=>{b.disabled=true; WIDGET_LAST=""; widgetPush(widgetJson()).catch(()=>{}).then(()=>{b.disabled=false;upd()})};
 }
 // Zurück in der App (z. B. nach dem Hinzufügen des Widgets): Werte noch einmal schicken
 document.addEventListener("visibilitychange",()=>{if(!document.hidden){WIDGET_LAST="";widgetSync()}});
@@ -3358,7 +3371,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.80";
+const APP_VERSION="1.81";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}

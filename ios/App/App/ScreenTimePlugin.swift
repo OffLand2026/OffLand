@@ -139,11 +139,16 @@ public class ScreenTimePlugin: CAPPlugin, CAPBridgedPlugin {
         if let url = container?.appendingPathComponent("widget.json") {
             file = (try? json.data(using: .utf8)?.write(to: url, options: .atomic)) != nil
         }
+        // Inselbild aus der App (PNG, Base64), das das Widget im Ring zeigt
+        var img = false
+        if let png = call.getString("png"), let data = Data(base64Encoded: png), let url = container?.appendingPathComponent("island.png") {
+            img = (try? data.write(to: url, options: .atomic)) != nil
+        }
         defaults?.set(json, forKey: "widget")
         _ = defaults?.synchronize()
         let stored = defaults?.string(forKey: "widget")?.count ?? 0
         WidgetCenter.shared.reloadAllTimelines()
-        call.resolve(["group": container != nil, "stored": stored, "file": file])
+        call.resolve(["group": container != nil, "stored": stored, "file": file, "img": img])
     }
 
     // MARK: Insel-Schutz (Shared/IslandShield.swift, Erweiterungen ShieldConfig und ShieldAction)

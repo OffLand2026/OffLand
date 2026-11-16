@@ -1,5 +1,6 @@
 import WidgetKit
 import SwiftUI
+import UIKit
 
 /// Homescreen-Widget: zeigt die Insel mit Glück und Serie, ohne die App zu öffnen.
 /// Die App legt die Werte im gemeinsamen Speicher ab (ScreenTimePlugin.widget).
@@ -12,6 +13,8 @@ struct IslandData: Codable {
     var entered: String = ""      // zuletzt eingetragener Tag, JJJJ-MM-TT
     var lang: String? = nil       // Sprache der App: "de" oder "en"
     var budget: Int? = nil        // Tagesbudget in Minuten, für das Wetter
+    var week: [Int?]? = nil       // eingetragene Minuten der letzten 7 Tage, heute zuletzt
+    var imgPhase: String? = nil   // Tageszeit, zu der die App das Inselbild gezeichnet hat
     var en: Bool { !(lang ?? (Locale.preferredLanguages.first ?? "de")).hasPrefix("de") }
 
     static let group = "group.com.offland2026.offland"
@@ -31,11 +34,42 @@ struct IslandData: Codable {
     /// Wetter auf der Insel aus der heute gemessenen Bildschirmzeit (Monitor-Erweiterung):
     /// -1 keine Messung, 0 Sonne, 1 Wolken (über 60 % vom Budget), 2 Regen (Budget überschritten)
     func weather(_ date: Date) -> Int {
-        let f = DateFormatter(); f.locale = Locale(identifier: "en_US_POSIX"); f.dateFormat = "yyyy-MM-dd"
-        let key = "st_" + f.string(from: date)
-        guard let ud = UserDefaults(suiteName: "group.com.offland2026.offland"), ud.object(forKey: key) != nil else { return -1 }
-        let m = Double(ud.integer(forKey: key)), b = Double(max(30, budget ?? 180))
+        guard let used = usedToday(date) else { return -1 }
+        let m = Double(used), b = Double(budgetMin)
         return m >= b ? 2 : m >= b * 0.6 ? 1 : 0
+    }
+
+    var budgetMin: Int { max(30, budget ?? 180) }
+
+    static func dayKey(_ date: Date) -> String {
+        let f = DateFormatter(); f.locale = Locale(identifier: "en_US_POSIX"); f.dateFormat = "yyyy-MM-dd"
+        return f.string(from: date)
+    }
+
+    /// Heute schon gemessene Bildschirmzeit in Minuten (Monitor-Erweiterung, in 15-Minuten-Schritten).
+    /// nil, solange nichts gemessen wird (z. B. ohne Freigabe für Family Controls).
+    func usedToday(_ date: Date) -> Int? {
+        let key = "st_" + IslandData.dayKey(date)
+        guard let ud = UserDefaults(suiteName: IslandData.group), ud.object(forKey: key) != nil else { return nil }
+        return ud.integer(forKey: key)
+    }
+
+    /// Tageszeit wie in der App (skyNow): Nacht, Morgen, Tag, Abend
+    static func phase(_ date: Date) -> String {
+        let h = Calendar.current.component(.hour, from: date)
+        return (h >= 21 || h < 6) ? "nacht" : h < 9 ? "morgen" : h < 18 ? "tag" : "abend"
+    }
+
+    /// Das Inselbild aus der App, aber nur, wenn es zur aktuellen Tageszeit passt
+    func islandImage(_ date: Date) -> UIImage? {
+        guard imgPhase == IslandData.phase(date),
+              let c = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: IslandData.group) else { return nil }
+        return UIImage(contentsOfFile: c.appendingPathComponent("island.png").path)
+    }
+
+    static func hm(_ m: Int) -> String {
+        if m < 60 { return "\(m) min" }
+        return m % 60 == 0 ? "\(m / 60) h" : String(format: "%d:%02d h", m / 60, m % 60)
     }
 }
 
@@ -57,6 +91,8 @@ extension IslandData {
         entered = (try? c.decode(String.self, forKey: .entered)) ?? ""
         lang = try? c.decode(String.self, forKey: .lang)
         budget = num(.budget)
+        week = try? c.decode([Int?].self, forKey: .week)
+        imgPhase = try? c.decode(String.self, forKey: .imgPhase)
     }
 }
 
@@ -134,14 +170,73 @@ struct IslandScene: View {
     }
 }
 
+/// Ring: wie viel vom Tagesbudget heute schon verbraucht ist. Ohne Messung zeigt er das Inselglück.
+struct RingState {
+    let frac: Double, color: Color, big: String, small: String, short: String
+}
+
+enum WColor {
+    static let lime = Color(red: 0.78, green: 0.95, blue: 0.41)
+    static let amber = Color(red: 1.0, green: 0.82, blue: 0.48)
+    static let coral = Color(red: 1.0, green: 0.61, blue: 0.48)
+    static let ground = Color(red: 0.08, green: 0.08, blue: 0.12)
+}
+
+struct BudgetRing<Inner: View>: View {
+    let frac: Double
+    let color: Color
+    let line: CGFloat
+    let inner: Inner
+    init(frac: Double, color: Color, line: CGFloat, @ViewBuilder inner: () -> Inner) {
+        self.frac = frac; self.color = color; self.line = line; self.inner = inner()
+    }
+    var body: some View {
+        ZStack {
+            Circle().stroke(Color.white.opacity(0.14), lineWidth: line)
+            Circle().trim(from: 0, to: CGFloat(min(1, max(0.002, frac))))
+                .stroke(color, style: StrokeStyle(lineWidth: line, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+            inner.clipShape(Circle()).padding(line * 1.3)
+        }
+    }
+}
+
+/// Balken der letzten 7 Tage mit gestrichelter Budgetlinie; heute (zuletzt) live aus der Messung, falls noch nicht eingetragen
+struct WeekBars: View {
+    let values: [Int?]
+    let budget: Int
+    let labels: [String]
+    let live: Bool
+    var body: some View {
+        GeometryReader { g in
+            let barH = max(10, g.size.height - 14)
+            let top = Double(max(budget * 3 / 2, values.compactMap { $0 }.max() ?? 0, 60))
+            ZStack(alignment: .topLeading) {
+                HStack(alignment: .bottom, spacing: 5) {
+                    ForEach(0..<values.count, id: \.self) { i in
+                        VStack(spacing: 3) {
+                            Spacer(minLength: 0)
+                            RoundedRectangle(cornerRadius: 3.5)
+                                .fill(values[i] == nil ? Color.white.opacity(0.18) : (values[i]! <= budget ? WColor.lime : WColor.coral))
+                                .frame(height: max(3, barH * CGFloat(Double(values[i] ?? 0) / top)))
+                                .opacity(live && i == values.count - 1 ? 0.65 : 1)
+                            Text(labels[i]).font(.system(size: 8.5, weight: .bold)).foregroundColor(.white.opacity(0.55)).frame(height: 11)
+                        }
+                    }
+                }
+                Path { p in
+                    let y = barH * (1 - CGFloat(Double(budget) / top))
+                    p.move(to: CGPoint(x: 0, y: y)); p.addLine(to: CGPoint(x: g.size.width, y: y))
+                }
+                .stroke(Color.white.opacity(0.35), style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
+            }
+        }
+    }
+}
+
 struct OffLandWidgetView: View {
     @Environment(\.widgetFamily) var family
     let entry: IslandEntry
-
-    private var today: String {
-        let f = DateFormatter(); f.locale = Locale(identifier: "en_US_POSIX"); f.dateFormat = "yyyy-MM-dd"
-        return f.string(from: entry.date)
-    }
 
     /// Sperrbildschirm: nur das Wetter in Worten, ohne Zahlen
     private func lockLine(_ d: IslandData) -> String {
@@ -153,55 +248,124 @@ struct OffLandWidgetView: View {
         }
     }
 
+    private func lockSub(_ d: IslandData, _ r: RingState) -> String {
+        if let hint = entry.hint { return hint }
+        if d.usedToday(entry.date) != nil { return "\(r.big) \(r.small) · 🔥 \(d.streak)" }
+        return d.en ? "\(d.glueck) % happy · 🔥 \(d.streak)" : "\(d.glueck) % Glück · 🔥 \(d.streak)"
+    }
+
+    private func ring(_ d: IslandData) -> RingState {
+        if let used = d.usedToday(entry.date) {
+            let f = Double(used) / Double(d.budgetMin)
+            let col = f >= 1 ? WColor.coral : f >= 0.6 ? WColor.amber : WColor.lime
+            let short = used < 60 ? "\(used)m" : String(format: "%d:%02d", used / 60, used % 60)
+            return RingState(frac: f, color: col, big: IslandData.hm(used),
+                             small: (d.en ? "of " : "von ") + IslandData.hm(d.budgetMin) + (d.en ? " today" : " heute"), short: short)
+        }
+        return RingState(frac: Double(d.glueck) / 100, color: WColor.lime, big: "\(d.glueck) %",
+                         small: d.en ? "island happiness" : "Inselglück", short: "\(d.glueck)")
+    }
+
+    @ViewBuilder private func island(_ d: IslandData) -> some View {
+        if let img = d.islandImage(entry.date) {
+            Image(uiImage: img).resizable().scaledToFill()
+        } else {
+            IslandScene(glueck: d.glueck, date: entry.date, weather: d.weather(entry.date))
+        }
+    }
+
+    private func weekValues(_ d: IslandData) -> ([Int?], Bool) {
+        var v: [Int?] = Array((d.week ?? []).suffix(7))
+        while v.count < 7 { v.insert(nil, at: 0) }
+        if v[6] == nil, let used = d.usedToday(entry.date) { v[6] = used; return (v, true) }
+        return (v, false)
+    }
+
+    private func weekLabels(_ d: IslandData) -> [String] {
+        let f = DateFormatter(); f.locale = Locale(identifier: d.en ? "en_US" : "de_DE"); f.dateFormat = "EEEEE"
+        return (0..<7).map { i in f.string(from: Calendar.current.date(byAdding: .day, value: i - 6, to: entry.date) ?? entry.date) }
+    }
+
+    private func weekLine(_ d: IslandData) -> String {
+        let logged = (d.week ?? []).compactMap { $0 }
+        if logged.isEmpty { return d.en ? "No days logged yet" : "Noch keine Tage eingetragen" }
+        let good = logged.filter { $0 <= d.budgetMin }.count
+        let goal = IslandData.hm(d.budgetMin)
+        return d.en ? "\(good) of \(logged.count) days under \(goal)" : "\(good) von \(logged.count) Tagen unter \(goal)"
+    }
+
     var body: some View {
-        if family == .accessoryRectangular {
-            let d = entry.data
+        let d = entry.data
+        switch family {
+        case .accessoryRectangular:
+            let r = ring(d)
             let lock = VStack(alignment: .leading, spacing: 2) {
                 Text(lockLine(d)).font(.system(size: 14, weight: .bold)).lineLimit(1)
-                Text(entry.hint ?? (d.en ? "\(d.glueck) % happy · 🔥 \(d.streak)" : "\(d.glueck) % Glück · 🔥 \(d.streak)")).font(.system(size: 12)).foregroundColor(.secondary).lineLimit(1)
+                Text(lockSub(d, r)).font(.system(size: 12)).foregroundColor(.secondary).lineLimit(1)
             }.frame(maxWidth: .infinity, alignment: .leading)
             if #available(iOS 17.0, *) { lock.containerBackground(.clear, for: .widget) } else { lock }
-        } else {
+        case .accessoryCircular:
+            let r = ring(d)
+            let lock = ZStack {
+                Circle().stroke(Color.white.opacity(0.25), lineWidth: 4)
+                Circle().trim(from: 0, to: CGFloat(min(1, max(0.002, r.frac))))
+                    .stroke(Color.white, style: StrokeStyle(lineWidth: 4, lineCap: .round)).rotationEffect(.degrees(-90))
+                VStack(spacing: 0) {
+                    Text("🏝️").font(.system(size: 10))
+                    Text(entry.hint == nil ? r.short : "–").font(.system(size: 14, weight: .heavy, design: .rounded)).minimumScaleFactor(0.6).lineLimit(1)
+                }
+            }.padding(2)
+            if #available(iOS 17.0, *) { lock.containerBackground(.clear, for: .widget) } else { lock }
+        default:
             homeView
         }
     }
 
     @ViewBuilder private var homeView: some View {
-        let d = entry.data, open = d.entered != today && Calendar.current.component(.hour, from: entry.date) >= 17
-        let lime = Color(red: 0.78, green: 0.95, blue: 0.41)
-        let content = HStack(spacing: 0) {
-            ZStack(alignment: .bottomLeading) {
-                IslandScene(glueck: d.glueck, date: entry.date, weather: d.weather(entry.date))
-                VStack(alignment: .leading, spacing: 2) {
-                    if let hint = entry.hint {
-                        Text(hint).font(.system(size: 11, weight: .bold)).foregroundColor(.white).lineLimit(3)
-                    } else {
-                        Text(d.en ? "\(d.glueck) % happy" : "\(d.glueck) % Glück").font(.system(size: 13, weight: .heavy, design: .rounded)).foregroundColor(.white)
-                        Text("🔥 \(d.streak) " + (d.en ? (d.streak == 1 ? "day" : "days") : (d.streak == 1 ? "Tag" : "Tage"))).font(.system(size: 11, weight: .bold)).foregroundColor(.white.opacity(0.9))
-                    }
-                }
-                .padding(8).background(Color.black.opacity(0.35)).cornerRadius(10).padding(8)
-            }
-            if family != .systemSmall {
+        let d = entry.data, r = ring(d)
+        let content = Group {
+            if let hint = entry.hint {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(entry.hint == nil ? d.name : "OffLand").font(.system(size: 15, weight: .heavy, design: .rounded)).lineLimit(1)
-                    if let hint = entry.hint {
-                        Text(hint).font(.caption).foregroundColor(.secondary).lineLimit(3)
-                        Spacer()
-                    } else {
-                        Text(d.en ? "\(d.people) people · \(d.animals) animals" : "\(d.people) Menschen · \(d.animals) Tiere").font(.caption).foregroundColor(.secondary)
-                        Spacer()
-                        Text(open ? (d.en ? "Log today" : "Heute noch eintragen") : (d.en ? "Phone away, island grows" : "Handy weg, Insel wächst"))
-                            .font(.system(size: 12, weight: .bold)).foregroundColor(open ? .orange : lime)
+                    Text("OffLand").font(.system(size: 15, weight: .heavy, design: .rounded))
+                    Text(hint).font(.system(size: 12, weight: .semibold)).foregroundColor(.white.opacity(0.75)).lineLimit(3)
+                    Spacer(minLength: 0)
+                }.padding(14).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            } else if family == .systemSmall {
+                VStack(spacing: 6) {
+                    BudgetRing(frac: r.frac, color: r.color, line: 8) { island(d) }
+                        .frame(width: 94, height: 94)
+                    VStack(spacing: 1) {
+                        Text(r.big).font(.system(size: 17, weight: .heavy, design: .rounded)).lineLimit(1)
+                        Text(r.small + " · 🔥 \(d.streak)").font(.system(size: 10.5, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.7)).lineLimit(1).minimumScaleFactor(0.75)
                     }
-                }
-                .padding(12).frame(maxWidth: .infinity, alignment: .leading)
+                }.frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                let wv = weekValues(d)
+                HStack(spacing: 14) {
+                    VStack(spacing: 4) {
+                        BudgetRing(frac: r.frac, color: r.color, line: 8) { island(d) }
+                            .frame(width: 100, height: 100)
+                        Text(r.big).font(.system(size: 15, weight: .heavy, design: .rounded)).lineLimit(1)
+                        Text(r.small).font(.system(size: 9.5, weight: .semibold)).foregroundColor(.white.opacity(0.65)).lineLimit(1).minimumScaleFactor(0.7)
+                    }.frame(width: 112)
+                    VStack(alignment: .leading, spacing: 3) {
+                        HStack {
+                            Text(d.en ? "This week" : "Diese Woche").font(.system(size: 14, weight: .heavy, design: .rounded))
+                            Spacer()
+                            Text("🔥 \(d.streak)").font(.system(size: 12, weight: .heavy)).foregroundColor(WColor.lime)
+                        }
+                        Text(weekLine(d)).font(.system(size: 10.5, weight: .semibold)).foregroundColor(.white.opacity(0.65)).lineLimit(1).minimumScaleFactor(0.8)
+                        WeekBars(values: wv.0, budget: d.budgetMin, labels: weekLabels(d), live: wv.1).padding(.top, 4)
+                    }
+                }.padding(14)
             }
         }
+        .foregroundColor(.white)
         if #available(iOS 17.0, *) {
-            content.containerBackground(Color(red: 0.08, green: 0.08, blue: 0.12), for: .widget)
+            content.containerBackground(WColor.ground, for: .widget)
         } else {
-            content.background(Color(red: 0.08, green: 0.08, blue: 0.12))
+            content.background(WColor.ground)
         }
     }
 }
@@ -212,8 +376,8 @@ struct OffLandWidget: Widget {
             OffLandWidgetView(entry: entry)
         }
         .configurationDisplayName((Locale.preferredLanguages.first ?? "de").hasPrefix("de") ? "Deine Insel" : "Your island")
-        .description((Locale.preferredLanguages.first ?? "de").hasPrefix("de") ? "Glück und Serie deiner OffLand-Insel auf einen Blick." : "Your OffLand island's happiness and streak at a glance.")
-        .supportedFamilies([.systemSmall, .systemMedium, .accessoryRectangular])
+        .description((Locale.preferredLanguages.first ?? "de").hasPrefix("de") ? "Deine Insel, dein Tagesbudget und deine Woche auf einen Blick." : "Your island, today's budget and your week at a glance.")
+        .supportedFamilies([.systemSmall, .systemMedium, .accessoryCircular, .accessoryRectangular])
     }
 }
 
