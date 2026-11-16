@@ -150,3 +150,21 @@ test("Lagerfeuer-Bild im Tab Bewohner: zwei Tiere derselben Art und Meerestiere 
   expect(titles.filter(t => t.includes("(Ziege)")).length).toBe(2);
   expect(titles.filter(t => t.includes("(Delfin)")).length).toBe(1);
 });
+
+test("Mützen und Hüte: keine Haare über der Krempe, Augen frei", async ({ page }) => {
+  await newGame(page);
+  const res = await page.evaluate(() => {
+    const out = [];
+    for (const a of [4, 5, 11, 12, 13]) for (const st of [2, 4, 9, 16]) {
+      const svg = T.figure({ id: "m" + a + st, name: "M", kind: "mensch", lvFull: true, look: { skin: 1, hair: 2, style: st, shirt: 1, acc: [a], accC: 0 } }, 0, 0);
+      out.push({ a, st, clip: /clip-path="url\(#hatclip/.test(svg) });
+    }
+    // Augen (bei y -16.3 im Kopf) liegen unter der Krempe: Weihnachtsmütze und Bommelmütze enden oberhalb von -17
+    const box = (a) => { const el = document.createElementNS("http://www.w3.org/2000/svg", "svg"); el.innerHTML = T.figure({ id: "b" + a, name: "B", kind: "mensch", lvFull: true, look: { skin: 1, hair: 2, style: 10, shirt: 1, acc: [a], accC: 0 } }, 0, 0); document.body.appendChild(el);
+      const rect = [...el.querySelectorAll("rect")].find(r => r.getAttribute("fill") === "#F3F1EA" && +r.getAttribute("width") > 11); const y = rect ? +rect.getAttribute("y") + +rect.getAttribute("height") : null; el.remove(); return y; };
+    return { out, santa: box(12), bommel: box(4) };
+  });
+  expect(res.out.filter(x => !x.clip)).toEqual([]);
+  expect(res.santa).toBeLessThanOrEqual(-17.4);
+  expect(res.bommel).toBeLessThanOrEqual(-17.4);
+});
