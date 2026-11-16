@@ -19,7 +19,7 @@ test.beforeEach(async ({ page }) => {
         { name: "LiveIsland", methods: m("start", "end") },
         { name: "FocusAlarm", methods: m("schedule", "cancel") }
       ],
-      nativePromise: (plugin, method, opts) => { window.__native.push({ plugin, method, opts }); return Promise.resolve(plugin === "ScreenTime" && method === "widget" ? { group: true, stored: opts.json.length, file: true } : {}); },
+      nativePromise: (plugin, method, opts) => { window.__native.push({ plugin, method, opts }); return Promise.resolve(plugin === "ScreenTime" && method === "widget" ? { group: true, stored: opts.json.length, file: true, img: !!opts.png } : {}); },
       nativeCallback: () => "cb1",
       isNativePlatform: () => true,
       getPlatform: () => "ios"
@@ -48,6 +48,12 @@ test("iPhone-App: Capacitor-Kern ist eingebunden, das Widget bekommt die echten 
   expect(d.glueck).toBe(s.g);
   expect(d.people).toBe(s.p);
   expect(typeof d.name).toBe("string");
+  // Woche (7 Werte, heute zuletzt), Tageszeit des Bildes und das Inselbild selbst
+  expect(d.week.length).toBe(7);
+  expect(["nacht", "morgen", "tag", "abend"]).toContain(d.imgPhase);
+  const png = await page.evaluate(() => { const c = window.__native.filter(c => c.plugin === "ScreenTime" && c.method === "widget").pop(); return c.opts.png || ""; });
+  expect(png.length).toBeGreaterThan(5000);
+  expect(Buffer.from(png.slice(0, 12), "base64").slice(1, 4).toString()).toBe("PNG");
   // auch die anderen nativen Plugins sind erreichbar
   expect(await page.evaluate(() => window.__native.some(c => c.plugin === "PlusStore"))).toBe(true);
 });
@@ -71,6 +77,7 @@ test("iPhone-App: Diagnose in den Einstellungen zeigt Brücke, Plugins und Widge
   await expect.poll(async () => (await widgetCalls(page)).length).toBe(before + 1);
   await expect(card).toContainText("App-Gruppe ✓");
   await expect(card).toContainText("Datei ✓");
+  await expect(card).toContainText("Bild ✓");
 });
 
 test("iPhone-App: Die Szene startet mit MainViewController, der die eigenen Plugins registriert", () => {
