@@ -1819,21 +1819,23 @@ function accToggle(a,v){
   const cur=accList(a); if(cur.includes(v)) return cur.filter(x=>x!==v);
   const g=ACC_GROUPS.find(g=>g.includes(v)); return accList(cur.filter(x=>!(g&&g.includes(x))).concat(v));
 }
+const HAT_CLIP={4:-17.6,5:-18.2,11:-17.6,12:-17.6,13:-17.6}, HAT_ACC=Object.keys(HAT_CLIP).map(Number);   // Mützen und Hüte: Haare oberhalb der Krempe abschneiden
 function accSvg(a,c){
   if(Array.isArray(a)){const p=accList(a).map(x=>accSvg(x,c)); return {body:p.map(x=>x.body).join(""),head:p.map(x=>x.head).join("")}}
   switch(a){
     case 1: return {body:`<path d="M-4.8 -11.8q4.8 2.4 9.6 0l.5 2.1q-5.3 2.6-10.6 0z" fill="${c}"/><path d="M2.2 -10.2l1.8 5.4h-2.6z" fill="${c}"/>`,head:""};
     case 2: return {body:"",head:`<g fill="none" stroke="${c}" stroke-width=".65"><circle cx="-1.9" cy="-15.6" r="1.55"/><circle cx="1.9" cy="-15.6" r="1.55"/><path d="M-.35 -15.7h.7M-3.45 -15.8l-1.5-.4M3.45 -15.8l1.5-.4"/></g>`};
     case 3: return {body:"",head:`<g fill="#14151F" stroke="${c}" stroke-width=".5"><rect x="-3.7" y="-16.8" width="3.1" height="2.2" rx=".9"/><rect x=".6" y="-16.8" width="3.1" height="2.2" rx=".9"/></g><path d="M-.6 -16h1.2M-3.7 -16.2l-1.3-.3M3.7 -16.2l1.3-.3" stroke="${c}" stroke-width=".55"/><path d="M-3 -16.2l.8-.4M1.3 -16.2l.8-.4" stroke="#F3F1EA" stroke-width=".35" opacity=".6"/>`};
-    case 4: return {body:"",head:`<path d="M-5.4 -17.4a5.4 5.2 0 0 1 10.8 0z" fill="${c}"/><rect x="-5.9" y="-18.6" width="11.8" height="2.6" rx="1.3" fill="#F3F1EA" opacity=".9"/><circle cx="0" cy="-22.9" r="1.9" fill="#F3F1EA"/>`};
-    case 5: return {body:"",head:`<path d="M-5.3 -17.3a5.3 4.8 0 0 1 10.6 0z" fill="${c}"/><path d="M-1.2 -17.6h8.6q.7 1.3-.6 1.5h-8z" fill="${c}"/><circle cx="0" cy="-21.9" r=".6" fill="#14151F" opacity=".4"/>`};
+    case 4: return {body:"",head:`<path d="M-5.4 -18.6a5.4 5.2 0 0 1 10.8 0z" fill="${c}"/><rect x="-5.9" y="-19.8" width="11.8" height="2.4" rx="1.2" fill="#F3F1EA" opacity=".95"/><circle cx="0" cy="-24.1" r="1.9" fill="#F3F1EA"/>`};
+    case 5: return {body:"",head:`<path d="M-5.3 -18.1a5.3 4.8 0 0 1 10.6 0z" fill="${c}"/><path d="M-1.2 -18.4h8.6q.7 1.3-.6 1.5h-8z" fill="${c}"/><circle cx="0" cy="-22.7" r=".6" fill="#14151F" opacity=".4"/>`};
     case 6: return {body:"",head:`<g transform="translate(3.9 -20)">${[0,72,144,216,288].map(d=>`<circle cx="${(1.3*Math.cos(d*Math.PI/180)).toFixed(2)}" cy="${(1.3*Math.sin(d*Math.PI/180)).toFixed(2)}" r="1.05" fill="${c}"/>`).join("")}<circle r=".75" fill="#FFD27A"/></g>`};
     case 7: return {body:"",head:`<path d="M-5.2 -18.4q5.2-2.2 10.4 0v1.8q-5.2-2-10.4 0z" fill="${c}"/>`};
     case 8: return {body:"",head:`<path d="M-4.3 -19.4l-.6-3.9 2 1.7 2.9-3 2.9 3 2-1.7-.6 3.9z" fill="#FFD27A" stroke="#E0A93C" stroke-width=".35" stroke-linejoin="round"/><circle cx="0" cy="-21.4" r=".6" fill="#E5484D"/><circle cx="-2.5" cy="-20.3" r=".4" fill="#5B8CD6"/><circle cx="2.5" cy="-20.3" r=".4" fill="#5BC0A8"/>`};
     case 9: return {body:"",head:`<g fill="#FFD27A" fill-opacity=".3" stroke="#E0A93C" stroke-width=".7"><circle cx="-1.9" cy="-15.6" r="1.6"/><circle cx="1.9" cy="-15.6" r="1.6"/></g><path d="M-.3 -15.7h.6M-3.5 -15.8l-1.5-.4M3.5 -15.8l1.5-.4" stroke="#E0A93C" stroke-width=".6"/><path d="M-2.7 -16.4l.7-.5M1.1 -16.4l.7-.5" stroke="#FFF6D8" stroke-width=".35" stroke-linecap="round"/>`};
     case 10: return {body:"",head:`<path d="M-5.3 -18.5q5.3-2.6 10.6 0" fill="none" stroke="#E0A93C" stroke-width=".7"/>${[[-3.4,-19.9,.9],[0,-21.4,1.15],[3.4,-19.9,.9]].map(([x,y,k])=>`<path transform="translate(${x} ${y}) scale(${k})" d="M0 -1.3l.38.85.92.1-.68.62.2.9L0 1.02l-.82.45.2-.9-.68-.62.92-.1z" fill="#FFD27A" stroke="#E0A93C" stroke-width=".18"/>`).join("")}`};
     case 11: return {body:"",head:`<ellipse cx="0" cy="-18.6" rx="7.6" ry="1.6" fill="#2E2348"/><path d="M-4.2 -19q1-5.6 3.4-8.4q1.6-1.8 4.6-1.4q-2.4.6-3 2.6q-.8 2.6.3 7.2z" fill="#2E2348"/><path d="M-4 -19.6q4 .8 8 0l-.3-1.5q-3.7.8-7.4 0z" fill="${c}"/>`};
-    case 12: return {body:"",head:`<path d="M-5.2 -17.8q0-5.8 5.2-6.2q3.8-.2 6.2 3.4l1 3.2-1.5.2-1.7-2.8.8 2.2z" fill="#E5484D"/><rect x="-5.9" y="-19" width="11.8" height="2.7" rx="1.35" fill="#F3F1EA"/><circle cx="7.3" cy="-16.3" r="1.6" fill="#F3F1EA"/>`};
+    // Weihnachtsmütze: rote Mütze, deren Zipfel zur Seite kippt, Bommel am Ende, weißer Fellrand
+    case 12: return {body:"",head:`<path d="M-5.3 -18.9C-5.5 -23.9 -1.8 -26.9 2.6 -26.3C6.4 -25.7 8.9 -23.1 9.3 -20C8.2 -21.4 6.7 -22.2 5 -21.9C5.4 -20.9 5.4 -19.8 5.3 -18.9z" fill="#E5484D"/><path d="M2.6 -26.3C6.4 -25.7 8.9 -23.1 9.3 -20C8.2 -21.4 6.7 -22.2 5 -21.9C4.6 -23.6 3.8 -25.2 2.6 -26.3z" fill="#B9343A"/><path d="M-2.6 -24q1.6-1.6 3.6-1.9" stroke="#F07A7E" stroke-width=".55" fill="none" stroke-linecap="round"/><rect x="-6" y="-20.2" width="12" height="2.7" rx="1.35" fill="#F3F1EA"/><path d="M-4.6 -18.3h9.2" stroke="#D9D4C6" stroke-width=".4" stroke-linecap="round"/><circle cx="9.3" cy="-19.6" r="1.85" fill="#F3F1EA"/><circle cx="9.8" cy="-19.1" r=".7" fill="#D9D4C6" opacity=".7"/>`};
     case 13: return {body:"",head:`<ellipse cx="0" cy="-18.3" rx="8.2" ry="1.9" fill="#E8C77A"/><path d="M-4.3 -18.6q0-4.4 4.3-4.6q4.3.2 4.3 4.6z" fill="#E8C77A"/><path d="M-4.2 -19.6h8.4v1.3h-8.4z" fill="${c}"/><path d="M-6.6 -18.6q6.6 1.4 13.2 0" stroke="#C9A85A" stroke-width=".4" fill="none"/>`};
     case 14: return {body:"",head:`<path d="M-5.3 -18.6q5.3-3.6 10.6 0" stroke="#4E9A58" stroke-width=".9" fill="none"/>${[[-4.6,-18.9],[-2.6,-20.6],[0,-21.3],[2.6,-20.6],[4.6,-18.9]].map(([x,y],i)=>`<circle cx="${x}" cy="${y}" r="1.25" fill="${[c,"#FFD27A","#FFB3C7",c,"#F3F1EA"][i]}"/><circle cx="${x}" cy="${y}" r=".45" fill="#FFF6D8"/>`).join("")}`};
     default: return {body:"",head:""};
@@ -1862,9 +1864,9 @@ function figure(r,x,y){
   if(r.kind==="mensch"){
     const L=looks(r), st=stage(r), kid=st==="baby"?0.6:st==="kind"?0.74:1;
     const hair0=hairSvg(L.style,L.style===5?L.cap:L.hair), acc=accSvg(L.acc,L.accC);
-    // Mit Mütze oder Kappe: keine Haare über der Krempe (Locken, Dutt, Iro lappen sonst heraus)
-    const hat=L.acc.includes(4)||L.acc.includes(5), hcl=hat?`<clipPath id="hatclip"><rect x="-20" y="-17.6" width="40" height="40"/></clipPath>`:"";
-    const hair=hat?{back:hcl+(hair0.back&&L.style===2?`<g clip-path="url(#hatclip)">${hair0.back}</g>`:hair0.back),front:hair0.front?`<g clip-path="url(#hatclip)">${hair0.front}</g>`:""}:hair0;
+    // Mit Mütze, Kappe oder Hut: keine Haare über der Krempe (Locken, Dutt, Iro, Männerdutt lappen sonst heraus)
+    const hat=L.acc.some(a=>HAT_ACC.includes(a)), hatY=hat?Math.min(...L.acc.filter(a=>HAT_CLIP[a]!=null).map(a=>HAT_CLIP[a])):0, hid="hatclip"+String(-hatY).replace(".","_"), hcl=hat?`<clipPath id="${hid}"><rect x="-20" y="${hatY}" width="40" height="40"/></clipPath>`:"";
+    const hair=hat?{back:hcl+(hair0.back?`<g clip-path="url(#${hid})">${hair0.back}</g>`:""),front:hair0.front?`<g clip-path="url(#${hid})">${hair0.front}</g>`:""}:hair0;
     if(r.sick) return `<g transform="translate(${x} ${y}) scale(${kid})"><title>${esc(r.name)} (krank: ${esc(r.sick.kind)})</title><rect x="-9" y="-6" width="18" height="6" rx="2" fill="#8A5A3B"/><rect x="-8" y="-9" width="16" height="5" rx="2" fill="#9CC8EE"/><circle cx="-6" cy="-10" r="4" fill="${L.skin}"/><path d="M-9.6 -11a4 4 0 0 1 6.6-2.6" stroke="${L.hair}" stroke-width="2" fill="none"/><path d="M-7.4 -10.4h1.2M-5 -10.4h1.2" stroke="#14151F" stroke-width=".6"/><circle cx="-8" cy="-9" r="1" fill="#E5484D" opacity=".7"/><text x="2" y="-12" font-size="6" fill="#F3F1EA" font-family="Manrope, sans-serif">z</text></g>`;
     const sad=typeof S!=="undefined"&&S.glueck<40, t=lvOf(r);
     if(st==="baby") return `<g transform="translate(${x} ${y}) scale(${kid})"><title>${esc(r.name)} (Baby)</title>
@@ -3330,7 +3332,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.76";
+const APP_VERSION="1.77";
 function devMode(){try{return localStorage.getItem("offland-dev")==="1"||/^(localhost|127\.0\.0\.1)$/.test(location.hostname)}catch(e){return false}}
 /* „Heute“, „Gestern“ oder Datum */
 function dayLabel(d){return d===today()?"Heute":d===addDays(today(),-1)?"Gestern":nice(d)}
@@ -3399,7 +3401,9 @@ function viewBewohner(){
   const [mText,mCls]=mood(), glC=mCls==="good"?"var(--lime)":mCls==="ok"?"var(--amber)":"var(--coral)";
   // Bild: Dorfplatz am Abend, die Bewohner im Halbkreis ums Lagerfeuer, Tiere am Rand
   const ppl=land.filter(r=>r.kind==="mensch").slice(0,10), ani=[], n=ppl.length;
-  land.filter(r=>r.kind!=="mensch").forEach(r=>{if(ani.length<4&&!ani.some(a=>a.art===r.art)) ani.push(r)});   // vier verschiedene Arten
+  const landAni=land.filter(r=>r.kind!=="mensch"), seaAni=H.filter(r=>r.kind!=="mensch"&&isSea(r)).slice(0,2);
+  landAni.forEach(r=>{if(ani.length<4&&!ani.some(a=>a.art===r.art)) ani.push(r)});   // erst möglichst verschiedene Arten …
+  landAni.forEach(r=>{if(ani.length<4&&!ani.includes(r)) ani.push(r)});               // … dann auffüllen, damit z. B. zwei Ziegen auch beide zu sehen sind
   const aSlot=[[24,140],[336,140],[100,148],[262,148]], gst=guestNow().filter(g=>!SEA.includes(g.art)).slice(0,2);   // Besuch steht vorne am Rand
   const fig=(r,x,y,k)=>`<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${k})"><g class="bob" style="animation-delay:${Math.round(x)%7/5}s">${figure(r,0,0)}</g></g>`;
   const pos=ppl.map((r,i)=>{const a=Math.PI*(0.12+0.76*i/Math.max(1,n-1));return [n===1?150:180-Math.cos(a)*130,134-Math.sin(a)*18]});
@@ -3407,7 +3411,7 @@ function viewBewohner(){
   const lights=[...Array(14)].map((_,i)=>`<circle class="lamp-tw" style="animation-delay:${(i*.13).toFixed(2)}s" cx="${40+i*20}" cy="${(42+Math.sin(i/13*Math.PI)*14).toFixed(1)}" r="2.6" fill="${["#FFD27A","#FF9C7A","#C8F169","#B6A4FF"][i%4]}"/>`).join("");
   const strip=`<svg viewBox="0 0 360 200" role="img" aria-label="${H.length} Bewohner am Lagerfeuer" style="width:100%;height:auto;display:block"><defs><linearGradient id="bwSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3B2F6B"/><stop offset=".7" stop-color="#C46D7A"/><stop offset="1" stop-color="#F2A374"/></linearGradient><radialGradient id="bwGlow"><stop offset="0" stop-color="#FFD27A" stop-opacity=".55"/><stop offset="1" stop-color="#FFD27A" stop-opacity="0"/></radialGradient></defs>
     <rect width="360" height="200" fill="url(#bwSky)"/><circle cx="300" cy="30" r="1.4" fill="#fff"/><circle cx="60" cy="18" r="1.2" fill="#fff"/><circle cx="210" cy="14" r="1" fill="#fff"/>
-    <rect y="96" width="360" height="104" fill="#3E4F86"/><path d="M-10 200c10-60 90-96 190-96s180 32 190 96z" fill="#5E7F4E"/><path d="M-10 200c30-40 110-62 190-62s160 22 190 62z" fill="#4E6E42"/>
+    <rect y="96" width="360" height="104" fill="#3E4F86"/>${seaAni.map((r,i)=>fig(r,[22,338][i],107,.75)).join("")}<path d="M-10 200c10-60 90-96 190-96s180 32 190 96z" fill="#5E7F4E"/><path d="M-10 200c30-40 110-62 190-62s160 22 190 62z" fill="#4E6E42"/>
     <path d="M40 38q140 32 280 0" stroke="#2A2340" stroke-width="1" fill="none"/>${lights}
     <circle cx="180" cy="128" r="80" fill="url(#bwGlow)"/>
     ${order.filter(i=>pos[i][1]<128).map(i=>fig(ppl[i],pos[i][0],pos[i][1],1.7)).join("")}
