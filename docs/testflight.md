@@ -73,7 +73,7 @@ Externe Tester:innen (per Link, bis 10.000) brauchen eine kurze Beta-Prüfung du
 
 ## Bildschirmzeit automatisch messen
 
-Die iPhone-App kann die Bildschirmzeit selbst mitmessen (Einstellungen → „Bildschirmzeit automatisch“). Apple liefert dabei keine genauen Minuten, sondern meldet jede erreichte 15-Minuten-Stufe. OffLand füllt damit beim Eintragen die Zeit vor.
+Die iPhone-App kann die Bildschirmzeit selbst mitmessen (Einstellungen → „Bildschirmzeit automatisch“). Apple liefert dabei keine genauen Minuten, sondern meldet jede erreichte 5-Minuten-Stufe. OffLand füllt damit beim Eintragen die Zeit vor.
 
 Technisch gehören dazu ein Plugin in der App (`ios/App/App/ScreenTimePlugin.swift`) und eine Erweiterung, die im Hintergrund mitzählt (`ios/App/ScreenTimeMonitor`). Beide tauschen die Werte über die App Group `group.com.offland2026.offland` aus.
 

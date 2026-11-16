@@ -46,7 +46,7 @@ struct IslandData: Codable {
         return f.string(from: date)
     }
 
-    /// Heute schon gemessene Bildschirmzeit in Minuten (Monitor-Erweiterung, in 15-Minuten-Schritten).
+    /// Heute schon gemessene Bildschirmzeit in Minuten (Monitor-Erweiterung, in 5-Minuten-Schritten).
     /// nil, solange nichts gemessen wird (z. B. ohne Freigabe für Family Controls).
     func usedToday(_ date: Date) -> Int? {
         let key = "st_" + IslandData.dayKey(date)

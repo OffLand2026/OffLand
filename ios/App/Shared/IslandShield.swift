@@ -154,39 +154,69 @@ enum IslandShield {
         return names[seed % names.count]
     }
 
-    static func message(app: String?) -> (title: String, subtitle: String) {
+    /// Wer im Schutz spricht: immer Lucifer (frech, schwarzer Humor) oder Mr. Bay (emotional, Verantwortung,
+    /// „lass mich nicht allein“). Wechselt mit jedem Versuch, der Tag verschiebt den Anfang.
+    /// Gleiche Texte in der Web-Vorschau (js/app.js, shieldMsg).
+    static func lucLines(_ en: Bool, _ a: String) -> [String] {
+        en ? ["“I have nine lives. You have one. And you're scrolling it away.”",
+              "“Put it down. Or I'll push it off the table. You know I will.”",
+              "“Your thumb has walked further today than you have.”",
+              "“Your gravestone is ready: ‘Was only online for a minute.’”",
+              "“Go ahead, open it. I'll watch. With popcorn.”",
+              "“One more video and I inherit your deck chair.”",
+              "“I told the shark you're coming for a swim. Don't let him down.”",
+              "“\(a)? Again? I'm disappointed. And a little impressed.”"]
+           : ["„Ich hab neun Leben. Du hast eins. Und das scrollst du gerade weg.“",
+              "„Leg es weg. Sonst schubs ich es vom Tisch. Du weißt, ich mach das.“",
+              "„Dein Daumen ist heute weiter gelaufen als du.“",
+              "„Dein Grabstein steht schon: ‚War nur kurz online.‘“",
+              "„Mach ruhig auf. Ich schau zu. Mit Popcorn.“",
+              "„Noch ein Video, und ich erbe deinen Liegestuhl.“",
+              "„Ich hab dem Hai gesagt, du kommst gleich schwimmen. Enttäusch ihn nicht.“",
+              "„\(a)? Schon wieder? Ich bin enttäuscht. Und ein bisschen beeindruckt.“"]
+    }
+    static func bayLines(_ en: Bool, _ n: String) -> [String] {
+        en ? ["“\(n) and I are saving you a spot on the pier.”",
+              "“I'm sitting all alone on the pier. Are you coming back?”",
+              "“The island needs you. And honestly, so do I.”",
+              "“I lit the campfire just for you.”",
+              "“You promised to look after us today.”",
+              "“I'm not angry. Just a little sad.”",
+              "“Who's going to water the palm tree while you're in here?”",
+              "“Every minute in here is a minute missing on our island.”"]
+           : ["„\(n) und ich halten dir am Steg einen Platz frei.“",
+              "„Ich sitz hier ganz allein am Steg. Kommst du zurück?“",
+              "„Die Insel braucht dich. Und ich, ehrlich gesagt, auch.“",
+              "„Ich hab das Lagerfeuer extra für dich angemacht.“",
+              "„Du hast versprochen, heute auf uns aufzupassen.“",
+              "„Ich bin nicht böse. Nur ein bisschen traurig.“",
+              "„Wer gießt die Palme, wenn du hier drin bist?“",
+              "„Jede Minute hier drin fehlt uns auf der Insel.“"]
+    }
+    static var daySeed: Int { Int(Date().timeIntervalSince1970 / 86400) }
+
+    static func message(app: String?) -> (title: String, subtitle: String, luc: Bool) {
         let i = info(), en = english, res = today("res"), tries = res + today("open")
         let n = someone(i, tries), pet = i.pet ?? "Lucifer"
         let a = (app?.isEmpty == false) ? app! : (en ? "this app" : "diese App")
-        let titles = en ? [
-            "\(n) saved you a spot on the beach.",
-            "\(n) asks if you're coming down to the pier.",
-            "\(pet) saw you trying to open \(a).",
-            "\(n) is building a sandcastle. Want to help?",
-            "The sun is about to set on your island.",
-            "\(n) is waiting by the campfire."
-        ] : [
-            "\(n) hat dir am Strand einen Platz freigehalten.",
-            "\(n) fragt, ob du kurz zum Steg kommst.",
-            "\(pet) hat gesehen, dass du \(a) öffnen wolltest.",
-            "\(n) baut gerade eine Sandburg. Hilfst du mit?",
-            "Auf deiner Insel geht gleich die Sonne unter.",
-            "\(n) wartet am Lagerfeuer auf dich."
-        ]
-        let title = titles[tries % titles.count]
-        let sub: String
-        if tries == 0 {
-            sub = en ? "Take a breath. Your island is one tap away." : "Kurz durchatmen. Deine Insel ist nur einen Tipp entfernt."
-        } else if title.contains(pet) {
-            sub = en ? "He's not saying anything. He's just looking." : "Er sagt nichts. Er guckt nur."
-        } else {
-            sub = en ? "You've been close \(tries + 1)× today. You resisted \(res)×." : "Du warst heute schon \(tries + 1)× kurz davor. \(res)× hast du widerstanden."
-        }
-        return (title, sub)
+        let seed = tries + daySeed, luc = seed % 2 == 1, k = seed / 2
+        let lines = luc ? lucLines(en, a) : bayLines(en, n)
+        let who = luc ? pet : "Mr. Bay"
+        let tail = res > 0 ? (en ? "resisted \(res)× today" : "heute schon \(res)× widerstanden")
+                           : (en ? "better put your phone down" : "leg dein Handy lieber weg")
+        return (lines[k % lines.count], "\(who) · \(tail)", luc)
     }
 
-    static func thanks(_ res: Int) -> String {
-        let n = someone(info(), res)
-        return english ? "💛 \(n) is happy! You resisted \(res)× today." : "💛 \(n) freut sich! Heute schon \(res)× widerstanden."
+    /// Mitteilung nach „App schließen“: Mr. Bay dankt gerührt, Lucifer ist fast beeindruckt
+    static func thanks(_ res: Int) -> (title: String, body: String) {
+        let en = english, pet = info().pet ?? "Lucifer"
+        if (res + daySeed) % 2 == 0 {
+            let b = en ? ["Thank you for staying. \(res)× resisted today. 💛", "You came back! The island can breathe again. 💛", "I knew I could count on you. \(res)× today. 💛"]
+                       : ["Danke, dass du geblieben bist. Heute schon \(res)× widerstanden. 💛", "Du bist zurück! Die Insel atmet auf. 💛", "Ich wusste, auf dich ist Verlass. Heute \(res)×. 💛"]
+            return ("Mr. Bay", b[res % b.count])
+        }
+        let l = en ? ["Hm. \(res)× resisted. I'm almost impressed. Almost.", "Fine. The shark gets the day off.", "Okay, you're still alive. \(res)× resisted."]
+                   : ["Hm. \(res)× widerstanden. Ich bin fast beeindruckt. Fast.", "Na gut. Der Hai hat heute frei.", "Okay, du lebst noch. \(res)× widerstanden."]
+        return (pet, l[res % l.count])
     }
 }

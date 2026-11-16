@@ -19,10 +19,10 @@ class ShieldConfigurationExtension: ShieldConfigurationDataSource {
         return ShieldConfiguration(
             backgroundBlurStyle: .systemThickMaterialDark,
             backgroundColor: night,
-            icon: UIImage(named: "ShieldIcon"),
+            icon: UIImage(named: m.luc ? "ShieldLuc" : "ShieldBay") ?? UIImage(named: "ShieldIcon"),   // wer spricht, ist zu sehen
             title: ShieldConfiguration.Label(text: m.title, color: ink),
             subtitle: ShieldConfiguration.Label(text: m.subtitle, color: muted),
-            primaryButtonLabel: ShieldConfiguration.Label(text: en ? "Back to the island" : "Zurück zur Insel", color: night),
+            primaryButtonLabel: ShieldConfiguration.Label(text: en ? "Close app" : "App schließen", color: night),
             primaryButtonBackgroundColor: lime,
             secondaryButtonLabel: ShieldConfiguration.Label(text: en ? "Open anyway · \(mins) min" : "Trotzdem öffnen · \(mins) Min.", color: muted)
         )

@@ -3395,7 +3395,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.85";
+const APP_VERSION="1.86";
 // Entwicklermodus: per Schalter (7× auf „Version“) oder lokal im Browser. Die iPhone-App läuft auch unter
 // „localhost“ (capacitor://localhost), dort zählt nur der Schalter, sonst sähen alle den Entwickler-Bereich.
 function devMode(){try{const C=window.Capacitor, app=!!(C&&C.isNativePlatform&&C.isNativePlatform());
@@ -5352,7 +5352,7 @@ function plusBadge(){                                                           
 /* Was Plus bringt: steht so in der Plus-Woche, im Ende-Fenster und auf der Paywall */
 const PLUS_FEATS=[["globe","Weltreise","4 neue Welten mit eigenen Tieren, Großprojekten und Kapiteln."],["leaf","Saison-Inseln","Halloween, Weihnachten, Sommer und Ostern: Deine Insel verwandelt sich, mit Saison-Looks und Stempeln."],
   ["play","Mein Inseljahr","Dein Monat und dein Jahr als Story, mit Bild zum Teilen."],["boat","Live-Insel","Die Bootsfahrt als Countdown auf dem Sperrbildschirm und in der Dynamic Island."],
-  ["paper","Der Insel-Kurier","Jede Woche die Inselzeitung von Mr. Bay: Schlagzeilen, Klatsch und Lucifers Kolumne."],["shield","Insel-Schutz Pro","Eigene Zeitpläne: morgens, bei der Arbeit, nachts."],
+  ["paper","Der Insel-Kurier","Jede Woche die Inselzeitung von Mr. Bay: Schlagzeilen, Klatsch und Lucifers Kolumne."],["shield","Insel-Schutz Pro","Bis zu 4 Zeitpläne: morgens, bei der Arbeit, nachts."],
   ["chart","Mehr aus deiner Zeit","Kalender, Bestwerte, Hochrechnung und die Auswertung von Fokuszeit und Apps."],["sun","Goldene Lagune","Deine Insel in Gold und Türkis, mit Flamingos."],
   ["crown","Plus-Looks","Kronen, Goldbrillen, Goldketten und goldenes Fell."],["people","Für die ganze Familie","Mit dem Familien-Abo bis zu 6 Personen."],["coin","+10 % Punkte jeden Tag","Und ein goldener Rahmen beim Teilen."]];
 function plusStartSheet(){
@@ -5424,7 +5424,7 @@ if(PS_NATIVE){try{PS_NATIVE.addListener("change",e=>{if(!S||storeSimOn()) return
 /* Läuft Plus aus, schalten Plus-Funktionen leise zurück (Vergebenes behalten die Bewohner) */
 function plusLapse(){
   if(S.isleStyle==="lagune") S.isleStyle=null;
-  if(S.shield&&S.shield.mode==="plan"){S.shield.mode="evening"; try{if(ST&&ST.shieldSet) ST.shieldSet({mode:"evening",unlock:S.shield.unlock||5,wins:[]})}catch(e){}}
+  if(S.shield&&S.shield.mode==="plan"){S.shield.mode="range"; if(!S.shield.range) S.shield.range=(shWins()[0]||[1260,1440]).slice(); try{if(ST&&ST.shieldSet) shSet("range").catch(()=>{})}catch(e){}}
 }
 const PLUS_TERMS="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/";
 /* Die Paywall: eigene Ebene über allem (auch über offenen Fenstern), Schließen ist immer sichtbar */
@@ -5462,7 +5462,7 @@ async function plusPaywall(from){
     ${saved>=60?`<div class="pw-stat"><b class="num">${hm(saved)}</b><span>hast du in ${ds.length} ${ds.length===1?"Tag":"Tagen"} schon zurückgewonnen.${yearDays>=1?`<small>Weiter so ergibt das rund ${yearDays} ${yearDays===1?"Tag":"Tage"} im Jahr.</small>`:""}</span></div>`:""}
     <div class="pw-sec"><h3>Das bekommst du</h3><ul class="pw-feats">${PLUS_FEATS.map(([i,t,s])=>`<li><span class="pw-ic">${ico(i)}</span><span><b>${t}</b><span>${s}</span></span></li>`).join("")}</ul></div>
     <div class="pw-sec"><h3>Gratis oder Plus</h3><table class="pw-cmp"><thead><tr><th></th><th>Gratis</th><th class="p">Plus</th></tr></thead><tbody>
-      ${[["Insel, Bewohner, Tagesbilanz","✓","✓"],["Familieninsel","✓","✓"],["Fokus-Boot und Inselminute","✓","✓"],["Weltreise","Heimatinseln","5 Welten"],["Saison-Inseln","–","✓"],["Mein Inseljahr als Story","–","✓"],["Live-Insel","–","✓"],["Der Insel-Kurier","–","✓"],["Zeit-Statistik","Diese Woche","Alles"],["Insel-Schutz","Feste Zeiten","Eigene Zeitpläne"],["Goldene Lagune","–","✓"],["Plus-Looks","–","✓"],["Punkte pro Tag","100 %","110 %"]]
+      ${[["Insel, Bewohner, Tagesbilanz","✓","✓"],["Familieninsel","✓","✓"],["Fokus-Boot und Inselminute","✓","✓"],["Weltreise","Heimatinseln","5 Welten"],["Saison-Inseln","–","✓"],["Mein Inseljahr als Story","–","✓"],["Live-Insel","–","✓"],["Der Insel-Kurier","–","✓"],["Zeit-Statistik","Diese Woche","Alles"],["Insel-Schutz","Ein Zeitraum","Bis zu 4 Zeitpläne"],["Goldene Lagune","–","✓"],["Plus-Looks","–","✓"],["Punkte pro Tag","100 %","110 %"]]
         .map(([a,b,c])=>`<tr><td>${a}</td><td class="${b==="✓"?"y":b==="–"?"n":""}">${b}</td><td class="y">${c}</td></tr>`).join("")}</tbody></table></div>
     <div class="pw-sec"><h3>Wähle deinen Plan</h3><div class="pw-plans" role="radiogroup" aria-label="Plan">${plans.map(planBtn).join("")}</div></div>
     <div class="pw-sec" id="pwTl"></div>
@@ -6806,10 +6806,11 @@ function umfrageSheet(ev){
 
 /* ---------- Bildschirmzeit automatisch (nur iPhone-App) ----------
    Natives Plugin "ScreenTime" (ios/App/App/ScreenTimePlugin.swift). Apple liefert nur Schwellen:
-   Die Monitor-Erweiterung merkt sich pro Tag die höchste erreichte 15-Minuten-Stufe. */
+   Die Monitor-Erweiterung merkt sich pro Tag die höchste erreichte Stufe (alle ST_STEP Minuten). */
+const ST_STEP=5;   // wie ScreenTimePlugin.stepMinutes
 const ST_NATIVE=(()=>{try{const C=window.Capacitor;return C&&C.isNativePlatform&&C.isNativePlatform()&&C.getPlatform()==="ios"&&C.registerPlugin?C.registerPlugin("ScreenTime"):null}catch(e){return null}})();
 /* Ohne iPhone-App: Simulation mit denselben Schritten wie das echte Plugin (Erlaubnis, Apps wählen,
-   Minuten in 15-Minuten-Stufen). Die Werte sind ausgedacht, aber pro Tag immer gleich. */
+   Minuten in ST_STEP-Minuten-Stufen). Die Werte sind ausgedacht, aber pro Tag immer gleich. */
 function stSimAsk(html){
   return new Promise(res=>{
     const d=document.createElement("div"); d.className="modal st-sim"; d.style.zIndex="400";
@@ -6848,7 +6849,7 @@ const ST_SIM={
     let h=0; for(const c of String(day)) h=(h*31+c.charCodeAt(0))>>>0;
     let m=base*(0.65+(h%70)/100)*(1+((s.apps||[]).length-4)*.06);
     if(day===today()){const n=new Date(), f=clamp((n.getHours()+n.getMinutes()/60-7)/16,0,1); m*=f}
-    return {has:true,minutes:Math.max(0,Math.floor(m/15)*15)};
+    return {has:true,minutes:Math.max(0,Math.floor(m/ST_STEP)*ST_STEP)};
   },
   async stop(){S.stSim=Object.assign(S.stSim||{},{monitoring:false}); save()},
   async showAverage(){
@@ -6868,7 +6869,7 @@ function stCard(){
   const i=stInfo||{};
   const on=i.status==="approved"&&i.monitoring;
   return `<div class="card set-list" id="stCard"><div class="set-row set-col"><div class="set-top">${setIco("phone",IC_O)}
-      <span class="set-t"><b>Bildschirmzeit automatisch</b><small>${on?"An: misst in 15-Minuten-Schritten mit, beim Eintragen ist die Zeit schon da"
+      <span class="set-t"><b>Bildschirmzeit automatisch</b><small>${on?`An: misst in ${(stInfo&&stInfo.step)||ST_STEP}-Minuten-Schritten mit, beim Eintragen ist die Zeit schon da`
         :i.status==="denied"?"Zugriff abgelehnt. Erlauben in den iPhone-Einstellungen unter Bildschirmzeit"
         :"Das iPhone misst mit, kein Ablesen mehr"}</small></span>
       ${on?`<span class="set-on">An</span>`:`<button class="btn secondary set-mini" id="stSetup">${i.status==="denied"?"Erneut":"Einrichten"}</button>`}</div>
@@ -6892,13 +6893,20 @@ async function stFill(){
   const day=nextDay(); let r; try{r=await ST.minutes({day})}catch(e){return}
   const h=$("#inH"), m=$("#inM"), note=$("#stNote"); if(!h||!r||!r.has) return;
   if(!h.dataset.touched&&!m.dataset.touched){h.value=Math.floor(r.minutes/60);m.value=r.minutes%60;liveUpdate()}
-  if(note) note.innerHTML=`<b style="color:var(--lime)">Automatisch gemessen${i.simulated?" (Simulation)":""}:</b> mindestens ${hm(r.minutes)}${day===today()?" bis jetzt":""}. Apple meldet die Zeit in 15-Minuten-Schritten, darum kann es bis zu 14 Minuten mehr gewesen sein.`;
+  if(note) note.innerHTML=`<b style="color:var(--lime)">Automatisch gemessen${i.simulated?" (Simulation)":""}:</b> mindestens ${hm(r.minutes)}${day===today()?" bis jetzt":""}. Apple meldet die Zeit in ${(i.step||ST_STEP)}-Minuten-Schritten, darum kann es bis zu ${(i.step||ST_STEP)-1} Minuten mehr gewesen sein.`;
 }
 
 /* ---------- Insel-Schutz: beim Öffnen gewählter Apps steht erst die Insel in der Tür ----------
    iPhone-App: Apples Bildschirmzeit-Sperre („Shield“) mit eigenen Texten (ios/App/Shared/IslandShield.swift,
    Erweiterungen ShieldConfig und ShieldAction). In der Web-Version simuliert, mit einer Vorschau. */
-const SHIELD_MODES=[["off","Aus"],["always","Immer"],["evening","Abends ab 21 Uhr"],["focus","Bei Fokus-Bootsfahrt"],["plan","Eigene Zeitpläne ★"]];
+const SHIELD_MODES=[["off","Aus"],["always","Immer"],["range","Zeitraum"],["focus","Bei Fokus-Bootsfahrt"],["plan","Eigene Zeitpläne ★"]];
+/* Zeitraum (für alle): ein eigenes Zeitfenster S.shield.range=[von,bis] in Minuten ab Mitternacht, Ende vor Anfang = über Mitternacht.
+   Das iPhone bekommt es wie einen Zeitplan (Modus "plan" mit einem Fenster). Der frühere Modus „Abends ab 21 Uhr“ gilt als 21:00–24:00. */
+const shRange=()=>(S.shield&&S.shield.range)||[1260,1440];
+const shMode=()=>{const m=(S.shield&&S.shield.mode)||"off"; return m==="evening"?"range":m};
+const shSet=mode=>{mode=mode||shMode(); const unlock=(S.shield&&S.shield.unlock)||5;
+  return ST.shieldSet(mode==="range"?{mode:"plan",unlock,wins:[shRange()]}:{mode,unlock,wins:shWins()})};
+const shTimeOpts=(from,sel)=>Array.from({length:48},(_,k)=>k*30+from).map(m=>`<option value="${m}"${m===sel?" selected":""}>${m===1440?"24:00":hhmm(m)}</option>`).join("");
 /* Insel-Schutz Pro (Plus): bis zu 4 eigene Zeitfenster, Minuten ab Mitternacht; Ende vor Anfang = über Mitternacht */
 const SHIELD_PRESETS=[["Morgens",360,540],["Arbeit",540,1020],["Nachts",1320,420]];
 const shWins=()=>(S.shield&&S.shield.wins)||[];
@@ -6914,7 +6922,7 @@ Object.assign(ST_SIM,{
     if(!sel) return {ok:false};
     S.shield=Object.assign(S.shield||{},{sim:sel}); save(); return {ok:true,count:sel.length};
   },
-  async shieldSet({mode,unlock,wins}){S.shield=Object.assign(S.shield||{},{mode,unlock:unlock||(S.shield&&S.shield.unlock)||5},wins?{wins}:{}); save(); return {mode}},
+  async shieldSet({mode,unlock}){S.shield=Object.assign(S.shield||{},{unlock:unlock||(S.shield&&S.shield.unlock)||5}); save(); return {mode}},
   async shieldFocus(){return {}},
   async shieldInfo(){},
   async shieldStats({day}={}){const d=day||today(), t=(S.shield&&S.shield.simDay===d&&S.shield.simCnt)||{res:0,open:0};
@@ -6934,31 +6942,44 @@ async function shieldRefresh(force){
   return st;
 }
 function shieldNames(){const a=adults().map(r=>r.name); return a.length?a:here().filter(r=>r.kind==="mensch").map(r=>r.name)}
-/* Gleiche Texte wie im iPhone-Schutz (IslandShield.message), hier für die Vorschau */
+/* Gleiche Texte wie im iPhone-Schutz (IslandShield.message), hier für die Vorschau.
+   Es spricht immer Lucifer (frech, schwarzer Humor) oder Mr. Bay (emotional: Verantwortung, „lass mich nicht allein“). */
+const shDaySeed=()=>Math.floor(Date.now()/864e5);
+const SH_LUC=a=>["„Ich hab neun Leben. Du hast eins. Und das scrollst du gerade weg.“","„Leg es weg. Sonst schubs ich es vom Tisch. Du weißt, ich mach das.“",
+  "„Dein Daumen ist heute weiter gelaufen als du.“","„Dein Grabstein steht schon: ‚War nur kurz online.‘“","„Mach ruhig auf. Ich schau zu. Mit Popcorn.“",
+  "„Noch ein Video, und ich erbe deinen Liegestuhl.“","„Ich hab dem Hai gesagt, du kommst gleich schwimmen. Enttäusch ihn nicht.“",
+  `„${a}? Schon wieder? Ich bin enttäuscht. Und ein bisschen beeindruckt.“`];
+const SH_BAY=n=>[`„${n} und ich halten dir am Steg einen Platz frei.“`,"„Ich sitz hier ganz allein am Steg. Kommst du zurück?“",
+  "„Die Insel braucht dich. Und ich, ehrlich gesagt, auch.“","„Ich hab das Lagerfeuer extra für dich angemacht.“","„Du hast versprochen, heute auf uns aufzupassen.“",
+  "„Ich bin nicht böse. Nur ein bisschen traurig.“","„Wer gießt die Palme, wenn du hier drin bist?“","„Jede Minute hier drin fehlt uns auf der Insel.“"];
 function shieldMsg(res,open,app){
   const names=shieldNames(), tries=res+open, n=names.length?names[tries%names.length]:"Jemand auf deiner Insel", a=app||"Instagram";
-  const T=[`${n} hat dir am Strand einen Platz freigehalten.`,`${n} fragt, ob du kurz zum Steg kommst.`,`Lucifer hat gesehen, dass du ${a} öffnen wolltest.`,
-    `${n} baut gerade eine Sandburg. Hilfst du mit?`,"Auf deiner Insel geht gleich die Sonne unter.",`${n} wartet am Lagerfeuer auf dich.`];
-  const title=T[tries%T.length];
-  const sub=tries===0?"Kurz durchatmen. Deine Insel ist nur einen Tipp entfernt.":title.includes("Lucifer")?"Er sagt nichts. Er guckt nur.":`Du warst heute schon ${tries+1}× kurz davor. ${res}× hast du widerstanden.`;
-  return {title,sub};
+  const seed=tries+shDaySeed(), luc=seed%2===1, lines=luc?SH_LUC(a):SH_BAY(n), k=Math.floor(seed/2);
+  return {title:lines[k%lines.length],sub:(luc?"Lucifer":"Mr. Bay")+" · "+(res>0?`heute schon ${res}× widerstanden`:"leg dein Handy lieber weg"),who:luc?"luc":"bay"};
 }
-const SHIELD_ICON=`<svg viewBox="0 0 150 150" width="120" height="120" aria-hidden="true"><defs><clipPath id="shR"><rect width="150" height="150" rx="34"/></clipPath><linearGradient id="shSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5B4A8E"/><stop offset="1" stop-color="#C77B8A"/></linearGradient></defs>
-  <g clip-path="url(#shR)"><rect width="150" height="150" fill="url(#shSky)"/><circle cx="112" cy="40" r="15" fill="#FFB38A"/><rect y="98" width="150" height="52" fill="#2C4770"/><path d="M8 104 Q75 70 142 104z" fill="#E8D7A6"/><path d="M22 100 Q75 74 128 100" fill="#7FC57A"/>
-  <rect x="34" y="62" width="9" height="30" fill="#F3F1EA"/><rect x="34" y="70" width="9" height="4" fill="#E5484D"/><path d="M32 62h13l-6.5-9z" fill="#E5484D"/>
-  <g transform="translate(86 84)"><circle cy="-10" r="7" fill="#F3D2B8"/><path d="M-7 -12a7 7 0 0 1 14 0q-7-4-14 0z" fill="#4A3222"/><path d="M-7 4q0-10 7-10t7 10z" fill="#5BC0A8"/><path d="M7 -2 l8 -10" stroke="#F3D2B8" stroke-width="3" stroke-linecap="round"/></g>
-  <g transform="translate(110 94)"><ellipse rx="7" ry="4" fill="#1E1F2B"/><circle cx="-5" cy="-3" r="3.4" fill="#1E1F2B"/><path d="M-8 -5l1-4 2 3zM-4 -6l2-4 .5 3.5z" fill="#1E1F2B"/></g></g></svg>`;
+/* Dank nach „App schließen“ (wie IslandShield.thanks) */
+function shieldThanks(res){
+  if((res+shDaySeed())%2===0){const b=[`Danke, dass du geblieben bist. Heute schon ${res}× widerstanden. 💛`,"Du bist zurück! Die Insel atmet auf. 💛",`Ich wusste, auf dich ist Verlass. Heute ${res}×. 💛`]; return "Mr. Bay: "+b[res%b.length]}
+  const l=[`Hm. ${res}× widerstanden. Ich bin fast beeindruckt. Fast.`,"Na gut. Der Hai hat heute frei.",`Okay, du lebst noch. ${res}× widerstanden.`]; return "Lucifer: "+l[res%l.length];
+}
+/* Bild im Schutz: wer spricht, steht auf der Insel (gleich wie ios/App/ShieldConfig/ShieldBay.png und ShieldLuc.png) */
+function shieldIcon(who){
+  const ch=who==="luc"?`<g transform="translate(75 103) scale(3.7)">${lucSvg(true,true)}</g>`:`<g transform="translate(75 101) scale(3.2)">${baySvg(true)}</g>`;
+  return `<svg viewBox="0 0 150 150" width="120" height="120" aria-hidden="true"><defs><clipPath id="shR"><rect width="150" height="150" rx="34"/></clipPath><linearGradient id="shSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5B4A8E"/><stop offset="1" stop-color="#C77B8A"/></linearGradient></defs>
+  <g clip-path="url(#shR)"><rect width="150" height="150" fill="url(#shSky)"/><circle cx="24" cy="22" r="1.4" fill="#F3F1EA" opacity=".8"/><circle cx="60" cy="14" r="1" fill="#F3F1EA" opacity=".7"/><circle cx="84" cy="30" r="1.1" fill="#F3F1EA" opacity=".7"/>
+  <circle cx="114" cy="38" r="15" fill="#FFB38A"/><rect y="104" width="150" height="46" fill="#2C4770"/><path d="M2 108 Q75 74 148 108z" fill="#E8D7A6"/><path d="M14 104 Q75 78 136 104" fill="#7FC57A"/>
+  <path d="M24 126h22M84 132h28M40 140h18" stroke="#4A6496" stroke-width="2.5" stroke-linecap="round"/>${ch}</g></svg>`;
+}
 async function shieldPreview(){
   let st={resisted:0,opened:0}; try{if(ST.shieldStats) st=(await ST.shieldStats({}))||st}catch(e){}
   const m=shieldMsg(st.resisted||0,st.opened||0), mins=(S.shield&&S.shield.unlock)||5;
   const d=document.createElement("div"); d.className="shield-prev"; d.setAttribute("role","dialog"); d.setAttribute("aria-modal","true");
-  d.innerHTML=`<p class="shield-tag">Vorschau · so erscheint es beim Öffnen von Instagram</p>${SHIELD_ICON}<h2>${esc(m.title)}</h2><p>${esc(m.sub)}</p><div class="grow"></div>
-    <button class="btn" data-sh="res">Zurück zur Insel</button><button class="shield-sec" data-sh="open">Trotzdem öffnen · ${mins} Min.</button>`;
+  d.innerHTML=`<p class="shield-tag">Vorschau · so erscheint es beim Öffnen von Instagram</p>${shieldIcon(m.who)}<h2>${esc(m.title)}</h2><p>${esc(m.sub)}</p><div class="grow"></div>
+    <button class="btn" data-sh="res">App schließen</button><button class="shield-sec" data-sh="open">Trotzdem öffnen · ${mins} Min.</button>`;
   document.body.appendChild(d); d.querySelector("[data-sh=res]").focus();
   d.querySelectorAll("[data-sh]").forEach(b=>b.onclick=()=>{const k=b.dataset.sh; d.remove();
     if(ST===ST_SIM){shieldSimCount(k)}
-    const names=shieldNames(), n=names.length?names[((st.resisted||0)+1)%names.length]:"Deine Insel";
-    toast(k==="res"?`💛 ${n} freut sich!`:`Okay, ${mins} Minuten. ${n} wartet.`);
+    toast(k==="res"?shieldThanks((st.resisted||0)+1):`Lucifer: Okay, ${mins} Minuten. Ich stell die Uhr.`);
     if(ST===ST_SIM) shieldRefresh(true).then(()=>{if($("#shieldCard"))settingsSheet()});
   });
 }
@@ -6970,7 +6991,7 @@ function shieldSync(){
 }
 function shieldCard(){
   if(!ST||!ST.shieldPick) return "";
-  const sh=S.shield||{}, mode=sh.mode||"off", st=shieldStatsCache, cnt=st?st.count:(sh.sim||[]).length, sim=ST===ST_SIM;
+  const sh=S.shield||{}, mode=shMode(), st=shieldStatsCache, cnt=st?st.count:(sh.sim||[]).length, sim=ST===ST_SIM;
   const allowed=(sim?ST_SIM.now():stInfo||{}).status==="approved";
   return `<div class="card set-pad" id="shieldCard"><div class="set-top">${setIco("shield",IC_O)}
       <span class="set-t"><b>Insel-Schutz</b><small>Vor gewählten Apps wartet erst deine Insel. Nichts wird verboten</small></span>
@@ -6980,6 +7001,9 @@ function shieldCard(){
     <div class="row between"><span class="small"><b>${cnt?cnt+(cnt===1?" App gewählt":" Apps gewählt"):"Noch keine Apps gewählt"}</b></span><button class="btn secondary set-mini" id="shPick">Apps wählen</button></div>
     <p class="small muted" style="margin-top:10px">Wann</p>
     <div class="seg seg-grid shield-seg" role="radiogroup" aria-label="Wann der Insel-Schutz gilt">${SHIELD_MODES.filter(([k])=>k!=="plan"||plusShown()).map(([k,n])=>`<button type="button" class="seg-b${mode===k?" on":""}" data-shmode="${k}" aria-pressed="${mode===k}">${n}</button>`).join("")}</div>
+    ${mode==="range"?`<div class="sh-wins"><div class="sh-win"><select data-shr="0" aria-label="Zeitraum von">${shTimeOpts(0,shRange()[0])}</select><span aria-hidden="true">–</span>
+      <select data-shr="1" aria-label="Zeitraum bis">${shTimeOpts(30,shRange()[1]||1440)}</select></div>
+      <p class="small muted">Jeden Tag. Über Mitternacht geht auch, z. B. 22:00–07:00.</p></div>`:""}
     ${mode==="plan"?`<div class="sh-wins">${shWins().map(([a,b],i)=>`<div class="sh-win"><select data-shw="${i}" data-k="0" aria-label="Zeitplan ${i+1} von">${Array.from({length:48},(_,k)=>k*30).map(m=>`<option value="${m}"${m===a?" selected":""}>${hhmm(m)}</option>`).join("")}</select><span aria-hidden="true">–</span>
       <select data-shw="${i}" data-k="1" aria-label="Zeitplan ${i+1} bis">${Array.from({length:48},(_,k)=>k*30+30).map(m=>`<option value="${m}"${m===(b||1440)?" selected":""}>${m===1440?"24:00":hhmm(m)}</option>`).join("")}</select>
       <button type="button" class="iconbtn" data-shdel="${i}" aria-label="Zeitplan ${i+1} löschen">✕</button></div>`).join("")||`<p class="small muted">Noch kein Zeitplan.</p>`}
@@ -6992,19 +7016,23 @@ function shieldCard(){
 }
 function bindShieldCard(){
   const re=()=>shieldRefresh(true).then(()=>settingsSheet());
-  const a=$("#shAllow"); if(a) a.onclick=async()=>{try{await ST.authorize();await stStatus();const r=await ST.shieldPick();if(r&&r.ok&&(!S.shield||!S.shield.mode||S.shield.mode==="off")){S.shield=Object.assign(S.shield||{},{mode:"always"});await ST.shieldSet({mode:"always",unlock:S.shield.unlock||5})}save()}catch(e){toast(String(e&&e.message||e).slice(0,120))} re()};
-  const p=$("#shPick"); if(p) p.onclick=async()=>{try{const r=await ST.shieldPick();if(r&&r.ok&&S.shield&&S.shield.mode&&S.shield.mode!=="off") await ST.shieldSet({mode:S.shield.mode,unlock:S.shield.unlock||5,wins:shWins()})}catch(e){} re()};
+  const a=$("#shAllow"); if(a) a.onclick=async()=>{try{await ST.authorize();await stStatus();const r=await ST.shieldPick();if(r&&r.ok&&(!S.shield||!S.shield.mode||S.shield.mode==="off")){S.shield=Object.assign(S.shield||{},{mode:"always"});await shSet("always")}save()}catch(e){toast(String(e&&e.message||e).slice(0,120))} re()};
+  const p=$("#shPick"); if(p) p.onclick=async()=>{try{const r=await ST.shieldPick();if(r&&r.ok&&S.shield&&S.shield.mode&&S.shield.mode!=="off") await shSet()}catch(e){} re()};
   document.querySelectorAll("[data-shmode]").forEach(b=>b.onclick=async()=>{const mode=b.dataset.shmode;
     if(mode==="plan"&&!plusActive()) return plusPaywall("schutz");
-    S.shield=Object.assign(S.shield||{},{mode}); if(mode==="plan"&&!shWins().length) S.shield.wins=[[360,540],[1260,1440]]; save();
-    try{await ST.shieldSet({mode,unlock:S.shield.unlock||5,wins:shWins()});if(mode==="focus") await ST.shieldFocus({on:!!S.boat})}catch(e){}
-    toast(mode==="off"?"Insel-Schutz aus":"Insel-Schutz: "+SHIELD_MODES.find(x=>x[0]===mode)[1]); re()});
+    S.shield=Object.assign(S.shield||{},{mode}); if(mode==="plan"&&!shWins().length) S.shield.wins=[[360,540],[1260,1440]];
+    if(mode==="range"&&!S.shield.range) S.shield.range=[1260,1440]; save();
+    try{await shSet(mode);if(mode==="focus") await ST.shieldFocus({on:!!S.boat})}catch(e){}
+    toast(mode==="off"?"Insel-Schutz aus":mode==="range"?`Insel-Schutz: ${hhmm(shRange()[0])}–${shRange()[1]===1440?"24:00":hhmm(shRange()[1])}`:"Insel-Schutz: "+SHIELD_MODES.find(x=>x[0]===mode)[1]); re()});
   document.querySelectorAll("[data-shunlock]").forEach(b=>b.onclick=async()=>{const unlock=+b.dataset.shunlock; S.shield=Object.assign(S.shield||{},{unlock}); save();
-    try{await ST.shieldSet({mode:S.shield.mode||"off",unlock,wins:shWins()})}catch(e){} re()});
+    try{await shSet()}catch(e){} re()});
   const wset=async()=>{try{await ST.shieldSet({mode:"plan",unlock:S.shield.unlock||5,wins:shWins()})}catch(e){} save(); re()};
   document.querySelectorAll("[data-shw]").forEach(sel=>sel.onchange=()=>{const w=shWins()[+sel.dataset.shw]; if(!w) return; w[+sel.dataset.k]=+sel.value;
     if(((w[1]-w[0])+1440)%1440<30) w[1]=(w[0]+60)%1440||1440;   // mindestens 30 Minuten (Apple braucht 15)
     wset()});
+  document.querySelectorAll("[data-shr]").forEach(sel=>sel.onchange=async()=>{const r=shRange().slice(); r[+sel.dataset.shr]=+sel.value;
+    if(((r[1]-r[0])+1440)%1440<30) r[1]=(r[0]+60)%1440||1440;   // mindestens 30 Minuten (Apple braucht 15)
+    S.shield=Object.assign(S.shield||{},{mode:"range",range:r}); save(); try{await shSet("range")}catch(e){} re()});
   document.querySelectorAll("[data-shdel]").forEach(b=>b.onclick=()=>{S.shield.wins=shWins().filter((_,i)=>i!==+b.dataset.shdel); wset()});
   document.querySelectorAll("[data-shadd]").forEach(b=>b.onclick=()=>{const [,a,e]=SHIELD_PRESETS[+b.dataset.shadd]; S.shield.wins=shWins().concat([[a,e]]).slice(0,4); wset()});
   const v=$("#shPrev"); if(v) v.onclick=shieldPreview;
