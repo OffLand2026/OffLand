@@ -41,6 +41,11 @@ concurrency:
   group: ios-${{ github.ref }}
   cancel-in-progress: true
 
+# bash mit pipefail: sonst verschluckt „xcodebuild … | tail“ Fehler und der Lauf wird fälschlich grün
+defaults:
+  run:
+    shell: bash
+
 jobs:
   build:
     name: Bauen (ohne Signatur)
