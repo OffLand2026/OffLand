@@ -3401,7 +3401,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.89";
+const APP_VERSION="1.90";
 // Entwicklermodus: per Schalter (7× auf „Version“) oder lokal im Browser. Die iPhone-App läuft auch unter
 // „localhost“ (capacitor://localhost), dort zählt nur der Schalter, sonst sähen alle den Entwickler-Bereich.
 function devMode(){try{const C=window.Capacitor, app=!!(C&&C.isNativePlatform&&C.isNativePlatform());
@@ -4602,8 +4602,9 @@ let PEND_BUDGET=3;
 const PEND_MUST=new Set(["plan","jokerAsk","day","comeback","baseline","plusStart"]);
 const PEND_ORDER={plusStart:-2,comeback:-1,plan:0,jokerAsk:1,day:2,baseline:2.2,planAsk:3,bilanz:4,unlock:7,chapter:6,umfrage:8,statsAsk:9,musicAsk:2.5,shieldIntro:7.5};
 function sortPending(){const o=e=>PEND_ORDER[e.type]!=null?PEND_ORDER[e.type]:5; S.pending=S.pending.map((e,i)=>[e,i]).sort((a,b)=>o(a[0])-o(b[0])||a[1]-b[1]).map(x=>x[0])}
+let HOLD_PENDING=false;   // autoClose trägt nach, dann kommt eine Morgen-Zusammenfassung statt vieler Fenster
 function showPending(){
-  if($("#modalRoot").innerHTML) return;
+  if(HOLD_PENDING||$("#modalRoot").innerHTML) return;
   if(!S.pending.length){PEND_BUDGET=3;return}
   if(PEND_BUDGET<=0&&!PEND_MUST.has(S.pending[0].type)) return;   // Rest kommt beim nächsten Mal
   const ev=S.pending.shift(); PEND_BUDGET--; if(!S.pending.length) PEND_BUDGET=3;
@@ -4655,6 +4656,7 @@ function showPending(){
   if(ev.type==="surprise") return surpriseSheet(ev);
   if(ev.type==="duelStart") return duelStartSheet(ev);
   if(ev.type==="duelEnd") return duelEndSheet(ev);
+  if(ev.type==="day"&&ev.morning) return morningSheet(ev,scene);
   if(ev.type==="day"){
     const good=ev.min<=S.budget, diff=Math.abs(S.budget-ev.min);
     const eq=equivTop(good?ev.saved:diff);
@@ -6901,20 +6903,84 @@ const autoOn=()=>!!(ST&&ST!==ST_SIM&&S&&S.setup&&S.autoTime&&!S.testmode&&stInfo
 let AUTO_BUSY=false, STT=null;   // STT: heute bis jetzt gemessen {day,min}
 async function autoClose(){
   if(AUTO_BUSY||!autoOn()||S.vacation) return 0;
-  AUTO_BUSY=true; let n=0;
+  AUTO_BUSY=true; let n=0; const closed=[];
   try{
+    HOLD_PENDING=true;
     while(nextDay()<today()&&n<14){
       const d=nextDay();
       if(S.stSince&&S.stSince.day===d) break;
       let r; try{r=await ST.minutes({day:d})}catch(e){break}
       if(!r||!r.has) break;
-      closeDay(clamp(r.minutes,0,1440),[],{}); n++;
+      closeDay(clamp(r.minutes,0,1440),[],{}); n++; closed.push({day:d,min:clamp(r.minutes,0,1440)});
       if(n===1) stat("auto_eingetragen");
     }
+    if(closed.length){   // Eine Morgen-Zusammenfassung für den letzten Tag, ältere Tage nur als Zeile darin
+      const last=closed[closed.length-1], ev=S.pending.find(e=>e.type==="day"&&e.day===last.day);
+      S.pending=S.pending.filter(e=>!(e.type==="day"&&e!==ev&&closed.some(c=>c.day===e.day)));
+      if(ev){ev.morning=true; ev.also=closed.slice(0,-1);
+        try{if(ST.shieldStats){const s=await ST.shieldStats({day:last.day}); if(s&&s.resisted) ev.shield=s.resisted}}catch(e){}}
+      save();
+    }
     try{const r=await ST.minutes({day:today()}); STT=r&&r.has?{day:today(),min:r.minutes}:null}catch(e){}
-  }finally{AUTO_BUSY=false}
+  }finally{AUTO_BUSY=false; HOLD_PENDING=false}
+  if(n){render(); showPending()}
   return n;
 }
+/* Morgen-Zusammenfassung: ein Fenster statt Tagesbilanz und vieler Neuigkeiten nacheinander */
+function morningSheet(ev,scene){
+  const good=ev.min<=S.budget, diff=Math.abs(S.budget-ev.min);
+  const news=S.feed.filter(f=>f.day===ev.day&&!/^(Im Budget|Über dem Budget): /.test(f.text)).slice(0,3);
+  const items=[];
+  if(S.budgetStreak>1) items.push(["🔥",`<b>${S.budgetStreak} Tage</b> in Folge im Ziel`]);
+  if(ev.joker) items.push(["🃏",`Joker eingesetzt: Deine Serie von ${ev.joker} Tagen bleibt`]);
+  news.forEach(f=>items.push([f.kind==="bad"?"🌧️":"🌴",esc(f.text)]));
+  if(ev.shield) items.push(["🛡️",`${ev.shield}× der Insel zuliebe eine App nicht geöffnet`]);
+  items.push(["✨",`<b>+${ev.pts||0} Punkte</b> · Glück ${ev.after} %`]);
+  if(ev.also&&ev.also.length) items.push(["📅","Auch eingetragen: "+ev.also.map(a=>nice(a.day)+" "+hm(a.min)).join(", ")]);
+  sheet(`<p class="label" style="color:var(--amber)">Guten Morgen${ACC?", "+esc(ACC.name):""} · ${nice(today())}</p><h2>Über Nacht auf deiner Insel</h2>
+    ${scene}
+    <div class="ms-big"><b style="color:${good?"var(--lime)":"var(--coral)"}">${hm(ev.min)}</b><span>${dayLabel(ev.day)} am Handy · ${hm(diff)} ${good?"unter":"über"} dem Ziel</span></div>
+    <ul class="ms-list">${items.map(([i,x])=>`<li><i aria-hidden="true">${i}</i><span>${x}</span></li>`).join("")}</ul>
+    ${saysHtml("bay",good?"Schön, dass du da bist. Jetzt aber raus in den Tag, wir kommen klar.":"Gestern war viel Handy. Heute machen wir es besser, ja? Und jetzt raus mit dir.")}
+    <button class="btn" data-ok id="msOk">Danke für die schnelle Übersicht</button>`);
+  PEND_BUDGET=0;   // weitere Neuigkeiten beim nächsten Besuch, Entscheidungen (Joker, Vorhaben …) gleich
+}
+/* Kurz rein, kurz raus: Besuche bis 3 Minuten bringen Punkte (höchstens 5 am Tag). Nach 5 Minuten fragt Lucifer, ob du nicht gehen willst. */
+const KB_MAX=3*60000, KB_DAY=5, KB_PTS=2, LUC_AFTER=5*60000;
+let VISIT_AT=Date.now(), LUC_T=null, LUC_N=0;
+function visitStart(){VISIT_AT=Date.now(); LUC_N=0; lucArm(LUC_AFTER); setTimeout(kurzCard,700)}
+function lucArm(ms){clearTimeout(LUC_T); LUC_T=setTimeout(lucAsk,ms)}
+function visitEnd(){
+  clearTimeout(LUC_T); const c=$("#lucGo"); if(c) c.remove();
+  if(!ACC||!S||!S.setup||S.boat||S.testmode) return;
+  const dur=Date.now()-VISIT_AT; if(dur<3000||dur>KB_MAX) return;
+  const d=today(), k=S.kurz&&S.kurz.day===d?S.kurz:{day:d,n:0};
+  if(k.n>=KB_DAY) return;
+  k.n++; S.kurz=k; S.points+=KB_PTS; S.kurzNew={n:((S.kurzNew&&S.kurzNew.n)||0)+1,pts:((S.kurzNew&&S.kurzNew.pts)||0)+KB_PTS};
+  save(); stat("kurzbesuch");
+}
+function floatCard(id,html){const o=$("#"+id); if(o) o.remove(); const d=document.createElement("div"); d.id=id; d.className="kb"; d.setAttribute("role","status"); d.innerHTML=html; document.body.appendChild(d); return d}
+function kurzCard(){
+  const k=S&&S.kurzNew; if(!ACC||!k||!k.n||document.hidden||$("#modalRoot").innerHTML) return;
+  S.kurzNew=null; save();
+  const d=floatCard("kurzCard",`<span class="kb-pill">⚡ Kurzbesuch · +${k.pts} Punkte</span>
+    ${saysHtml("bay",k.n===1?"Rein, nachschauen, raus. Genau so mögen wir das.":`Rein, nachschauen, raus. Genau so mögen wir das. Zuletzt warst du ${k.n}× nur kurz da.`)}
+    <button class="btn" id="kbOk">Handy weglegen</button>`);
+  const close=()=>d.remove(); $("#kbOk").onclick=close; setTimeout(close,9000);
+  render();
+}
+const LUC_GO=["Du bist jetzt fünf Minuten hier. Die Insel ist nicht weggelaufen. Du schon gleich, oder?","Die Minute ist um. Ich zähl mit. Und ich vergesse nie.","Ich hab schon zwei Nickerchen gemacht, während du hier rumtippst. Geh."];
+function lucAsk(){
+  if(!ACC||!S||!S.setup||document.hidden) return;
+  if(S.boat||CALM||$("#modalRoot").innerHTML){lucArm(60000); return}
+  const min=Math.round((Date.now()-VISIT_AT)/60000), line=LUC_GO[Math.min(LUC_N,LUC_GO.length-1)]; LUC_N++;
+  const d=floatCard("lucGo",`<span class="kb-time">⏱ ${min} Minuten in OffLand</span>${saysHtml("luc",line)}
+    <div class="row"><button class="btn grow" id="lucOk">Okay, ich geh</button><button class="btn ghost grow" id="lucMore">Noch 1 Minute</button></div>`);
+  stat("lucifer_geh");
+  $("#lucOk").onclick=()=>{d.remove(); stat("lucifer_geh_ja"); toast("Bis später! Bildschirm aus 🌙")};
+  $("#lucMore").onclick=()=>{d.remove(); lucArm(60000)};
+}
+document.addEventListener("visibilitychange",()=>{if(document.hidden) visitEnd(); else visitStart()});
 function autoTick(){if(!ACC||!S||!S.setup||!ST) return; stStatus().then(()=>{if(!autoOn()) return; autoClose().then(n=>{if(!n&&tab==="heute"&&!$("#modalRoot").innerHTML) render()})})}
 document.addEventListener("visibilitychange",()=>{if(!document.hidden) autoTick()});
 setInterval(()=>{if(autoOn()&&(nextDay()<today()||!STT||STT.day!==today())) autoTick()},60000);
@@ -7519,6 +7585,7 @@ function login(p){
   if(S.setup&&famInvite()&&!S.family&&!$("#modalRoot").innerHTML) famJoinSheet(famInvite());
   if(S.family) setTimeout(famSync,1200);
   if(S.setup&&ST&&ST!==ST_SIM) autoTick();
+  visitStart();
   if(netOn()) netSync().then(()=>{if(tab==="heute"&&!$("#modalRoot").innerHTML)render()});
   setTimeout(()=>checkReplies(false),1500);
 }

@@ -157,6 +157,17 @@ test("iPhone-App: Mit Bildschirmzeit werden vergangene Tage automatisch eingetra
   expect(await page.evaluate(() => T.S.lastDay)).toBe(await page.evaluate(() => T.addDays(T.today(), -2)));
 });
 
+test("iPhone-App: Morgens eine Zusammenfassung statt Tagesbilanz und vieler Fenster", async ({ page }) => {
+  await withMeasure(page);
+  await newGameApp(page);
+  await page.evaluate(() => { T.S.autoTime = true; T.S.lastDay = T.addDays(T.today(), -3); T.S.pending = []; document.getElementById("modalRoot").innerHTML = ""; T.save(); T.autoTick(); });
+  await expect(page.locator("#modalRoot")).toContainText("Über Nacht auf deiner Insel");
+  await expect(page.locator("#modalRoot")).toContainText("Gestern am Handy");
+  await expect(page.locator("#modalRoot")).toContainText("Auch eingetragen:");                 // der vorletzte Tag nur als Zeile
+  expect(await page.evaluate(() => T.S.pending.filter(e => e.type === "day").length)).toBe(0);   // keine zweite Tagesbilanz
+  await page.click("#msOk");
+});
+
 test("iPhone-App: Fokus-Bootsfahrt ohne Vollbild (sonst meldet iOS „localhost ist im Vollbildmodus“)", async ({ page }) => {
   await newGameApp(page);
   const n = await page.evaluate(() => { let c = 0; document.documentElement.requestFullscreen = () => { c++; return Promise.resolve(); }; T.S.pending = []; T.startBoat(25, "lernen", ""); return c; });
