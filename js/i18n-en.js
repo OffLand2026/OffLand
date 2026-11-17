@@ -3114,4 +3114,6 @@ window.OFFLAND_EN={
 "Das Löschen kündigt es nicht. Kündigen kannst du es in den Abo-Einstellungen von Apple.": "Deleting does not cancel it. You can cancel it in Apple's subscription settings.",
 "Abo bei Apple verwalten": "Manage subscription with Apple",
 "Dein Inseljahr als Kalender, Bestwerte, die Hochrechnung aufs Jahr und die Auswertung deiner Fokuszeit.": "Your island year as a calendar, best values, the yearly projection and a breakdown of your focus time.",
+"{0} über dem Ziel": "{0} over target",
+"noch frei: {0}": "left: {0}",
 };
