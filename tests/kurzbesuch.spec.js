@@ -41,3 +41,16 @@ test("Entwickler-Vorschau zeigt die Morgen-Zusammenfassung mit Beispielwerten", 
   await page.click("#msOk");
   expect(await page.evaluate(() => T.S.points)).toBe(pts);   // nur Vorschau
 });
+
+test("App-Monster sind ausgeschaltet: kein Eintragen pro App, keine Limits, alte Monster verschwinden", async ({ page }) => {
+  await newGame(page, "Mia");
+  await page.evaluate(() => { T.S.allFeatures = true; T.S.testmode = true; T.S.pending = []; document.getElementById("modalRoot").innerHTML = ""; T.render(); });
+  if (await page.locator("#goalGo").count()) await page.click("#goalGo");
+  await expect(page.locator("text=oder pro App eintragen")).toHaveCount(0);
+  await page.evaluate(() => T.settingsSheet());
+  await expect(page.locator("#modalRoot")).not.toContainText("App-Limits für die Monster");
+  // Ein alter Spielstand mit Monstern: nach dem nächsten Anmelden sind sie weg
+  await page.evaluate(() => { T.S.monsters = [T.S.apps[0].id]; T.save(); });
+  await page.reload();   // gleiche Sitzung: meldet automatisch wieder an
+  await expect.poll(() => page.evaluate(() => (window.T && T.S.monsters || ["?"]).length)).toBe(0);
+});
