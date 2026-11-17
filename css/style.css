@@ -1153,3 +1153,13 @@ body.pw-open{overflow:hidden}
 #shieldCard .set-top,#stCard .set-top{align-items:flex-start}
 #shieldCard .set-top .set-mini{margin-top:2px}
 @media (prefers-reduced-motion:reduce){.switch,.switch::after,.set-chev{transition:none}}
+
+/* Insel-Schutz-Vorstellung: kleines Bild, wie der Schutz auf dem iPhone aussieht */
+.shi-phone{position:relative;margin:4px auto;width:min(100%,260px);background:#0E0F18;border:1.5px solid #2C2E3E;border-radius:28px;padding:30px 18px 16px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.shi-phone svg{width:76px;height:76px}
+.shi-phone b{font:800 15px/1.3 var(--display)}
+.shi-phone small{color:var(--muted);font-size:12px}
+.shi-tag{position:absolute;top:9px;left:50%;transform:translateX(-50%);font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.shi-b{margin-top:6px;width:100%;background:var(--lime);color:#14151F;font-weight:800;font-size:14px;border-radius:14px;padding:10px 0}
+.shi-s{color:var(--muted);font-size:12.5px;font-weight:700}
+.set-grid .btn:last-child:nth-child(odd){grid-column:1 / -1}

@@ -127,6 +127,51 @@ test("iPhone-App: Online testen zeigt Anmeldung und Lesen Schritt für Schritt",
   await expect(page.locator("#diagOut")).toContainText("✓ Online-Speicher lesen");
 });
 
+// Bildschirmzeit gemessen: 95 min an jedem Tag; die Messung läuft
+const withMeasure = page => page.addInitScript(() => {
+  const C = window.Capacitor, orig = C.nativePromise;
+  C.nativePromise = (plugin, method, opts) => {
+    if (plugin === "ScreenTime" && method === "status") return Promise.resolve({ available: true, status: "approved", monitoring: true, step: 5 });
+    if (plugin === "ScreenTime" && method === "minutes") return Promise.resolve({ day: opts.day, has: true, minutes: 95 });
+    return orig(plugin, method, opts);
+  };
+});
+
+test("iPhone-App: Mit Bildschirmzeit werden vergangene Tage automatisch eingetragen, heute nicht von Hand", async ({ page }) => {
+  await withMeasure(page);
+  await newGameApp(page);
+  await page.evaluate(() => { T.S.autoTime = true; T.S.setup = true; T.S.lastDay = T.addDays(T.today(), -3); T.S.pending = []; T.save(); T.autoTick(); });
+  await expect.poll(() => page.evaluate(() => T.S.lastDay)).toBe(await page.evaluate(() => T.addDays(T.today(), -1)));
+  expect(await page.evaluate(() => T.S.days.slice(-2).map(d => d.min))).toEqual([95, 95]);
+  await page.evaluate(() => { T.S.pending = []; document.getElementById("modalRoot").innerHTML = ""; T.render(); });
+  await expect(page.locator("#autoNote")).toContainText("Wird um Mitternacht automatisch eingetragen.");
+  await expect(page.locator("#autoNote")).toContainText("Heute bis jetzt 1 h 35 min");
+  await expect(page.locator("#closeBtn, #goalGo")).toHaveCount(0);
+  // Tag des Einrichtens bleibt zum Eintragen von Hand (dort fehlt evtl. die Zeit davor)
+  await page.evaluate(() => { T.S.lastDay = T.addDays(T.today(), -2); T.S.stSince = { day: T.addDays(T.today(), -1), at: "14:20" }; T.save(); T.autoTick(); });
+  await page.waitForTimeout(300);
+  expect(await page.evaluate(() => T.S.lastDay)).toBe(await page.evaluate(() => T.addDays(T.today(), -2)));
+});
+
+test("iPhone-App: Fokus-Bootsfahrt ohne Vollbild (sonst meldet iOS „localhost ist im Vollbildmodus“)", async ({ page }) => {
+  await newGameApp(page);
+  const n = await page.evaluate(() => { let c = 0; document.documentElement.requestFullscreen = () => { c++; return Promise.resolve(); }; T.S.pending = []; T.startBoat(25, "lernen", ""); return c; });
+  expect(n).toBe(0);
+  await expect(page.locator(".focus")).toBeVisible();
+});
+
+test("iPhone-App: Ab Tag 2 stellt Lucifer einmal den Insel-Schutz vor", async ({ page }) => {
+  await newGameApp(page);
+  expect(await page.evaluate(() => T.shieldIntroDue())).toBe(false);          // Tag 0
+  await page.evaluate(() => { T.S.dayCount = 2; });
+  expect(await page.evaluate(() => T.shieldIntroDue())).toBe(true);
+  await page.evaluate(() => { document.getElementById("modalRoot").innerHTML = ""; T.shieldIntroSheet(); });
+  await expect(page.locator("#modalRoot")).toContainText("Lucifer hat da was für dich");
+  await expect(page.locator("#modalRoot .shi-phone")).toContainText("App schließen");
+  await page.click("#shiNo");
+  expect(await page.evaluate(() => [T.S.shieldIntro, T.shieldIntroDue()])).toEqual([true, false]);   // nur einmal
+});
+
 test("iPhone-App: Die Szene startet mit MainViewController, der die eigenen Plugins registriert", () => {
   const fs = require("fs");
   const scene = fs.readFileSync("ios/App/App/SceneDelegate.swift", "utf8");

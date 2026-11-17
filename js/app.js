@@ -1268,7 +1268,8 @@ function startBoat(dur,cat,task){
   alarmSchedule(S.boat); liveStart(S.boat);
   if(S.shield&&S.shield.mode==="focus"&&ST&&ST.shieldFocus) ST.shieldFocus({on:true}).catch(()=>{});
   const el=document.documentElement;
-  if(el.requestFullscreen&&!document.fullscreenElement) el.requestFullscreen().catch(()=>{});
+  // Nur im Browser: In der iPhone-App ist schon alles Vollbild, dort meldet iOS sonst „localhost ist im Vollbildmodus“ und die Ansicht verrutscht
+  if(!isNativeApp()&&el.requestFullscreen&&!document.fullscreenElement) el.requestFullscreen().catch(()=>{});
   render();
 }
 function boatLeft(){if(!S.boat)return 0;return Math.max(0,S.boat.start+S.boat.dur*60000-Date.now())}
@@ -1668,6 +1669,7 @@ function closeDay(min,quests,appMin){
   plusEndCheck();
   seasonCheck();
   umfrageCheck();
+  if(shieldIntroDue()) S.pending.push({type:"shieldIntro"});   // ab Tag 2: Lucifer stellt den Insel-Schutz vor (einmal)
   if(S.music===undefined&&S.sound!==false&&!S.pending.some(e=>e.type==="musicAsk")) S.pending.push({type:"musicAsk"});   // kommt gleich nach der Tagesbilanz
   if(netConfigured()&&statsDev().consent===undefined&&!S.pending.some(e=>e.type==="statsAsk")) S.pending.push({type:"statsAsk"});   // steht hinten an: kommt beim nächsten Öffnen mit der Freischaltung
   sortPending(); PEND_BUDGET=3;
@@ -3254,12 +3256,12 @@ function baseCheck(){
 }
 function viewHeute(){
   const [mText,mCls]=mood();
-  const nd=nextDay(), ok=canClose()&&!S.vacation;
+  const nd=nextDay(), autoToday=autoOn()&&nd===today(), ok=canClose()&&!S.vacation&&!autoToday;
   const last=S.days[S.days.length-1];
   const p=curProjects()[S.projectIdx];
   const warn=S.warn?S.warn.ids.map(id=>S.residents.find(r=>r.id===id)).filter(Boolean):null;
   const wisher=S.wish?S.residents.find(r=>r.id===S.wish.rid):null;
-  const canNight=feature("nacht")&&S.lastDay&&!sleeping()&&(S.testmode||S.lastDay===today())&&!(S.night&&S.night.after===S.lastDay);
+  const canNight=feature("nacht")&&S.lastDay&&!sleeping()&&(S.testmode||S.lastDay===today()||(autoOn()&&S.lastDay===addDays(today(),-1)))&&!(S.night&&S.night.after===S.lastDay);
   const mons=(S.monsters||[]).map(id=>S.apps.find(a=>a.id===id)).filter(Boolean);
   const guard=S.vacation&&S.vacation.guard?S.residents.find(r=>r.id===S.vacation.guard):null;
   const closeFirst=ok&&(new Date().getHours()>=17||S.testmode);
@@ -3319,7 +3321,7 @@ function ringSvg(pct,big,small,col){
 /* Heute: eine Hauptaktion je nach Tageszustand (eintragen → Fokus-Bootsfahrt → abends Gute Nacht) */
 function actionCard(ok){
   if(!S.setup||S.vacation||S.boat) return "";
-  const boot=feature("boot")&&adults().length, night=feature("nacht")&&S.lastDay&&!sleeping()&&(S.testmode||S.lastDay===today())&&!(S.night&&S.night.after===S.lastDay);
+  const boot=feature("boot")&&adults().length, night=feature("nacht")&&S.lastDay&&!sleeping()&&(S.testmode||S.lastDay===today()||(autoOn()&&S.lastDay===addDays(today(),-1)))&&!(S.night&&S.night.after===S.lastDay);
   const eve=new Date().getHours()>=20;
   const chip=(id,ic,t)=>`<button class="act-chip" id="${id}">${ico(ic)} ${t}</button>`;
   const calm=chip("calmBtn","wave",S.calmDay===today()?"Inselminute ✓":"Inselminute");
@@ -3355,13 +3357,15 @@ function heuteMain(ok,nd,form){
     <div class="hm-plot" style="height:${PH}px"><span class="hm-goal" style="bottom:${hgt(S.budget).toFixed(1)}px"></span>
       ${week.map((d,i)=>`<span class="hm-col${i===week.length-1?" now":""}" title="${nice(d.day)}: ${hm(d.min)}"><i style="height:${hgt(d.min).toFixed(1)}px;background:${d.min<=S.budget?"var(--lime)":"var(--coral)"}"></i></span>`).join("")}</div>
     <div class="hm-days">${week.map((d,i)=>`<b${i===week.length-1?' class="now"':""}>${parse(d.day).toLocaleDateString(LOC,{weekday:"narrow"})}</b>`).join("")}</div></div>`:"";
+  const autoToday=autoOn()&&nd===today();
   const foot=form||(ok?`<button class="btn" id="goalGo">${nd===today()?"Tag eintragen":"Tag eintragen · "+nice(nd)}</button>`
-    :S.vacation?"":`<p class="hm-done"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Heute ist eingetragen. Bis morgen!</p>`);
+    :S.vacation?"":autoToday?`<p class="hm-done hm-auto" id="autoNote">⏱ ${STT&&STT.day===today()?`Heute bis jetzt ${hm(STT.min)}. `:""}Wird um Mitternacht automatisch eingetragen.</p>`
+    :`<p class="hm-done"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Heute ist eingetragen. Bis morgen!</p>`);
   return `<div class="card hmain">
     <div class="hm-head"><p class="label">${last?dayLabel(last.day):"Dein Tagesziel"}</p>${pills?`<div class="hm-pills">${pills}</div>`:""}</div>
     <h3 class="hm-title">${last?`<span class="hm-big" style="color:${col}" data-cu="${diff}">${hm(diff)}</span><span class="hm-word">${good?"unter dem Ziel":"über dem Ziel"}</span>`
       :`<span class="hm-big">${hm(S.budget)}</span><span class="hm-word">Bildschirmzeit am Tag</span>`}</h3>
-    ${last||form?"":`<p class="small muted">Trag abends ein, wie lange du am Handy warst.</p>`}
+    ${last||form?"":`<p class="small muted">${autoOn()?"OffLand misst mit und trägt jeden Tag um Mitternacht selbst ein.":"Trag abends ein, wie lange du am Handy warst."}</p>`}
     ${pl?`<p class="small muted">Vorhaben morgen: ${esc(pl.n)}</p>`:""}
     ${bar}${cols}
     ${foot}
@@ -3395,7 +3399,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.87";
+const APP_VERSION="1.88";
 // Entwicklermodus: per Schalter (7× auf „Version“) oder lokal im Browser. Die iPhone-App läuft auch unter
 // „localhost“ (capacitor://localhost), dort zählt nur der Schalter, sonst sähen alle den Entwickler-Bereich.
 function devMode(){try{const C=window.Capacitor, app=!!(C&&C.isNativePlatform&&C.isNativePlatform());
@@ -4028,7 +4032,7 @@ function settingsHtml(){
       ${diagHtml()}
       <div class="set-row" id="verLine" style="user-select:none">${setIco("info",IC_O)}<span class="set-t"><b>Version</b>${devMode()?"<small>Entwicklermodus</small>":""}</span><span class="set-val num">${APP_VERSION}</span></div>
     </div>`;
-  const devPrev=[["devSsn","Saison-Fenster"],["devWrap","Inseljahr-Story"],["devKurier","Insel-Kurier"],["devLive","Live-Insel"]];
+  const devPrev=[["devSsn","Saison-Fenster"],["devWrap","Inseljahr-Story"],["devKurier","Insel-Kurier"],["devLive","Live-Insel"],["devShi","Insel-Schutz-Intro"]];
   const dev=devMode()||S.testmode?`<details class="set-group set-dev"${S.testmode||devMode()?" open":""}><summary class="set-h">Entwickler</summary>
     <div class="card set-list">
       ${setToggle("tm","history",IC_O,"Testmodus","Beliebig viele Tage eintragen oder zufällig simulieren",!!S.testmode)}
@@ -4280,6 +4284,7 @@ function bind(){
   const dps=$("#devPlusSim"); if(dps) dps.onchange=()=>{try{dps.checked?localStorage.setItem("offland-store-sim","1"):localStorage.removeItem("offland-store-sim")}catch(e){} if(!dps.checked) plusSync(); save(); settingsSheet()};
   const dpo=$("#devPlusOn"); if(dpo) dpo.onclick=()=>{grantPlus(30); save(); toast("★ Plus für 30 Tage freigeschaltet"); settingsSheet()};
   const dss=$("#devSeason"); if(dss) dss.onchange=()=>{try{dss.value?localStorage.setItem("offland-season",dss.value):localStorage.removeItem("offland-season")}catch(e){} render(); settingsSheet()};
+  const dshi=$("#devShi"); if(dshi) dshi.onclick=()=>{closeModal(); shieldIntroSheet()};
   const dsb=$("#devSsn"); if(dsb) dsb.onclick=()=>{const z=seasonNow(); z?seasonSheet(z.id):toast("Gerade ist keine Saison. Wähl oben eine aus.")};
   const dwr=$("#devWrap"); if(dwr) dwr.onclick=()=>{const ps=wrapPeriods(); ps.length?wrapListSheet():toast("Für einen Rückblick braucht es "+WRAP_MIN.m+" eingetragene Tage in einem Monat.")};
   const dku=$("#devKurier"); if(dku) dku.onclick=()=>S.lastDay?kurierSheet(isoWeek(S.lastDay)):toast("Trag zuerst einen Tag ein.");
@@ -4593,7 +4598,7 @@ function soundFor(ev){
    Vorhaben-Nachfrage, Joker und Tagesbilanz kommen immer und zuerst. */
 let PEND_BUDGET=3;
 const PEND_MUST=new Set(["plan","jokerAsk","day","comeback","baseline","plusStart"]);
-const PEND_ORDER={plusStart:-2,comeback:-1,plan:0,jokerAsk:1,day:2,baseline:2.2,planAsk:3,bilanz:4,unlock:7,chapter:6,umfrage:8,statsAsk:9,musicAsk:2.5};
+const PEND_ORDER={plusStart:-2,comeback:-1,plan:0,jokerAsk:1,day:2,baseline:2.2,planAsk:3,bilanz:4,unlock:7,chapter:6,umfrage:8,statsAsk:9,musicAsk:2.5,shieldIntro:7.5};
 function sortPending(){const o=e=>PEND_ORDER[e.type]!=null?PEND_ORDER[e.type]:5; S.pending=S.pending.map((e,i)=>[e,i]).sort((a,b)=>o(a[0])-o(b[0])||a[1]-b[1]).map(x=>x[0])}
 function showPending(){
   if($("#modalRoot").innerHTML) return;
@@ -4627,6 +4632,7 @@ function showPending(){
   if(ev.type==="planAsk") return planAskSheet(ev);
   if(ev.type==="chapter") return chapterSheet(ev.n,true);
   if(ev.type==="umfrage") return umfrageSheet(ev);
+  if(ev.type==="shieldIntro"){CUR_EV=null; if(S.shieldIntro||(S.shield&&S.shield.mode&&S.shield.mode!=="off")) return showPending(); return shieldIntroSheet()}
   if(ev.type==="musicAsk"){CUR_EV=null; if(S.music!==undefined||S.sound===false) return showPending(); return musicAskSheet()}
   if(ev.type==="statsAsk"){CUR_EV=null; if(statsDev().consent!==undefined) return showPending(); return statsAskSheet()}
   if(ev.type==="jokerAsk"){
@@ -6886,6 +6892,30 @@ async function stSetup(fromEntry){
   }catch(e){if(fromEntry===true){S.stNoLink=true;save()} toast(String(e&&e.message||e).slice(0,120))}
   await stStatus(); if(fromEntry===true) render(); else settingsSheet();
 }
+/* Automatisch eintragen: Mit „Bildschirmzeit automatisch“ trägt OffLand jeden vergangenen Tag selbst ein (nach Mitternacht,
+   beim Öffnen oder Zurückkommen), mit dem gemessenen Wert. Den heutigen Tag schließt man dann nicht mehr von Hand ab.
+   Von Hand bleibt nur ein Tag ohne Messwert oder der Tag des Einrichtens (dort fehlt evtl. die Zeit davor). */
+const autoOn=()=>!!(ST&&ST!==ST_SIM&&S&&S.setup&&S.autoTime&&!S.testmode&&stInfo&&stInfo.status==="approved"&&stInfo.monitoring);
+let AUTO_BUSY=false, STT=null;   // STT: heute bis jetzt gemessen {day,min}
+async function autoClose(){
+  if(AUTO_BUSY||!autoOn()||S.vacation) return 0;
+  AUTO_BUSY=true; let n=0;
+  try{
+    while(nextDay()<today()&&n<14){
+      const d=nextDay();
+      if(S.stSince&&S.stSince.day===d) break;
+      let r; try{r=await ST.minutes({day:d})}catch(e){break}
+      if(!r||!r.has) break;
+      closeDay(clamp(r.minutes,0,1440),[],{}); n++;
+      if(n===1) stat("auto_eingetragen");
+    }
+    try{const r=await ST.minutes({day:today()}); STT=r&&r.has?{day:today(),min:r.minutes}:null}catch(e){}
+  }finally{AUTO_BUSY=false}
+  return n;
+}
+function autoTick(){if(!ACC||!S||!S.setup||!ST) return; stStatus().then(()=>{if(!autoOn()) return; autoClose().then(n=>{if(!n&&tab==="heute"&&!$("#modalRoot").innerHTML) render()})})}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden) autoTick()});
+setInterval(()=>{if(autoOn()&&(nextDay()<today()||!STT||STT.day!==today())) autoTick()},60000);
 /* Messung (neu) gestartet: Uhrzeit merken. iOS zählt die Zeit vor dem Start nicht immer mit, der Wert dieses Tages kann zu niedrig sein. */
 function stMarkStart(){const d=new Date(); S.stSince={day:today(),at:String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")}}
 /* Beim Eintragen: gemessene Zeit des einzutragenden Tages vorausfüllen */
@@ -6973,6 +7003,29 @@ function shieldIcon(who){
   <g clip-path="url(#shR)"><rect width="150" height="150" fill="url(#shSky)"/><circle cx="24" cy="22" r="1.4" fill="#F3F1EA" opacity=".8"/><circle cx="60" cy="14" r="1" fill="#F3F1EA" opacity=".7"/><circle cx="84" cy="30" r="1.1" fill="#F3F1EA" opacity=".7"/>
   <circle cx="114" cy="38" r="15" fill="#FFB38A"/><rect y="104" width="150" height="46" fill="#2C4770"/><path d="M2 108 Q75 74 148 108z" fill="#E8D7A6"/><path d="M14 104 Q75 78 136 104" fill="#7FC57A"/>
   <path d="M24 126h22M84 132h28M40 140h18" stroke="#4A6496" stroke-width="2.5" stroke-linecap="round"/>${ch}</g></svg>`;
+}
+/* Einmal ab Tag 2 (nur iPhone-App, Schutz noch nicht eingerichtet): Lucifer stellt den Insel-Schutz vor, mit Bild, wie es aussieht */
+const shieldIntroDue=()=>!!(isNativeApp()&&ST&&ST.shieldPick&&!S.shieldIntro&&S.dayCount>=2&&!(S.shield&&S.shield.mode&&S.shield.mode!=="off")&&!S.pending.some(e=>e.type==="shieldIntro"));
+async function shieldSetup(){
+  await ST.authorize(); await stStatus();
+  const r=await ST.shieldPick();
+  if(r&&r.ok&&(!S.shield||!S.shield.mode||S.shield.mode==="off")){S.shield=Object.assign(S.shield||{},{mode:"always"}); await shSet("always")}
+  save(); return !!(r&&r.ok);
+}
+function shieldIntroSheet(){
+  S.shieldIntro=true; save(); stat("schutz_intro");
+  sheet(`<p class="label" style="color:var(--amber)">Neu · Insel-Schutz</p><h2>Lucifer hat da was für dich</h2>
+    ${saysHtml("luc","Psst. Ich hab da was. Hab gehört, Leute haben damit aufgehört, alle fünf Minuten in ihre Apps zu glotzen. Die meisten haben es sogar überlebt.")}
+    <p class="muted">Du wählst Apps, die dich gern festhalten, zum Beispiel Instagram oder TikTok. Öffnest du eine davon, stehen erst Lucifer oder Mr. Bay in der Tür. Verboten wird nichts: „Trotzdem öffnen“ gibt sie ein paar Minuten frei.</p>
+    <div class="shi-phone" aria-label="So sieht der Insel-Schutz aus"><span class="shi-tag">So sieht es aus</span>${shieldIcon("luc")}
+      <b>„Leg es weg. Sonst schubs ich es vom Tisch. Du weißt, ich mach das.“</b><small>Lucifer · leg dein Handy lieber weg</small>
+      <span class="shi-b">App schließen</span><span class="shi-s">Trotzdem öffnen · 5 Min.</span></div>
+    <p class="small muted">OffLand sieht nicht, welche Apps du wählst. Wann der Schutz gilt (immer, in deinem Zeitraum oder während der Fokus-Bootsfahrt), stellst du danach ein.</p>
+    <button class="btn" id="shiYes">Jetzt einrichten</button><button class="btn ghost" id="shiNo" data-ok>Später</button>`);
+  $("#shiYes").onclick=async()=>{const b=$("#shiYes"); b.disabled=true;
+    let ok=false; try{ok=await shieldSetup()}catch(e){toast(String(e&&e.message||e).slice(0,120))}
+    closeModal(); render(); if(ok){stat("schutz_intro_ja"); toast("Insel-Schutz ist an. Lucifer steht in der Tür.")} showPending()};
+  $("#shiNo").onclick=()=>{closeModal(); render(); toast("Du findest den Insel-Schutz jederzeit in den Einstellungen unter iPhone."); showPending()};
 }
 async function shieldPreview(){
   let st={resisted:0,opened:0}; try{if(ST.shieldStats) st=(await ST.shieldStats({}))||st}catch(e){}
@@ -7463,6 +7516,7 @@ function login(p){
   if(S.setup&&pendingInvite()&&!$("#modalRoot").innerHTML) inviteSheet();
   if(S.setup&&famInvite()&&!S.family&&!$("#modalRoot").innerHTML) famJoinSheet(famInvite());
   if(S.family) setTimeout(famSync,1200);
+  if(S.setup&&ST&&ST!==ST_SIM) autoTick();
   if(netOn()) netSync().then(()=>{if(tab==="heute"&&!$("#modalRoot").innerHTML)render()});
   setTimeout(()=>checkReplies(false),1500);
 }
