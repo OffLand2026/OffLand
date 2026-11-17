@@ -145,7 +145,11 @@ test("iPhone-App: Mit Bildschirmzeit werden vergangene Tage automatisch eingetra
   expect(await page.evaluate(() => T.S.days.slice(-2).map(d => d.min))).toEqual([95, 95]);
   await page.evaluate(() => { T.S.pending = []; document.getElementById("modalRoot").innerHTML = ""; T.render(); });
   await expect(page.locator("#autoNote")).toContainText("Wird um Mitternacht automatisch eingetragen.");
-  await expect(page.locator("#autoNote")).toContainText("Heute bis jetzt 1 h 35 min");
+  // Die Karte zeigt heute bis jetzt (95 min von 3 h), gestern nur als kleine Zeile
+  await expect(page.locator(".hmain .hm-head .label")).toHaveText("Heute bis jetzt");
+  await expect(page.locator(".hmain .hm-title")).toContainText("1 h 25 min");
+  await expect(page.locator(".hmain .hm-title")).toContainText("noch frei");
+  await expect(page.locator(".hmain .hm-prev")).toContainText("1 h 35 min · im Ziel");
   await expect(page.locator("#closeBtn, #goalGo")).toHaveCount(0);
   // Tag des Einrichtens bleibt zum Eintragen von Hand (dort fehlt evtl. die Zeit davor)
   await page.evaluate(() => { T.S.lastDay = T.addDays(T.today(), -2); T.S.stSince = { day: T.addDays(T.today(), -1), at: "14:20" }; T.save(); T.autoTick(); });
