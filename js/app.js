@@ -3364,11 +3364,12 @@ function heuteMain(ok,nd,form){
     <div class="hm-days">${week.map((d,i)=>`<b${i===week.length-1?' class="now"':""}>${parse(d.day).toLocaleDateString(LOC,{weekday:"narrow"})}</b>`).join("")}</div></div>`:"";
   const autoToday=autoOn()&&nd===today();
   const foot=form||(ok?`<button class="btn" id="goalGo">${nd===today()?"Tag eintragen":"Tag eintragen · "+nice(nd)}</button>`
-    :S.vacation?"":autoToday?`<p class="hm-done hm-auto" id="autoNote">⏱ Wird um Mitternacht automatisch eingetragen.</p>`
+    :S.vacation||autoToday?""
     :`<p class="hm-done"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Heute ist eingetragen. Bis morgen!</p>`);
   return `<div class="card hmain">
     <div class="hm-head"><p class="label">${last&&last.live?"Heute bis jetzt":last?dayLabel(last.day):"Dein Tagesziel"}</p>${pills?`<div class="hm-pills">${pills}</div>`:""}</div>
-    <h3 class="hm-title">${last?`<span class="hm-big" style="color:${col}" data-cu="${diff}">${hm(diff)}</span><span class="hm-word">${last.live?(good?"noch frei":"über dem Ziel"):good?"unter dem Ziel":"über dem Ziel"}</span>`
+    <h3 class="hm-title">${last&&last.live?`<span class="hm-big" style="color:${col}" data-cu="${last.min}">${hm(last.min)}</span><span class="hm-word">${good?`noch frei: ${hm(diff)}`:`${hm(diff)} über dem Ziel`}</span>`
+      :last?`<span class="hm-big" style="color:${col}" data-cu="${diff}">${hm(diff)}</span><span class="hm-word">${good?"unter dem Ziel":"über dem Ziel"}</span>`
       :`<span class="hm-big">${hm(S.budget)}</span><span class="hm-word">Bildschirmzeit am Tag</span>`}</h3>
     ${last||form?"":`<p class="small muted">${autoOn()?"OffLand misst mit und trägt jeden Tag um Mitternacht selbst ein.":"Trag abends ein, wie lange du am Handy warst."}</p>`}
     ${pl?`<p class="small muted">Vorhaben morgen: ${esc(pl.n)}</p>`:""}
@@ -3404,7 +3405,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.93";
+const APP_VERSION="1.94";
 // Entwicklermodus: per Schalter (7× auf „Version“) oder lokal im Browser. Die iPhone-App läuft auch unter
 // „localhost“ (capacitor://localhost), dort zählt nur der Schalter, sonst sähen alle den Entwickler-Bereich.
 function devMode(){try{const C=window.Capacitor, app=!!(C&&C.isNativePlatform&&C.isNativePlatform());
