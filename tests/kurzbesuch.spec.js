@@ -54,3 +54,14 @@ test("App-Monster sind ausgeschaltet: kein Eintragen pro App, keine Limits, alte
   await page.reload();   // gleiche Sitzung: meldet automatisch wieder an
   await expect.poll(() => page.evaluate(() => (window.T && T.S.monsters || ["?"]).length)).toBe(0);
 });
+
+test("Konto löschen: Hinweis, dass ein Plus-Abo über Apple weiterläuft", async ({ page }) => {
+  await newGame(page, "Mia");
+  await page.evaluate(() => { T.S.pending = []; document.getElementById("modalRoot").innerHTML = ""; T.save(); });
+  await page.click("#accBtn"); await page.click("#accDel");
+  await expect(page.locator("#delSub")).toHaveCount(0);                 // ohne Abo kein Hinweis
+  await page.evaluate(() => { document.getElementById("modalRoot").innerHTML = ""; T.S.plusSub = { until: T.addDays(T.today(), 300), trial: false }; T.save(); });
+  await page.click("#accBtn"); await page.click("#accDel");
+  await expect(page.locator(".del-sub")).toContainText("Das Löschen kündigt es nicht.");
+  await expect(page.locator("#delSub")).toHaveText("Abo bei Apple verwalten");
+});

@@ -3110,4 +3110,8 @@ window.OFFLAND_EN={
 "Guten Morgen, {0}": "Good morning, {0}",
 "{0} am Handy · {1} {2} dem Ziel": "{0} on the phone · {1} {2} target",
 "Morgen-Zusammenfassung": "Morning summary",
+"★ Dein OffLand-Plus-Abo läuft über deine Apple-ID weiter.": "★ Your OffLand Plus subscription continues through your Apple ID.",
+"Das Löschen kündigt es nicht. Kündigen kannst du es in den Abo-Einstellungen von Apple.": "Deleting does not cancel it. You can cancel it in Apple's subscription settings.",
+"Abo bei Apple verwalten": "Manage subscription with Apple",
+"Dein Inseljahr als Kalender, Bestwerte, die Hochrechnung aufs Jahr und die Auswertung deiner Fokuszeit.": "Your island year as a calendar, best values, the yearly projection and a breakdown of your focus time.",
 };

@@ -1176,3 +1176,7 @@ body.pw-open{overflow:hidden}
 .kb-pill{display:inline-flex;gap:6px;align-items:center;background:#24331C;color:var(--lime);font-weight:800;border-radius:999px;padding:6px 12px;font-size:13.5px;align-self:flex-start}
 .kb-time{align-self:flex-start;color:var(--amber);font:800 13px var(--body);border-radius:999px;padding:5px 11px;border:1px solid #6b4f24;background:#2a2114}
 @media (prefers-reduced-motion:reduce){.kb{animation:none}}
+
+/* Konto löschen: Hinweis aufs weiterlaufende Abo */
+.del-sub{background:#231E15;border:1.5px solid #6b4f24;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.del-sub p{margin:0}
