@@ -2,6 +2,17 @@
 
 Alles zum Kopieren für **App Store Connect → deine App**. Die Zeichengrenzen von Apple sind geprüft.
 
+**Einreichen, Schritt für Schritt**
+1. App Store Connect → OffLand → **App-Informationen**: Abschnitt 1 eintragen, Datenschutz-URL, Kategorie.
+2. **App-Datenschutz**: Abschnitt 7 durchklicken und veröffentlichen.
+3. **Preise und Verfügbarkeit**: Kostenlos, Länder wählen.
+4. Abos anlegen (Abschnitt 11) und mit der Version einreichen, sonst Plus vorerst weglassen.
+5. Version **1.0** (iOS-App): Screenshots (Abschnitt 9), Werbetext, Beschreibung, Keywords, Support- und Marketing-URL, Neuerungen.
+6. **Build** auswählen (der neueste aus TestFlight, mit Bildschirmzeit).
+7. **App-Prüfung**: Kontakt, Notizen aus Abschnitt 6, „Anmeldung erforderlich“ aus (OffLand braucht kein Konto).
+8. Altersfreigabe (Abschnitt 8) ausfüllen.
+9. **Zur Prüfung einreichen**. Apple prüft meist in 1–3 Tagen.
+
 ## 1. App-Informationen
 
 | Feld | Inhalt |
@@ -27,34 +38,44 @@ Weniger Bildschirmzeit, glücklichere Insel: Jeder gute Tag holt einen Bewohner 
 ```
 Was wäre, wenn weniger Handy sich anfühlt wie gewinnen?
 
-OffLand ist eine kleine Insel, die nur wächst, wenn du nicht am Handy bist. Statt Verboten, Sperren und schlechtem Gewissen setzt OffLand auf Verantwortung und Gefühl: Deine Bewohner zählen auf dich.
+OffLand ist eine kleine Insel, die nur wächst, wenn du nicht am Handy bist. Statt Verboten und schlechtem Gewissen setzt OffLand auf Verantwortung und Gefühl: Deine Bewohner zählen auf dich.
 
 SO FUNKTIONIERT'S
 • Setz dir ein Tagesziel für deine Bildschirmzeit.
-• Trag abends ein, wie lange du am Handy warst – oder lass OffLand es auf dem iPhone automatisch mitzählen.
+• OffLand misst auf dem iPhone automatisch mit und trägt jeden Tag um Mitternacht selbst ein. Du kannst auch von Hand eintragen.
 • Bleibst du im Ziel, wird deine Insel glücklicher: Bewohner ziehen ein, Großprojekte entstehen, Feste werden gefeiert.
 • Zu viel Handy bringt Wolken, Streit und App-Monster vor die Küste.
 
+KURZ REIN, KURZ RAUS
+OffLand will dich nicht festhalten. Morgens gibt es eine kurze Zusammenfassung, kurze Besuche bringen Bonuspunkte, und nach fünf Minuten fragt Lucifer, ob du nicht langsam gehen willst.
+
+DER INSEL-SCHUTZ
+Wähl Apps, die dich gern festhalten. Öffnest du eine davon, stehen erst Lucifer oder Mr. Bay in der Tür – Lucifer mit schwarzem Humor, Mr. Bay mit ganz viel Gefühl. Verboten wird nichts: „Trotzdem öffnen“ gibt die App ein paar Minuten frei. Immer, in deinem eigenen Zeitraum oder während der Fokus-Bootsfahrt.
+
 VOM SMOMBIE ZUM MENSCHEN
-Neue Bewohner kommen als dunkle Schatten vom Festland, den Blick aufs leuchtende Handy gesenkt. Mit jedem guten Tag richten sie sich ein Stück auf, bekommen ihre Farbe zurück – und jubeln, wenn deine Insel ganz glücklich ist.
+Neue Bewohner kommen als dunkle Schatten vom Festland, den Blick aufs leuchtende Handy gesenkt. Mit jedem guten Tag richten sie sich ein Stück auf, bekommen ihre Farbe zurück und jubeln, wenn deine Insel ganz glücklich ist.
 
 DEINE INSEL, DEINE LEUTE
-• Gestalte jeden Bewohner in der Umkleide: Frisur, Bart, Muster, Extras – oder einer von 16 fertigen Looks.
+• Gestalte jeden Bewohner in der Umkleide: Frisur, Bart, Muster, Extras.
 • Mr. Bay, der leicht übermotivierte Bürgermeister, und Lucifer, die freche Inselkatze, erzählen dir die Geschichte von OffLand in Kapiteln.
 • Bewohner schreiben dir Postkarten, haben Wünsche und erzählen im Inselgeflüster, was los ist.
-• Reise später weiter: Tropeninsel, Fjorde, Wüste und Eis.
 
 SIEH, WAS DU GEWINNST
-• Gewonnene Zeit pro Woche und hochgerechnet aufs Jahr, mit Vergleichen, die man fühlt.
+• Gewonnene Zeit pro Woche und hochgerechnet aufs Jahr.
 • Fokus-Bootsfahrt: Handy weg, Boot fährt raus, du konzentrierst dich.
 • Inselminute: eine Minute Meeresrauschen zum Durchatmen.
+• Widget für Home- und Sperrbildschirm: Wie viel von deinem Tagesbudget ist schon verbraucht?
 
 ZUSAMMEN STATT ALLEIN
 • Freunde, Wochen-Ranglisten und freundliche Duelle.
 • Die Familieninsel: Eltern und Kinder bauen gemeinsam an einer Insel.
 
 DEINE DATEN BLEIBEN BEI DIR
-OffLand funktioniert ohne Anmeldung. Deine Insel liegt auf deinem Gerät. Keine Werbung, kein Tracking, kein Verkauf von Daten. Online-Funktionen wie Freunde, Backup oder Familieninsel sind freiwillig.
+OffLand funktioniert ohne Anmeldung. Deine Insel liegt auf deinem Gerät. OffLand sieht nie, welche Apps du nutzt oder wählst, nur die Gesamtzeit. Keine Werbung, kein Tracking, kein Verkauf von Daten. Online-Funktionen wie Freunde, Backup oder Familieninsel sind freiwillig.
+
+OffLand Plus ist ein optionales Abo (monatlich oder jährlich, Familien-Abo für bis zu 6 Personen) mit kostenloser Probewoche beim Jahresabo. Die Zahlung erfolgt über deine Apple-ID; das Abo verlängert sich automatisch, wenn du es nicht mindestens 24 Stunden vor Ablauf in deinen Apple-ID-Einstellungen kündigst. Alles Wichtige bleibt kostenlos.
+Nutzungsbedingungen: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Datenschutz: https://offlandapp.com/datenschutz/
 
 Weniger Handy. Mehr Insel.
 ```
@@ -62,7 +83,7 @@ Weniger Handy. Mehr Insel.
 ## 4. Keywords (max. 100, ohne Leerzeichen nach Kommas)
 
 ```
-bildschirmzeit,handyzeit,digital detox,fokus,achtsamkeit,gewohnheit,insel,familie,offline,smartphone
+bildschirmzeit,handyzeit,digital detox,app limit,fokus,achtsamkeit,gewohnheit,offline,smartphone
 ```
 
 ## 5. Neuerungen dieser Version (erste Version)
@@ -73,12 +94,18 @@ Willkommen auf OffLand! Die erste Version: deine Insel, deine Bewohner und jeder
 
 ## 6. Hinweise für das App-Review-Team
 
-Unter **App-Prüfung → Notizen**:
+Unter **App-Prüfung → Notizen** (englisch, Apple liest das):
 
 ```
-OffLand needs no account. Tap "Konto anlegen", enter any name and start the island.
-To see progress quickly: Settings (avatar top right) → tap the version line 7 times → enable "Testmodus". A bar appears above the tab bar to simulate good/bad days.
-Screen Time: "Bildschirmzeit automatisch" uses the Family Controls / DeviceActivity framework only on-device to count usage in 5-minute steps. No screen time data leaves the device unless the user joins optional friend rankings (weekly average minutes only).
+OffLand needs no account. Tap "Meine Insel gründen", enter any name and start the island.
+
+Screen Time (Family Controls, individual authorization only): Settings (avatar top right) → iPhone → "Bildschirmzeit automatisch" → "Einrichten". The DeviceActivityMonitor extension stores only the highest reached usage threshold per day (5-minute steps) on-device; days are logged automatically after midnight. We never see which apps or websites are used.
+
+Island guard (ManagedSettings shield): Settings → iPhone → "Insel-Schutz" → "Einrichten", pick apps, choose when it applies. Opening a picked app shows our shield with a character line and two buttons: "App schließen" (close) and "Trotzdem öffnen" (unlock for 1/5/15 minutes). Nothing is ever blocked without the "open anyway" option. The user can turn it off at any time.
+
+To see progress quickly: Settings → tap the "Version" line 7 times → a developer section appears. Turn on "Testmodus" to simulate good and bad days.
+
+OffLand Plus (optional subscriptions) can be tested in the sandbox: Settings → OffLand Plus → "Plus ansehen".
 Online features (friends, backup, family island) are optional and use Firebase (EU region).
 ```
 
@@ -105,23 +132,25 @@ Diese Angaben passen zum Datenschutz-Manifest in `ios/App/App/PrivacyInfo.xcpriv
 
 ## 8. Altersfreigabe
 
-Im Fragebogen überall **Keine** bzw. **Nein** auswählen. Es gibt keine Gewalt, keine Glücksspiele und keine Käufe. Nur bei „Unbeschränkter Webzugang“ und „Nutzergenerierte Inhalte“ genau hinschauen: OffLand hat keinen offenen Webbrowser und keinen offenen Chat. Spitznamen sind für Freunde sichtbar, mehr nicht.
+Im Fragebogen überall **Keine** bzw. **Nein** auswählen: keine Gewalt, kein Glücksspiel, keine Inhalte für Erwachsene. Genau hinschauen bei:
+- **Unbeschränkter Webzugang:** Nein, OffLand hat keinen offenen Browser.
+- **Nutzergenerierte Inhalte / Kommunikation:** Spitznamen sind für Freund:innen sichtbar, es gibt keinen offenen Chat.
+- **In-App-Käufe:** Ja (OffLand Plus). Das ändert die Freigabe nicht, wird aber im Store angezeigt.
 
-Ergebnis ist voraussichtlich **4+**. Laut Datenschutzerklärung ist OffLand ab 12 gedacht. Das passt trotzdem, denn die Freigabe sagt nur, dass nichts Ungeeignetes drin ist.
+Ergebnis voraussichtlich **4+**. Laut Datenschutzerklärung ist OffLand ab 12 gedacht; das passt trotzdem, die Freigabe sagt nur, dass nichts Ungeeignetes drin ist.
 
 ## 9. Screenshots
 
-Die App ist nur fürs iPhone freigegeben, iPad-Screenshots braucht es nicht. Apple verlangt Screenshots für das **6,9"-iPhone** (1320 × 2868 Pixel). Kleinere iPhones werden daraus automatisch erzeugt. Die fertigen Bilder (1320 × 2868) bekommst du von Claude. Reihenfolge:
+Nur iPhone. Apple verlangt Screenshots für das **6,9"-iPhone** (1320 × 2868 Pixel), kleinere Größen erzeugt Apple selbst. 3 bis 10 Bilder, die ersten drei sieht man in der Suche. Vorschlag (Claude kann sie aus der App erzeugen):
 
 1. Insel mit glücklichen Bewohnern: „Weniger Handy. Mehr Insel.“
-2. Verwandlung vom Smombie zum Menschen: „Jeder gute Tag holt jemanden zurück“
-3. Abend eintragen: „Ziel geschafft? Deine Insel wächst“
-4. Umkleide: „Gestalte deine Bewohner“
-5. Gewonnene Zeit: „Sieh, was du gewinnst“
-6. Bewohner: „Deine Insel, deine Leute“
-7. Freunde: „Zusammen statt allein“
-
-Bild 7 erwähnt im Freunde-Text „einen Monat Plus“. Wenn Plus in der Store-Version ausgeblendet ist, Bild 7 weglassen, sonst kann die Prüfung das bemängeln.
+2. Insel-Schutz mit Lucifer: „Lucifer steht in der Tür“
+3. Heute-Karte „noch 1 h 25 min frei“: „Misst automatisch mit“
+4. Verwandlung vom Smombie zum Menschen: „Jeder gute Tag holt jemanden zurück“
+5. Morgen-Zusammenfassung: „Kurz rein, kurz raus“
+6. Widget auf dem Homescreen: „Dein Budget immer im Blick“
+7. Umkleide: „Gestalte deine Bewohner“
+8. Freunde: „Zusammen statt allein“ (nur wenn Plus im Store sichtbar ist, sonst weglassen: der Text erwähnt „einen Monat Plus“)
 
 ## 10. Antrag auf Family Controls (Bildschirmzeit)
 
