@@ -71,3 +71,15 @@ test("Start: bisherigen Schnitt automatisch messen, nach 7 Tagen übernommen", a
   await expect(page.locator("#modalRoot")).toContainText("Dein Schnitt: 2 h 30 min");
   expect(await page.evaluate(() => T.S.baseline)).toBe(150);
 });
+
+test("Bildschirmzeit: Am Tag des Einrichtens weist das Eintragen darauf hin, dass erst ab dann gemessen wurde", async ({ page }) => {
+  await newGame(page, "Mia");
+  await page.evaluate(() => {
+    T.ST_SIM.now = () => ({ available: true, simulated: false, status: "approved", monitoring: true, step: 5 });   // wie auf dem iPhone
+    T.S.testmode = true; T.S.stSim = { status: "approved", monitoring: true }; T.S.autoTime = true;
+    T.S.stSince = { day: T.S.days.length ? T.addDays(T.S.days[T.S.days.length - 1].date, 1) : T.today(), at: "14:20" };
+    T.save(); T.render();
+  });
+  await expect(page.locator("#stNote")).toContainText("Gemessen erst seit 14:20");
+  await expect(page.locator("#stNote")).toContainText("Ab morgen misst OffLand ab 0:00.");
+});

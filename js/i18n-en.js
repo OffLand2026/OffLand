@@ -3063,4 +3063,6 @@ window.OFFLAND_EN={
 "Na gut. Der Hai hat heute frei.": "Fine. The shark gets the day off.",
 "Okay, du lebst noch. {0}× widerstanden.": "Okay, you're still alive. {0}× resisted.",
 "Lucifer: Okay, {0} Minuten. Ich stell die Uhr.": "Lucifer: Okay, {0} minutes. I'm setting the timer.",
+"mindestens {0}. Vergleich bitte mit der Bildschirmzeit in den iPhone-Einstellungen und trag den ganzen Tag ein. Ab morgen misst OffLand ab 0:00.": "at least {0}. Please compare with Screen Time in your iPhone settings and enter the whole day. From tomorrow OffLand measures from midnight.",
+"Gemessen erst seit {0}:": "Only measured since {0}:",
 };

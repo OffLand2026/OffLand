@@ -3395,7 +3395,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.86";
+const APP_VERSION="1.87";
 // Entwicklermodus: per Schalter (7× auf „Version“) oder lokal im Browser. Die iPhone-App läuft auch unter
 // „localhost“ (capacitor://localhost), dort zählt nur der Schalter, sonst sähen alle den Entwickler-Bereich.
 function devMode(){try{const C=window.Capacitor, app=!!(C&&C.isNativePlatform&&C.isNativePlatform());
@@ -4177,7 +4177,7 @@ function bind(){
     if(SETUP_AUTO&&!S.setup){
       let ok=false; try{await ST.authorize(); const r=await ST.pickApps(); ok=!!(r&&r.ok)}catch(e){}
       await stStatus();
-      if(ok){S.autoTime=true; S.baseMeasure={since:today()}}
+      if(ok){S.autoTime=true; S.baseMeasure={since:today()}; stMarkStart()}
       else {S.stNoLink=true; toast("Kein Zugriff auf die Bildschirmzeit. Du kannst den Schnitt später in den Einstellungen anpassen.")}
     }
     S.setup=true;stat("insel_start");log("Deine Insel ist gegründet. "+nameList(here().map(r=>r.name))+" ziehen ein.","good");plusTrialStart();save();render();if(famInvite())famJoinSheet(famInvite());else showPending()};
@@ -4188,7 +4188,7 @@ function bind(){
   document.querySelectorAll("[data-bau]").forEach(b=>b.onclick=()=>{bauTab=b.dataset.bau;render();const t=$("[data-bau]");if(t&&t.getBoundingClientRect().top<0)t.scrollIntoView({block:"start"})});
   const stS=$("#stSetup"); if(stS) stS.onclick=stSetup;
   const stE=$("#stEntry"); if(stE) stE.onclick=()=>stSetup(true);
-  const stA=$("#stApps"); if(stA) stA.onclick=async()=>{try{await ST.pickApps()}catch(e){} await stStatus(); settingsSheet()};
+  const stA=$("#stApps"); if(stA) stA.onclick=async()=>{try{const r=await ST.pickApps(); if(r&&r.ok){stMarkStart();save()}}catch(e){} await stStatus(); settingsSheet()};
   bindShieldCard();
   const stO=$("#stOff"); if(stO) stO.onclick=async()=>{try{await ST.stop()}catch(e){} S.autoTime=false; S.stNoLink=true; save(); await stStatus(); settingsSheet()};
   ["#inH","#inM"].forEach(id=>{const el=$(id); if(el) el.addEventListener("input",()=>{el.dataset.touched="1"})});
@@ -6881,11 +6881,13 @@ async function stSetup(fromEntry){
   try{
     await ST.authorize();
     const r=await ST.pickApps();
-    if(r&&r.ok){S.autoTime=true;save();toast("Bildschirmzeit wird jetzt automatisch gemessen")}
+    if(r&&r.ok){S.autoTime=true;stMarkStart();save();toast("Bildschirmzeit wird jetzt automatisch gemessen")}
     else if(fromEntry===true){S.stNoLink=true;save()}
   }catch(e){if(fromEntry===true){S.stNoLink=true;save()} toast(String(e&&e.message||e).slice(0,120))}
   await stStatus(); if(fromEntry===true) render(); else settingsSheet();
 }
+/* Messung (neu) gestartet: Uhrzeit merken. iOS zählt die Zeit vor dem Start nicht immer mit, der Wert dieses Tages kann zu niedrig sein. */
+function stMarkStart(){const d=new Date(); S.stSince={day:today(),at:String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")}}
 /* Beim Eintragen: gemessene Zeit des einzutragenden Tages vorausfüllen */
 async function stFill(){
   if(!ST||!$("#inH")) return;
@@ -6893,6 +6895,8 @@ async function stFill(){
   const day=nextDay(); let r; try{r=await ST.minutes({day})}catch(e){return}
   const h=$("#inH"), m=$("#inM"), note=$("#stNote"); if(!h||!r||!r.has) return;
   if(!h.dataset.touched&&!m.dataset.touched){h.value=Math.floor(r.minutes/60);m.value=r.minutes%60;liveUpdate()}
+  const part=!i.simulated&&S.stSince&&S.stSince.day===day;   // am Tag des Einrichtens evtl. erst ab dann gezählt (die Simulation zählt immer den ganzen Tag)
+  if(note&&part){note.innerHTML=`<b style="color:var(--amber)">Gemessen erst seit ${S.stSince.at}:</b> mindestens ${hm(r.minutes)}. Vergleich bitte mit der Bildschirmzeit in den iPhone-Einstellungen und trag den ganzen Tag ein. Ab morgen misst OffLand ab 0:00.`; return}
   if(note) note.innerHTML=`<b style="color:var(--lime)">Automatisch gemessen${i.simulated?" (Simulation)":""}:</b> mindestens ${hm(r.minutes)}${day===today()?" bis jetzt":""}. Apple meldet die Zeit in ${(i.step||ST_STEP)}-Minuten-Schritten, darum kann es bis zu ${(i.step||ST_STEP)-1} Minuten mehr gewesen sein.`;
 }
 
