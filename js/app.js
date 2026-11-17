@@ -3341,7 +3341,9 @@ function boatPick(){
 /* Heute: Hauptkarte (letzter eingetragener Tag) – große Zahl, schmaler Balken, Wochensäulen, Eintragen */
 function heuteMain(ok,nd,form){
   if(form) return `<div class="card hmain">${form}</div>`;
-  const last=S.days[S.days.length-1], week=S.days.slice(-7), good=last&&last.min<=S.budget;
+  // Automatisch gemessen: Die Karte zeigt heute bis jetzt, gestern nur noch als kleine Zeile
+  const live=autoOn()&&nd===today()&&STT&&STT.day===today()?STT.min:null, prev=S.days[S.days.length-1];
+  const last=live!=null?{day:today(),min:live,live:true}:prev, week=S.days.slice(-7), good=last&&last.min<=S.budget;
   const col=!last||good?"var(--lime)":"var(--coral)", diff=last?Math.abs(S.budget-last.min):0;
   const pl=S.plan&&!S.plan.res&&S.plan.day>today()?PLANS.find(x=>x.id===S.plan.id):null;   // Vorhaben für heute hat eine eigene Karte
   const pills=[last&&last.pts>0&&last.day===S.lastDay?`<span class="hm-pill pts">+${last.pts} Punkte</span>`:"",S.budgetStreak>1?`<span class="hm-pill" title="${S.budgetStreak} Tage in Folge im Ziel">🔥 ${S.budgetStreak}</span>`:"",
@@ -3359,15 +3361,15 @@ function heuteMain(ok,nd,form){
     <div class="hm-days">${week.map((d,i)=>`<b${i===week.length-1?' class="now"':""}>${parse(d.day).toLocaleDateString(LOC,{weekday:"narrow"})}</b>`).join("")}</div></div>`:"";
   const autoToday=autoOn()&&nd===today();
   const foot=form||(ok?`<button class="btn" id="goalGo">${nd===today()?"Tag eintragen":"Tag eintragen · "+nice(nd)}</button>`
-    :S.vacation?"":autoToday?`<p class="hm-done hm-auto" id="autoNote">⏱ ${STT&&STT.day===today()?`Heute bis jetzt ${hm(STT.min)}. `:""}Wird um Mitternacht automatisch eingetragen.</p>`
+    :S.vacation?"":autoToday?`<p class="hm-done hm-auto" id="autoNote">⏱ Wird um Mitternacht automatisch eingetragen.</p>`
     :`<p class="hm-done"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Heute ist eingetragen. Bis morgen!</p>`);
   return `<div class="card hmain">
-    <div class="hm-head"><p class="label">${last?dayLabel(last.day):"Dein Tagesziel"}</p>${pills?`<div class="hm-pills">${pills}</div>`:""}</div>
-    <h3 class="hm-title">${last?`<span class="hm-big" style="color:${col}" data-cu="${diff}">${hm(diff)}</span><span class="hm-word">${good?"unter dem Ziel":"über dem Ziel"}</span>`
+    <div class="hm-head"><p class="label">${last&&last.live?"Heute bis jetzt":last?dayLabel(last.day):"Dein Tagesziel"}</p>${pills?`<div class="hm-pills">${pills}</div>`:""}</div>
+    <h3 class="hm-title">${last?`<span class="hm-big" style="color:${col}" data-cu="${diff}">${hm(diff)}</span><span class="hm-word">${last.live?(good?"noch frei":"über dem Ziel"):good?"unter dem Ziel":"über dem Ziel"}</span>`
       :`<span class="hm-big">${hm(S.budget)}</span><span class="hm-word">Bildschirmzeit am Tag</span>`}</h3>
     ${last||form?"":`<p class="small muted">${autoOn()?"OffLand misst mit und trägt jeden Tag um Mitternacht selbst ein.":"Trag abends ein, wie lange du am Handy warst."}</p>`}
     ${pl?`<p class="small muted">Vorhaben morgen: ${esc(pl.n)}</p>`:""}
-    ${bar}${cols}
+    ${bar}${last&&last.live&&prev?`<p class="small muted hm-prev">${dayLabel(prev.day)}: ${hm(prev.min)} · ${prev.min<=S.budget?"im Ziel":"über dem Ziel"}</p>`:""}${cols}
     ${foot}
   </div>`;
 }
@@ -3399,7 +3401,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.88";
+const APP_VERSION="1.89";
 // Entwicklermodus: per Schalter (7× auf „Version“) oder lokal im Browser. Die iPhone-App läuft auch unter
 // „localhost“ (capacitor://localhost), dort zählt nur der Schalter, sonst sähen alle den Entwickler-Bereich.
 function devMode(){try{const C=window.Capacitor, app=!!(C&&C.isNativePlatform&&C.isNativePlatform());

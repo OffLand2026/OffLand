@@ -3081,4 +3081,7 @@ window.OFFLAND_EN={
 "Insel-Schutz ist an. Lucifer steht in der Tür.": "Island guard is on. Lucifer is standing in the doorway.",
 "Du findest den Insel-Schutz jederzeit in den Einstellungen unter iPhone.": "You'll find the island guard anytime in Settings under iPhone.",
 "Jetzt einrichten": "Set up now",
+"Heute bis jetzt": "Today so far",
+"noch frei": "left",
+"⏱ Wird um Mitternacht automatisch eingetragen.": "⏱ Will be logged automatically at midnight.",
 };
