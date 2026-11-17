@@ -2,18 +2,18 @@
 
 **Grow your world beyond the screen.**
 
-Ein kleines Handy-Spiel gegen zu viel Bildschirmzeit: Du trägst jeden Abend ein, wie lange du am Handy warst. Bleibst du im Budget, wird deine Insel glücklicher – es ziehen neue Bewohner ein, es gibt Nachwuchs, Großprojekte wie Leuchtturm und Windmühle entstehen. Zu viel Handy bringt Wolken, Streit und App-Monster.
+Ein kleines Handy-Spiel gegen zu viel Bildschirmzeit: Du trägst jeden Abend ein, wie lange du am Handy warst. Bleibst du im Budget, wird deine Insel glücklicher – es ziehen neue Bewohner ein, es gibt Nachwuchs, Großprojekte wie Leuchtturm und Windmühle entstehen. Zu viel Handy bringt Wolken und Streit.
 
 ## Funktionen
 
 - **Startbildschirm und Konten:** mehrere Profile pro Gerät mit Name, Avatar und freiwilliger PIN; Konto bearbeiten, abmelden und löschen
 - **Heute:** Bildschirmzeit eintragen, Quests, echte Aktivitäten, Fokus-Bootsfahrt, Gute-Nacht-Ritual, Urlaubsmodus
 - **Bewohner:** Menschen mit Berufen und Eigenschaften, Tiere, Beziehungen, Streit, Liebe, Stammbaum, Chronik
-- **Zeit:** zurückgewonnene Zeit, Hochrechnung aufs Jahr, App-Monster-Statistik
+- **Zeit:** zurückgewonnene Zeit, Hochrechnung aufs Jahr, Fokuszeit
 - **Bauen:** Inselladen mit Vorräten, Nützlichem und Deko (26 animierte Gegenstände), Händlerschiff, zehn Großprojekte vom Leuchtturm bis zum Beachclub
 - **Gemeinsam:** Insel als Story-Bild teilen (1080 × 1920, z. B. „8 Tage in Folge unter 3 Stunden“), Freunde per Link mit Code einladen, gemeinsame Ziele (7 gute Tage, +150 Punkte) und ein Monat OffLand Plus für beide. Plus ist vorerst eine Vorschau (+10 % Punkte, goldener Rahmen) und wird später mit Apple-Abo und Server echt geprüft
 - **Freunde und Ranglisten (online, freiwillig):** Freund:innen per Code oder Einladungslink verbinden, Wochen-Rangliste unter Freund:innen und für alle (wer war im Schnitt am wenigsten am Handy). Läuft über Firebase. Einrichtung: [docs/online.md](docs/online.md)
-- **Sanfter Einstieg:** In der ersten Woche werden Funktionen Tag für Tag freigeschaltet (Quests, Laden, Fokus-Boot, App-Monster, Freunde, Album, Weltreise), jeweils mit kurzer Vorstellung
+- **Sanfter Einstieg:** In der ersten Woche werden Funktionen Tag für Tag freigeschaltet (Quests, Laden, Fokus-Boot, Freunde, Album, Weltreise), jeweils mit kurzer Vorstellung
 - **Bildschirmzeit automatisch (iPhone-App):** misst über Apples Bildschirmzeit in 5-Minuten-Schritten mit und füllt den Tag vor (Einrichtung: [docs/testflight.md](docs/testflight.md))
 - **Familieninsel:** gemeinsame Insel für die Familie mit Familienprojekten, gesparter Zeit und Tagesstatus aller Mitglieder; jede:r behält die eigene Insel
 - **Online-Backup (freiwillig):** verschlüsselt, mit Wiederherstellungs-Code für ein neues Handy

@@ -196,7 +196,9 @@ const RARE=[
   {id:"teleskop",n:"Teleskop",cost:280,fx:"Mehr Strandgut am Morgen."},
   {id:"muschelweg",n:"Muschelweg",cost:200,fx:"Ein glitzernder Weg über die Insel."}
 ];
-/* App-Monster: jede Zeitfresser-App bekommt ein Wesen */
+/* App-Monster: jede Zeitfresser-App bekommt ein Wesen. Vorerst ausgeschaltet (App einfacher halten): kein Eintragen pro App,
+   keine Monster auf der Insel, keine Limits in den Einstellungen. Code bleibt, falls sie zurückkommen. */
+const APP_MONSTER=false;
 const DEFAULT_APPS=[
   {id:"insta",name:"Instagram",limit:45,m:"krake"},
   {id:"tiktok",name:"TikTok",limit:30,m:"strudel"},
@@ -395,7 +397,7 @@ const FEATURES=[
   {id:"mission",day:1,name:"Mission des Tages",text:"Jeden Tag eine kleine Aufgabe ohne Handy. Schaffst du sie, gibt es Punkte und Glück.",tab:"heute",ic:'<path d="M6 21V4M6 4h11l-2.5 4.5L17 13H6"/>'},
   {id:"nacht",day:2,name:"Gute-Nacht-Ritual",text:"Schick die Insel abends schlafen und leg das Handy weg. Morgen gibt es Traumpunkte.",tab:"heute",ic:'<path d="M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z"/>'},
   {id:"zeit",day:2,name:"Zeit-Statistik",text:"Im Tab Zeit siehst du, wie viel Handyzeit du schon gespart hast und was du damit gemacht hast.",tab:"zeit",ic:'<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>'},
-  {id:"monster",day:3,name:"App-Monster",text:"Trag beim Tagesabschluss die Zeit pro App ein. Wer ein Limit sprengt, lockt ein Monster an.",tab:"heute",ic:'<circle cx="12" cy="11" r="7"/><circle cx="9.5" cy="10" r="1"/><circle cx="14.5" cy="10" r="1"/>'},
+  ...(APP_MONSTER?[{id:"monster",day:3,name:"App-Monster",text:"Trag beim Tagesabschluss die Zeit pro App ein. Wer ein Limit sprengt, lockt ein Monster an.",tab:"heute",ic:'<circle cx="12" cy="11" r="7"/><circle cx="9.5" cy="10" r="1"/><circle cx="14.5" cy="10" r="1"/>'}]:[]),
   {id:"freunde",day:3,name:"Freunde und Ranglisten",text:"Lade Freund:innen ein, vergleicht euch jede Woche und bekommt einmalig zusammen einen Monat Plus.",tab:"freunde",ic:'<path d="M8 4h8v5a4 4 0 0 1-8 0zM12 13v4M8 20h8"/>'},
   {id:"album",day:4,name:"Album",text:"Postkarten, Strandgut, Zeitkapseln und dein Inseltagebuch.",tab:"verlauf",ic:'<path d="M4 5h7v15H4zM13 5h7v15h-7z"/>'},
   {id:"fest",day:6,name:"Monatsfest",text:"Jeden Monat ein neues Fest. Bleib an genug Tagen im Budget, dann feiert die Insel und du bekommst den Monatsstempel fürs Album.",tab:"heute",ic:'<path d="M5 21V5l7 4 7-4v16"/><path d="M5 13l7 4 7-4"/>'},
@@ -403,6 +405,7 @@ const FEATURES=[
 ];
 const TAB_FEATURE={zeit:"zeit",freunde:"freunde",verlauf:"album"};
 function feature(id){
+  if(id==="monster") return APP_MONSTER;
   if(S.allFeatures) return true;
   const f=FEATURES.find(x=>x.id===id); if(!f) return true;
   if(id==="freunde"&&(S.buddies.length||(S.online&&S.online.on)||S.family||(typeof pendingInvite==="function"&&(pendingInvite()||famInvite())))) return true;
@@ -3401,7 +3404,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.91";
+const APP_VERSION="1.92";
 // Entwicklermodus: per Schalter (7× auf „Version“) oder lokal im Browser. Die iPhone-App läuft auch unter
 // „localhost“ (capacitor://localhost), dort zählt nur der Schalter, sonst sähen alle den Entwickler-Bereich.
 function devMode(){try{const C=window.Capacitor, app=!!(C&&C.isNativePlatform&&C.isNativePlatform());
@@ -3629,7 +3632,7 @@ function zeitDid(){
 function zeitPlusTeaser(){
   return `<div class="plus-lock"><div class="plus-blur" aria-hidden="true" inert>${zeitCal()||""}${zeitBest()||""}</div>
     <div class="plus-veil"><p class="ps-star">★ OffLand Plus</p><p style="font:800 19px/1.2 var(--display)">Mehr aus deiner Zeit</p>
-      <p class="small muted">Dein Inseljahr als Kalender, Bestwerte, die Hochrechnung aufs Jahr und die Auswertung von Fokuszeit und App-Monstern.</p>
+      <p class="small muted">Dein Inseljahr als Kalender, Bestwerte, die Hochrechnung aufs Jahr und die Auswertung deiner Fokuszeit.</p>
       <button class="btn" data-pluspw="zeit">Plus ansehen</button></div></div>`;
 }
 function viewZeit(){
@@ -3674,9 +3677,9 @@ function viewZeit(){
     <p class="small muted">${over?`Über dem Budget verbracht: <b style="color:var(--coral)">${hm(over)}</b>. Das wären gewesen: ${esc(eqText(equivTop(over)))}.`:"Bisher bist du immer im Budget geblieben."}</p>
   </div>
   ${fc?`<details class="card zt-fold"><summary><span class="grow"><b>Fokuszeit</b><span class="small muted">insgesamt ${hm(S.focusMin||0)}</span></span><span class="muted zt-chev">›</span></summary>${fc}</details>`:""}
-  <details class="card zt-fold"><summary><svg width="40" height="32" viewBox="-24 -34 48 40" aria-hidden="true">${monsterSvg((worst||apps[0]).a.m)}</svg><span class="grow"><b>App-Monster</b><span class="small muted">${worst?esc(worst.a.name)+" frisst am meisten: "+hm(worst.tot):"Noch keine Minuten pro App eingetragen"}</span></span><span class="muted zt-chev">›</span></summary>
+  ${APP_MONSTER?`<details class="card zt-fold"><summary><svg width="40" height="32" viewBox="-24 -34 48 40" aria-hidden="true">${monsterSvg((worst||apps[0]).a.m)}</svg><span class="grow"><b>App-Monster</b><span class="small muted">${worst?esc(worst.a.name)+" frisst am meisten: "+hm(worst.tot):"Noch keine Minuten pro App eingetragen"}</span></span><span class="muted zt-chev">›</span></summary>
   ${apps.map(({a,ds,tot,over})=>`<div class="row" style="padding:6px 0;border-top:1px solid var(--card2)"><svg width="44" height="36" viewBox="-24 -34 48 40" aria-hidden="true" style="${over?"":"opacity:.35"}">${monsterSvg(a.m)}</svg><div class="grow"><p><b>${esc(a.name)}</b> <span class="small muted">· Limit ${a.limit} min</span></p><p class="small muted">${ds.length?`${hm(tot)} in ${ds.length} Tagen · ${over}× ${esc(monName(a,false))} aufgetaucht`:"Noch nicht eingetragen"}</p></div></div>`).join("")}
-  <p class="small muted">Trag beim Tagesabschluss die Minuten pro App ein, dann siehst du hier, welche App die meiste Zeit frisst.</p></details>`}
+  <p class="small muted">Trag beim Tagesabschluss die Minuten pro App ein, dann siehst du hier, welche App die meiste Zeit frisst.</p></details>`:""}`}
   <p class="small muted" style="padding:0 4px">Die Umrechnungen sind Faustwerte, zum Beispiel 30 Minuten für einen Spaziergang, 90 Minuten für einen Kinofilm oder 8 Stunden für ein Buch mit 250 Seiten.</p>`;
 }
 /* Händlerschiff: ganz oben im Tab Bauen, solange es da ist */
@@ -4004,9 +4007,9 @@ function settingsHtml(){
       ${setToggle("vacToggle","bag",IC_G,"Urlaubsmodus","Die Insel schläft, nichts geht verloren",!!S.vacation)}
       ${setToggle("deathToggle","leaf",IC_G,"Natürlicher Abschied","Bewohner können im hohen Alter gehen",!!S.natDeath)}
       ${S.allFeatures?"":setToggle("allFeat","spark",IC_G,"Alle Funktionen sofort zeigen","Statt nach und nach",false)}
-      <details class="set-row set-more"><summary>${setIco("phone",IC_G)}<span class="set-t"><b>App-Limits für die Monster</b><small>Ab wie vielen Minuten ein Monster auftaucht</small></span><span class="set-chev" aria-hidden="true">›</span></summary>
+      ${APP_MONSTER?`<details class="set-row set-more"><summary>${setIco("phone",IC_G)}<span class="set-t"><b>App-Limits für die Monster</b><small>Ab wie vielen Minuten ein Monster auftaucht</small></span><span class="set-chev" aria-hidden="true">›</span></summary>
         <div class="set-lims">${S.apps.map(a=>`<label class="field" for="lim_${a.id}"><span>${esc(a.name)}</span><span class="set-lim"><input id="lim_${a.id}" type="number" min="5" max="600" step="5" value="${a.limit}" data-lim="${a.id}"><i>min</i></span></label>`).join("")}</div>
-      </details>
+      </details>`:""}
     </div>`;
   const ton=`<div class="card set-list">
       ${setToggle("soundToggle","sound",IC_G,"Töne und Geräusche","",S.sound!==false)}
@@ -7577,7 +7580,7 @@ function login(p){
   ACC=p; LS=profKey(p.id);
   try{sessionStorage.setItem(SESSION_KEY,p.id)}catch(e){}
   updateProfile(p.id,{last:Date.now()});
-  const st=lsGet(); S=migrate(st&&st.v===1?st:newGame()); tab="heute"; if(S.setup) checkDiscovery();
+  const st=lsGet(); S=migrate(st&&st.v===1?st:newGame()); tab="heute"; if(!APP_MONSTER) S.monsters=[]; if(S.setup) checkDiscovery();
   document.body.classList.remove("start"); $("#start").innerHTML="";
   closeModal(); render(); window.scrollTo(0,0);
   if(S.setup){chapterCheck(true);save()}

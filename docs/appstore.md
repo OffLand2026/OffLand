@@ -44,7 +44,7 @@ SO FUNKTIONIERT'S
 • Setz dir ein Tagesziel für deine Bildschirmzeit.
 • OffLand misst auf dem iPhone automatisch mit und trägt jeden Tag um Mitternacht selbst ein. Du kannst auch von Hand eintragen.
 • Bleibst du im Ziel, wird deine Insel glücklicher: Bewohner ziehen ein, Großprojekte entstehen, Feste werden gefeiert.
-• Zu viel Handy bringt Wolken, Streit und App-Monster vor die Küste.
+• Zu viel Handy bringt Wolken und Streit auf die Insel.
 
 KURZ REIN, KURZ RAUS
 OffLand will dich nicht festhalten. Morgens gibt es eine kurze Zusammenfassung, kurze Besuche bringen Bonuspunkte, und nach fünf Minuten fragt Lucifer, ob du nicht langsam gehen willst.
