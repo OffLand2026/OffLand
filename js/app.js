@@ -3404,7 +3404,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.92";
+const APP_VERSION="1.93";
 // Entwicklermodus: per Schalter (7× auf „Version“) oder lokal im Browser. Die iPhone-App läuft auch unter
 // „localhost“ (capacitor://localhost), dort zählt nur der Schalter, sonst sähen alle den Entwickler-Bereich.
 function devMode(){try{const C=window.Capacitor, app=!!(C&&C.isNativePlatform&&C.isNativePlatform());
@@ -7845,6 +7845,8 @@ function deleteSheet(){
   modal(`<p class="label" style="color:var(--coral)">Konto löschen</p><h2>„${esc(ACC.name)}“ wirklich löschen?</h2>
     <p class="muted">Deine Insel mit allen Bewohnern, eingetragenen Tagen, Postkarten und Punkten wird von diesem Gerät gelöscht. Das lässt sich nicht rückgängig machen.</p>
     <button class="btn secondary" id="delBackup">Vorher Sicherung herunterladen</button>
+    ${plusSubOn()?`<div class="del-sub"><p class="small"><b style="color:var(--amber)">★ Dein OffLand-Plus-Abo läuft über deine Apple-ID weiter.</b> Das Löschen kündigt es nicht. Kündigen kannst du es in den Abo-Einstellungen von Apple.</p>
+      <button class="btn secondary" id="delSub">Abo bei Apple verwalten</button></div>`:""}
     ${ACC.pin?pinField("delPin","Zur Bestätigung deine PIN"):""}
     <p class="small muted" style="margin-bottom:-4px">Magst du uns sagen, warum? (freiwillig, anonym)</p>
     <div class="del-why" role="radiogroup" aria-label="Grund">${DEL_WHY.map(([k,t])=>`<button type="button" class="chip" data-why="${k}" aria-pressed="false">${t}</button>`).join("")}</div>
@@ -7856,6 +7858,8 @@ function deleteSheet(){
     document.querySelectorAll("#modalRoot [data-why]").forEach(x=>{const on=x.dataset.why===why;x.classList.toggle("on",on);x.setAttribute("aria-pressed",on)})});
   sure.onchange=()=>{yes.disabled=!sure.checked};
   $("#delBackup").onclick=exportSave; $("#delNo").onclick=accountSheet;
+  // Abo kündigt nur Apple: in der iPhone-App Apples Abo-Verwaltung, sonst die Abo-Seite der Apple-ID
+  const ds=$("#delSub"); if(ds) ds.onclick=async()=>{const st=plusStore(); try{if(st&&st.manage){await st.manage(); return}}catch(e){} window.open("https://apps.apple.com/account/subscriptions","_blank")};
   yes.onclick=async()=>{
     if(ACC.pin&&await hashPin($("#delPin").value,ACC.salt)!==ACC.pin) return $("#delErr").textContent="Die PIN stimmt nicht.";
     const id=ACC.id;
