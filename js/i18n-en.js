@@ -3109,4 +3109,5 @@ window.OFFLAND_EN={
 "Guten Morgen": "Good morning",
 "Guten Morgen, {0}": "Good morning, {0}",
 "{0} am Handy · {1} {2} dem Ziel": "{0} on the phone · {1} {2} target",
+"Morgen-Zusammenfassung": "Morning summary",
 };

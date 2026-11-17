@@ -29,3 +29,15 @@ test("Nach 5 Minuten fragt Lucifer, ob du nicht gehen willst", async ({ page }) 
   await page.click("#lucOk");
   await expect(page.locator("#lucGo")).toHaveCount(0);
 });
+
+test("Entwickler-Vorschau zeigt die Morgen-Zusammenfassung mit Beispielwerten", async ({ page }) => {
+  await newGame(page, "Mia");
+  await page.evaluate(() => { T.S.pending = []; document.getElementById("modalRoot").innerHTML = ""; T.settingsSheet(); });
+  const pts = await page.evaluate(() => T.S.points);
+  await page.click("#devMorn");
+  await expect(page.locator("#modalRoot")).toContainText("Über Nacht auf deiner Insel");
+  await expect(page.locator("#modalRoot")).toContainText("Auch eingetragen:");
+  await expect(page.locator("#msOk")).toHaveText("Danke für die schnelle Übersicht");
+  await page.click("#msOk");
+  expect(await page.evaluate(() => T.S.points)).toBe(pts);   // nur Vorschau
+});
