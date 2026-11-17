@@ -3401,7 +3401,7 @@ function whisperSheet(){
   sheet(`<p class="label">Inselgeflüster</p><h2>Was heute erzählt wird</h2><div class="whisper" style="display:flex;flex-direction:column;gap:10px">${whisperRow(null,lucLine())}${whispers().map(w=>whisperRow(w.r,w.t)).join("")}</div><button class="btn" data-ok>Schließen</button>`);
 }
 /* Entwicklermodus: 7-mal auf die Versionszeile in den Einstellungen tippen (lokal immer an) */
-const APP_VERSION="1.90";
+const APP_VERSION="1.91";
 // Entwicklermodus: per Schalter (7× auf „Version“) oder lokal im Browser. Die iPhone-App läuft auch unter
 // „localhost“ (capacitor://localhost), dort zählt nur der Schalter, sonst sähen alle den Entwickler-Bereich.
 function devMode(){try{const C=window.Capacitor, app=!!(C&&C.isNativePlatform&&C.isNativePlatform());
@@ -4034,7 +4034,7 @@ function settingsHtml(){
       ${diagHtml()}
       <div class="set-row" id="verLine" style="user-select:none">${setIco("info",IC_O)}<span class="set-t"><b>Version</b>${devMode()?"<small>Entwicklermodus</small>":""}</span><span class="set-val num">${APP_VERSION}</span></div>
     </div>`;
-  const devPrev=[["devSsn","Saison-Fenster"],["devWrap","Inseljahr-Story"],["devKurier","Insel-Kurier"],["devLive","Live-Insel"],["devShi","Insel-Schutz-Intro"]];
+  const devPrev=[["devSsn","Saison-Fenster"],["devWrap","Inseljahr-Story"],["devKurier","Insel-Kurier"],["devLive","Live-Insel"],["devShi","Insel-Schutz-Intro"],["devMorn","Morgen-Zusammenfassung"]];
   const dev=devMode()||S.testmode?`<details class="set-group set-dev"${S.testmode||devMode()?" open":""}><summary class="set-h">Entwickler</summary>
     <div class="card set-list">
       ${setToggle("tm","history",IC_O,"Testmodus","Beliebig viele Tage eintragen oder zufällig simulieren",!!S.testmode)}
@@ -4286,6 +4286,9 @@ function bind(){
   const dps=$("#devPlusSim"); if(dps) dps.onchange=()=>{try{dps.checked?localStorage.setItem("offland-store-sim","1"):localStorage.removeItem("offland-store-sim")}catch(e){} if(!dps.checked) plusSync(); save(); settingsSheet()};
   const dpo=$("#devPlusOn"); if(dpo) dpo.onclick=()=>{grantPlus(30); save(); toast("★ Plus für 30 Tage freigeschaltet"); settingsSheet()};
   const dss=$("#devSeason"); if(dss) dss.onchange=()=>{try{dss.value?localStorage.setItem("offland-season",dss.value):localStorage.removeItem("offland-season")}catch(e){} render(); settingsSheet()};
+  const dmo=$("#devMorn"); if(dmo) dmo.onclick=()=>{closeModal();   // Beispielwerte, ändert nichts am Spielstand
+    const ev={type:"day",morning:true,day:addDays(today(),-1),min:Math.max(30,S.budget-30),pts:25,before:S.glueck,after:Math.min(100,S.glueck+3),shield:3,also:[{day:addDays(today(),-2),min:S.budget+20}]};
+    morningSheet(ev,`<div class="anim">${animScene(ev)}</div>`)};
   const dshi=$("#devShi"); if(dshi) dshi.onclick=()=>{closeModal(); shieldIntroSheet()};
   const dsb=$("#devSsn"); if(dsb) dsb.onclick=()=>{const z=seasonNow(); z?seasonSheet(z.id):toast("Gerade ist keine Saison. Wähl oben eine aus.")};
   const dwr=$("#devWrap"); if(dwr) dwr.onclick=()=>{const ps=wrapPeriods(); ps.length?wrapListSheet():toast("Für einen Rückblick braucht es "+WRAP_MIN.m+" eingetragene Tage in einem Monat.")};
